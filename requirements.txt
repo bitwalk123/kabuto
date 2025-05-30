@@ -1,6 +1,7 @@
 backports.tarfile
 importlib-metadata
 jaraco.collections
+openpyxl
 pandas
 pip-chill
 pip-review

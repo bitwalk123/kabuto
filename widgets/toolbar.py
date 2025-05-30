@@ -1,30 +1,55 @@
-from PySide6.QtWidgets import QToolBar, QToolButton
+from PySide6.QtCore import Signal
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
 
 from structs.res import AppRes
 
 
 class ToolBar(QToolBar):
+    excelSelected = Signal(str)
+
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
 
         if res.debug:
-            but_open = QToolButton()
-            icon_open = res.getBuiltinIcon(self, "DialogOpenButton")
-            but_open.setIcon(icon_open)
-            self.addWidget(but_open)
+            action_open = QAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon),
+                'Excel ファイルを開く',
+                self
+            )
+            action_open.triggered.connect(self.on_select_excel)
+            self.addAction(action_open)
 
-        but_save = QToolButton()
-        icon_save = res.getBuiltinIcon(self, "DialogSaveButton")
-        but_save.setIcon(icon_save)
-        self.addWidget(but_save)
+        action_save = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
+            'データを保存する',
+            self
+        )
+        self.addAction(action_save)
 
-        but_info = QToolButton()
-        icon_info = res.getBuiltinIcon(self, "MessageBoxInformation")
-        but_info.setIcon(icon_info)
-        self.addWidget(but_info)
+        action_info = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation),
+            'アプリケーションの情報',
+            self
+        )
+        self.addAction(action_info)
 
-        but_close = QToolButton()
-        icon_close = res.getBuiltinIcon(self, "TabCloseButton")
-        but_close.setIcon(icon_close)
-        self.addWidget(but_close)
+        action_close = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_TabCloseButton),
+            'アプリケーションの終了',
+            self
+        )
+        self.addAction(action_close)
+
+    def on_select_excel(self):
+        excel_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open File",
+            self.res.dir_excel,
+            "Excel File (*.xlsx)"
+        )
+        if excel_path == "":
+            return
+        else:
+            self.excelSelected.emit(excel_path)
