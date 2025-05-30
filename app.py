@@ -4,7 +4,7 @@ import re
 import sys
 import time
 
-from PySide6.QtWidgets import QMainWindow, QApplication
+from PySide6.QtWidgets import QApplication, QMainWindow
 
 from funcs.logs import setup_logging
 from structs.res import AppRes
