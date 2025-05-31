@@ -96,6 +96,14 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
+        if self.th_reviewer is not None:
+            try:
+                if self.th_reviewer.isRunning():
+                    self.th_reviewer.quit()
+                    self.th_reviewer.deleteLater()
+            except RuntimeError as e:
+                self.logger.info(f"終了時: {e}")
+
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
