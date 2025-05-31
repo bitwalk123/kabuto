@@ -142,6 +142,7 @@ class Kabuto(QMainWindow):
 
         # シグナルとスロットの接続
         reviewer.notifyTickerN.connect(self.on_create_trader)
+        reviewer.notifyNewData.connect(self.on_update_data)
         reviewer.threadFinished.connect(self.on_thread_finished)
         reviewer.threadFinished.connect(reviewer_thread.quit)  # スレッド終了時
         reviewer_thread.finished.connect(reviewer_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -180,7 +181,7 @@ class Kabuto(QMainWindow):
     def on_play(self):
         if self.data_ready:
             self.ts_current = self.ts_start
-            self.timer.timeout.connect(self.on_update_data)
+            self.timer.timeout.connect(self.on_request_data)
             self.timer.start()
 
     def on_stop(self):
@@ -196,11 +197,18 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
-    def on_update_data(self):
-        print(self.ts_current)
+    def on_request_data(self):
+        self.reviewer.requestNewData(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()
+
+    def on_update_data(self, dict_data):
+        for ticker in dict_data.keys():
+            x, y = dict_data[ticker]
+            if y > 0:
+                trader = self.dict_trader[ticker]
+                trader.appendData(x, y)
 
 
 def main():

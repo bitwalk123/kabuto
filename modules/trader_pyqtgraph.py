@@ -36,6 +36,26 @@ class Trader(QMainWindow):
         self.chart = chart = TrendGraph()
         self.setCentralWidget(chart)
 
+        # 株価トレンドライン
+        self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=1))
+
+        # 最新株価
+        self.point_latest: pg.PlotDataItem = chart.plot(symbol='o', symbolSize=5, pxMode=True)
+
+        # 前日終値
+        self.lastclose_line: pg.InfiniteLine | None = None
+
+    def appendData(self, x, y):
+        self.data_x[self.counter] = x
+        self.data_y[self.counter] = y
+        self.counter += 1
+
+        self.trend_line.setData(
+            self.data_x[0: self.counter], self.data_y[0:self.counter]
+        )
+        self.point_latest.setData([x], [y])
+
+
     def setTimeRange(self, ts_start, ts_end):
         self.chart.setXRange(ts_start, ts_end)
 
