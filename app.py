@@ -45,13 +45,21 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__} executed as DEBUG mode!")
             # ウィンドウ・タイトル（デバッグモード）文字列
             title_window = f"{self.__app_name__} - {self.__version__} [debug mode]"
+            # タイマー間隔（ミリ秒）
+            self.t_interval = 100
         else:
             self.logger.info(f"{__name__} executed as NORMAL mode!")
             # ウィンドウ・タイトル文字列
             title_window = f"{self.__app_name__} - {self.__version__}"
+            # タイマー間隔（ミリ秒）
+            self.t_interval = 1000
 
         # デバッグ・モードを保持
         res.debug = debug
+
+        # Excel レビュー用インスタンス（スレッド）
+        self.th_reviewer: QThread | None = None
+        self.reviewer: ExcelReviewer | None = None
 
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "kabuto.png"))
@@ -66,7 +74,6 @@ class Kabuto(QMainWindow):
         # メインウィジェット
         base = Widget()
         self.setCentralWidget(base)
-
         layout = VBoxLayout()
         base.setLayout(layout)
 
@@ -76,18 +83,18 @@ class Kabuto(QMainWindow):
 
     def on_load_excel(self, excel_path: str):
         # Excel を読み込むスレッド処理
-        self.thread_reviewer = QThread()
-        self.reviewer = ExcelReviewer(excel_path)
-        self.reviewer.moveToThread(self.thread_reviewer)
+        self.th_reviewer = th_reviewer = QThread()
+        self.reviewer = reviewer = ExcelReviewer(excel_path)
+        reviewer.moveToThread(th_reviewer)
 
         # シグナルとスロットの接続
-        self.thread_reviewer.started.connect(self.reviewer.run)
-        self.reviewer.threadFinished.connect(self.on_thread_finished)
-        self.reviewer.threadFinished.connect(self.thread_reviewer.quit)  # 処理完了時にスレッドを終了
-        self.thread_reviewer.finished.connect(self.thread_reviewer.deleteLater)  # スレッドオブジェクトの削除
+        th_reviewer.started.connect(reviewer.run)
+        reviewer.threadFinished.connect(self.on_thread_finished)
+        reviewer.threadFinished.connect(th_reviewer.quit)  # 処理完了時にスレッドを終了
+        th_reviewer.finished.connect(th_reviewer.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
-        self.thread_reviewer.start()
+        self.th_reviewer.start()
 
     def on_thread_finished(self, result: bool):
         if result:
