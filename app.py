@@ -1,15 +1,13 @@
 import logging
 import os
-import re
 import sys
-import time
 
 from PySide6.QtCore import QThread
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from funcs.logs import setup_logging
-from modules.xlloader import ExcelLoader
+from modules.xlreviewer import ExcelReviewer
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
@@ -76,27 +74,22 @@ class Kabuto(QMainWindow):
         self.statusbar = statusbar = StatusBar(res)
         self.setStatusBar(statusbar)
 
-    def on_error(self):
-        print("Excelファイルの読み込みに失敗しました。")
-
     def on_load_excel(self, excel_path: str):
         # Excel を読み込むスレッド処理
-        self.xl_thread = QThread()
-        self.xl_loader = ExcelLoader(excel_path)
-        self.xl_loader.moveToThread(self.xl_thread)
+        self.thread_reviewer = QThread()
+        self.reviewer = ExcelReviewer(excel_path)
+        self.reviewer.moveToThread(self.thread_reviewer)
 
         # シグナルとスロットの接続
-        self.xl_thread.started.connect(self.xl_loader.run)
-        self.xl_loader.threadFinished.connect(self.on_finished_loading)
-        self.xl_loader.errorOccurred.connect(self.on_error)
-        self.xl_loader.threadFinished.connect(self.xl_thread.quit)  # 処理完了時にスレッドを終了
-        self.xl_loader.errorOccurred.connect(self.xl_thread.quit)  # エラー時にもスレッドを終了
-        self.xl_thread.finished.connect(self.xl_thread.deleteLater)  # スレッドオブジェクトの削除
+        self.thread_reviewer.started.connect(self.reviewer.run)
+        self.reviewer.threadFinished.connect(self.on_thread_finished)
+        self.reviewer.threadFinished.connect(self.thread_reviewer.quit)  # 処理完了時にスレッドを終了
+        self.thread_reviewer.finished.connect(self.thread_reviewer.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
-        self.xl_thread.start()
+        self.thread_reviewer.start()
 
-    def on_finished_loading(self, result: bool):
+    def on_thread_finished(self, result: bool):
         if result:
             print("スレッドが正常終了しました。")
         else:
