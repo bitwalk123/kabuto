@@ -45,14 +45,25 @@ class Kabuto(QMainWindow):
 
         if debug:
             self.logger.info(f"{__name__} executed as DEBUG mode!")
+
             # ウィンドウ・タイトル（デバッグモード）文字列
             title_window = f"{self.__app_name__} - {self.__version__} [debug mode]"
-            # タイマー間隔（ミリ秒）
-            self.t_interval = 100
+
+            # タイマー間隔（ミリ秒）（デバッグ時）
+            self.t_interval = 10
+
+            # タイマー開始用フラグ（データ読込済か？）
+            self.data_ready = False
+            # タイマー用カウンター（レビュー用）
+            self.ts_current = 0
+            self.ts_start = 0  # タイマー開始時
+            self.ts_end = 0  # タイマー終了時
         else:
             self.logger.info(f"{__name__} executed as NORMAL mode!")
+
             # ウィンドウ・タイトル文字列
             title_window = f"{self.__app_name__} - {self.__version__}"
+
             # タイマー間隔（ミリ秒）
             self.t_interval = 1000
 
@@ -74,6 +85,8 @@ class Kabuto(QMainWindow):
         # ツールバー
         toolbar = ToolBar(res)
         toolbar.excelSelected.connect(self.on_create_reviewer_thread)
+        toolbar.playClicked.connect(self.on_play)
+        toolbar.stopClicked.connect(self.on_stop)
         self.addToolBar(toolbar)
 
         # メインウィジェット
@@ -90,7 +103,6 @@ class Kabuto(QMainWindow):
         # タイマー
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.timer = timer = QTimer()
-        timer.timeout.connect(self.on_update_data)
         timer.setInterval(self.t_interval)
 
     def closeEvent(self, event: QCloseEvent):
@@ -145,12 +157,29 @@ class Kabuto(QMainWindow):
         self.list_trader = list()
 
         # Trader の配置
-        for ticker in list_ticker:
+        for i, ticker in enumerate(list_ticker):
             trader = Trader(self.res)
             trader.setTitle(ticker)
             trader.setTimeRange(*dict_times[ticker])
             self.layout.addWidget(trader)
             self.list_trader.append(trader)
+
+            if i == 0:
+                self.ts_start = dict_times[ticker][0]
+                self.ts_end = dict_times[ticker][1]
+
+        # データ読込済フラグを立てる
+        self.data_ready = True
+
+    def on_play(self):
+        if self.data_ready:
+            self.ts_current = self.ts_start
+            self.timer.timeout.connect(self.on_update_data)
+            self.timer.start()
+
+    def on_stop(self):
+        if self.timer.isActive():
+            self.timer.stop()
 
     def on_thread_finished(self, result: bool):
         if result:
@@ -162,7 +191,10 @@ class Kabuto(QMainWindow):
             self.timer.stop()
 
     def on_update_data(self):
-        pass
+        print(self.ts_current)
+        self.ts_current += 1
+        if self.ts_end < self.ts_current:
+            self.timer.stop()
 
 
 def main():

@@ -7,6 +7,8 @@ from structs.res import AppRes
 
 class ToolBar(QToolBar):
     excelSelected = Signal(str)
+    playClicked = Signal()
+    stopClicked = Signal()
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -26,7 +28,7 @@ class ToolBar(QToolBar):
                 'タイマー開始',
                 self
             )
-            #action_play.triggered.connect(self.on_play)
+            action_play.triggered.connect(self.on_play)
             self.addAction(action_play)
 
             action_stop = QAction(
@@ -34,7 +36,7 @@ class ToolBar(QToolBar):
                 'タイマー停止',
                 self
             )
-            # action_stop.triggered.connect(self.on_stop)
+            action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
         action_save = QAction(
@@ -69,3 +71,9 @@ class ToolBar(QToolBar):
             return
         else:
             self.excelSelected.emit(excel_path)
+
+    def on_play(self):
+        self.playClicked.emit()
+
+    def on_stop(self):
+        self.stopClicked.emit()
