@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Signal
 from funcs.ios import load_excel
 
 
-class ExcelReviewer(QObject):
+class ReviewWorker(QObject):
     # 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict)
 

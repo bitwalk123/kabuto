@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.trader_pyqtgraph import Trader
-from modules.xlreviewer import ExcelReviewer
+from modules.xlreviewer import ReviewWorker
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
@@ -61,7 +61,7 @@ class Kabuto(QMainWindow):
 
         # Excel レビュー用インスタンス（スレッド）
         self.reviewer_thread: QThread | None = None
-        self.reviewer: ExcelReviewer | None = None
+        self.reviewer: ReviewWorker | None = None
 
         # ticker インスタンスを保持するリスト
         self.list_trader = list_trader = list()
@@ -121,7 +121,7 @@ class Kabuto(QMainWindow):
         """
         # Excelを読み込むスレッド処理
         self.reviewer_thread = reviewer_thread = QThread()
-        self.reviewer = reviewer = ExcelReviewer(excel_path)
+        self.reviewer = reviewer = ReviewWorker(excel_path)
         reviewer.moveToThread(reviewer_thread)
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
