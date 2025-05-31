@@ -74,7 +74,7 @@ class Kabuto(QMainWindow):
         # メインウィジェット
         base = Widget()
         self.setCentralWidget(base)
-        layout = VBoxLayout()
+        self.layout = layout = VBoxLayout()
         base.setLayout(layout)
 
         # ステータス・バー
@@ -89,12 +89,16 @@ class Kabuto(QMainWindow):
 
         # シグナルとスロットの接続
         th_reviewer.started.connect(reviewer.run)
+        reviewer.notifyTickerN.connect(self.on_ticker_num)
         reviewer.threadFinished.connect(self.on_thread_finished)
         reviewer.threadFinished.connect(th_reviewer.quit)  # 処理完了時にスレッドを終了
         th_reviewer.finished.connect(th_reviewer.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
         self.th_reviewer.start()
+
+    def on_ticker_num(self, n):
+        print(n)
 
     def on_thread_finished(self, result: bool):
         if result:

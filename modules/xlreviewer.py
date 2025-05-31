@@ -6,6 +6,9 @@ from funcs.io import load_excel
 
 
 class ExcelReviewer(QObject):
+    # 銘柄数の通知
+    notifyTickerN = Signal(int)
+
     # スレッド完了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
@@ -18,11 +21,13 @@ class ExcelReviewer(QObject):
         try:
             dict_sheet = load_excel(self.excel_path)
         except Exception as e:
-            self.logger.critical(f"Excelファイルの読み込み中にエラーが発生しました: {e}")
+            msg = "Excelファイルの読み込み中にエラーが発生しました:"
+            self.logger.critical(f"{msg} {e}")
             self.threadFinished.emit(False)
             return
 
-        print(dict_sheet)
+        # シート数 = 銘柄数の通知
+        self.notifyTickerN.emit(len(dict_sheet))
 
-        # 　スレッドの終了
+        # スレッドの終了
         self.threadFinished.emit(True)
