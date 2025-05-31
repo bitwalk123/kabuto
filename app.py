@@ -50,7 +50,7 @@ class Kabuto(QMainWindow):
             title_window = f"{self.__app_name__} - {self.__version__} [debug mode]"
 
             # タイマー間隔（ミリ秒）（デバッグ時）
-            self.timer_interval = 10
+            self.timer_interval = 100
 
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
