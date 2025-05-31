@@ -143,6 +143,9 @@ class Kabuto(QMainWindow):
         else:
             print("スレッドが異常終了しました。")
 
+        if self.timer.isActive():
+            self.timer.stop()
+
     def on_update_data(self):
         pass
 
