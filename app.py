@@ -153,21 +153,26 @@ class Kabuto(QMainWindow):
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
 
-        # Trader リストのクリア
+        # Trader 辞書のクリア
         self.dict_trader = dict()
 
         # Trader の配置
         for i, ticker in enumerate(list_ticker):
             trader = Trader(self.res)
-            trader.setTitle(ticker)
-            trader.setTimeRange(*dict_times[ticker])
-            self.layout.addWidget(trader)
+
+            # Trader 辞書に保持
             self.dict_trader[ticker] = trader
+
+            # ticker をタイトルに
+            trader.setTitle(ticker)
+            # チャートの時間範囲を設定
+            trader.setTimeRange(*dict_times[ticker])
+
+            self.layout.addWidget(trader)
 
             # ループ用処理
             if i == 0:
-                self.ts_start = dict_times[ticker][0]
-                self.ts_end = dict_times[ticker][1]
+                self.ts_start, self.ts_end = dict_times[ticker]
 
         # データ読込済フラグを立てる
         self.data_ready = True
