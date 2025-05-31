@@ -69,8 +69,8 @@ class Trader(QMainWindow):
         # bull（上昇トレンド）
         self.trend_bull = pg.ScatterPlotItem(
             size=5,
-            pen=None,
-            brush=pg.mkBrush(color=(255, 0, 255)),
+            pen=pg.mkPen(color=(255, 0, 255)),
+            brush=None,
             symbol='o',
             pxMode=True,  # サイズをピクセル単位で固定
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
@@ -80,8 +80,8 @@ class Trader(QMainWindow):
         # bear（下降トレンド）
         self.trend_bear = pg.ScatterPlotItem(
             size=5,
-            pen=None,
-            brush=pg.mkBrush(color=(0, 255, 255)),
+            pen=pg.mkPen(color=(0, 255, 255)),
+            brush=None,
             symbol='o',
             pxMode=True,  # サイズをピクセル単位で固定
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
