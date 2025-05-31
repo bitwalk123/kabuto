@@ -21,6 +21,22 @@ class ToolBar(QToolBar):
             action_open.triggered.connect(self.on_select_excel)
             self.addAction(action_open)
 
+            action_play = QAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay),
+                'タイマー開始',
+                self
+            )
+            #action_play.triggered.connect(self.on_play)
+            self.addAction(action_play)
+
+            action_stop = QAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop),
+                'タイマー停止',
+                self
+            )
+            # action_stop.triggered.connect(self.on_stop)
+            self.addAction(action_stop)
+
         action_save = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
             'データを保存する',
