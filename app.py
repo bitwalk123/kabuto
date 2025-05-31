@@ -2,7 +2,7 @@ import logging
 import os
 import sys
 
-from PySide6.QtCore import QThread, QTimer
+from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow
 
@@ -27,6 +27,7 @@ else:
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.1.0"
+    request_reviewer_init = Signal()
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -59,7 +60,7 @@ class Kabuto(QMainWindow):
         res.debug = debug
 
         # Excel レビュー用インスタンス（スレッド）
-        self.th_reviewer: QThread | None = None
+        self.reviewer_thread: QThread | None = None
         self.reviewer: ExcelReviewer | None = None
 
         # ticker インスタンスを保持するリスト
@@ -72,7 +73,7 @@ class Kabuto(QMainWindow):
 
         # ツールバー
         toolbar = ToolBar(res)
-        toolbar.excelSelected.connect(self.on_load_excel)
+        toolbar.excelSelected.connect(self.on_create_reviewer_thread)
         self.addToolBar(toolbar)
 
         # メインウィジェット
@@ -96,43 +97,57 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
-        if self.th_reviewer is not None:
+        if self.reviewer_thread is not None:
             try:
-                if self.th_reviewer.isRunning():
-                    self.th_reviewer.quit()
-                    self.th_reviewer.deleteLater()
+                if self.reviewer_thread.isRunning():
+                    self.reviewer_thread.quit()
+                    self.reviewer_thread.deleteLater()
+                    self.logger.info(f"reviewer スレッドを削除しました。")
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
 
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def on_load_excel(self, excel_path: str):
+    def on_create_reviewer_thread(self, excel_path: str):
+        """
+        保存したティックデータをレビューするためのワーカースレッドを作成
+
+        このスレッドは QThread の　run メソッドを継承していないので、
+        明示的にワーカースレッドを終了する処理をしない限り残っていてイベント待機状態になっている。
+
+        :param excel_path:
+        :return:
+        """
         # Excelを読み込むスレッド処理
-        self.th_reviewer = th_reviewer = QThread()
+        self.reviewer_thread = reviewer_thread = QThread()
         self.reviewer = reviewer = ExcelReviewer(excel_path)
-        reviewer.moveToThread(th_reviewer)
+        reviewer.moveToThread(reviewer_thread)
+
+        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        reviewer_thread.started.connect(self.request_reviewer_init.emit)
+        self.request_reviewer_init.connect(reviewer.loadExcel)
 
         # シグナルとスロットの接続
-        th_reviewer.started.connect(reviewer.run)
-        reviewer.notifyTickerN.connect(self.on_ticker_num)
+        reviewer.notifyTickerN.connect(self.on_create_trader)
         reviewer.threadFinished.connect(self.on_thread_finished)
-        reviewer.threadFinished.connect(th_reviewer.quit)  # 処理完了時にスレッドを終了
-        th_reviewer.finished.connect(th_reviewer.deleteLater)  # スレッドオブジェクトの削除
+        reviewer.threadFinished.connect(reviewer_thread.quit)  # スレッド終了時
+        reviewer_thread.finished.connect(reviewer_thread.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
-        self.th_reviewer.start()
+        self.reviewer_thread.start()
 
-    def on_ticker_num(self, list_ticker: list, dict_times: dict):
+    def on_create_trader(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
+
         # Trader リストのクリア
         self.list_trader = list()
+
         # Trader の配置
         for ticker in list_ticker:
             trader = Trader(self.res)
             trader.setTitle(ticker)
-            #trader.setTimeRange(dict_times[ticker][0], dict_times[ticker][1])
             trader.setTimeRange(*dict_times[ticker])
             self.layout.addWidget(trader)
             self.list_trader.append(trader)
@@ -148,6 +163,7 @@ class Kabuto(QMainWindow):
 
     def on_update_data(self):
         pass
+
 
 def main():
     app = QApplication(sys.argv)

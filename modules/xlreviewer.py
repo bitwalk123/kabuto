@@ -18,7 +18,7 @@ class ExcelReviewer(QObject):
         self.logger = logging.getLogger(__name__)
         self.excel_path = excel_path
 
-    def run(self):
+    def loadExcel(self):
         try:
             dict_sheet = load_excel(self.excel_path)
         except Exception as e:
@@ -40,4 +40,4 @@ class ExcelReviewer(QObject):
         self.notifyTickerN.emit(list(dict_sheet.keys()), dict_times)
 
         # スレッドの終了
-        self.threadFinished.emit(True)
+        #self.threadFinished.emit(True)
