@@ -40,7 +40,17 @@ class Trader(QMainWindow):
         self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=1))
 
         # 最新株価
-        self.point_latest: pg.PlotDataItem = chart.plot(symbol='o', symbolSize=5, pxMode=True)
+        # self.point_latest: pg.PlotDataItem = chart.plot(symbol='o', symbolSize=5, pxMode=True)
+        self.point_latest = pg.ScatterPlotItem(
+            size=5,  # 例として少し小さめに
+            # pen=pg.mkPen(color=(255, 165, 0), width=1), # 緑色の境界線
+            pen=None,
+            brush=pg.mkBrush(color=(255, 165, 0)),
+            symbol='o',  # 丸い点
+            pxMode=True,  # サイズをピクセル単位で固定
+            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
+        )
+        chart.addItem(self.point_latest)
 
         # 前日終値
         self.lastclose_line: pg.InfiniteLine | None = None
@@ -54,7 +64,6 @@ class Trader(QMainWindow):
             self.data_x[0: self.counter], self.data_y[0:self.counter]
         )
         self.point_latest.setData([x], [y])
-
 
     def setTimeRange(self, ts_start, ts_end):
         self.chart.setXRange(ts_start, ts_end)
