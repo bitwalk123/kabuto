@@ -27,7 +27,8 @@ else:
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.1.0"
-    request_reviewer_init = Signal()
+
+    request_review_init = Signal()
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -71,8 +72,8 @@ class Kabuto(QMainWindow):
         res.debug = debug
 
         # Excel レビュー用インスタンス（スレッド）
-        self.reviewer_thread: QThread | None = None
-        self.reviewer: ReviewWorker | None = None
+        self.review_thread: QThread | None = None
+        self.review: ReviewWorker | None = None
 
         # ticker インスタンスを保持する辞書
         self.dict_trader = dict()
@@ -84,7 +85,7 @@ class Kabuto(QMainWindow):
 
         # ツールバー
         toolbar = ToolBar(res)
-        toolbar.excelSelected.connect(self.on_create_reviewer_thread)
+        toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_play)
         toolbar.stopClicked.connect(self.on_stop)
         self.addToolBar(toolbar)
@@ -104,16 +105,18 @@ class Kabuto(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
+        if debug:
+            timer.timeout.connect(self.on_request_data_review)
 
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
             self.timer.stop()
 
-        if self.reviewer_thread is not None:
+        if self.review_thread is not None:
             try:
-                if self.reviewer_thread.isRunning():
-                    self.reviewer_thread.quit()
-                    self.reviewer_thread.deleteLater()
+                if self.review_thread.isRunning():
+                    self.review_thread.quit()
+                    self.review_thread.deleteLater()
                     self.logger.info(f"reviewer スレッドを削除しました。")
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
@@ -121,7 +124,7 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def on_create_reviewer_thread(self, excel_path: str):
+    def on_create_review_thread(self, excel_path: str):
         """
         保存したティックデータをレビューするためのワーカースレッドを作成
 
@@ -132,23 +135,23 @@ class Kabuto(QMainWindow):
         :return:
         """
         # Excelを読み込むスレッド処理
-        self.reviewer_thread = reviewer_thread = QThread()
-        self.reviewer = reviewer = ReviewWorker(excel_path)
-        reviewer.moveToThread(reviewer_thread)
+        self.review_thread = review_thread = QThread()
+        self.review = review = ReviewWorker(excel_path)
+        review.moveToThread(review_thread)
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
-        reviewer_thread.started.connect(self.request_reviewer_init.emit)
-        self.request_reviewer_init.connect(reviewer.loadExcel)
+        review_thread.started.connect(self.request_review_init.emit)
+        self.request_review_init.connect(review.loadExcel)
 
         # シグナルとスロットの接続
-        reviewer.notifyTickerN.connect(self.on_create_trader)
-        reviewer.notifyNewData.connect(self.on_update_data)
-        reviewer.threadFinished.connect(self.on_thread_finished)
-        reviewer.threadFinished.connect(reviewer_thread.quit)  # スレッド終了時
-        reviewer_thread.finished.connect(reviewer_thread.deleteLater)  # スレッドオブジェクトの削除
+        review.notifyTickerN.connect(self.on_create_trader)
+        review.notifyNewData.connect(self.on_update_data)
+        review.threadFinished.connect(self.on_thread_finished)
+        review.threadFinished.connect(review_thread.quit)  # スレッド終了時
+        review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
-        self.reviewer_thread.start()
+        self.review_thread.start()
 
     def on_create_trader(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
@@ -181,7 +184,6 @@ class Kabuto(QMainWindow):
     def on_play(self):
         if self.data_ready:
             self.ts_current = self.ts_start
-            self.timer.timeout.connect(self.on_request_data)
             self.timer.start()
 
     def on_stop(self):
@@ -197,8 +199,8 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
-    def on_request_data(self):
-        self.reviewer.requestNewData(self.ts_current)
+    def on_request_data_review(self):
+        self.review.requestNewData(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()

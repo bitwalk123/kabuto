@@ -54,7 +54,7 @@ class Trader(QMainWindow):
 
         # 最新株価
         self.point_latest = pg.ScatterPlotItem(
-            size=5,
+            size=6,
             pen=None,
             brush=pg.mkBrush(color=(255, 165, 0)),
             symbol='o',
@@ -68,7 +68,7 @@ class Trader(QMainWindow):
 
         # bull（上昇トレンド）
         self.trend_bull = pg.ScatterPlotItem(
-            size=5,
+            size=3,
             pen=pg.mkPen(color=(255, 0, 255)),
             brush=None,
             symbol='o',
@@ -79,7 +79,7 @@ class Trader(QMainWindow):
 
         # bear（下降トレンド）
         self.trend_bear = pg.ScatterPlotItem(
-            size=5,
+            size=3,
             pen=pg.mkPen(color=(0, 255, 255)),
             brush=None,
             symbol='o',
