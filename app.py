@@ -208,7 +208,7 @@ class Kabuto(QMainWindow):
             x, y = dict_data[ticker]
             if y > 0:
                 trader = self.dict_trader[ticker]
-                trader.appendData(x, y)
+                trader.addData(x, y)
 
 
 def main():

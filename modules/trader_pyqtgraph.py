@@ -19,14 +19,18 @@ class Trader(QMainWindow):
         # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
         self.max_data_points = 19800
 
-        # カウンター
-        self.counter = 0
-
         # データ領域の確保
         self.data_x = np.empty(self.max_data_points, dtype=np.float64)
         self.data_y = np.empty(self.max_data_points, dtype=np.float64)
+        # データ点用のカウンター
+        self.counter_data = 0
+
         self.bull_y = np.empty(self.max_data_points, dtype=np.float64)
+        # bull 用のカウンター
+        self.counter_bull = 0
         self.bear_y = np.empty(self.max_data_points, dtype=np.float64)
+        # bear 用のカウンター
+        self.counter_bull = 0
 
         # 右側のドック
         self.dock = dock = DockTrader(res)
@@ -40,13 +44,11 @@ class Trader(QMainWindow):
         self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=1))
 
         # 最新株価
-        # self.point_latest: pg.PlotDataItem = chart.plot(symbol='o', symbolSize=5, pxMode=True)
         self.point_latest = pg.ScatterPlotItem(
-            size=5,  # 例として少し小さめに
-            # pen=pg.mkPen(color=(255, 165, 0), width=1), # 緑色の境界線
+            size=5,
             pen=None,
             brush=pg.mkBrush(color=(255, 165, 0)),
-            symbol='o',  # 丸い点
+            symbol='o',
             pxMode=True,  # サイズをピクセル単位で固定
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
         )
@@ -55,15 +57,18 @@ class Trader(QMainWindow):
         # 前日終値
         self.lastclose_line: pg.InfiniteLine | None = None
 
-    def appendData(self, x, y):
-        self.data_x[self.counter] = x
-        self.data_y[self.counter] = y
-        self.counter += 1
+    def addData(self, x: np.float64, y: np.float64):
+        self.data_x[self.counter_data] = x
+        self.data_y[self.counter_data] = y
+        self.counter_data += 1
 
         self.trend_line.setData(
-            self.data_x[0: self.counter], self.data_y[0:self.counter]
+            self.data_x[0: self.counter_data], self.data_y[0:self.counter_data]
         )
         self.point_latest.setData([x], [y])
+
+    def addPSAR(self):
+        pass
 
     def setTimeRange(self, ts_start, ts_end):
         self.chart.setXRange(ts_start, ts_end)

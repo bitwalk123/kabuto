@@ -39,12 +39,13 @@ class ToolBar(QToolBar):
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
-        action_save = QAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
-            'データを保存する',
-            self
-        )
-        self.addAction(action_save)
+            action_save = QAction(
+                self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
+                'データを保存する',
+                self
+            )
+            self.addAction(action_save)
+        # --- debug ここまで ---
 
         action_info = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation),
