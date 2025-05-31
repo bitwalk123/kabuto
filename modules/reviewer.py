@@ -33,7 +33,7 @@ class ReviewWorker(QObject):
             df = dict_sheet[ticker]
             dt = datetime.datetime.fromtimestamp(df['Time'].iloc[0])
             dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
+            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
             dict_times[ticker] = [dt_start.timestamp(), dt_end.timestamp()]
 
         # 銘柄名（リスト）の通知

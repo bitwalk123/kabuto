@@ -50,7 +50,7 @@ class Kabuto(QMainWindow):
             title_window = f"{self.__app_name__} - {self.__version__} [debug mode]"
 
             # タイマー間隔（ミリ秒）（デバッグ時）
-            self.t_interval = 10
+            self.timer_interval = 10
 
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
@@ -65,7 +65,7 @@ class Kabuto(QMainWindow):
             title_window = f"{self.__app_name__} - {self.__version__}"
 
             # タイマー間隔（ミリ秒）
-            self.t_interval = 1000
+            self.timer_interval = 1000
 
         # デバッグ・モードを保持
         res.debug = debug
@@ -74,8 +74,8 @@ class Kabuto(QMainWindow):
         self.reviewer_thread: QThread | None = None
         self.reviewer: ReviewWorker | None = None
 
-        # ticker インスタンスを保持するリスト
-        self.list_trader = list_trader = list()
+        # ticker インスタンスを保持する辞書
+        self.dict_trader = dict()
 
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "kabuto.png"))
@@ -103,7 +103,7 @@ class Kabuto(QMainWindow):
         # タイマー
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.timer = timer = QTimer()
-        timer.setInterval(self.t_interval)
+        timer.setInterval(self.timer_interval)
 
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
@@ -154,7 +154,7 @@ class Kabuto(QMainWindow):
         clear_boxlayout(self.layout)
 
         # Trader リストのクリア
-        self.list_trader = list()
+        self.dict_trader = dict()
 
         # Trader の配置
         for i, ticker in enumerate(list_ticker):
@@ -162,8 +162,9 @@ class Kabuto(QMainWindow):
             trader.setTitle(ticker)
             trader.setTimeRange(*dict_times[ticker])
             self.layout.addWidget(trader)
-            self.list_trader.append(trader)
+            self.dict_trader[ticker] = trader
 
+            # ループ用処理
             if i == 0:
                 self.ts_start = dict_times[ticker][0]
                 self.ts_end = dict_times[ticker][1]
