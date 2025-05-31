@@ -95,9 +95,6 @@ class Kabuto(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
             self.timer.stop()
-        if self.th_reviewer.isRunning():
-            self.th_reviewer.quit()
-            self.th_reviewer.deleteLater()
 
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
