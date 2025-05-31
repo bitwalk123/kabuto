@@ -1,13 +1,14 @@
+import datetime
 import logging
 
 from PySide6.QtCore import QObject, Signal
 
-from funcs.io import load_excel
+from funcs.ios import load_excel
 
 
 class ExcelReviewer(QObject):
-    # 銘柄数の通知
-    notifyTickerN = Signal(int)
+    # 銘柄名（リスト）の通知
+    notifyTickerN = Signal(list, dict)
 
     # スレッド完了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -26,8 +27,17 @@ class ExcelReviewer(QObject):
             self.threadFinished.emit(False)
             return
 
-        # シート数 = 銘柄数の通知
-        self.notifyTickerN.emit(len(dict_sheet))
+        dict_times = dict()
+
+        for ticker in dict_sheet.keys():
+            df = dict_sheet[ticker]
+            dt = datetime.datetime.fromtimestamp(df['Time'].iloc[0])
+            dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
+            dict_times[ticker] = [dt_start.timestamp(), dt_end.timestamp()]
+
+        # 銘柄名（リスト）の通知
+        self.notifyTickerN.emit(list(dict_sheet.keys()), dict_times)
 
         # スレッドの終了
         self.threadFinished.emit(True)

@@ -2,11 +2,13 @@ import logging
 import os
 import sys
 
-from PySide6.QtCore import QThread
-from PySide6.QtGui import QIcon
+from PySide6.QtCore import QThread, QTimer
+from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QApplication, QMainWindow
 
 from funcs.logs import setup_logging
+from funcs.uis import clear_boxlayout
+from modules.trader_pyqtgraph import Trader
 from modules.xlreviewer import ExcelReviewer
 from structs.res import AppRes
 from widgets.containers import Widget
@@ -15,7 +17,6 @@ from widgets.statusbar import StatusBar
 from widgets.toolbar import ToolBar
 
 if sys.platform == "win32":
-    import xlwings as xw
     from pywintypes import com_error  # Windows 固有のライブラリ
 
     debug = False
@@ -61,6 +62,9 @@ class Kabuto(QMainWindow):
         self.th_reviewer: QThread | None = None
         self.reviewer: ExcelReviewer | None = None
 
+        # ticker インスタンスを保持するリスト
+        self.list_trader = list_trader = list()
+
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "kabuto.png"))
         self.setWindowIcon(icon)
@@ -81,8 +85,25 @@ class Kabuto(QMainWindow):
         self.statusbar = statusbar = StatusBar(res)
         self.setStatusBar(statusbar)
 
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # タイマー
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        self.timer = timer = QTimer()
+        timer.timeout.connect(self.on_update_data)
+        timer.setInterval(self.t_interval)
+
+    def closeEvent(self, event: QCloseEvent):
+        if self.timer.isActive():
+            self.timer.stop()
+        if self.th_reviewer.isRunning():
+            self.th_reviewer.quit()
+            self.th_reviewer.deleteLater()
+
+        self.logger.info(f"{__name__} stopped and closed.")
+        event.accept()
+
     def on_load_excel(self, excel_path: str):
-        # Excel を読み込むスレッド処理
+        # Excelを読み込むスレッド処理
         self.th_reviewer = th_reviewer = QThread()
         self.reviewer = reviewer = ExcelReviewer(excel_path)
         reviewer.moveToThread(th_reviewer)
@@ -97,8 +118,19 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.th_reviewer.start()
 
-    def on_ticker_num(self, n):
-        print(n)
+    def on_ticker_num(self, list_ticker: list, dict_times: dict):
+        # 配置済みの Trader インスタンスを消去
+        clear_boxlayout(self.layout)
+        # Trader リストのクリア
+        self.list_trader = list()
+        # Trader の配置
+        for ticker in list_ticker:
+            trader = Trader(self.res)
+            trader.setTitle(ticker)
+            #trader.setTimeRange(dict_times[ticker][0], dict_times[ticker][1])
+            trader.setTimeRange(*dict_times[ticker])
+            self.layout.addWidget(trader)
+            self.list_trader.append(trader)
 
     def on_thread_finished(self, result: bool):
         if result:
@@ -106,6 +138,8 @@ class Kabuto(QMainWindow):
         else:
             print("スレッドが異常終了しました。")
 
+    def on_update_data(self):
+        pass
 
 def main():
     app = QApplication(sys.argv)
