@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.trader_pyqtgraph import Trader
-from modules.xlreviewer import ReviewWorker
+from modules.reviewer import ReviewWorker
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
