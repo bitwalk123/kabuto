@@ -138,6 +138,7 @@ class Kabuto(QMainWindow):
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
             self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
 
         if self.acquire_thread is not None:
             try:
