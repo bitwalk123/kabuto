@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
+from funcs.tide import get_time_range_today
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
 from modules.trader_pyqtgraph import Trader
@@ -116,6 +117,7 @@ class Kabuto(QMainWindow):
         if debug:
             timer.timeout.connect(self.on_request_data_review)
         else:
+            self.ts_start, self.ts_end = get_time_range_today()
             self.on_create_acquire_thread("targets.xlsx")
 
     def closeEvent(self, event: QCloseEvent):
@@ -212,11 +214,12 @@ class Kabuto(QMainWindow):
             self.dict_trader[ticker] = trader
             # ticker をタイトルに
             trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+            # 当日ザラ場時間
+            trader.setTimeRange(self.ts_start, self.ts_end)
             # 前日終値
             trader.addLastCloseLine(dict_lastclose[ticker])
             # 配置
             self.layout.addWidget(trader)
-
 
     def on_create_trader_review(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
