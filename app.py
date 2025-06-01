@@ -122,9 +122,19 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
+        if self.acquire_thread is not None:
+            try:
+                if self.acquire_thread.isRunning():
+                    self.acquire_thread.quit()
+                    self.acquire_thread.deleteLater()
+                    self.logger.info(f"acquire スレッドを削除しました。")
+            except RuntimeError as e:
+                self.logger.info(f"終了時: {e}")
+
         if self.review_thread is not None:
             try:
                 if self.review_thread.isRunning():
+                    self.acquire.stop_processing()
                     self.review_thread.quit()
                     self.review_thread.deleteLater()
                     self.logger.info(f"reviewer スレッドを削除しました。")
