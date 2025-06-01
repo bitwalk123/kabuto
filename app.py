@@ -208,6 +208,14 @@ class Kabuto(QMainWindow):
         print(list_ticker)
         print(dict_name)
         print(dict_lastclose)
+        for ticker in list_ticker:
+            trader = Trader(self.res)
+            # Trader 辞書に保持
+            self.dict_trader[ticker] = trader
+            # ticker をタイトルに
+            trader.setTitle(ticker)
+            self.layout.addWidget(trader)
+
 
     def on_create_trader_review(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
@@ -219,7 +227,6 @@ class Kabuto(QMainWindow):
         # Trader の配置
         for i, ticker in enumerate(list_ticker):
             trader = Trader(self.res)
-
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
 
