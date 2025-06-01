@@ -325,10 +325,12 @@ class Kabuto(QMainWindow):
             self.requestCurrentPrice.emit()
         elif self.ts_start_2h <= ts <= self.ts_ca:
             self.requestCurrentPrice.emit()
-        else:
+        elif self.ts_ca < ts:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
             self.save_regular_tick_data()
+        else:
+            pass
 
     def on_request_data_review(self):
         # self.review.readCurrentPrice(self.ts_current)
