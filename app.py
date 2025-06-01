@@ -87,6 +87,7 @@ class Kabuto(QMainWindow):
         toolbar = ToolBar(res)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_play)
+        toolbar.saveClicked.connect(self.on_save)
         toolbar.stopClicked.connect(self.on_stop)
         self.addToolBar(toolbar)
 
@@ -186,6 +187,9 @@ class Kabuto(QMainWindow):
             self.ts_current = self.ts_start
             self.timer.start()
 
+    def on_save(self):
+        pass
+
     def on_stop(self):
         if self.timer.isActive():
             self.timer.stop()
@@ -210,7 +214,7 @@ class Kabuto(QMainWindow):
             x, y = dict_data[ticker]
             if y > 0:
                 trader = self.dict_trader[ticker]
-                trader.addData(x, y)
+                trader.setTimePrice(x, y)
 
 
 def main():

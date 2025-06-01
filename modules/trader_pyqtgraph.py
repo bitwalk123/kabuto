@@ -88,7 +88,10 @@ class Trader(QMainWindow):
         )
         chart.addItem(self.trend_bear)
 
-    def addData(self, x: np.float64, y: np.float64):
+    def getTimePrice(self):
+        pass
+
+    def setTimePrice(self, x: np.float64, y: np.float64):
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = y
         self.counter_data += 1
@@ -97,6 +100,9 @@ class Trader(QMainWindow):
             self.x_data[0: self.counter_data], self.y_data[0:self.counter_data]
         )
         self.point_latest.setData([x], [y])
+
+        # 株価表示の更新
+        self.dock.setPrice(y)
 
         # Parabolic SAR
         ret = self.psar.add(y)

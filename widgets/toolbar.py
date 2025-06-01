@@ -8,6 +8,7 @@ from structs.res import AppRes
 class ToolBar(QToolBar):
     excelSelected = Signal(str)
     playClicked = Signal()
+    saveClicked = Signal()
     stopClicked = Signal()
 
     def __init__(self, res: AppRes):
@@ -44,6 +45,7 @@ class ToolBar(QToolBar):
                 'データを保存する',
                 self
             )
+            action_save.triggered.connect(self.on_save)
             self.addAction(action_save)
         # --- debug ここまで ---
 
@@ -75,6 +77,9 @@ class ToolBar(QToolBar):
 
     def on_play(self):
         self.playClicked.emit()
+
+    def on_save(self):
+        self.saveClicked.emit()
 
     def on_stop(self):
         self.stopClicked.emit()
