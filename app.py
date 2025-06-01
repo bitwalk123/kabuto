@@ -122,9 +122,9 @@ class Kabuto(QMainWindow):
             # ザラ場日時時間情報
             dt = datetime.datetime.now()
             dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=11, minute=30)
+            dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=12, minute=30)
+            dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
             dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
             self.ts_start = dt_start.timestamp()
             self.ts_end_1h = dt_end_1h.timestamp()
