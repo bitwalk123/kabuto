@@ -1,13 +1,13 @@
 backports.tarfile
 importlib-metadata
 jaraco.collections
+mplfinance
 openpyxl
-pandas
 pip-chill
 pip-review
-platformdirs
 pyqtgraph
 pyside6
 tomli
 xlwings
 xlwt
+yfinance
