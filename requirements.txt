@@ -10,3 +10,4 @@ pyqtgraph
 pyside6
 tomli
 xlwings
+xlwt
