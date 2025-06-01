@@ -21,9 +21,8 @@ class AquireWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.excel_path = excel_path
 
-        # 情報を取得する Excel ファイル
-        self.wb = wb = xw.Book(self.excel_path)
-        self.sheet = wb.sheets["Sheet1"]
+        self.wb = None
+        self.sheet = None
 
         # Excelシートから xlwings でデータを読み込むときの試行回数
         self.max_retries = 3  # 最大リトライ回数
@@ -47,6 +46,10 @@ class AquireWorker(QObject):
         dict_name = dict()
         dict_lastclose = dict()
         #######################################################################
+        # 情報を取得する Excel ファイル
+        self.wb = wb = xw.Book(self.excel_path)
+        self.sheet = wb.sheets["Sheet1"]
+
         for num in range(self.num_max):
             row = num + 1
 
