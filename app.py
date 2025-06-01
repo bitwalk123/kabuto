@@ -32,6 +32,7 @@ class Kabuto(QMainWindow):
     __version__ = "0.1.0"
 
     request_acquire_init = Signal()
+    request_data = Signal()
     request_review_init = Signal()
 
     def __init__(self, options: list = None):
@@ -184,8 +185,10 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         acquire_thread.started.connect(self.request_acquire_init.emit)
+
         # 初期化処理は指定された Excel ファイルを読み込むこと
         self.request_acquire_init.connect(acquire.loadExcel)
+        self.request_data.connect(acquire.readCurrentPrice)
 
         # シグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader_acquire)
@@ -307,7 +310,8 @@ class Kabuto(QMainWindow):
             self.timer.stop()
 
     def on_request_data(self):
-        self.acquire.readCurrentPrice()
+        #self.acquire.readCurrentPrice()
+        self.request_data.emit()
 
     def on_request_data_review(self):
         self.review.readCurrentPrice(self.ts_current)
