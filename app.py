@@ -31,6 +31,7 @@ class Kabuto(QMainWindow):
 
     requestAcquireInit = Signal()
     requestCurrentPrice = Signal()
+    requestStopProcess = Signal()
     requestReviewInit = Signal()
     requestCurrentPriceReview = Signal(float)
 
@@ -141,7 +142,7 @@ class Kabuto(QMainWindow):
         if self.acquire_thread is not None:
             try:
                 if self.acquire_thread.isRunning():
-                    self.acquire.stop_processing()
+                    self.requestStopProcess.emit()
                     self.acquire_thread.quit()
                     self.acquire_thread.deleteLater()
                     self.logger.info(f"acquire スレッドを削除しました。")
@@ -190,6 +191,7 @@ class Kabuto(QMainWindow):
         self.requestAcquireInit.connect(acquire.loadExcel)
         # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
         self.requestCurrentPrice.connect(acquire.readCurrentPrice)
+        self.requestStopProcess.connect(acquire.stop_processing())
 
         # シグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader_acquire)
