@@ -118,7 +118,6 @@ class Kabuto(QMainWindow):
         else:
             self.on_create_acquire_thread("targets.xlsx")
 
-
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
             self.timer.stop()
@@ -163,7 +162,7 @@ class Kabuto(QMainWindow):
         acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
 
         # スレッドを開始
-        self.review_thread.start()
+        self.acquire_thread.start()
 
     def on_create_review_thread(self, excel_path: str):
         """
