@@ -229,6 +229,10 @@ class Kabuto(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
+        # タイマー開始
+        self.timer.start()
+
+
     def on_create_trader_review(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
@@ -252,9 +256,6 @@ class Kabuto(QMainWindow):
             # ループ用処理
             if i == 0:
                 self.ts_start, self.ts_end = dict_times[ticker]
-
-        # タイマー開始
-        self.timer.start()
 
     def on_play(self):
         if self.data_ready:
