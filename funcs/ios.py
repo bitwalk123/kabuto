@@ -18,3 +18,10 @@ def load_excel(excel_path) -> dict:
         dict_sheet[name_sheet] = df
     wb.close()
     return dict_sheet
+
+
+def save_dataframe_to_excel(name_excel: str, dict_df: dict):
+    with pd.ExcelWriter(name_excel) as writer:
+        for name_sheet in dict_df.keys():
+            df = dict_df[name_sheet]
+            df.to_excel(writer, sheet_name=name_sheet, index=False)

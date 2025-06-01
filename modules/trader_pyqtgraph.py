@@ -1,6 +1,7 @@
 import logging
 
 import numpy as np
+import pandas as pd
 import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
@@ -88,8 +89,11 @@ class Trader(QMainWindow):
         )
         chart.addItem(self.trend_bear)
 
-    def getTimePrice(self):
-        pass
+    def getTimePrice(self) -> pd.DataFrame:
+        return pd.DataFrame({
+            "Time": self.x_data[0: self.counter_data],
+            "Price": self.y_data[0: self.counter_data]
+        })
 
     def setTimePrice(self, x: np.float64, y: np.float64):
         self.x_data[self.counter_data] = x

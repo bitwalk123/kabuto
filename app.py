@@ -4,8 +4,9 @@ import sys
 
 from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QCloseEvent
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 
+from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.trader_pyqtgraph import Trader
@@ -187,8 +188,25 @@ class Kabuto(QMainWindow):
             self.ts_current = self.ts_start
             self.timer.start()
 
-    def on_save(self):
-        pass
+    def on_save(self)->bool:
+        dict_df=dict()
+        for ticker in self.dict_trader.keys():
+            trader = self.dict_trader[ticker]
+            dict_df[ticker] = trader.getTimePrice()
+
+        name_excel, _ = QFileDialog.getSaveFileName(
+            self,
+            "ティック・データを保存",
+            "Unknown.xlsx",
+            "Excel Files (*.xlsx);;All Files (*)",
+            "Excel Files (*.xlsx)"
+        )
+        if name_excel == "":
+            return False
+        else:
+            print(name_excel)
+            self.save_tick_data(name_excel, dict_df)
+            return True
 
     def on_stop(self):
         if self.timer.isActive():
@@ -215,6 +233,13 @@ class Kabuto(QMainWindow):
             if y > 0:
                 trader = self.dict_trader[ticker]
                 trader.setTimePrice(x, y)
+
+    def save_tick_data(self, name_excel: str, dict_df: dict):
+        try:
+            save_dataframe_to_excel(name_excel, dict_df)
+            self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+        except ValueError as e:
+            self.logger.error(f"{__name__} error occured!: {e}")
 
 
 def main():
