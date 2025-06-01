@@ -64,7 +64,7 @@ class AquireWorker(QObject):
             dict_lastclose[ticker] = self.sheet[row, self.col_lastclose].value
         #
         #######################################################################
-        self.threadFinished.emit(self.list_ticker, dict_name, dict_lastclose)
+        self.notifyTickerN.emit(self.list_ticker, dict_name, dict_lastclose)
 
     def read_price(self):
         for i, ticker in enumerate(self.list_ticker):
