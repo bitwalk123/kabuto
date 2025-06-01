@@ -12,7 +12,7 @@ from PySide6.QtCore import QObject, Signal
 
 class AquireWorker(QObject):
     notifyTickerN = Signal(list, dict, dict)
-
+    notifyCurrentPrice = Signal(dict)
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
@@ -66,7 +66,8 @@ class AquireWorker(QObject):
         #######################################################################
         self.notifyTickerN.emit(self.list_ticker, dict_name, dict_lastclose)
 
-    def read_price(self):
+    def readCurrentPrice(self):
+        dict_data = dict()
         for i, ticker in enumerate(self.list_ticker):
             row = i + 1
             # Excel シートから株価情報を取得
@@ -78,6 +79,8 @@ class AquireWorker(QObject):
                 try:
                     # Excelシートから株価データを取得
                     y = self.sheet[row, self.col_price].value
+                    if y > 0:
+                        dict_data[ticker] = [time.time(), y]
                     break
                 except com_error as e:
                     # com_error は Windows 固有
@@ -94,7 +97,8 @@ class AquireWorker(QObject):
                 except Exception as e:
                     self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
                     raise  # その他の例外はそのまま発生させる
-            print(ticker, y)
+
+        self.notifyCurrentPrice.emit(dict_data)
 
     def stop_processing(self):
         # self.running = False

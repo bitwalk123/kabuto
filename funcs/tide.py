@@ -7,4 +7,5 @@ def get_time_range_today():
     dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
     ts_start = dt_start.timestamp()
     ts_end = dt_end.timestamp()
-    return ts_start, ts_end
+    date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
+    return ts_start, ts_end, date_str

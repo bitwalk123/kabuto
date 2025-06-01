@@ -117,8 +117,9 @@ class Kabuto(QMainWindow):
         if debug:
             timer.timeout.connect(self.on_request_data_review)
         else:
-            self.ts_start, self.ts_end = get_time_range_today()
+            self.ts_start, self.ts_end, self.date_str = get_time_range_today()
             self.on_create_acquire_thread("targets.xlsx")
+            timer.timeout.connect(self.on_request_data)
 
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
@@ -146,6 +147,13 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
+    def get_current_tick_data(self):
+        dict_df = dict()
+        for ticker in self.dict_trader.keys():
+            trader = self.dict_trader[ticker]
+            dict_df[ticker] = trader.getTimePrice()
+        return dict_df
+
     def on_create_acquire_thread(self, excel_path: str):
         """
         RSS が書き込んだ銘柄、株価情報を読み取るワーカースレッドを作成
@@ -168,7 +176,7 @@ class Kabuto(QMainWindow):
 
         # シグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader_acquire)
-        # acquire.notifyNewData.connect(self.on_update_data)
+        acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
         acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -198,7 +206,7 @@ class Kabuto(QMainWindow):
 
         # シグナルとスロットの接続
         review.notifyTickerN.connect(self.on_create_trader_review)
-        review.notifyNewData.connect(self.on_update_data)
+        review.notifyCurrentPrice.connect(self.on_update_data_review)
         review.threadFinished.connect(self.on_thread_finished)
         review.threadFinished.connect(review_thread.quit)  # スレッド終了時
         review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -245,19 +253,17 @@ class Kabuto(QMainWindow):
             if i == 0:
                 self.ts_start, self.ts_end = dict_times[ticker]
 
-        # データ読込済フラグを立てる
-        self.data_ready = True
+        # タイマー開始
+        self.timer.start()
 
     def on_play(self):
         if self.data_ready:
             self.ts_current = self.ts_start
+            # タイマー開始
             self.timer.start()
 
     def on_save(self) -> bool:
-        dict_df = dict()
-        for ticker in self.dict_trader.keys():
-            trader = self.dict_trader[ticker]
-            dict_df[ticker] = trader.getTimePrice()
+        dict_df = self.get_current_tick_data()
 
         name_excel, _ = QFileDialog.getSaveFileName(
             self,
@@ -286,8 +292,11 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
 
+    def on_request_data(self):
+        pass
+
     def on_request_data_review(self):
-        self.review.requestNewData(self.ts_current)
+        self.review.requestCurrentPrice(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()
@@ -295,9 +304,25 @@ class Kabuto(QMainWindow):
     def on_update_data(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
+            print(x, y)
+            trader = self.dict_trader[ticker]
+            trader.setTimePrice(x, y)
+
+    def on_update_data_review(self, dict_data):
+        for ticker in dict_data.keys():
+            x, y = dict_data[ticker]
             if y > 0:
                 trader = self.dict_trader[ticker]
                 trader.setTimePrice(x, y)
+
+    def save_regular_tick_data(self):
+        name_excel = os.path.join(
+            self.res.dir_excel,
+            f"tick_{self.date_str}.xlsx"
+        )
+        dict_df = self.get_current_tick_data()
+        self.save_tick_data(name_excel, dict_df)
+        return True
 
     def save_tick_data(self, name_excel: str, dict_df: dict):
         try:

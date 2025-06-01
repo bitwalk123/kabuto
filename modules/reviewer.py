@@ -14,7 +14,7 @@ class ReviewWorker(QObject):
     notifyTickerN = Signal(list, dict)
 
     # ティックデータの表示
-    notifyNewData = Signal(dict)
+    notifyCurrentPrice = Signal(dict)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -49,7 +49,7 @@ class ReviewWorker(QObject):
         # スレッドの終了
         # self.threadFinished.emit(True)
 
-    def requestNewData(self, ts: float):
+    def requestCurrentPrice(self, ts: float):
         dict_data = dict()
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
@@ -61,4 +61,4 @@ class ReviewWorker(QObject):
             else:
                 dict_data[ticker] = [ts, 0]
 
-        self.notifyNewData.emit(dict_data)
+        self.notifyCurrentPrice.emit(dict_data)
