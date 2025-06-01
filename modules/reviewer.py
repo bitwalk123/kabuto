@@ -49,7 +49,7 @@ class ReviewWorker(QObject):
         # スレッドの終了
         # self.threadFinished.emit(True)
 
-    def requestCurrentPrice(self, ts: float):
+    def readCurrentPrice(self, ts: float):
         dict_data = dict()
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]

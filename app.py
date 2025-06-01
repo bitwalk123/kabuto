@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 import sys
@@ -114,12 +115,25 @@ class Kabuto(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
+
         if debug:
             timer.timeout.connect(self.on_request_data_review)
         else:
-            self.ts_start, self.ts_end, self.date_str = get_time_range_today()
-            self.on_create_acquire_thread("targets.xlsx")
             timer.timeout.connect(self.on_request_data)
+            # ザラ場日時時間情報
+            dt = datetime.datetime.now()
+            dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
+            self.ts_start = dt_start.timestamp()
+            self.ts_end_1h = dt_end_1h.timestamp()
+            self.ts_start_2h = dt_start_2h.timestamp()
+            self.ts_ca = dt_ca.timestamp()
+            self.ts_end = dt_end.timestamp()
+            self.date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
+            self.on_create_acquire_thread("targets.xlsx")
 
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
@@ -294,10 +308,10 @@ class Kabuto(QMainWindow):
             self.timer.stop()
 
     def on_request_data(self):
-        pass
+        self.acquire.readCurrentPrice()
 
     def on_request_data_review(self):
-        self.review.requestCurrentPrice(self.ts_current)
+        self.review.readCurrentPrice(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()
@@ -312,9 +326,8 @@ class Kabuto(QMainWindow):
     def on_update_data_review(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
-            if y > 0:
-                trader = self.dict_trader[ticker]
-                trader.setTimePrice(x, y)
+            trader = self.dict_trader[ticker]
+            trader.setTimePrice(x, y)
 
     def save_regular_tick_data(self):
         name_excel = os.path.join(
