@@ -7,13 +7,16 @@ from funcs.ios import load_excel
 
 
 class ReviewWorker(QObject):
+    """
+    Excel 形式の過去データを読み込むスレッドワーカー
+    """
     # 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict)
 
     # ティックデータの表示
     notifyNewData = Signal(dict)
 
-    # スレッド完了シグナル（成否の論理値）
+    # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
     def __init__(self, excel_path: str):

@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
+from modules.acquisitor import AquireWorker
 from modules.trader_pyqtgraph import Trader
 from modules.reviewer import ReviewWorker
 from structs.res import AppRes
@@ -29,6 +30,7 @@ class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.1.0"
 
+    request_acquire_init = Signal()
     request_review_init = Signal()
 
     def __init__(self, options: list = None):
@@ -72,6 +74,10 @@ class Kabuto(QMainWindow):
         # デバッグ・モードを保持
         res.debug = debug
 
+        # ザラ場用インスタンス（スレッド）
+        self.acquire_thread: QThread | None = None
+        self.acquire: AquireWorker | None = None
+
         # Excel レビュー用インスタンス（スレッド）
         self.review_thread: QThread | None = None
         self.review: ReviewWorker | None = None
@@ -109,6 +115,9 @@ class Kabuto(QMainWindow):
         timer.setInterval(self.timer_interval)
         if debug:
             timer.timeout.connect(self.on_request_data_review)
+        else:
+            self.on_create_acquire_thread("targets.xlsx")
+
 
     def closeEvent(self, event: QCloseEvent):
         if self.timer.isActive():
@@ -125,6 +134,36 @@ class Kabuto(QMainWindow):
 
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
+
+    def on_create_acquire_thread(self, excel_path: str):
+        """
+        RSS が書き込んだ銘柄、株価情報を読み取るワーカースレッドを作成
+
+        このスレッドは QThread の　run メソッドを継承していないので、
+        明示的にワーカースレッドを終了する処理をしない限り残っていてイベント待機状態になっている。
+
+        :param excel_path:
+        :return:
+        """
+        # Excelを読み込むスレッド処理
+        self.acquire_thread = acquire_thread = QThread()
+        self.acquire = acquire = AquireWorker(excel_path)
+        acquire.moveToThread(acquire_thread)
+
+        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        acquire_thread.started.connect(self.request_acquire_init.emit)
+        # 初期化処理は指定された Excel ファイルを読み込むこと
+        self.request_acquire_init.connect(acquire.loadExcel)
+
+        # シグナルとスロットの接続
+        acquire.notifyTickerN.connect(self.on_create_trader_acquire)
+        # acquire.notifyNewData.connect(self.on_update_data)
+        acquire.threadFinished.connect(self.on_thread_finished)
+        acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
+        acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
+
+        # スレッドを開始
+        self.review_thread.start()
 
     def on_create_review_thread(self, excel_path: str):
         """
@@ -143,10 +182,11 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         review_thread.started.connect(self.request_review_init.emit)
+        # 初期化処理は指定された Excel ファイルを読み込むこと
         self.request_review_init.connect(review.loadExcel)
 
         # シグナルとスロットの接続
-        review.notifyTickerN.connect(self.on_create_trader)
+        review.notifyTickerN.connect(self.on_create_trader_review)
         review.notifyNewData.connect(self.on_update_data)
         review.threadFinished.connect(self.on_thread_finished)
         review.threadFinished.connect(review_thread.quit)  # スレッド終了時
@@ -155,7 +195,12 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.review_thread.start()
 
-    def on_create_trader(self, list_ticker: list, dict_times: dict):
+    def on_create_trader_acquire(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+        print(list_ticker)
+        print(dict_name)
+        print(dict_lastclose)
+
+    def on_create_trader_review(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
 
@@ -188,8 +233,8 @@ class Kabuto(QMainWindow):
             self.ts_current = self.ts_start
             self.timer.start()
 
-    def on_save(self)->bool:
-        dict_df=dict()
+    def on_save(self) -> bool:
+        dict_df = dict()
         for ticker in self.dict_trader.keys():
             trader = self.dict_trader[ticker]
             dict_df[ticker] = trader.getTimePrice()
