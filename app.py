@@ -20,8 +20,6 @@ from widgets.statusbar import StatusBar
 from widgets.toolbar import ToolBar
 
 if sys.platform == "win32":
-    from pywintypes import com_error  # Windows 固有のライブラリ
-
     debug = False
 else:
     debug = True
@@ -31,9 +29,10 @@ class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.1.0"
 
-    request_acquire_init = Signal()
-    request_data = Signal()
-    request_review_init = Signal()
+    requestAcquireInit = Signal()
+    requestCurrentPrice = Signal()
+    requestReviewInit = Signal()
+    requestCurrentPriceReview = Signal(float)
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -142,6 +141,7 @@ class Kabuto(QMainWindow):
         if self.acquire_thread is not None:
             try:
                 if self.acquire_thread.isRunning():
+                    self.acquire.stop_processing()
                     self.acquire_thread.quit()
                     self.acquire_thread.deleteLater()
                     self.logger.info(f"acquire スレッドを削除しました。")
@@ -151,7 +151,6 @@ class Kabuto(QMainWindow):
         if self.review_thread is not None:
             try:
                 if self.review_thread.isRunning():
-                    self.acquire.stop_processing()
                     self.review_thread.quit()
                     self.review_thread.deleteLater()
                     self.logger.info(f"reviewer スレッドを削除しました。")
@@ -184,11 +183,13 @@ class Kabuto(QMainWindow):
         acquire.moveToThread(acquire_thread)
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
-        acquire_thread.started.connect(self.request_acquire_init.emit)
+        acquire_thread.started.connect(self.requestAcquireInit.emit)
 
         # 初期化処理は指定された Excel ファイルを読み込むこと
-        self.request_acquire_init.connect(acquire.loadExcel)
-        self.request_data.connect(acquire.readCurrentPrice)
+        # シグナルを発すると下記メソッドへキューイングされる。
+        self.requestAcquireInit.connect(acquire.loadExcel)
+        # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
+        self.requestCurrentPrice.connect(acquire.readCurrentPrice)
 
         # シグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader_acquire)
@@ -216,9 +217,11 @@ class Kabuto(QMainWindow):
         review.moveToThread(review_thread)
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
-        review_thread.started.connect(self.request_review_init.emit)
+        review_thread.started.connect(self.requestReviewInit.emit)
         # 初期化処理は指定された Excel ファイルを読み込むこと
-        self.request_review_init.connect(review.loadExcel)
+        self.requestReviewInit.connect(review.loadExcel)
+        # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
+        self.requestCurrentPriceReview.connect(review.readCurrentPrice)
 
         # シグナルとスロットの接続
         review.notifyTickerN.connect(self.on_create_trader_review)
@@ -247,7 +250,7 @@ class Kabuto(QMainWindow):
 
         # タイマー開始
         self.timer.start()
-
+        self.logger.info("タイマーを開始しました。")
 
     def on_create_trader_review(self, list_ticker: list, dict_times: dict):
         # 配置済みの Trader インスタンスを消去
@@ -273,11 +276,14 @@ class Kabuto(QMainWindow):
             if i == 0:
                 self.ts_start, self.ts_end = dict_times[ticker]
 
+        self.data_ready = True
+
     def on_play(self):
         if self.data_ready:
             self.ts_current = self.ts_start
             # タイマー開始
             self.timer.start()
+            self.logger.info("タイマーを開始しました。")
 
     def on_save(self) -> bool:
         dict_df = self.get_current_tick_data()
@@ -299,6 +305,7 @@ class Kabuto(QMainWindow):
     def on_stop(self):
         if self.timer.isActive():
             self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
 
     def on_thread_finished(self, result: bool):
         if result:
@@ -308,13 +315,22 @@ class Kabuto(QMainWindow):
 
         if self.timer.isActive():
             self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
 
     def on_request_data(self):
-        #self.acquire.readCurrentPrice()
-        self.request_data.emit()
+        ts = datetime.datetime.now().timestamp()
+        if self.ts_start <= ts <= self.ts_end_1h:
+            self.requestCurrentPrice.emit()
+        elif self.ts_start_2h <= ts <= self.ts_ca:
+            self.requestCurrentPrice.emit()
+        else:
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+            self.save_regular_tick_data()
 
     def on_request_data_review(self):
-        self.review.readCurrentPrice(self.ts_current)
+        # self.review.readCurrentPrice(self.ts_current)
+        self.requestCurrentPriceReview.emit(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()
@@ -322,15 +338,17 @@ class Kabuto(QMainWindow):
     def on_update_data(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
-            print(x, y)
+            # print(x, y)
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
 
     def on_update_data_review(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
-            trader = self.dict_trader[ticker]
-            trader.setTimePrice(x, y)
+            # print(x, y)
+            if y > 0:
+                trader = self.dict_trader[ticker]
+                trader.setTimePrice(x, y)
 
     def save_regular_tick_data(self):
         name_excel = os.path.join(
