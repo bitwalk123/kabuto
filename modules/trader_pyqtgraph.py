@@ -89,6 +89,14 @@ class Trader(QMainWindow):
         )
         chart.addItem(self.trend_bear)
 
+    def addLastCloseLine(self, value: float):
+        self.lastclose_line = pg.InfiniteLine(
+            pos=value,
+            angle=0,
+            pen=pg.mkPen(color=(255, 0, 0), width=1)
+        )
+        self.chart.addItem(self.lastclose_line)
+
     def getTimePrice(self) -> pd.DataFrame:
         return pd.DataFrame({
             "Time": self.x_data[0: self.counter_data],

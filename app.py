@@ -205,15 +205,16 @@ class Kabuto(QMainWindow):
         self.review_thread.start()
 
     def on_create_trader_acquire(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
-        print(list_ticker)
-        print(dict_name)
-        print(dict_lastclose)
         for ticker in list_ticker:
+            # Trader インスタンスの生成
             trader = Trader(self.res)
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
             # ticker をタイトルに
-            trader.setTitle(ticker)
+            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+            # 前日終値
+            trader.addLastCloseLine(dict_lastclose[ticker])
+            # 配置
             self.layout.addWidget(trader)
 
 
