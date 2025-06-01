@@ -43,13 +43,13 @@ class AquireWorker(QObject):
         self.num_max = 3
 
     def loadExcel(self):
-        dict_name = dict()
-        dict_lastclose = dict()
         #######################################################################
         # 情報を取得する Excel ファイル
         self.wb = wb = xw.Book(self.excel_path)
         self.sheet = wb.sheets["Sheet1"]
 
+        dict_name = dict()
+        dict_lastclose = dict()
         for num in range(self.num_max):
             row = num + 1
 
