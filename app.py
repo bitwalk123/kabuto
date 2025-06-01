@@ -9,7 +9,6 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
 
 from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
-from funcs.tide import get_time_range_today
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
 from modules.trader_pyqtgraph import Trader
