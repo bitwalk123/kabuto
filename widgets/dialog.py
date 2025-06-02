@@ -70,4 +70,5 @@ class DlgAboutThis(QDialog):
         bbox.accepted.connect(self.accept)
         layout.addWidget(bbox, r, 0, 1, 3)
 
+        layout.setColumnStretch(1, 1)
         layout.setColumnStretch(2, 1)
