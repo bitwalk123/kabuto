@@ -13,6 +13,11 @@ class DlgAboutThis(QDialog):
     def __init__(self, res: AppRes, progname: str, progver: str):
         super().__init__()
         self.setWindowTitle("このアプリについて")
+        self.setStyleSheet("""
+            QDialog {
+                font-family: monospace;
+            }
+        """)
 
         layout = GridLayout()
         self.setLayout(layout)
