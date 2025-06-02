@@ -25,6 +25,6 @@ class DlgAboutThis(QDialog):
         lab_ver_1 = LabelLeft(progver)
         layout.addWidget(lab_ver_1, r, 1)
 
-        bbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Yes)
+        bbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
         bbox.accepted.connect(self.accept)
         layout.addWidget(bbox)
