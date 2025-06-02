@@ -1,11 +1,11 @@
 import os
 
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
-from widgets.labels import LabelRight, LabelLeft, TextEdit, Label
+from widgets.labels import LabelRight, LabelLeft, Label, PlainTextEdit
 from widgets.layouts import GridLayout
 
 
@@ -23,7 +23,7 @@ class DlgAboutThis(QDialog):
         lab_name_1 = LabelLeft(progname)
         layout.addWidget(lab_name_1, r, 1)
         lab_name_2 = Label()
-        pixmap = QPixmap(os.path.join(res.dir_image, "kabuto.png")).scaledToWidth(48)
+        pixmap = QPixmap(os.path.join(res.dir_image, "kabuto.png")).scaledToWidth(64)
         lab_name_2.setPixmap(pixmap)
         lab_name_2.setContentsMargins(QMargins(5, 0, 5, 0))
         lab_name_2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
@@ -44,12 +44,13 @@ class DlgAboutThis(QDialog):
         r += 1
         lab_desc_0 = LabelRight("説　　明")
         layout.addWidget(lab_desc_0, r, 0)
-        lab_desc_1 = TextEdit()
+        lab_desc_1 = PlainTextEdit()
         msg = "これはデイトレード用アプリです。\n" \
-            "楽天証券の取引ツールであるマーケットスピード２の情報を" \
+            "楽天証券の取引ツールである「マーケットスピード２」の情報を" \
             "RSS により Excel ワークシート上に読み込み、" \
-            "さらに python の xlwings のパッケージが読み込んで処理しています。"
-        lab_desc_1.setText(msg)
+            "さらに python の xlwings のパッケージがワークシート上を読み書きして処理しています。"
+        lab_desc_1.setPlainText(msg)
+        lab_desc_1.setReadOnly(True)
         layout.addWidget(lab_desc_1, r, 1, 1, 2)
 
         r += 1
