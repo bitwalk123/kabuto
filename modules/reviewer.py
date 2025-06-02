@@ -46,19 +46,22 @@ class ReviewWorker(QObject):
         # 銘柄名（リスト）の通知
         self.notifyTickerN.emit(list(self.dict_sheet.keys()), dict_times)
 
-        # スレッドの終了
-        # self.threadFinished.emit(True)
-
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
+            # 指定された時刻から +1 秒未満で株価が存在するか確認
             df_tick = df[(ts <= df['Time']) & (df['Time'] < ts + 1)]
             if len(df_tick) > 0:
+                # 時刻が存在していれば、データにある時刻と株価を返値に設定
                 time = df_tick.iloc[0, 0]
                 price = df_tick.iloc[0, 1]
                 dict_data[ticker] = [time, price]
             else:
+                # 存在しなければ、指定時刻と株価 = 0 を設定
                 dict_data[ticker] = [ts, 0]
 
         self.notifyCurrentPrice.emit(dict_data)
+
+    def stopProcess(self):
+        self.threadFinished.emit(True)

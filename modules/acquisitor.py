@@ -30,7 +30,7 @@ class AquireWorker(QObject):
 
         # ---------------------------------------------------------------------
         # xlwings のインスタンス
-        # この初期化プロセスでは xlwings インスタンスの初期化できない。
+        # この初期化プロセスでは xlwings インスタンスの初期化ができない。
         # Excel と通信する COM オブジェクトがスレッドアフィニティ（特定のCOMオブジェクトは
         # 特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため
         # ---------------------------------------------------------------------
@@ -126,7 +126,7 @@ class AquireWorker(QObject):
         # 最新株価の通知シグナル
         self.notifyCurrentPrice.emit(dict_data)
 
-    def stop_processing(self):
+    def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
         :return:

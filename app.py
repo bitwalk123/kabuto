@@ -212,7 +212,7 @@ class Kabuto(QMainWindow):
         self.requestAcquireInit.connect(acquire.loadExcel)
         # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
         self.requestCurrentPrice.connect(acquire.readCurrentPrice)
-        self.requestStopProcess.connect(acquire.stop_processing)
+        self.requestStopProcess.connect(acquire.stopProcess)
 
         # ワーカースレッド側のシグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader)
