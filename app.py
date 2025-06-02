@@ -34,6 +34,8 @@ else:
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.2.0"
+    __author__ = "Fuhito Suguri"
+    __license__ = "MIT"
 
     requestAcquireInit = Signal()
     requestCurrentPrice = Signal()
@@ -193,7 +195,13 @@ class Kabuto(QMainWindow):
         return dict_df
 
     def on_about(self):
-        dlg = DlgAboutThis(self.res, self.__app_name__, self.__version__)
+        dlg = DlgAboutThis(
+            self.res,
+            self.__app_name__,
+            self.__version__,
+            self.__author__,
+            self.__license__
+        )
         if dlg.exec():
             print('OK ボタンがクリックされました。')
 

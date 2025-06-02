@@ -10,7 +10,14 @@ from widgets.layouts import GridLayout
 
 
 class DlgAboutThis(QDialog):
-    def __init__(self, res: AppRes, progname: str, progver: str):
+    def __init__(
+            self,
+            res: AppRes,
+            progname: str,
+            progver: str,
+            author: str,
+            license: str
+    ):
         super().__init__()
         self.setWindowTitle("このアプリについて")
         self.setStyleSheet("""
@@ -43,13 +50,13 @@ class DlgAboutThis(QDialog):
         r += 1
         lab_author_0 = LabelRight("作　　者")
         layout.addWidget(lab_author_0, r, 0)
-        lab_author_1 = LabelLeft("Fuhito Suguri")
+        lab_author_1 = LabelLeft(author)
         layout.addWidget(lab_author_1, r, 1)
 
         r += 1
         lab_license_0 = LabelRight("ライセンス")
         layout.addWidget(lab_license_0, r, 0)
-        lab_license_1 = LabelLeft("MIT")
+        lab_license_1 = LabelLeft(license)
         layout.addWidget(lab_license_1, r, 1)
 
         r += 1
