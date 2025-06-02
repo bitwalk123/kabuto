@@ -3,6 +3,8 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
 
 from structs.res import AppRes
+from widgets.containers import PadH
+from widgets.labels import LCDTime
 
 
 class ToolBar(QToolBar):
@@ -56,12 +58,11 @@ class ToolBar(QToolBar):
         )
         self.addAction(action_info)
 
-        action_close = QAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_TabCloseButton),
-            'アプリケーションの終了',
-            self
-        )
-        self.addAction(action_close)
+        hpad = PadH()
+        self.addWidget(hpad)
+
+        self.lcd_time = lcd_time = LCDTime()
+        self.addWidget(lcd_time)
 
     def on_select_excel(self):
         excel_path, _ = QFileDialog.getOpenFileName(
@@ -83,3 +84,6 @@ class ToolBar(QToolBar):
 
     def on_stop(self):
         self.stopClicked.emit()
+
+    def setCurrentTime(self, dt):
+        pass

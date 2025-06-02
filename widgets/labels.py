@@ -8,3 +8,9 @@ class LCDNumber(QLCDNumber):
         self.setFixedHeight(24)
         self.setDigitCount(12)
         self.display('0.0')
+
+class LCDTime(QLCDNumber):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setDigitCount(8)
+        self.display('00:00:00')
