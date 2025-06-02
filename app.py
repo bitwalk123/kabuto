@@ -136,6 +136,11 @@ class Kabuto(QMainWindow):
             self.on_create_acquire_thread("targets.xlsx")
 
     def closeEvent(self, event: QCloseEvent):
+        """
+        アプリ終了イベント
+        :param event:
+        :return:
+        """
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
@@ -194,7 +199,7 @@ class Kabuto(QMainWindow):
         self.requestCurrentPrice.connect(acquire.readCurrentPrice)
         self.requestStopProcess.connect(acquire.stop_processing)
 
-        # シグナルとスロットの接続
+        # ワーカースレッド側のシグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader_acquire)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
@@ -206,7 +211,7 @@ class Kabuto(QMainWindow):
 
     def on_create_review_thread(self, excel_path: str):
         """
-        保存したティックデータをレビューするためのワーカースレッドを作成
+        保存されたティックデータをレビューするためのワーカースレッドを作成
 
         このスレッドは QThread の　run メソッドを継承していないので、
         明示的にワーカースレッドを終了する処理をしない限り残っていてイベント待機状態になっている。
@@ -312,15 +317,18 @@ class Kabuto(QMainWindow):
 
     def on_thread_finished(self, result: bool):
         if result:
-            print("スレッドが正常終了しました。")
+            self.logger.info("スレッドが正常終了しました。")
         else:
-            print("スレッドが異常終了しました。")
+            self.logger.error("スレッドが異常終了しました。")
 
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
 
     def on_request_data(self):
+        """
+        タイマー処理（本運用）
+        """
         ts = datetime.datetime.now().timestamp()
         if self.ts_start <= ts <= self.ts_end_1h:
             self.requestCurrentPrice.emit()
@@ -334,7 +342,9 @@ class Kabuto(QMainWindow):
             pass
 
     def on_request_data_review(self):
-        # self.review.readCurrentPrice(self.ts_current)
+        """
+        タイマー処理（デバッグ、レビュー用）
+        """
         self.requestCurrentPriceReview.emit(self.ts_current)
         self.ts_current += 1
         if self.ts_end < self.ts_current:
@@ -343,14 +353,12 @@ class Kabuto(QMainWindow):
     def on_update_data(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
-            # print(x, y)
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
 
     def on_update_data_review(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
-            # print(x, y)
             if y > 0:
                 trader = self.dict_trader[ticker]
                 trader.setTimePrice(x, y)

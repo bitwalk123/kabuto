@@ -4,14 +4,21 @@ import time
 
 import xlwings as xw
 
+# Windows 固有のライブラリ
 if sys.platform == "win32":
-    from pywintypes import com_error  # Windows 固有のライブラリ
+    from pywintypes import com_error
 
 from PySide6.QtCore import QObject, Signal
 
 
 class AquireWorker(QObject):
+    """
+    【Windows 専用】
+    楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
+    """
+    # 登録されている銘柄数ち銘柄情報通知シグナル
     notifyTickerN = Signal(list, dict, dict)
+    # 最新株価情報通知シグナル
     notifyCurrentPrice = Signal(dict)
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -21,30 +28,40 @@ class AquireWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.excel_path = excel_path
 
-        self.wb = None
-        self.sheet = None
+        # ---------------------------------------------------------------------
+        # xlwings のインスタンス
+        # この初期化プロセスでは xlwings インスタンスの初期化できない。
+        # Excel と通信する COM オブジェクトがスレッドアフィニティ（特定のCOMオブジェクトは
+        # 特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため
+        # ---------------------------------------------------------------------
+        self.wb = None # Excel のワークブックインスタンス
+        self.sheet = None # Excel のワークシートインスタンス
 
         # Excelシートから xlwings でデータを読み込むときの試行回数
+        # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
+        # COM エラーが発生するため、リトライできるようにしている。
         self.max_retries = 3  # 最大リトライ回数
         self.retry_delay = 0.1  # リトライ間の遅延（秒）
+        # ---------------------------------------------------------------------
 
         # 銘柄リスト
         self.list_ticker = list()
 
-        # 列情報
-        self.col_code = 0
-        self.col_name = 1
-        self.col_date = 2
-        self.col_time = 3
-        self.col_price = 4
-        self.col_lastclose = 5
+        # Excel の列情報
+        self.col_code = 0 # 銘柄コード
+        self.col_name = 1 # 銘柄名
+        self.col_date = 2 # 日付
+        self.col_time = 3 # 時刻
+        self.col_price = 4 # 現在詳細株価
+        self.col_lastclose = 5 # 前日終値
 
         # 最大銘柄数
+        # プログラム的に登録されている銘柄数を調べるべきだが、現在のところ 3 銘柄に固定
         self.num_max = 3
 
     def loadExcel(self):
         #######################################################################
-        # 情報を取得する Excel ファイル
+        # 情報を取得する Excel ワークブック・インスタンスの生成
         self.wb = wb = xw.Book(self.excel_path)
         self.sheet = wb.sheets["Sheet1"]
 
@@ -67,23 +84,30 @@ class AquireWorker(QObject):
         self.notifyTickerN.emit(self.list_ticker, dict_name, dict_lastclose)
 
     def readCurrentPrice(self):
+        """
+        現在株価の読み取り
+        :return:
+        """
         dict_data = dict()
         for i, ticker in enumerate(self.list_ticker):
             row = i + 1
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
-                # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-                # 楽天証券のマーケットスピード２ RSS の書き込みと重なる（衝突する）と、
-                # COM エラーが発生するためリトライできるようにしている。
-                # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+                # -------------------------------------------------------------
+                # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
+                # COM エラーが発生するため、リトライできるようにしている。
+                # -------------------------------------------------------------
                 try:
                     # Excelシートから株価データを取得
                     y = self.sheet[row, self.col_price].value
                     if y > 0:
+                        # ここでもタイムスタンプを時刻に採用する
                         dict_data[ticker] = [time.time(), y]
                     break
                 except com_error as e:
+                    # ---------------------------------------------------------
                     # com_error は Windows 固有
+                    # ---------------------------------------------------------
                     if attempt < self.max_retries - 1:
                         self.logger.warning(
                             f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
@@ -97,11 +121,16 @@ class AquireWorker(QObject):
                 except Exception as e:
                     self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
                     raise  # その他の例外はそのまま発生させる
+                # -------------------------------------------------------------
 
+        # 最新株価の通知シグナル
         self.notifyCurrentPrice.emit(dict_data)
 
     def stop_processing(self):
-        # self.running = False
+        """
+        xlwings のインスタンスを明示的に開放する
+        :return:
+        """
         if self.wb:
             try:
                 self.wb.close()  # ブックを閉じる
@@ -116,4 +145,6 @@ class AquireWorker(QObject):
                 except Exception as e:
                     print(f"Worker: Error quitting app: {e}")
             self.book = None  # オブジェクト参照をクリア
+
+        # スレッド終了シグナルの通知シグナル
         self.threadFinished.emit()
