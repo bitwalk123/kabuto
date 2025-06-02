@@ -11,6 +11,7 @@ from widgets.labels import LCDTime, Label
 
 
 class ToolBar(QToolBar):
+    aboutClicked = Signal()
     excelSelected = Signal(str)
     playClicked = Signal()
     saveClicked = Signal()
@@ -78,6 +79,7 @@ class ToolBar(QToolBar):
             'アプリケーションの情報',
             self
         )
+        action_info.triggered.connect(self.on_about)
         self.addAction(action_info)
 
         hpad = PadH()
@@ -88,6 +90,9 @@ class ToolBar(QToolBar):
 
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
+
+    def on_about(self):
+        self.aboutClicked.emit()
 
     def on_select_excel(self):
         excel_path, _ = QFileDialog.getOpenFileName(
