@@ -5,7 +5,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
 
 from structs.res import AppRes
-from widgets.buttons import RadioButton, ButtonGroup
+from widgets.buttons import RadioButton, ButtonGroup, RadioButtonInt
 from widgets.containers import PadH
 from widgets.labels import LCDTime, Label
 
@@ -15,6 +15,7 @@ class ToolBar(QToolBar):
     playClicked = Signal()
     saveClicked = Signal()
     stopClicked = Signal()
+    timerIntervalChanged = Signal(int)
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -31,11 +32,13 @@ class ToolBar(QToolBar):
 
             self.addSeparator()
 
-            rb_a = RadioButton('10倍速')
+            rb_a = RadioButtonInt('10倍速')
             rb_a.toggle()
+            rb_a.setValue(100)
             self.addWidget(rb_a)
 
-            rb_b = RadioButton('100倍速')
+            rb_b = RadioButtonInt('100倍速')
+            rb_b.setValue(10)
             self.addWidget(rb_b)
 
             self.rb_group = rb_group = ButtonGroup()
@@ -111,9 +114,6 @@ class ToolBar(QToolBar):
         dt = datetime.datetime.now()
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
 
-    def radiobutton_changed(self, rb: RadioButton, state: bool):
+    def radiobutton_changed(self, rb: RadioButtonInt, state: bool):
         if state:
-            status = 'オン'
-        else:
-            status = 'オフ'
-        print('「%s」を%sにしました。' % (rb.text(), status))
+            self.timerIntervalChanged.emit(rb.getValue())

@@ -107,6 +107,7 @@ class Kabuto(QMainWindow):
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
         toolbar.stopClicked.connect(self.on_review_stop)
+        toolbar.timerIntervalChanged.connect(self.on_timer_interval_changed)
         self.addToolBar(toolbar)
 
         # メインウィジェット
@@ -404,6 +405,9 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+    def on_timer_interval_changed(self, interval:int):
+        self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
+        self.timer.setInterval(interval)
 
     def on_update_data(self, dict_data):
         for ticker in dict_data.keys():

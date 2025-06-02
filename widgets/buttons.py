@@ -58,6 +58,18 @@ class RadioButton(QRadioButton):
         super().__init__(*args)
 
 
+class RadioButtonInt(QRadioButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.value: int = 0
+
+    def setValue(self, val: int):
+        self.value = val
+
+    def getValue(self) -> int:
+        return self.value
+
+
 class ButtonGroup(QButtonGroup):
     def __init__(self, *args):
         super().__init__(*args)
