@@ -1,5 +1,5 @@
 from PySide6.QtCore import QMargins
-from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QGridLayout
 
 
 class HBoxLayout(QHBoxLayout):
@@ -10,6 +10,13 @@ class HBoxLayout(QHBoxLayout):
 
 
 class VBoxLayout(QVBoxLayout):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setSpacing(0)
+
+
+class GridLayout(QGridLayout):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))

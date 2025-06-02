@@ -19,6 +19,7 @@ from modules.trader_pyqtgraph import Trader
 from modules.reviewer import ReviewWorker
 from structs.res import AppRes
 from widgets.containers import Widget
+from widgets.dialog import DlgAboutThis
 from widgets.layouts import VBoxLayout
 from widgets.statusbar import StatusBar
 from widgets.toolbar import ToolBar
@@ -103,6 +104,7 @@ class Kabuto(QMainWindow):
 
         # ツールバー
         self.toolbar = toolbar = ToolBar(res)
+        toolbar.aboutClicked.connect(self.on_about)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
@@ -189,6 +191,11 @@ class Kabuto(QMainWindow):
             trader = self.dict_trader[ticker]
             dict_df[ticker] = trader.getTimePrice()
         return dict_df
+
+    def on_about(self):
+        dlg = DlgAboutThis(self.res, self.__app_name__, self.__version__)
+        if dlg.exec():
+            print('OK ボタンがクリックされました。')
 
     def on_create_acquire_thread(self, excel_path: str):
         """
@@ -349,7 +356,6 @@ class Kabuto(QMainWindow):
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime()
 
-
     def on_review_play(self):
         """
         読み込んだデータのレビュー開始
@@ -405,7 +411,8 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
-    def on_timer_interval_changed(self, interval:int):
+
+    def on_timer_interval_changed(self, interval: int):
         self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
         self.timer.setInterval(interval)
 

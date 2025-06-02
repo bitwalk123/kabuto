@@ -1,4 +1,4 @@
-from PySide6.QtCore import QMargins
+from PySide6.QtCore import QMargins, Qt
 from PySide6.QtWidgets import QLCDNumber, QLabel
 
 
@@ -6,6 +6,20 @@ class Label(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
+
+
+class LabelLeft(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+
+class LabelRight(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
 class LCDNumber(QLCDNumber):
