@@ -46,5 +46,6 @@ class PlainTextEdit(QPlainTextEdit):
             QPlainTextEdit {
                 border-width: 0;
                 border-style: none;
+                padding: 0;
             }
         """)
