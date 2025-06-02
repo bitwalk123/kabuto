@@ -1,10 +1,12 @@
+import datetime
+
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
 
 from structs.res import AppRes
 from widgets.containers import PadH
-from widgets.labels import LCDTime
+from widgets.labels import LCDTime, Label
 
 
 class ToolBar(QToolBar):
@@ -25,6 +27,9 @@ class ToolBar(QToolBar):
             )
             action_open.triggered.connect(self.on_select_excel)
             self.addAction(action_open)
+
+            lab_timer = Label("タイマー間隔")
+            self.addWidget(lab_timer)
 
             action_play = QAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay),
@@ -61,6 +66,9 @@ class ToolBar(QToolBar):
         hpad = PadH()
         self.addWidget(hpad)
 
+        lab_time = Label("現在時刻 ")
+        self.addWidget(lab_time)
+
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
 
@@ -85,5 +93,6 @@ class ToolBar(QToolBar):
     def on_stop(self):
         self.stopClicked.emit()
 
-    def setCurrentTime(self, dt):
-        pass
+    def updateTime(self):
+        dt = datetime.datetime.now()
+        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")

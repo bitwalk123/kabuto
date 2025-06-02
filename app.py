@@ -102,7 +102,7 @@ class Kabuto(QMainWindow):
         self.setWindowTitle(title_window)
 
         # ツールバー
-        toolbar = ToolBar(res)
+        self.toolbar = toolbar = ToolBar(res)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
@@ -333,6 +333,8 @@ class Kabuto(QMainWindow):
             self.save_regular_tick_data()
         else:
             pass
+        # ツールバーの時刻を更新
+        self.toolbar.updateTime()
 
     def on_request_data_review(self):
         """
@@ -342,6 +344,10 @@ class Kabuto(QMainWindow):
         self.ts_current += 1
         if self.ts_end < self.ts_current:
             self.timer.stop()
+
+        # ツールバーの時刻を更新（現在時刻を表示するだけ）
+        self.toolbar.updateTime()
+
 
     def on_review_play(self):
         """
