@@ -22,12 +22,13 @@ from widgets.toolbar import ToolBar
 if sys.platform == "win32":
     debug = False
 else:
+    # Windows でないプラットフォーム上ではデバッグモードになる
     debug = True
 
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.0"
+    __version__ = "0.2.0"
 
     requestAcquireInit = Signal()
     requestCurrentPrice = Signal()
@@ -44,6 +45,7 @@ class Kabuto(QMainWindow):
         if len(options) > 0:
             for option in options:
                 if option == "debug":
+                    # 主に Windows 上でデバッグモードを使用する場合
                     debug = True
 
         # モジュール固有のロガーを取得
@@ -60,6 +62,7 @@ class Kabuto(QMainWindow):
 
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
+
             # タイマー用カウンター（レビュー用）
             self.ts_current = 0
             self.ts_start = 0  # タイマー開始時
@@ -95,9 +98,9 @@ class Kabuto(QMainWindow):
         # ツールバー
         toolbar = ToolBar(res)
         toolbar.excelSelected.connect(self.on_create_review_thread)
-        toolbar.playClicked.connect(self.on_play)
-        toolbar.saveClicked.connect(self.on_save)
-        toolbar.stopClicked.connect(self.on_stop)
+        toolbar.playClicked.connect(self.on_review_play)
+        toolbar.saveClicked.connect(self.on_save_data)
+        toolbar.stopClicked.connect(self.on_review_stop)
         self.addToolBar(toolbar)
 
         # メインウィジェット
@@ -117,6 +120,7 @@ class Kabuto(QMainWindow):
         timer.setInterval(self.timer_interval)
 
         if debug:
+            # デバッグ時
             timer.timeout.connect(self.on_request_data_review)
         else:
             timer.timeout.connect(self.on_request_data)
@@ -127,6 +131,7 @@ class Kabuto(QMainWindow):
             dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=12, minute=30)
             dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
             dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
+            # タイムスタンプに変換してインスタンス変数で保持
             self.ts_start = dt_start.timestamp()
             self.ts_end_1h = dt_end_1h.timestamp()
             self.ts_start_2h = dt_start_2h.timestamp()
@@ -167,7 +172,11 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def get_current_tick_data(self):
+    def get_current_tick_data(self) -> dict:
+        """
+        チャートが保持しているティックデータをデータフレームで取得
+        :return:
+        """
         dict_df = dict()
         for ticker in self.dict_trader.keys():
             trader = self.dict_trader[ticker]
@@ -200,7 +209,7 @@ class Kabuto(QMainWindow):
         self.requestStopProcess.connect(acquire.stop_processing)
 
         # ワーカースレッド側のシグナルとスロットの接続
-        acquire.notifyTickerN.connect(self.on_create_trader_acquire)
+        acquire.notifyTickerN.connect(self.on_create_trader)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
@@ -241,7 +250,14 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.review_thread.start()
 
-    def on_create_trader_acquire(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+        """
+        Trader インスタンスの生成
+        :param list_ticker:
+        :param dict_name:
+        :param dict_lastclose:
+        :return:
+        """
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = Trader(self.res)
@@ -261,6 +277,12 @@ class Kabuto(QMainWindow):
         self.logger.info("タイマーを開始しました。")
 
     def on_create_trader_review(self, list_ticker: list, dict_times: dict):
+        """
+        Trader インスタンスの生成（レビュー用）
+        :param list_ticker:
+        :param dict_times:
+        :return:
+        """
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
 
@@ -285,45 +307,6 @@ class Kabuto(QMainWindow):
                 self.ts_start, self.ts_end = dict_times[ticker]
 
         self.data_ready = True
-
-    def on_play(self):
-        if self.data_ready:
-            self.ts_current = self.ts_start
-            # タイマー開始
-            self.timer.start()
-            self.logger.info("タイマーを開始しました。")
-
-    def on_save(self) -> bool:
-        dict_df = self.get_current_tick_data()
-
-        name_excel, _ = QFileDialog.getSaveFileName(
-            self,
-            "ティック・データを保存",
-            "Unknown.xlsx",
-            "Excel Files (*.xlsx);;All Files (*)",
-            "Excel Files (*.xlsx)"
-        )
-        if name_excel == "":
-            return False
-        else:
-            print(name_excel)
-            self.save_tick_data(name_excel, dict_df)
-            return True
-
-    def on_stop(self):
-        if self.timer.isActive():
-            self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
-
-    def on_thread_finished(self, result: bool):
-        if result:
-            self.logger.info("スレッドが正常終了しました。")
-        else:
-            self.logger.error("スレッドが異常終了しました。")
-
-        if self.timer.isActive():
-            self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
 
     def on_request_data(self):
         """
@@ -350,6 +333,62 @@ class Kabuto(QMainWindow):
         if self.ts_end < self.ts_current:
             self.timer.stop()
 
+    def on_review_play(self):
+        """
+        読み込んだデータのレビュー開始
+        :return:
+        """
+        if self.data_ready:
+            self.ts_current = self.ts_start
+            # タイマー開始
+            self.timer.start()
+            self.logger.info("タイマーを開始しました。")
+
+    def on_review_stop(self):
+        """
+        読み込んだデータのレビュー停止
+        :return:
+        """
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+
+    def on_save_data(self) -> bool:
+        """
+        チャートが保持しているデータをファイル名を指定して保存
+        :return:
+        """
+        dict_df = self.get_current_tick_data()
+
+        name_excel, _ = QFileDialog.getSaveFileName(
+            self,
+            "ティック・データを保存",
+            "Unknown.xlsx",
+            "Excel Files (*.xlsx);;All Files (*)",
+            "Excel Files (*.xlsx)"
+        )
+        if name_excel == "":
+            return False
+        else:
+            print(name_excel)
+            self.save_tick_data(name_excel, dict_df)
+            return True
+
+    def on_thread_finished(self, result: bool):
+        """
+        スレッド終了時のログ
+        :param result:
+        :return:
+        """
+        if result:
+            self.logger.info("スレッドが正常終了しました。")
+        else:
+            self.logger.error("スレッドが異常終了しました。")
+
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+
     def on_update_data(self, dict_data):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
@@ -364,6 +403,10 @@ class Kabuto(QMainWindow):
                 trader.setTimePrice(x, y)
 
     def save_regular_tick_data(self):
+        """
+        通常データの保存処理（当日日付のついた定型ファイル名）
+        :return:
+        """
         name_excel = os.path.join(
             self.res.dir_excel,
             f"tick_{self.date_str}.xlsx"
@@ -373,6 +416,12 @@ class Kabuto(QMainWindow):
         return True
 
     def save_tick_data(self, name_excel: str, dict_df: dict):
+        """
+        指定されたファイル名で辞書に格納されたデータフレームExcelシートにしてブックで保存
+        :param name_excel:
+        :param dict_df:
+        :return:
+        """
         try:
             save_dataframe_to_excel(name_excel, dict_df)
             self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
