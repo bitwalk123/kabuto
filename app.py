@@ -207,14 +207,18 @@ class Kabuto(QMainWindow):
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         acquire_thread.started.connect(self.requestAcquireInit.emit)
 
+        # ---------------------------------------------------------------------
+        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
         # 初期化処理は指定された Excel ファイルを読み込むこと
-        # シグナルを発すると下記メソッドへキューイングされる。
+        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
         self.requestAcquireInit.connect(acquire.loadExcel)
-        # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
+        # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(acquire.readCurrentPrice)
+        # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(acquire.stopProcess)
 
-        # ワーカースレッド側のシグナルとスロットの接続
+        # ---------------------------------------------------------------------
+        # ワーカー・スレッド側のシグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
