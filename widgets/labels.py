@@ -44,7 +44,6 @@ class PlainTextEdit(QPlainTextEdit):
         super().__init__(*args)
         self.setStyleSheet("""
             QPlainTextEdit {
-                font-family: monospace;
                 border-width: 0;
                 border-style: none;
                 padding: 0;
