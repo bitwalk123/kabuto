@@ -52,9 +52,10 @@ class DlgAboutThis(QDialog):
         layout.addWidget(lab_desc_0, r, 0)
         lab_desc_1 = PlainTextEdit()
         msg = "これはデイトレード用アプリです。\n" \
-            "楽天証券の取引ツールである「マーケットスピード２」の情報を" \
-            "RSS により Excel ワークシート上に読み込み、" \
-            "さらに python の xlwings のパッケージがワークシート上を読み書きして処理しています。"
+              "楽天証券の取引ツールである「マーケットスピード２」の情報を" \
+              "RSS により Excel ワークシート上に読み込み、" \
+              "さらに python の xlwings のパッケージを利用して" \
+              "ワークシート上を読み書きして処理しています。"
         lab_desc_1.setPlainText(msg)
         lab_desc_1.setReadOnly(True)
         layout.addWidget(lab_desc_1, r, 1, 1, 2)

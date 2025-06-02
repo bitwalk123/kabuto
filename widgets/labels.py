@@ -42,3 +42,9 @@ class LCDTime(QLCDNumber):
 class PlainTextEdit(QPlainTextEdit):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setStyleSheet("""
+            QPlainTextEdit {
+                border-width: 0;
+                border-style: none;
+            }
+        """)
