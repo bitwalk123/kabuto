@@ -5,7 +5,11 @@ import sys
 
 from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QCloseEvent
-from PySide6.QtWidgets import QApplication, QMainWindow, QFileDialog
+from PySide6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+)
 
 from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
@@ -52,6 +56,7 @@ class Kabuto(QMainWindow):
         self.logger = logging.getLogger(__name__)
 
         if debug:
+            # デバッグ・モードで起動
             self.logger.info(f"{__name__} executed as DEBUG mode!")
 
             # ウィンドウ・タイトル（デバッグモード）文字列
@@ -68,6 +73,7 @@ class Kabuto(QMainWindow):
             self.ts_start = 0  # タイマー開始時
             self.ts_end = 0  # タイマー終了時
         else:
+            # ノーマル・モードで起動
             self.logger.info(f"{__name__} executed as NORMAL mode!")
 
             # ウィンドウ・タイトル文字列
