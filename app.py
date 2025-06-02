@@ -439,8 +439,18 @@ class Kabuto(QMainWindow):
             f"tick_{self.date_str}.xlsx"
         )
         dict_df = self.get_current_tick_data()
-        self.save_tick_data(name_excel, dict_df)
-        return True
+
+        r = 0
+        for ticker in dict_df.keys():
+            df = dict_df[ticker]
+            r += len(df)
+        if r == 0:
+            # すべてのデータフレームの行数が 0 の場合は保存しない。
+            self.logger.info(f"{__name__} データ無いため {name_excel} への保存はキャンセルされました。")
+            return False
+        else:
+            self.save_tick_data(name_excel, dict_df)
+            return True
 
     def save_tick_data(self, name_excel: str, dict_df: dict):
         """
