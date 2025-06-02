@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QPushButton, QStyle
+from PySide6.QtWidgets import QPushButton, QStyle, QRadioButton, QButtonGroup
 
 
 class ButtonSave(QPushButton):
@@ -51,3 +51,13 @@ class ButtonRepay(QPushButton):
             }
         """)
         self.setText("返　　済")
+
+
+class RadioButton(QRadioButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
+class ButtonGroup(QButtonGroup):
+    def __init__(self, *args):
+        super().__init__(*args)

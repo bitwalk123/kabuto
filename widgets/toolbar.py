@@ -5,6 +5,7 @@ from PySide6.QtGui import QAction
 from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
 
 from structs.res import AppRes
+from widgets.buttons import RadioButton, ButtonGroup
 from widgets.containers import PadH
 from widgets.labels import LCDTime, Label
 
@@ -28,8 +29,21 @@ class ToolBar(QToolBar):
             action_open.triggered.connect(self.on_select_excel)
             self.addAction(action_open)
 
-            lab_timer = Label("タイマー間隔")
-            self.addWidget(lab_timer)
+            self.addSeparator()
+
+            rb_a = RadioButton('10倍速')
+            rb_a.toggle()
+            self.addWidget(rb_a)
+
+            rb_b = RadioButton('100倍速')
+            self.addWidget(rb_b)
+
+            self.rb_group = rb_group = ButtonGroup()
+            rb_group.addButton(rb_a)
+            rb_group.addButton(rb_b)
+            rb_group.buttonToggled.connect(self.radiobutton_changed)
+
+            self.addSeparator()
 
             action_play = QAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay),
@@ -96,3 +110,10 @@ class ToolBar(QToolBar):
     def updateTime(self):
         dt = datetime.datetime.now()
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
+
+    def radiobutton_changed(self, rb: RadioButton, state: bool):
+        if state:
+            status = 'オン'
+        else:
+            status = 'オフ'
+        print('「%s」を%sにしました。' % (rb.text(), status))
