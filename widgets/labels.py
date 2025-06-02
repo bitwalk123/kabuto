@@ -1,5 +1,5 @@
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtWidgets import QLCDNumber, QLabel
+from PySide6.QtWidgets import QLCDNumber, QLabel, QTextEdit
 
 
 class Label(QLabel):
@@ -11,14 +11,14 @@ class Label(QLabel):
 class LabelLeft(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setContentsMargins(QMargins(5, 0, 5, 0))
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
 
 class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setContentsMargins(QMargins(5, 0, 5, 0))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
@@ -37,3 +37,8 @@ class LCDTime(QLCDNumber):
         self.setFixedWidth(100)
         self.setDigitCount(8)
         self.display('00:00:00')
+
+
+class TextEdit(QTextEdit):
+    def __init__(self, *args):
+        super().__init__(*args)
