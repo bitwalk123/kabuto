@@ -27,7 +27,7 @@ class DlgAboutThis(QDialog):
         lab_name_2.setPixmap(pixmap)
         lab_name_2.setContentsMargins(QMargins(5, 0, 5, 0))
         lab_name_2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)
-        layout.addWidget(lab_name_2, r, 2, 3, 1)
+        layout.addWidget(lab_name_2, r, 2, 4, 1)
 
         r += 1
         lab_ver_0 = LabelRight("バージョン")
@@ -40,6 +40,12 @@ class DlgAboutThis(QDialog):
         layout.addWidget(lab_author_0, r, 0)
         lab_author_1 = LabelLeft("Fuhito Suguri")
         layout.addWidget(lab_author_1, r, 1)
+
+        r += 1
+        lab_license_0 = LabelRight("ライセンス")
+        layout.addWidget(lab_license_0, r, 0)
+        lab_license_1 = LabelLeft("MIT")
+        layout.addWidget(lab_license_1, r, 1)
 
         r += 1
         lab_desc_0 = LabelRight("説　　明")

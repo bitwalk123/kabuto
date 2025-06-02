@@ -11,14 +11,14 @@ class Label(QLabel):
 class LabelLeft(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setContentsMargins(QMargins(5, 2, 5, 2))
+        self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
 
 class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setContentsMargins(QMargins(5, 2, 5, 2))
+        self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
