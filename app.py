@@ -15,6 +15,7 @@ from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
+from modules.posman import PositionManagerWorker
 from modules.trader_pyqtgraph import Trader
 from modules.reviewer import ReviewWorker
 from structs.res import AppRes
@@ -87,6 +88,10 @@ class Kabuto(QMainWindow):
 
         # デバッグ・モードを保持
         res.debug = debug
+
+        # ポジション・マネージャー
+        self.posman_thread: QThread | None = None
+        self.posman: PositionManagerWorker | None = None
 
         # ザラ場用インスタンス（スレッド）
         self.acquire_thread: QThread | None = None
@@ -211,6 +216,21 @@ class Kabuto(QMainWindow):
         )
         if dlg.exec():
             print('OK ボタンがクリックされました。')
+
+    def on_create_posman_thread(self, list_ticker:list):
+        self.posman_thread = posman_thread = QThread()
+        self.posman = posman = PositionManagerWorker(list_ticker)
+        posman.moveToThread(posman_thread)
+
+        # ---------------------------------------------------------------------
+        # ワーカー・スレッド側のシグナルとスロットの接続
+        posman.threadFinished.connect(self.on_thread_finished)
+        posman.threadFinished.connect(posman_thread.quit)  # スレッド終了時
+        posman_thread.finished.connect(posman_thread.deleteLater)  # スレッドオブジェクトの削除
+
+        # スレッドを開始
+        self.acquire_thread.start()
+
 
     def on_create_acquire_thread(self, excel_path: str):
         """
