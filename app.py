@@ -183,6 +183,13 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
+    def create_trader(self, ticker) -> Trader:
+        trader = Trader(self.res, ticker)
+        trader.dock.clickedBuy.connect(self.on_buy)
+        trader.dock.clickedRepay.connect(self.on_repay)
+        trader.dock.clickedSell.connect(self.on_sell)
+        return trader
+
     def get_current_tick_data(self) -> dict:
         """
         チャートが保持しているティックデータをデータフレームで取得
@@ -286,10 +293,10 @@ class Kabuto(QMainWindow):
         """
         for ticker in list_ticker:
             # Trader インスタンスの生成
-            trader = Trader(self.res)
+            trader = self.create_trader(ticker)
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
-            # ticker をタイトルに
+            # 「銘柄名　(ticker)」をタイトルにして設定し直し
             trader.setTitle(f"{dict_name[ticker]} ({ticker})")
             # 当日ザラ場時間
             trader.setTimeRange(self.ts_start, self.ts_end)
@@ -317,12 +324,10 @@ class Kabuto(QMainWindow):
 
         # Trader の配置
         for i, ticker in enumerate(list_ticker):
-            trader = Trader(self.res)
+            trader = self.create_trader(ticker)
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
 
-            # ticker をタイトルに
-            trader.setTitle(ticker)
             # チャートの時間範囲を設定
             trader.setTimeRange(*dict_times[ticker])
 
@@ -472,6 +477,15 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
         except ValueError as e:
             self.logger.error(f"{__name__} error occured!: {e}")
+
+    def on_sell(self, ticker, price):
+        print(f"clicked SELL button at {ticker} {price}")
+
+    def on_buy(self, ticker, price):
+        print(f"clicked BUY button at {ticker} {price}")
+
+    def on_repay(self, ticker, price):
+        print(f"clicked REPAY button at {ticker} {price}")
 
 
 def main():

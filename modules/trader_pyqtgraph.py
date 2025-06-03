@@ -13,10 +13,11 @@ from widgets.graph import TrendGraph
 
 
 class Trader(QMainWindow):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes, ticker: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
+        self.ticker = ticker
 
         # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
         self.max_data_points = 19800
@@ -43,11 +44,12 @@ class Trader(QMainWindow):
         self.counter_bear = 0
 
         # 右側のドック
-        self.dock = dock = DockTrader(res)
+        self.dock = dock = DockTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # PyQtGraph インスタンス
         self.chart = chart = TrendGraph()
+        self.setTitle(ticker)
         self.setCentralWidget(chart)
 
         # 株価トレンドライン
@@ -139,3 +141,4 @@ class Trader(QMainWindow):
 
     def setTitle(self, title: str):
         self.chart.setTitle(title)
+
