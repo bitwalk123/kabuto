@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import re
 import sys
 
 from PySide6.QtCore import QThread, QTimer, Signal
@@ -73,8 +74,6 @@ class Kabuto(QMainWindow):
 
             # タイマー用カウンター（レビュー用）
             self.ts_current = 0
-            self.ts_start = 0  # タイマー開始時
-            self.ts_end = 0  # タイマー終了時
         else:
             # ノーマル・モードで起動
             self.logger.info(f"{__name__} executed as NORMAL mode!")
@@ -87,6 +86,14 @@ class Kabuto(QMainWindow):
 
         # デバッグ・モードを保持
         res.debug = debug
+
+        # ザラ場中の時刻情報の初期化
+        self.ts_start = 0
+        self.ts_end_1h = 0
+        self.ts_start_2h = 0
+        self.ts_ca = 0
+        self.ts_end = 0
+        self.date_str = 0
 
         # ザラ場用インスタンス（スレッド）
         self.acquire_thread: QThread | None = None
@@ -131,25 +138,9 @@ class Kabuto(QMainWindow):
         timer.setInterval(self.timer_interval)
 
         if debug:
-            # デバッグ時
             timer.timeout.connect(self.on_request_data_review)
         else:
             timer.timeout.connect(self.on_request_data)
-            # ザラ場日時時間情報
-            dt = datetime.datetime.now()
-            dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=11, minute=30)
-            dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=12, minute=30)
-            dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
-            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
-            # タイムスタンプに変換してインスタンス変数で保持
-            self.ts_start = dt_start.timestamp()
-            self.ts_end_1h = dt_end_1h.timestamp()
-            self.ts_start_2h = dt_start_2h.timestamp()
-            self.ts_ca = dt_ca.timestamp()
-            self.ts_end = dt_end.timestamp()
-            self.date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
-            self.on_create_acquire_thread("targets.xlsx")
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -222,6 +213,22 @@ class Kabuto(QMainWindow):
         :param excel_path:
         :return:
         """
+        # ザラ場日時時間情報
+        dt = datetime.datetime.now()
+        dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
+        dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=11, minute=30)
+        dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=12, minute=30)
+        dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
+        dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
+        # タイムスタンプに変換してインスタンス変数で保持
+        self.ts_start = dt_start.timestamp()
+        self.ts_end_1h = dt_end_1h.timestamp()
+        self.ts_start_2h = dt_start_2h.timestamp()
+        self.ts_ca = dt_ca.timestamp()
+        self.ts_end = dt_end.timestamp()
+        self.date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
+        self.on_create_acquire_thread("targets.xlsx")
+
         # Excelを読み込むスレッド処理
         self.acquire_thread = acquire_thread = QThread()
         self.acquire = acquire = AquireWorker(excel_path)
@@ -261,6 +268,33 @@ class Kabuto(QMainWindow):
         :param excel_path:
         :return:
         """
+        # Excel のファイル名より、チャートのx軸の始点と終点を算出
+        pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
+        m = pattern.match(excel_path)
+        if m:
+            year = m.group(1)
+            month = m.group(2)
+            day = m.group(3)
+        else:
+            year = 1970
+            month = 1
+            day = 1
+        # ザラ場日時時間情報
+        dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
+        dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
+        dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
+        dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
+        dt_end = datetime.datetime(year, month, dt.day, hour=15, minute=30)
+        # タイムスタンプに変換してインスタンス変数で保持
+        self.ts_start = dt_start.timestamp()
+        self.ts_end_1h = dt_end_1h.timestamp()
+        self.ts_start_2h = dt_start_2h.timestamp()
+        self.ts_ca = dt_ca.timestamp()
+        self.ts_end = dt_end.timestamp()
+        self.date_str = f"{year:04}{month:02}{day:02}"
+
+        print(excel_path)
+
         # Excelを読み込むスレッド処理
         self.review_thread = review_thread = QThread()
         self.review = review = ReviewWorker(excel_path)

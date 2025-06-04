@@ -26,6 +26,10 @@ class ReviewWorker(QObject):
         self.dict_sheet = dict()
 
     def loadExcel(self):
+        """
+        ティックデータを保存した Excel ファイルの読み込み
+        :return:
+        """
         try:
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
@@ -36,6 +40,7 @@ class ReviewWorker(QObject):
 
         dict_times = dict()
 
+        # それぞれの銘柄における開始時間を終了時間の取得
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
             dt = datetime.datetime.fromtimestamp(df['Time'].iloc[0])

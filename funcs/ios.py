@@ -3,6 +3,11 @@ import pandas as pd
 
 
 def load_excel(excel_path) -> dict:
+    """
+    excel_path で指定された Excel ファイルの読み込み
+    :param excel_path:
+    :return:
+    """
     wb = openpyxl.load_workbook(excel_path)
     dict_sheet = dict()
     for i, name_sheet in enumerate(wb.sheetnames):
