@@ -115,8 +115,8 @@ class ToolBar(QToolBar):
     def on_stop(self):
         self.stopClicked.emit()
 
-    def updateTime(self):
-        dt = datetime.datetime.now()
+    def updateTime(self, ts: float):
+        dt = datetime.datetime.fromtimestamp(ts)
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
 
     def radiobutton_changed(self, rb: RadioButtonInt, state: bool):

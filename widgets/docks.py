@@ -18,11 +18,15 @@ from widgets.layouts import HBoxLayout, VBoxLayout
 
 
 class DockTrader(QDockWidget):
-    saveClicked = Signal()
+    clickedSave = Signal()
+    clickedBuy = Signal(str, float)
+    clickedSell = Signal(str, float)
+    clickedRepay = Signal(str, float)
 
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes, ticker: str):
         super().__init__()
         self.res = res
+        self.ticker = ticker
 
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
@@ -51,7 +55,8 @@ class DockTrader(QDockWidget):
         row_buysell.setLayout(layout_buysell)
 
         # 売掛ボタン
-        but_sell = ButtonSell()
+        self.but_sell = but_sell = ButtonSell()
+        but_sell.clicked.connect(self.on_sell)
         layout_buysell.addWidget(but_sell)
 
         # 余白
@@ -59,7 +64,8 @@ class DockTrader(QDockWidget):
         layout_buysell.addWidget(pad)
 
         # 買掛ボタン
-        but_buy = ButtonBuy()
+        self.but_buy = but_buy = ButtonBuy()
+        but_buy.clicked.connect(self.on_buy)
         layout_buysell.addWidget(but_buy)
 
         # 含み損益表示
@@ -67,7 +73,9 @@ class DockTrader(QDockWidget):
         layout.addWidget(lcd_profit)
 
         # 建玉返済ボタン
-        but_repay = ButtonRepay()
+        self.but_repay = but_repay = ButtonRepay()
+        self.but_repay.setDisabled(True)
+        but_repay.clicked.connect(self.on_repay)
         layout.addWidget(but_repay)
 
         # 合計損益表示
@@ -93,7 +101,33 @@ class DockTrader(QDockWidget):
         # ---------------------------------
         # 🧿 保存ボタンがクリックされたことを通知
         # ---------------------------------
-        self.saveClicked.emit()
+        self.clickedSave.emit()
+
+    def getPrice(self) -> float:
+        return self.lcd_price.value()
 
     def setPrice(self, price: float):
         self.lcd_price.display(f"{price:.1f}")
+
+    def on_buy(self):
+        self.clickedBuy.emit(self.ticker, self.getPrice())
+        self.actSellBuy()
+
+    def on_sell(self):
+        self.clickedSell.emit(self.ticker, self.getPrice())
+        self.actSellBuy()
+
+    def on_repay(self):
+        self.clickedRepay.emit(self.ticker, self.getPrice())
+        self.actRepay()
+
+
+    def actSellBuy(self):
+        self.but_buy.setDisabled(True)
+        self.but_sell.setDisabled(True)
+        self.but_repay.setEnabled(True)
+
+    def actRepay(self):
+        self.but_buy.setEnabled(True)
+        self.but_sell.setEnabled(True)
+        self.but_repay.setDisabled(True)
