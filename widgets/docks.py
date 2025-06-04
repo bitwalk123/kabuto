@@ -135,8 +135,8 @@ class DockTrader(QDockWidget):
         返済ボタンを Enable にしてナンピン売買ができないようにする。
         :return:
         """
-        self.but_buy.setDisabled(True)
-        self.but_sell.setDisabled(True)
+        self.but_buy.setEnabled(False)
+        self.but_sell.setEnabled(False)
         self.but_repay.setEnabled(True)
 
     def actRepay(self):
@@ -147,4 +147,4 @@ class DockTrader(QDockWidget):
         """
         self.but_buy.setEnabled(True)
         self.but_sell.setEnabled(True)
-        self.but_repay.setDisabled(True)
+        self.but_repay.setEnabled(False)
