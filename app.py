@@ -72,9 +72,6 @@ class Kabuto(QMainWindow):
 
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
-
-            # タイマー用カウンター（デバッグ）
-            self.ts_debug = 0
         else:
             # ノーマル・モードで起動
             self.logger.info(f"{__name__} executed as NORMAL mode!")
@@ -87,6 +84,9 @@ class Kabuto(QMainWindow):
 
         # デバッグ・モードを保持
         res.debug = debug
+
+        # システム時刻（タイムスタンプ）
+        self.ts_system = 0
 
         # ザラ場中の時刻情報の初期化
         self.ts_start = 0
@@ -359,31 +359,31 @@ class Kabuto(QMainWindow):
         """
         タイマー処理（リアルタイム）
         """
-        ts = time.time()
-        if self.ts_start <= ts <= self.ts_end_1h:
+        self.ts_system = time.time()
+        if self.ts_start <= self.ts_system <= self.ts_end_1h:
             self.requestCurrentPrice.emit()
-        elif self.ts_start_2h <= ts <= self.ts_ca:
+        elif self.ts_start_2h <= self.ts_system <= self.ts_ca:
             self.requestCurrentPrice.emit()
-        elif self.ts_ca < ts:
+        elif self.ts_ca < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
             self.save_regular_tick_data()
         else:
             pass
         # ツールバーの時刻を更新
-        self.toolbar.updateTime(time.time())
+        self.toolbar.updateTime(self.ts_system)
 
     def on_request_data_review(self):
         """
         タイマー処理（デバッグ）
         """
-        self.requestCurrentPriceReview.emit(self.ts_debug)
-        self.ts_debug += 1
-        if self.ts_end < self.ts_debug:
+        self.requestCurrentPriceReview.emit(self.ts_system)
+        self.ts_system += 1
+        if self.ts_end < self.ts_system:
             self.timer.stop()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
-        self.toolbar.updateTime(self.ts_debug)
+        self.toolbar.updateTime(self.ts_system)
 
     def on_review_play(self):
         """
@@ -391,7 +391,7 @@ class Kabuto(QMainWindow):
         :return:
         """
         if self.data_ready:
-            self.ts_debug = self.ts_start
+            self.ts_system = self.ts_start
             # タイマー開始
             self.timer.start()
             self.logger.info("タイマーを開始しました。")
