@@ -327,6 +327,12 @@ class Kabuto(QMainWindow):
         :param dict_lastclose:
         :return:
         """
+        # 配置済みの Trader インスタンスを消去
+        clear_boxlayout(self.layout)
+
+        # Trader 辞書のクリア
+        self.dict_trader = dict()
+
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = self.create_trader(ticker)
@@ -337,7 +343,9 @@ class Kabuto(QMainWindow):
             # 当日ザラ場時間
             trader.setTimeRange(self.ts_start, self.ts_end)
             # 前日終値
-            trader.addLastCloseLine(dict_lastclose[ticker])
+            if dict_lastclose[ticker] > 0:
+                trader.addLastCloseLine(dict_lastclose[ticker])
+
             # 配置
             self.layout.addWidget(trader)
 
@@ -364,21 +372,16 @@ class Kabuto(QMainWindow):
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
 
-            # チャートの時間範囲を設定
-            # trader.setTimeRange(*dict_times[ticker])
-            # 当日ザラ場時間
-            # trader.setTimeRange(self.ts_start, self.ts_end)
-
             # 「銘柄名　(ticker)」をタイトルにして設定し直し
             trader.setTitle(f"{dict_name[ticker]} ({ticker})")
             # 当日ザラ場時間
             trader.setTimeRange(self.ts_start, self.ts_end)
+            # 前日終値
+            if dict_lastclose[ticker] > 0:
+                trader.addLastCloseLine(dict_lastclose[ticker])
 
+            # 配置
             self.layout.addWidget(trader)
-
-            # ループ用処理
-            # if i == 0:
-            #    self.ts_start, self.ts_end = dict_times[ticker]
 
         self.data_ready = True
 

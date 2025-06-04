@@ -39,19 +39,12 @@ class ReviewWorker(QObject):
             self.threadFinished.emit(False)
             return
 
-        """
-        dict_times = dict()
-        # それぞれの銘柄における開始時間を終了時間の取得
-        for ticker in self.dict_sheet.keys():
-            df = self.dict_sheet[ticker]
-            dt = datetime.datetime.fromtimestamp(df['Time'].iloc[0])
-            dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-            dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
-            dict_times[ticker] = [dt_start.timestamp(), dt_end.timestamp()]
-        """
         list_ticker = list(self.dict_sheet.keys())
         dict_name = get_ticker_name_list(list_ticker)
         dict_lastclose = dict()
+        for ticker in list_ticker:
+            dict_lastclose[ticker] = 0
+
         # 銘柄名（リスト）の通知
         self.notifyTickerN.emit(list_ticker, dict_name, dict_lastclose)
 
