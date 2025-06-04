@@ -73,8 +73,8 @@ class Kabuto(QMainWindow):
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
 
-            # タイマー用カウンター（レビュー用）
-            self.ts_current = 0
+            # タイマー用カウンター（デバッグ）
+            self.ts_debug = 0
         else:
             # ノーマル・モードで起動
             self.logger.info(f"{__name__} executed as NORMAL mode!")
@@ -375,15 +375,15 @@ class Kabuto(QMainWindow):
 
     def on_request_data_review(self):
         """
-        タイマー処理（デバッグ、レビュー用）
+        タイマー処理（デバッグ）
         """
-        self.requestCurrentPriceReview.emit(self.ts_current)
-        self.ts_current += 1
-        if self.ts_end < self.ts_current:
+        self.requestCurrentPriceReview.emit(self.ts_debug)
+        self.ts_debug += 1
+        if self.ts_end < self.ts_debug:
             self.timer.stop()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
-        self.toolbar.updateTime(self.ts_current)
+        self.toolbar.updateTime(self.ts_debug)
 
     def on_review_play(self):
         """
@@ -391,7 +391,7 @@ class Kabuto(QMainWindow):
         :return:
         """
         if self.data_ready:
-            self.ts_current = self.ts_start
+            self.ts_debug = self.ts_start
             # タイマー開始
             self.timer.start()
             self.logger.info("タイマーを開始しました。")
