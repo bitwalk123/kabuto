@@ -345,7 +345,6 @@ class Kabuto(QMainWindow):
             # 前日終値
             if dict_lastclose[ticker] > 0:
                 trader.addLastCloseLine(dict_lastclose[ticker])
-
             # 配置
             self.layout.addWidget(trader)
 
@@ -366,12 +365,11 @@ class Kabuto(QMainWindow):
         # Trader 辞書のクリア
         self.dict_trader = dict()
 
-        # Trader の配置
         for i, ticker in enumerate(list_ticker):
+            # Trader インスタンスの生成
             trader = self.create_trader(ticker)
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
-
             # 「銘柄名　(ticker)」をタイトルにして設定し直し
             trader.setTitle(f"{dict_name[ticker]} ({ticker})")
             # 当日ザラ場時間
@@ -379,7 +377,6 @@ class Kabuto(QMainWindow):
             # 前日終値
             if dict_lastclose[ticker] > 0:
                 trader.addLastCloseLine(dict_lastclose[ticker])
-
             # 配置
             self.layout.addWidget(trader)
 
