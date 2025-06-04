@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sys
+import time
 
 from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QCloseEvent
@@ -177,12 +178,34 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def create_trader(self, ticker) -> Trader:
-        trader = Trader(self.res, ticker)
-        trader.dock.clickedBuy.connect(self.on_buy)
-        trader.dock.clickedRepay.connect(self.on_repay)
-        trader.dock.clickedSell.connect(self.on_sell)
-        return trader
+    def create_trader(self, list_ticker, dict_name, dict_lastclose):
+        # 配置済みの Trader インスタンスを消去
+        clear_boxlayout(self.layout)
+        # Trader 辞書のクリア
+        self.dict_trader = dict()
+        # 銘柄数分の Trader インスタンスの生成
+        for ticker in list_ticker:
+            # Trader インスタンスの生成
+            trader = Trader(self.res, ticker)
+            trader.dock.clickedBuy.connect(self.on_buy)
+            trader.dock.clickedRepay.connect(self.on_repay)
+            trader.dock.clickedSell.connect(self.on_sell)
+
+            # Trader 辞書に保持
+            self.dict_trader[ticker] = trader
+
+            # 「銘柄名　(ticker)」をタイトルにして設定し直し
+            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+
+            # 当日ザラ場時間
+            trader.setTimeRange(self.ts_start, self.ts_end)
+
+            # 前日終値
+            if dict_lastclose[ticker] > 0:
+                trader.addLastCloseLine(dict_lastclose[ticker])
+
+            # 配置
+            self.layout.addWidget(trader)
 
     def get_current_tick_data(self) -> dict:
         """
@@ -246,7 +269,7 @@ class Kabuto(QMainWindow):
 
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
-        acquire.notifyTickerN.connect(self.on_create_trader)
+        acquire.notifyTickerN.connect(self.on_create_trader_acquire)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
@@ -303,7 +326,7 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.review_thread.start()
 
-    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader_acquire(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_ticker:
@@ -311,24 +334,8 @@ class Kabuto(QMainWindow):
         :param dict_lastclose:
         :return:
         """
-        # 配置済みの Trader インスタンスを消去
-        clear_boxlayout(self.layout)
-        # Trader 辞書のクリア
-        self.dict_trader = dict()
-        for ticker in list_ticker:
-            # Trader インスタンスの生成
-            trader = self.create_trader(ticker)
-            # Trader 辞書に保持
-            self.dict_trader[ticker] = trader
-            # 「銘柄名　(ticker)」をタイトルにして設定し直し
-            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
-            # 当日ザラ場時間
-            trader.setTimeRange(self.ts_start, self.ts_end)
-            # 前日終値
-            if dict_lastclose[ticker] > 0:
-                trader.addLastCloseLine(dict_lastclose[ticker])
-            # 配置
-            self.layout.addWidget(trader)
+        # 銘柄数分の Trader インスタンスの生成
+        self.create_trader(list_ticker, dict_name, dict_lastclose)
 
         # リアルタイムの場合はここでタイマーを開始
         self.timer.start()
@@ -341,24 +348,8 @@ class Kabuto(QMainWindow):
         :param dict_times:
         :return:
         """
-        # 配置済みの Trader インスタンスを消去
-        clear_boxlayout(self.layout)
-        # Trader 辞書のクリア
-        self.dict_trader = dict()
-        for ticker in list_ticker:
-            # Trader インスタンスの生成
-            trader = self.create_trader(ticker)
-            # Trader 辞書に保持
-            self.dict_trader[ticker] = trader
-            # 「銘柄名　(ticker)」をタイトルにして設定し直し
-            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
-            # 当日ザラ場時間
-            trader.setTimeRange(self.ts_start, self.ts_end)
-            # 前日終値
-            if dict_lastclose[ticker] > 0:
-                trader.addLastCloseLine(dict_lastclose[ticker])
-            # 配置
-            self.layout.addWidget(trader)
+        # 銘柄数分の Trader インスタンスの生成
+        self.create_trader(list_ticker, dict_name, dict_lastclose)
 
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         self.data_ready = True
@@ -380,7 +371,7 @@ class Kabuto(QMainWindow):
         else:
             pass
         # ツールバーの時刻を更新
-        self.toolbar.updateTime()
+        self.toolbar.updateTime(time.time())
 
     def on_request_data_review(self):
         """
@@ -392,7 +383,7 @@ class Kabuto(QMainWindow):
             self.timer.stop()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
-        self.toolbar.updateTime()
+        self.toolbar.updateTime(self.ts_current)
 
     def on_review_play(self):
         """
