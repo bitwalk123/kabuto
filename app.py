@@ -349,13 +349,13 @@ class Kabuto(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
-        # タイマー開始
+        # リアルタイムの場合はここでタイマーを開始
         self.timer.start()
         self.logger.info("タイマーを開始しました。")
 
     def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
-        Trader インスタンスの生成（レビュー用）
+        Trader インスタンスの生成（デバッグ用）
         :param list_ticker:
         :param dict_times:
         :return:
@@ -383,7 +383,9 @@ class Kabuto(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
+        # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         self.data_ready = True
+        self.logger.info("レビューの準備完了です。")
 
     def on_request_data(self):
         """
