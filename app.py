@@ -269,7 +269,7 @@ class Kabuto(QMainWindow):
 
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
-        acquire.notifyTickerN.connect(self.on_create_trader_acquire)
+        acquire.notifyTickerN.connect(self.on_create_trader)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
@@ -326,7 +326,7 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.review_thread.start()
 
-    def on_create_trader_acquire(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_ticker:
@@ -359,7 +359,6 @@ class Kabuto(QMainWindow):
         """
         タイマー処理（リアルタイム）
         """
-        # ts = datetime.datetime.now().timestamp()
         ts = time.time()
         if self.ts_start <= ts <= self.ts_end_1h:
             self.requestCurrentPrice.emit()
