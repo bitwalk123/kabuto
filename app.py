@@ -43,6 +43,7 @@ class Kabuto(QMainWindow):
     requestAcquireInit = Signal()
     requestCurrentPrice = Signal()
     requestStopProcess = Signal()
+
     # デバッグ用
     requestReviewInit = Signal()
     requestCurrentPriceReview = Signal(float)
@@ -62,6 +63,10 @@ class Kabuto(QMainWindow):
         # モジュール固有のロガーを取得
         self.logger = logging.getLogger(__name__)
 
+        #######################################################################
+        # ランタイム／デバッグ・モードの設定
+        # Windows 以外は常にデバッグ・モード
+        # Windows 上でも debug を引数にしてアプリを起動すればデバッグ・モード
         if debug:
             # デバッグ・モードで起動
             self.logger.info(f"{__name__} executed as DEBUG mode!")
@@ -75,7 +80,7 @@ class Kabuto(QMainWindow):
             # タイマー開始用フラグ（データ読込済か？）
             self.data_ready = False
         else:
-            # ノーマル・モードで起動
+            # ランタイム・モードで起動
             self.logger.info(f"{__name__} executed as NORMAL mode!")
 
             # ウィンドウ・タイトル文字列
@@ -84,8 +89,11 @@ class Kabuto(QMainWindow):
             # タイマー間隔（ミリ秒）
             self.timer_interval = 1000
 
+        # ---------------------------------------------------------------------
         # デバッグ・モードを保持
         res.debug = debug
+        #
+        #######################################################################
 
         # システム時刻（タイムスタンプ）
         self.ts_system = 0
@@ -98,16 +106,20 @@ class Kabuto(QMainWindow):
         self.ts_end = 0
         self.date_str = 0
 
-        # ザラ場用インスタンス（スレッド）
+        # ザラ場用インスタンス（ランタイム・スレッド）
         self.acquire_thread: QThread | None = None
         self.acquire: AquireWorker | None = None
 
-        # Excel レビュー用インスタンス（スレッド）
+        # Excel レビュー用インスタンス（デバッグ・スレッド）
         self.review_thread: QThread | None = None
         self.review: ReviewWorker | None = None
 
         # ticker インスタンスを保持する辞書
         self.dict_trader = dict()
+
+        # ---------------------------------------------------------------------
+        #  UI
+        # ---------------------------------------------------------------------
 
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "kabuto.png"))
@@ -181,10 +193,19 @@ class Kabuto(QMainWindow):
         event.accept()
 
     def create_trader(self, list_ticker, dict_name, dict_lastclose):
+        """
+        銘柄数分の Trader インスタンスの生成
+        :param list_ticker:
+        :param dict_name:
+        :param dict_lastclose:
+        :return:
+        """
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
+
         # Trader 辞書のクリア
         self.dict_trader = dict()
+
         # 銘柄数分の Trader インスタンスの生成
         for ticker in list_ticker:
             # Trader インスタンスの生成
@@ -282,54 +303,6 @@ class Kabuto(QMainWindow):
         # スレッドを開始
         self.acquire_thread.start()
 
-    def on_create_review_thread(self, excel_path: str):
-        """
-        保存されたティックデータをレビューするためのワーカースレッドを作成
-
-        このスレッドは QThread の　run メソッドを継承していないので、
-        明示的にワーカースレッドを終了する処理をしない限り残っていてイベント待機状態になっている。
-
-        :param excel_path:
-        :return:
-        """
-        # _____________________________________________________________________
-        # Excel のファイル名より、チャートのx軸の始点と終点を算出
-        pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
-        m = pattern.match(excel_path)
-        if m:
-            year = int(m.group(1))
-            month = int(m.group(2))
-            day = int(m.group(3))
-        else:
-            year = 1970
-            month = 1
-            day = 1
-        # ザラ場日時時間情報
-        self.set_intraday_time(year, month, day)
-
-        # Excelを読み込むスレッド処理
-        self.review_thread = review_thread = QThread()
-        self.review = review = ReviewWorker(excel_path)
-        review.moveToThread(review_thread)
-
-        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
-        review_thread.started.connect(self.requestReviewInit.emit)
-        # 初期化処理は指定された Excel ファイルを読み込むこと
-        self.requestReviewInit.connect(review.loadExcel)
-
-        # 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPriceReview.connect(review.readCurrentPrice)
-
-        # シグナルとスロットの接続
-        review.notifyTickerN.connect(self.on_create_trader_review)
-        review.notifyCurrentPrice.connect(self.on_update_data_review)
-        review.threadFinished.connect(self.on_thread_finished)
-        review.threadFinished.connect(review_thread.quit)  # スレッド終了時
-        review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
-
-        # スレッドを開始
-        self.review_thread.start()
-
     def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（リアルタイム）
@@ -344,20 +317,6 @@ class Kabuto(QMainWindow):
         # リアルタイムの場合はここでタイマーを開始
         self.timer.start()
         self.logger.info("タイマーを開始しました。")
-
-    def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
-        """
-        Trader インスタンスの生成（デバッグ用）
-        :param list_ticker:
-        :param dict_times:
-        :return:
-        """
-        # 銘柄数分の Trader インスタンスの生成
-        self.create_trader(list_ticker, dict_name, dict_lastclose)
-
-        # デバッグの場合はスタート・ボタンがクリックされるまでは待機
-        self.data_ready = True
-        self.logger.info("レビューの準備完了です。")
 
     def on_request_data(self):
         """
@@ -374,40 +333,9 @@ class Kabuto(QMainWindow):
             self.save_regular_tick_data()
         else:
             pass
+
         # ツールバーの時刻を更新
         self.toolbar.updateTime(self.ts_system)
-
-    def on_request_data_review(self):
-        """
-        タイマー処理（デバッグ）
-        """
-        self.requestCurrentPriceReview.emit(self.ts_system)
-        self.ts_system += 1
-        if self.ts_end < self.ts_system:
-            self.timer.stop()
-
-        # ツールバーの時刻を更新（現在時刻を表示するだけ）
-        self.toolbar.updateTime(self.ts_system)
-
-    def on_review_play(self):
-        """
-        読み込んだデータのレビュー開始
-        :return:
-        """
-        if self.data_ready:
-            self.ts_system = self.ts_start
-            # タイマー開始
-            self.timer.start()
-            self.logger.info("タイマーを開始しました。")
-
-    def on_review_stop(self):
-        """
-        読み込んだデータのレビュー停止
-        :return:
-        """
-        if self.timer.isActive():
-            self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
 
     def on_save_data(self) -> bool:
         """
@@ -445,22 +373,16 @@ class Kabuto(QMainWindow):
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
 
-    def on_timer_interval_changed(self, interval: int):
-        self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
-        self.timer.setInterval(interval)
-
     def on_update_data(self, dict_data):
+        """
+        ティックデータの更新
+        :param dict_data:
+        :return:
+        """
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
-
-    def on_update_data_review(self, dict_data):
-        for ticker in dict_data.keys():
-            x, y = dict_data[ticker]
-            if y > 0:
-                trader = self.dict_trader[ticker]
-                trader.setTimePrice(x, y)
 
     def save_regular_tick_data(self):
         """
@@ -529,6 +451,126 @@ class Kabuto(QMainWindow):
 
     def on_repay(self, ticker, price):
         print(f"clicked REPAY button at {ticker} {price}")
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # デバッグ用メソッド
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def on_create_review_thread(self, excel_path: str):
+        """
+        保存されたティックデータをレビューするためのワーカースレッドを作成（デバッグ用）
+
+        このスレッドは QThread の　run メソッドを継承していないので、
+        明示的にワーカースレッドを終了する処理をしない限り残っていてイベント待機状態になっている。
+
+        :param excel_path:
+        :return:
+        """
+        # _____________________________________________________________________
+        # Excel のファイル名より、チャートのx軸の始点と終点を算出
+        pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
+        m = pattern.match(excel_path)
+        if m:
+            year = int(m.group(1))
+            month = int(m.group(2))
+            day = int(m.group(3))
+        else:
+            year = 1970
+            month = 1
+            day = 1
+        # ザラ場日時時間情報
+        self.set_intraday_time(year, month, day)
+
+        # Excelを読み込むスレッド処理
+        self.review_thread = review_thread = QThread()
+        self.review = review = ReviewWorker(excel_path)
+        review.moveToThread(review_thread)
+
+        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        review_thread.started.connect(self.requestReviewInit.emit)
+        # 初期化処理は指定された Excel ファイルを読み込むこと
+        self.requestReviewInit.connect(review.loadExcel)
+
+        # 現在株価を取得するメソッドへキューイング。
+        self.requestCurrentPriceReview.connect(review.readCurrentPrice)
+
+        # シグナルとスロットの接続
+        review.notifyTickerN.connect(self.on_create_trader_review)
+        review.notifyCurrentPrice.connect(self.on_update_data_review)
+        review.threadFinished.connect(self.on_thread_finished)
+        review.threadFinished.connect(review_thread.quit)  # スレッド終了時
+        review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
+
+        # スレッドを開始
+        self.review_thread.start()
+
+    def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+        """
+        Trader インスタンスの生成（デバッグ用）
+        :param list_ticker:
+        :param dict_times:
+        :return:
+        """
+        # 銘柄数分の Trader インスタンスの生成
+        self.create_trader(list_ticker, dict_name, dict_lastclose)
+
+        # デバッグの場合はスタート・ボタンがクリックされるまでは待機
+        self.data_ready = True
+        self.logger.info("レビューの準備完了です。")
+
+    def on_request_data_review(self):
+        """
+        タイマー処理（デバッグ）
+        """
+        self.requestCurrentPriceReview.emit(self.ts_system)
+        self.ts_system += 1
+        if self.ts_end < self.ts_system:
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+
+        # ツールバーの時刻を更新（現在時刻を表示するだけ）
+        self.toolbar.updateTime(self.ts_system)
+
+    def on_review_play(self):
+        """
+        読み込んだデータ・レビュー開始（デバッグ用）
+        :return:
+        """
+        if self.data_ready:
+            self.ts_system = self.ts_start
+            # タイマー開始
+            self.timer.start()
+            self.logger.info("タイマーを開始しました。")
+
+    def on_review_stop(self):
+        """
+        読み込んだデータ・レビュー停止（デバッグ用）
+        :return:
+        """
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+
+    def on_timer_interval_changed(self, interval: int):
+        """
+        レビュー用タイマー間隔の変更（デバッグ用）
+        :param interval:
+        :return:
+        """
+        self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
+        self.timer.setInterval(interval)
+
+    def on_update_data_review(self, dict_data):
+        """
+        ティックデータの更新（デバッグ用）
+        :param dict_data:
+        :return:
+        """
+        for ticker in dict_data.keys():
+            x, y = dict_data[ticker]
+            if y > 0:
+                # 該当するデータが無い場合は 0 が帰ってくるため
+                trader = self.dict_trader[ticker]
+                trader.setTimePrice(x, y)
 
 
 def main():
