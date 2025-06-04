@@ -29,7 +29,7 @@ from widgets.toolbar import ToolBar
 if sys.platform == "win32":
     debug = False
 else:
-    # Windows でないプラットフォーム上ではデバッグモードになる
+    # Windows でないプラットフォーム上ではデバッグ・モードになる
     debug = True
 
 
@@ -50,14 +50,14 @@ class Kabuto(QMainWindow):
 
     def __init__(self, options: list = None):
         super().__init__()
-        global debug
+        global debug  # グローバル変数であることを明示
         self.res = res = AppRes()
 
         # コンソールから起動した際のオプション・チェック
         if len(options) > 0:
             for option in options:
                 if option == "debug":
-                    # 主に Windows 上でデバッグモードを使用する場合
+                    # 主に Windows 上でデバッグ・モードを使用する場合
                     debug = True
 
         # モジュール固有のロガーを取得

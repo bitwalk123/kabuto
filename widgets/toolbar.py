@@ -2,10 +2,14 @@ import datetime
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QStyle, QToolBar, QFileDialog
+from PySide6.QtWidgets import (
+    QFileDialog,
+    QStyle,
+    QToolBar,
+)
 
 from structs.res import AppRes
-from widgets.buttons import RadioButton, ButtonGroup, RadioButtonInt
+from widgets.buttons import ButtonGroup, RadioButtonInt
 from widgets.containers import PadH
 from widgets.labels import LCDTime, Label
 
@@ -25,7 +29,7 @@ class ToolBar(QToolBar):
         if res.debug:
             action_open = QAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon),
-                'Excel ファイルを開く',
+                "Excel ファイルを開く",
                 self
             )
             action_open.triggered.connect(self.on_select_excel)
@@ -33,12 +37,12 @@ class ToolBar(QToolBar):
 
             self.addSeparator()
 
-            rb_a = RadioButtonInt('10倍速')
+            rb_a = RadioButtonInt("10倍速")
             rb_a.toggle()
             rb_a.setValue(100)
             self.addWidget(rb_a)
 
-            rb_b = RadioButtonInt('100倍速')
+            rb_b = RadioButtonInt("100倍速")
             rb_b.setValue(10)
             self.addWidget(rb_b)
 
@@ -51,7 +55,7 @@ class ToolBar(QToolBar):
 
             action_play = QAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay),
-                'タイマー開始',
+                "タイマー開始",
                 self
             )
             action_play.triggered.connect(self.on_play)
@@ -59,7 +63,7 @@ class ToolBar(QToolBar):
 
             action_stop = QAction(
                 self.style().standardIcon(QStyle.StandardPixmap.SP_MediaStop),
-                'タイマー停止',
+                "タイマー停止",
                 self
             )
             action_stop.triggered.connect(self.on_stop)
@@ -68,7 +72,7 @@ class ToolBar(QToolBar):
 
         action_save = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
-            'データを保存する',
+            "データを保存する",
             self
         )
         action_save.triggered.connect(self.on_save)
@@ -76,7 +80,7 @@ class ToolBar(QToolBar):
 
         action_info = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation),
-            'アプリケーションの情報',
+            "アプリケーションの情報",
             self
         )
         action_info.triggered.connect(self.on_about)
@@ -85,13 +89,17 @@ class ToolBar(QToolBar):
         hpad = PadH()
         self.addWidget(hpad)
 
-        lab_time = Label("現在時刻 ")
+        lab_time = Label("システム時刻 ")
         self.addWidget(lab_time)
 
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
 
     def on_about(self):
+        """
+        "アプリケーションの情報" ボタンをクリックした時のシグナル
+        :return:
+        """
         self.aboutClicked.emit()
 
     def on_select_excel(self):
