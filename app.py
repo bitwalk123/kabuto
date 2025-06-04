@@ -210,6 +210,7 @@ class Kabuto(QMainWindow):
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = Trader(self.res, ticker)
+            # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
             trader.dock.clickedSell.connect(self.on_sell)
