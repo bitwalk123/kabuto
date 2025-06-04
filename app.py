@@ -141,6 +141,7 @@ class Kabuto(QMainWindow):
             timer.timeout.connect(self.on_request_data_review)
         else:
             timer.timeout.connect(self.on_request_data)
+            self.on_create_acquire_thread("targets.xlsx")
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -227,7 +228,6 @@ class Kabuto(QMainWindow):
         self.ts_ca = dt_ca.timestamp()
         self.ts_end = dt_end.timestamp()
         self.date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
-        self.on_create_acquire_thread("targets.xlsx")
 
         # Excelを読み込むスレッド処理
         self.acquire_thread = acquire_thread = QThread()
