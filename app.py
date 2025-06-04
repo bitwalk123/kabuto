@@ -326,9 +326,15 @@ class Kabuto(QMainWindow):
         """
         self.ts_system = time.time()
         if self.ts_start <= self.ts_system <= self.ts_end_1h:
+            # --------------------------------------
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
+            # --------------------------------------
         elif self.ts_start_2h <= self.ts_system <= self.ts_ca:
+            # --------------------------------------
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
+            # --------------------------------------
         elif self.ts_ca < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
@@ -533,7 +539,10 @@ class Kabuto(QMainWindow):
         """
         タイマー処理（デバッグ）
         """
+        # --------------------------------------------------
+        # 🧿 現在価格の取得要求をワーカースレッドに通知
         self.requestCurrentPriceReview.emit(self.ts_system)
+        # --------------------------------------------------
         self.ts_system += 1
         if self.ts_end < self.ts_system:
             self.timer.stop()

@@ -36,7 +36,10 @@ class ReviewWorker(QObject):
         except Exception as e:
             msg = "Excelファイルの読み込み中にエラーが発生しました:"
             self.logger.critical(f"{msg} {e}")
+            # ------------------------------
+            # 🧿 スレッドの異常終了を通知
             self.threadFinished.emit(False)
+            # ------------------------------
             return
 
         list_ticker = list(self.dict_sheet.keys())
@@ -45,8 +48,12 @@ class ReviewWorker(QObject):
         for ticker in list_ticker:
             dict_lastclose[ticker] = 0
 
-        # 銘柄名（リスト）の通知
-        self.notifyTickerN.emit(list_ticker, dict_name, dict_lastclose)
+        # -----------------------------------------------
+        # 🧿 銘柄名（リスト）などの情報を通知
+        self.notifyTickerN.emit(
+            list_ticker, dict_name, dict_lastclose
+        )
+        # -----------------------------------------------
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
@@ -62,8 +69,13 @@ class ReviewWorker(QObject):
             else:
                 # 存在しなければ、指定時刻と株価 = 0 を設定
                 dict_data[ticker] = [ts, 0]
-
+        # --------------------------------------
+        # 🧿 現在時刻と株価を通知
         self.notifyCurrentPrice.emit(dict_data)
+        # --------------------------------------
 
     def stopProcess(self):
+        # -----------------------------
+        # 🧿 スレッドの正常終了を通知
         self.threadFinished.emit(True)
+        # -----------------------------
