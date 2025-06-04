@@ -216,21 +216,16 @@ class Kabuto(QMainWindow):
         :param excel_path:
         :return:
         """
-        # ザラ場日時時間情報
+        # _____________________________________________________________________
+        # 本日の日時情報より、チャートのx軸の始点と終点を算出
         dt = datetime.datetime.now()
-        dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
-        dt_end_1h = datetime.datetime(dt.year, dt.month, dt.day, hour=11, minute=30)
-        dt_start_2h = datetime.datetime(dt.year, dt.month, dt.day, hour=12, minute=30)
-        dt_ca = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
-        dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=30)
-        # タイムスタンプに変換してインスタンス変数で保持
-        self.ts_start = dt_start.timestamp()
-        self.ts_end_1h = dt_end_1h.timestamp()
-        self.ts_start_2h = dt_start_2h.timestamp()
-        self.ts_ca = dt_ca.timestamp()
-        self.ts_end = dt_end.timestamp()
-        self.date_str = f"{dt.year:04}{dt.month:02}{dt.day:02}"
+        year = dt.year
+        month = dt.month
+        day = dt.day
+        # ザラ場日時時間情報
+        self.set_intraday_time(year, month, day)
 
+        # _____________________________________________________________________
         # Excelを読み込むスレッド処理
         self.acquire_thread = acquire_thread = QThread()
         self.acquire = acquire = AquireWorker(excel_path)
@@ -239,7 +234,7 @@ class Kabuto(QMainWindow):
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         acquire_thread.started.connect(self.requestAcquireInit.emit)
 
-        # ---------------------------------------------------------------------
+        # _____________________________________________________________________
         # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
         # 初期化処理は指定された Excel ファイルを読み込むこと
         # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
@@ -249,7 +244,7 @@ class Kabuto(QMainWindow):
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(acquire.stopProcess)
 
-        # ---------------------------------------------------------------------
+        # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
         acquire.notifyTickerN.connect(self.on_create_trader)
         acquire.notifyCurrentPrice.connect(self.on_update_data)
@@ -257,6 +252,7 @@ class Kabuto(QMainWindow):
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
         acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
 
+        # _____________________________________________________________________
         # スレッドを開始
         self.acquire_thread.start()
 
@@ -270,6 +266,7 @@ class Kabuto(QMainWindow):
         :param excel_path:
         :return:
         """
+        # _____________________________________________________________________
         # Excel のファイル名より、チャートのx軸の始点と終点を算出
         pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
         m = pattern.match(excel_path)
@@ -282,20 +279,7 @@ class Kabuto(QMainWindow):
             month = 1
             day = 1
         # ザラ場日時時間情報
-        dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
-        dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
-        dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
-        dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
-        dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
-        # タイムスタンプに変換してインスタンス変数で保持
-        self.ts_start = dt_start.timestamp()
-        self.ts_end_1h = dt_end_1h.timestamp()
-        self.ts_start_2h = dt_start_2h.timestamp()
-        self.ts_ca = dt_ca.timestamp()
-        self.ts_end = dt_end.timestamp()
-        self.date_str = f"{year:04}{month:02}{day:02}"
-
-        print(excel_path)
+        self.set_intraday_time(year, month, day)
 
         # Excelを読み込むスレッド処理
         self.review_thread = review_thread = QThread()
@@ -321,7 +305,7 @@ class Kabuto(QMainWindow):
 
     def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
-        Trader インスタンスの生成
+        Trader インスタンスの生成（リアルタイム）
         :param list_ticker:
         :param dict_name:
         :param dict_lastclose:
@@ -329,10 +313,8 @@ class Kabuto(QMainWindow):
         """
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
-
         # Trader 辞書のクリア
         self.dict_trader = dict()
-
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = self.create_trader(ticker)
@@ -361,11 +343,9 @@ class Kabuto(QMainWindow):
         """
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
-
         # Trader 辞書のクリア
         self.dict_trader = dict()
-
-        for i, ticker in enumerate(list_ticker):
+        for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = self.create_trader(ticker)
             # Trader 辞書に保持
@@ -386,7 +366,7 @@ class Kabuto(QMainWindow):
 
     def on_request_data(self):
         """
-        タイマー処理（本運用）
+        タイマー処理（リアルタイム）
         """
         ts = datetime.datetime.now().timestamp()
         if self.ts_start <= ts <= self.ts_end_1h:
@@ -522,6 +502,29 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
         except ValueError as e:
             self.logger.error(f"{__name__} error occured!: {e}")
+
+    def set_intraday_time(self, year, month, day):
+        """
+        ザラ場日時時間情報設定
+
+        :param year:
+        :param month:
+        :param day:
+        :return:
+        """
+        dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
+        dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
+        dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
+        dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
+        dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
+        # タイムスタンプに変換してインスタンス変数で保持
+        self.ts_start = dt_start.timestamp()
+        self.ts_end_1h = dt_end_1h.timestamp()
+        self.ts_start_2h = dt_start_2h.timestamp()
+        self.ts_ca = dt_ca.timestamp()
+        self.ts_end = dt_end.timestamp()
+        # 日付文字列
+        self.date_str = f"{year:04}{month:02}{day:02}"
 
     def on_sell(self, ticker, price):
         print(f"clicked SELL button at {ticker} {price}")
