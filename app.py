@@ -138,8 +138,10 @@ class Kabuto(QMainWindow):
         timer.setInterval(self.timer_interval)
 
         if debug:
+            # デバッグモードではファイルを読み込んでからスレッドを起動
             timer.timeout.connect(self.on_request_data_review)
         else:
+            # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
             self.on_create_acquire_thread("targets.xlsx")
 
