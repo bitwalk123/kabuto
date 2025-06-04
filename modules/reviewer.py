@@ -4,6 +4,7 @@ import logging
 from PySide6.QtCore import QObject, Signal
 
 from funcs.ios import load_excel
+from funcs.tse import get_ticker_name_list
 
 
 class ReviewWorker(QObject):
@@ -11,7 +12,7 @@ class ReviewWorker(QObject):
     Excel 形式の過去データを読み込むスレッドワーカー
     """
     # 銘柄名（リスト）の通知
-    notifyTickerN = Signal(list, dict)
+    notifyTickerN = Signal(list, dict, dict)
 
     # ティックデータの表示
     notifyCurrentPrice = Signal(dict)
@@ -38,8 +39,8 @@ class ReviewWorker(QObject):
             self.threadFinished.emit(False)
             return
 
+        """
         dict_times = dict()
-
         # それぞれの銘柄における開始時間を終了時間の取得
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
@@ -47,9 +48,12 @@ class ReviewWorker(QObject):
             dt_start = datetime.datetime(dt.year, dt.month, dt.day, hour=9, minute=0)
             dt_end = datetime.datetime(dt.year, dt.month, dt.day, hour=15, minute=25)
             dict_times[ticker] = [dt_start.timestamp(), dt_end.timestamp()]
-
+        """
+        list_ticker = list(self.dict_sheet.keys())
+        dict_name = get_ticker_name_list(list_ticker)
+        dict_lastclose = dict()
         # 銘柄名（リスト）の通知
-        self.notifyTickerN.emit(list(self.dict_sheet.keys()), dict_times)
+        self.notifyTickerN.emit(list_ticker, dict_name, dict_lastclose)
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()

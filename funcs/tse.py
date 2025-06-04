@@ -23,6 +23,10 @@ def get_ticker_list() -> pd.DataFrame:
     return df
 
 
-def get_ticker_name_list(list_ticker: list) -> list:
+def get_ticker_name_list(list_ticker: list) -> dict:
     df = get_ticker_list()
-    return list(df[df["コード"].isin(list_ticker)]["銘柄名"])
+    list_name = list(df[df["コード"].isin(list_ticker)]["銘柄名"])
+    dict_name = dict()
+    for ticker, name in zip(list_ticker, list_name):
+        dict_name[ticker] = name
+    return dict_name

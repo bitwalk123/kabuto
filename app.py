@@ -274,9 +274,9 @@ class Kabuto(QMainWindow):
         pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
         m = pattern.match(excel_path)
         if m:
-            year = m.group(1)
-            month = m.group(2)
-            day = m.group(3)
+            year = int(m.group(1))
+            month = int(m.group(2))
+            day = int(m.group(3))
         else:
             year = 1970
             month = 1
@@ -286,7 +286,7 @@ class Kabuto(QMainWindow):
         dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
         dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
         dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
-        dt_end = datetime.datetime(year, month, dt.day, hour=15, minute=30)
+        dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
         # タイムスタンプに変換してインスタンス変数で保持
         self.ts_start = dt_start.timestamp()
         self.ts_end_1h = dt_end_1h.timestamp()
@@ -345,7 +345,7 @@ class Kabuto(QMainWindow):
         self.timer.start()
         self.logger.info("タイマーを開始しました。")
 
-    def on_create_trader_review(self, list_ticker: list, dict_times: dict):
+    def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（レビュー用）
         :param list_ticker:
@@ -365,13 +365,20 @@ class Kabuto(QMainWindow):
             self.dict_trader[ticker] = trader
 
             # チャートの時間範囲を設定
-            trader.setTimeRange(*dict_times[ticker])
+            # trader.setTimeRange(*dict_times[ticker])
+            # 当日ザラ場時間
+            # trader.setTimeRange(self.ts_start, self.ts_end)
+
+            # 「銘柄名　(ticker)」をタイトルにして設定し直し
+            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+            # 当日ザラ場時間
+            trader.setTimeRange(self.ts_start, self.ts_end)
 
             self.layout.addWidget(trader)
 
             # ループ用処理
-            if i == 0:
-                self.ts_start, self.ts_end = dict_times[ticker]
+            # if i == 0:
+            #    self.ts_start, self.ts_end = dict_times[ticker]
 
         self.data_ready = True
 

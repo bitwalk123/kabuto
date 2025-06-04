@@ -6,8 +6,9 @@ openpyxl
 pip-chill
 pip-review
 pyqtgraph
-pyside6==6.9.0
+pyside6
 tomli
+xlrd
 xlwings
 xlwt
 yfinance
