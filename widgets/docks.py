@@ -41,7 +41,6 @@ class DockTrader(QDockWidget):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
         layout.setSpacing(2)
-
         base.setLayout(layout)
 
         # 現在株価表示
@@ -110,24 +109,42 @@ class DockTrader(QDockWidget):
         self.lcd_price.display(f"{price:.1f}")
 
     def on_buy(self):
+        # ---------------------------------
+        # 🧿 買建ボタンがクリックされたことを通知
+        # ---------------------------------
         self.clickedBuy.emit(self.ticker, self.getPrice())
         self.actSellBuy()
 
     def on_sell(self):
+        # ---------------------------------
+        # 🧿 売建ボタンがクリックされたことを通知
+        # ---------------------------------
         self.clickedSell.emit(self.ticker, self.getPrice())
         self.actSellBuy()
 
     def on_repay(self):
+        # ---------------------------------
+        # 🧿 返済ボタンがクリックされたことを通知
+        # ---------------------------------
         self.clickedRepay.emit(self.ticker, self.getPrice())
         self.actRepay()
 
-
     def actSellBuy(self):
+        """
+        買建あるいは売建ボタンをクリックしたら Disable にし、
+        返済ボタンを Enable にしてナンピン売買ができないようにする。
+        :return:
+        """
         self.but_buy.setDisabled(True)
         self.but_sell.setDisabled(True)
         self.but_repay.setEnabled(True)
 
     def actRepay(self):
+        """
+        返済ボタンをクリックしたら Disable にして、
+        買建および売建ボタンを Enable にする。
+        :return:
+        """
         self.but_buy.setEnabled(True)
         self.but_sell.setEnabled(True)
         self.but_repay.setDisabled(True)
