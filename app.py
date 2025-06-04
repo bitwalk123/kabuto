@@ -146,7 +146,9 @@ class Kabuto(QMainWindow):
         self.statusbar = statusbar = StatusBar(res)
         self.setStatusBar(statusbar)
 
+        # ---------------------------------------------------------------------
         # タイマー
+        # ---------------------------------------------------------------------
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
 
