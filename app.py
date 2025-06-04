@@ -17,7 +17,7 @@ from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
-from modules.trader_pyqtgraph import Trader
+from modules.trader import Trader
 from modules.reviewer import ReviewWorker
 from structs.res import AppRes
 from widgets.containers import Widget
