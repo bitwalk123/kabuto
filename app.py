@@ -146,9 +146,7 @@ class Kabuto(QMainWindow):
         self.statusbar = statusbar = StatusBar(res)
         self.setStatusBar(statusbar)
 
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # タイマー
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
 
@@ -242,6 +240,10 @@ class Kabuto(QMainWindow):
         return dict_df
 
     def on_about(self):
+        """
+        このアプリについて（ダイアログ表示）
+        :return:
+        """
         dlg = DlgAboutThis(
             self.res,
             self.__app_name__,
@@ -384,17 +386,23 @@ class Kabuto(QMainWindow):
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
 
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # ティックデータの保存処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def save_regular_tick_data(self):
         """
         通常データの保存処理（当日日付のついた定型ファイル名）
         :return:
         """
+        # リアルタイムのタイマー終了後に呼び出される通常保存ファイル名
         name_excel = os.path.join(
             self.res.dir_excel,
             f"tick_{self.date_str}.xlsx"
         )
+        # Trader インスタンスからティックデータのデータフレームを辞書で取得
         dict_df = self.get_current_tick_data()
 
+        # 念のため、空のデータでないか確認して空でなければ保存
         r = 0
         for ticker in dict_df.keys():
             df = dict_df[ticker]
@@ -404,6 +412,7 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__} データ無いため {name_excel} への保存はキャンセルされました。")
             return False
         else:
+            # ティックデータの保存処理
             self.save_tick_data(name_excel, dict_df)
             return True
 
@@ -443,6 +452,9 @@ class Kabuto(QMainWindow):
         # 日付文字列
         self.date_str = f"{year:04}{month:02}{day:02}"
 
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_sell(self, ticker, price):
         print(f"clicked SELL button at {ticker} {price}")
 
