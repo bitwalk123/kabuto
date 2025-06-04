@@ -39,9 +39,11 @@ class Kabuto(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
+    # ランタイム用
     requestAcquireInit = Signal()
     requestCurrentPrice = Signal()
     requestStopProcess = Signal()
+    # デバッグ用
     requestReviewInit = Signal()
     requestCurrentPriceReview = Signal(float)
 
@@ -256,14 +258,15 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         acquire_thread.started.connect(self.requestAcquireInit.emit)
-
         # _____________________________________________________________________
         # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
         # 初期化処理は指定された Excel ファイルを読み込むこと
         # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
         self.requestAcquireInit.connect(acquire.loadExcel)
+
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(acquire.readCurrentPrice)
+
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(acquire.stopProcess)
 
@@ -313,7 +316,8 @@ class Kabuto(QMainWindow):
         review_thread.started.connect(self.requestReviewInit.emit)
         # 初期化処理は指定された Excel ファイルを読み込むこと
         self.requestReviewInit.connect(review.loadExcel)
-        # 現在株価を取得するにはシグナルを発すると下記メソッドへキューイングされる。
+
+        # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(review.readCurrentPrice)
 
         # シグナルとスロットの接続
