@@ -246,15 +246,13 @@ class Kabuto(QMainWindow):
         このアプリについて（ダイアログ表示）
         :return:
         """
-        dlg = DlgAboutThis(
+        DlgAboutThis(
             self.res,
             self.__app_name__,
             self.__version__,
             self.__author__,
             self.__license__
-        )
-        if dlg.exec():
-            print('OK ボタンがクリックされました。')
+        ).exec()
 
     def on_create_acquire_thread(self, excel_path: str):
         """
