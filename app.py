@@ -359,7 +359,8 @@ class Kabuto(QMainWindow):
         """
         タイマー処理（リアルタイム）
         """
-        ts = datetime.datetime.now().timestamp()
+        # ts = datetime.datetime.now().timestamp()
+        ts = time.time()
         if self.ts_start <= ts <= self.ts_end_1h:
             self.requestCurrentPrice.emit()
         elif self.ts_start_2h <= ts <= self.ts_ca:
