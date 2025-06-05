@@ -1,7 +1,7 @@
 import logging
 
 import pandas as pd
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtCore import QObject
 
 from structs.posman import PositionType
 
@@ -12,6 +12,9 @@ class PositionManager(QObject):
         self.logger = logging.getLogger(__name__)
         self.order = 0  # 注文番号
         self.unit = 100  # 売買単位
+        self.dict_price = dict()
+        self.dict_total = dict()
+        self.dict_position = dict()
         dict_columns = {
             '注文番号': [],
             '注文日時': [],
@@ -26,9 +29,6 @@ class PositionManager(QObject):
         self.df_order = df.astype(object)
 
     def initPosition(self, list_ticker: list):
-        self.dict_price = dict()
-        self.dict_total = dict()
-        self.dict_position = dict()
         for ticker in list_ticker:
             self.dict_price[ticker] = 0.  # 建玉取得時の株価
             self.dict_total[ticker] = 0.  # 銘柄毎の収益
