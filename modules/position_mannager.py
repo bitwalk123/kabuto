@@ -12,9 +12,11 @@ class PositionManager(QObject):
         self.logger = logging.getLogger(__name__)
         self.order = 0  # 注文番号
         self.unit = 100  # 売買単位
+
         self.dict_price = dict()
         self.dict_total = dict()
         self.dict_position = dict()
+
         dict_columns = {
             '注文番号': [],
             '注文日時': [],
