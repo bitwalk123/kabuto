@@ -55,7 +55,6 @@ class DockTrader(QDockWidget):
 
         # 売掛ボタン
         self.but_sell = but_sell = ButtonSell()
-        self.but_sell.setCheckable(True)
         but_sell.clicked.connect(self.on_sell)
         layout_buysell.addWidget(but_sell)
 
@@ -65,7 +64,6 @@ class DockTrader(QDockWidget):
 
         # 買掛ボタン
         self.but_buy = but_buy = ButtonBuy()
-        self.but_buy.setCheckable(True)
         but_buy.clicked.connect(self.on_buy)
         layout_buysell.addWidget(but_buy)
 

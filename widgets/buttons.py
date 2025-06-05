@@ -14,6 +14,7 @@ class ButtonSave(QPushButton):
 class ButtonBuy(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
                 background-color: #ed6286;
@@ -22,6 +23,10 @@ class ButtonBuy(QPushButton):
                 background-color: #f194a7;
             }
             QPushButton:disabled {
+                background-color: #d75879;
+            }
+            QPushButton:disabled:checked {
+                background-color: #ed6286;
                 color: white;
             }
         """)
@@ -31,6 +36,7 @@ class ButtonBuy(QPushButton):
 class ButtonSell(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
                 background-color: #0ba596;
@@ -39,6 +45,10 @@ class ButtonSell(QPushButton):
                 background-color: #7bbbb1;
             }
             QPushButton:disabled {
+                background-color: #099588;
+            }
+            QPushButton:disabled:checked {
+                background-color: #0ba596;
                 color: white;
             }
         """)
@@ -48,6 +58,7 @@ class ButtonSell(QPushButton):
 class ButtonRepay(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
                 background-color: #238fe7;
