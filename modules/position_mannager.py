@@ -7,6 +7,7 @@ from structs.posman import PositionType
 
 class PositionManager(QObject):
     notifyProfit = Signal(str, float)
+    notifyTotal = Signal(str, float)
     threadFinished = Signal(bool)
 
     def __init__(self, list_ticker: list):
@@ -24,22 +25,45 @@ class PositionManager(QObject):
             self.dict_position[ticker] = PositionType.NONE
 
     def openPosition(self, ticker: str, price: float, position: PositionType):
+        """
+        ポジションをオープン（建玉取得）
+        :param ticker:
+        :param price:
+        :param position:
+        :return:
+        """
         self.dict_price[ticker] = price
         self.dict_position[ticker] = position
 
     def closePosition(self, ticker: str, price: float):
+        """
+        ポジションをクローズ（建玉返済）
+        :param ticker:
+        :param price:
+        :return:
+        """
         if self.dict_position[ticker] == PositionType.BUY:
-            self.dict_total[ticker] += price - self.dict_price[ticker]
+            self.dict_total[ticker] += (price - self.dict_price[ticker]) * self.unit
         elif self.dict_position[ticker] == PositionType.SELL:
-            self.dict_total[ticker] += self.dict_price[ticker] - price
+            self.dict_total[ticker] += (self.dict_price[ticker] - price) * self.unit
+
         self.dict_price[ticker] = 0
         self.dict_position[ticker] = PositionType.NONE
 
     def getProfit(self, ticker: str, price: float):
         if self.dict_position[ticker] == PositionType.BUY:
-            profit = price - self.dict_price[ticker]
+            profit = (price - self.dict_price[ticker]) * self.unit
         elif self.dict_position[ticker] == PositionType.SELL:
-            profit = self.dict_price[ticker] - price
+            profit = (self.dict_price[ticker] - price * self.unit)
         else:
             profit = 0
+        # -------------------------------------------
+        # 🧿 指定銘柄の現在価格に対する含み損益を通知
         self.notifyProfit.emit(ticker, profit)
+        # -------------------------------------------
+
+    def getTotdal(self, ticker: str):
+        # -----------------------------------------------------------
+        # 🧿 指定銘柄の現在損益を通知
+        self.notifyTotal.emit(ticker, self.dict_total[ticker])
+        # -----------------------------------------------------------
