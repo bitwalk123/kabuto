@@ -21,6 +21,9 @@ class ButtonBuy(QPushButton):
             QPushButton:hover {
                 background-color: #f194a7;
             }
+            QPushButton:disabled {
+                color: white;
+            }
         """)
         self.setText("買建")
 
@@ -34,6 +37,9 @@ class ButtonSell(QPushButton):
             }
             QPushButton:hover {
                 background-color: #7bbbb1;
+            }
+            QPushButton:disabled {
+                color: white;
             }
         """)
         self.setText("売建")

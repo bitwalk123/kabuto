@@ -55,6 +55,7 @@ class DockTrader(QDockWidget):
 
         # 売掛ボタン
         self.but_sell = but_sell = ButtonSell()
+        self.but_sell.setCheckable(True)
         but_sell.clicked.connect(self.on_sell)
         layout_buysell.addWidget(but_sell)
 
@@ -64,6 +65,7 @@ class DockTrader(QDockWidget):
 
         # 買掛ボタン
         self.but_buy = but_buy = ButtonBuy()
+        self.but_buy.setCheckable(True)
         but_buy.clicked.connect(self.on_buy)
         layout_buysell.addWidget(but_buy)
 
@@ -113,7 +115,9 @@ class DockTrader(QDockWidget):
         :return:
         """
         self.but_buy.setEnabled(True)
+        self.but_buy.setChecked(False)
         self.but_sell.setEnabled(True)
+        self.but_sell.setChecked(False)
         self.but_repay.setEnabled(False)
 
     def getPrice(self) -> float:
