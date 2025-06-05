@@ -53,7 +53,7 @@ class PositionManager(QObject):
         self.dict_price[ticker] = 0
         self.dict_position[ticker] = PositionType.NONE
 
-    def getProfit(self, ticker: str, price: float):
+    def getProfit(self, ticker: str, price: float) -> float:
         if self.dict_position[ticker] == PositionType.BUY:
             profit = (price - self.dict_price[ticker]) * self.unit
         elif self.dict_position[ticker] == PositionType.SELL:
@@ -62,11 +62,13 @@ class PositionManager(QObject):
             profit = 0
         # -------------------------------------------
         # 🧿 指定銘柄の現在価格に対する含み損益を通知
-        self.notifyProfit.emit(ticker, profit)
+        # self.notifyProfit.emit(ticker, profit)
         # -------------------------------------------
+        return profit
 
-    def getTotdal(self, ticker: str):
+    def getTotal(self, ticker: str) -> float:
         # -----------------------------------------------------------
         # 🧿 指定銘柄の現在損益を通知
-        self.notifyTotal.emit(ticker, self.dict_total[ticker])
+        # self.notifyTotal.emit(ticker, self.dict_total[ticker])
         # -----------------------------------------------------------
+        return self.dict_total[ticker]

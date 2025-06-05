@@ -15,7 +15,7 @@ class ReviewWorker(QObject):
     notifyTickerN = Signal(list, dict, dict)
 
     # ティックデータの表示
-    notifyCurrentPrice = Signal(dict)
+    notifyCurrentPrice = Signal(dict, dict, dict)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -63,6 +63,8 @@ class ReviewWorker(QObject):
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
+        dict_profit = dict()
+        dict_total = dict()
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
             # 指定された時刻から +1 秒未満で株価が存在するか確認
@@ -74,10 +76,15 @@ class ReviewWorker(QObject):
                 dict_data[ticker] = [time, price]
             else:
                 # 存在しなければ、指定時刻と株価 = 0 を設定
-                dict_data[ticker] = [ts, 0]
+                price = 0
+                dict_data[ticker] = [ts, price]
+
+            dict_profit[ticker] = self.posman.getProfit(ticker, price)
+            dict_total[ticker] = self.posman.getTotal(ticker)
+
         # --------------------------------------
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data)
+        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
         # --------------------------------------
 
     def stopProcess(self):

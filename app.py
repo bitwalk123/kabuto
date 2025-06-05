@@ -301,8 +301,12 @@ class Kabuto(QMainWindow):
 
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
+        # ---------------------------------------------------------------------
+        # 初期化後の銘柄情報の取得
         acquire.notifyTickerN.connect(self.on_create_trader)
+        # タイマーで現在時刻と株価を取得
         acquire.notifyCurrentPrice.connect(self.on_update_data)
+        # スレッド終了関連
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
         acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -526,7 +530,7 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         review_thread.started.connect(self.requestReviewInit.emit)
-        # 初期化処理は指定された Excel ファイルを読み込むこと
+        # 初期化処理は指定された Excel ファイルの読み込み
         self.requestReviewInit.connect(review.loadExcel)
 
         # 売買ポジション
@@ -536,9 +540,14 @@ class Kabuto(QMainWindow):
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(review.readCurrentPrice)
 
-        # シグナルとスロットの接続
+        # _____________________________________________________________________
+        # ワーカー・スレッド側のシグナルとスロットの接続
+        # ---------------------------------------------------------------------
+        # 初期化後の銘柄情報の取得
         review.notifyTickerN.connect(self.on_create_trader_review)
+        # タイマーで現在時刻と株価を取得
         review.notifyCurrentPrice.connect(self.on_update_data_review)
+        # スレッド終了関連
         review.threadFinished.connect(self.on_thread_finished)
         review.threadFinished.connect(review_thread.quit)  # スレッド終了時
         review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -605,7 +614,7 @@ class Kabuto(QMainWindow):
         self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
         self.timer.setInterval(interval)
 
-    def on_update_data_review(self, dict_data):
+    def on_update_data_review(self, dict_data, dict_profit, dict_total):
         """
         ティックデータの更新（デバッグ用）
         :param dict_data:
@@ -613,10 +622,12 @@ class Kabuto(QMainWindow):
         """
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
+            trader = self.dict_trader[ticker]
             if y > 0:
                 # 該当するデータが無い場合は 0 が帰ってくるため
-                trader = self.dict_trader[ticker]
                 trader.setTimePrice(x, y)
+            trader.dock.setProfit(dict_profit[ticker])
+            trader.dock.setTotal(dict_total[ticker])
 
 
 def main():
