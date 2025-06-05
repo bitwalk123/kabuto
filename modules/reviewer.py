@@ -4,6 +4,7 @@ from PySide6.QtCore import QObject, Signal
 
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
+from modules.position_mannager import PositionManager
 
 
 class ReviewWorker(QObject):
@@ -24,6 +25,8 @@ class ReviewWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.excel_path = excel_path
         self.dict_sheet = dict()
+        # ポジション・マネージャのインスタンス
+        self.posman = PositionManager()
 
     def loadExcel(self):
         """
@@ -41,18 +44,22 @@ class ReviewWorker(QObject):
             # ------------------------------
             return
 
+        # 取得した Excel のシート名を銘柄コード (ticker) として扱う
         list_ticker = list(self.dict_sheet.keys())
+        # 銘柄コードから銘柄名を取得
         dict_name = get_ticker_name_list(list_ticker)
+        # デバッグ・モードでは、現在のところは前日終値を 0 とする
         dict_lastclose = dict()
         for ticker in list_ticker:
             dict_lastclose[ticker] = 0
-
         # -----------------------------------------------
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
             list_ticker, dict_name, dict_lastclose
         )
         # -----------------------------------------------
+        # ポジション・マネージャの初期化
+        self.posman.initPosition(list_ticker)
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()

@@ -19,6 +19,7 @@ from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
 from modules.trader import Trader
 from modules.reviewer import ReviewWorker
+from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
@@ -47,6 +48,10 @@ class Kabuto(QMainWindow):
     # デバッグ用
     requestReviewInit = Signal()
     requestCurrentPriceReview = Signal(float)
+
+    # 売買
+    requestPositionOpen = Signal(str, float, float, PositionType)
+    requestPositionClose = Signal(str, float, float)
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -462,14 +467,29 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_sell(self, ticker, price):
-        print(f"clicked SELL button at {ticker} {price}")
-
     def on_buy(self, ticker, price):
-        print(f"clicked BUY button at {ticker} {price}")
+        # --------------------------------------------------------
+        # 🧿 買建で建玉取得をワーカースレッドに通知
+        self.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.BUY
+        )
+        # --------------------------------------------------------
+
+    def on_sell(self, ticker, price):
+        # ---------------------------------------------------------
+        # 🧿 売建で建玉取得をワーカースレッドに通知
+        self.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.SELL
+        )
+        # ---------------------------------------------------------
 
     def on_repay(self, ticker, price):
-        print(f"clicked REPAY button at {ticker} {price}")
+        # --------------------------------------
+        # 🧿 建玉返済をワーカースレッドに通知
+        self.requestPositionClose.emit(
+            ticker, self.ts_system, price
+        )
+        # --------------------------------------
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # デバッグ用メソッド
@@ -508,6 +528,10 @@ class Kabuto(QMainWindow):
         review_thread.started.connect(self.requestReviewInit.emit)
         # 初期化処理は指定された Excel ファイルを読み込むこと
         self.requestReviewInit.connect(review.loadExcel)
+
+        # 売買ポジション
+        self.requestPositionOpen.connect(review.posman.openPosition)
+        self.requestPositionClose.connect(review.posman.closePosition)
 
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(review.readCurrentPrice)

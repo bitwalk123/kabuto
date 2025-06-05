@@ -96,39 +96,6 @@ class DockTrader(QDockWidget):
         but_save.clicked.connect(self.on_save)
         layout_tool.addWidget(but_save)
 
-    def on_save(self):
-        # ---------------------------------
-        # 🧿 保存ボタンがクリックされたことを通知
-        self.clickedSave.emit()
-        # ---------------------------------
-
-    def getPrice(self) -> float:
-        return self.lcd_price.value()
-
-    def setPrice(self, price: float):
-        self.lcd_price.display(f"{price:.1f}")
-
-    def on_buy(self):
-        # -------------------------------------------------------
-        # 🧿 買建ボタンがクリックされたことを通知
-        self.clickedBuy.emit(self.ticker, self.getPrice())
-        # -------------------------------------------------------
-        self.actSellBuy()
-
-    def on_sell(self):
-        # --------------------------------------------------------
-        # 🧿 売建ボタンがクリックされたことを通知
-        self.clickedSell.emit(self.ticker, self.getPrice())
-        # --------------------------------------------------------
-        self.actSellBuy()
-
-    def on_repay(self):
-        # ---------------------------------------------------------
-        # 🧿 返済ボタンがクリックされたことを通知
-        self.clickedRepay.emit(self.ticker, self.getPrice())
-        # ---------------------------------------------------------
-        self.actRepay()
-
     def actSellBuy(self):
         """
         買建あるいは売建ボタンをクリックしたら Disable にし、
@@ -148,3 +115,42 @@ class DockTrader(QDockWidget):
         self.but_buy.setEnabled(True)
         self.but_sell.setEnabled(True)
         self.but_repay.setEnabled(False)
+
+    def getPrice(self) -> float:
+        return self.lcd_price.value()
+
+    def on_buy(self):
+        # -------------------------------------------------------
+        # 🧿 買建ボタンがクリックされたことを通知
+        self.clickedBuy.emit(self.ticker, self.getPrice())
+        # -------------------------------------------------------
+        self.actSellBuy()
+
+    def on_repay(self):
+        # ---------------------------------------------------------
+        # 🧿 返済ボタンがクリックされたことを通知
+        self.clickedRepay.emit(self.ticker, self.getPrice())
+        # ---------------------------------------------------------
+        self.actRepay()
+
+    def on_save(self):
+        # ---------------------------------
+        # 🧿 保存ボタンがクリックされたことを通知
+        self.clickedSave.emit()
+        # ---------------------------------
+
+    def on_sell(self):
+        # --------------------------------------------------------
+        # 🧿 売建ボタンがクリックされたことを通知
+        self.clickedSell.emit(self.ticker, self.getPrice())
+        # --------------------------------------------------------
+        self.actSellBuy()
+
+    def setPrice(self, price: float):
+        self.lcd_price.display(f"{price:.1f}")
+
+    def setProfit(self, profit: float):
+        self.lcd_profit.display(f"{profit:.1f}")
+
+    def setTotal(self, total: float):
+        self.lcd_total.display(f"{total:.1f}")

@@ -10,12 +10,13 @@ class PositionManager(QObject):
     notifyTotal = Signal(str, float)
     threadFinished = Signal(bool)
 
-    def __init__(self, list_ticker: list):
+    def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.order = 0  # 注文番号
         self.unit = 100  # 売買単位
 
+    def initPosition(self, list_ticker: list):
         self.dict_price = dict()
         self.dict_total = dict()
         self.dict_position = dict()
@@ -24,10 +25,11 @@ class PositionManager(QObject):
             self.dict_total[ticker] = 0.  # 銘柄毎の収益
             self.dict_position[ticker] = PositionType.NONE
 
-    def openPosition(self, ticker: str, price: float, position: PositionType):
+    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType):
         """
         ポジションをオープン（建玉取得）
         :param ticker:
+        :param ts:
         :param price:
         :param position:
         :return:
@@ -35,10 +37,11 @@ class PositionManager(QObject):
         self.dict_price[ticker] = price
         self.dict_position[ticker] = position
 
-    def closePosition(self, ticker: str, price: float):
+    def closePosition(self, ticker: str, ts: float, price: float):
         """
         ポジションをクローズ（建玉返済）
         :param ticker:
+        :param ts:
         :param price:
         :return:
         """
