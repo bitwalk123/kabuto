@@ -6,8 +6,6 @@ from structs.posman import PositionType
 
 
 class PositionManager(QObject):
-    notifyProfit = Signal(str, float)
-    notifyTotal = Signal(str, float)
     threadFinished = Signal(bool)
 
     def __init__(self):
@@ -54,21 +52,14 @@ class PositionManager(QObject):
         self.dict_position[ticker] = PositionType.NONE
 
     def getProfit(self, ticker: str, price: float) -> float:
+        if price == 0:
+            return 0.
         if self.dict_position[ticker] == PositionType.BUY:
-            profit = (price - self.dict_price[ticker]) * self.unit
+            return (price - self.dict_price[ticker]) * self.unit
         elif self.dict_position[ticker] == PositionType.SELL:
-            profit = (self.dict_price[ticker] - price * self.unit)
+            return (self.dict_price[ticker] - price) * self.unit
         else:
-            profit = 0
-        # -------------------------------------------
-        # 🧿 指定銘柄の現在価格に対する含み損益を通知
-        # self.notifyProfit.emit(ticker, profit)
-        # -------------------------------------------
-        return profit
+            return 0.
 
     def getTotal(self, ticker: str) -> float:
-        # -----------------------------------------------------------
-        # 🧿 指定銘柄の現在損益を通知
-        # self.notifyTotal.emit(ticker, self.dict_total[ticker])
-        # -----------------------------------------------------------
         return self.dict_total[ticker]
