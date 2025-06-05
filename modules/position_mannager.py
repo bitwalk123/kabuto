@@ -7,8 +7,6 @@ from structs.posman import PositionType
 
 
 class PositionManager(QObject):
-    threadFinished = Signal(bool)
-
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
