@@ -19,6 +19,7 @@ from funcs.uis import clear_boxlayout
 from modules.acquisitor import AquireWorker
 from modules.trader import Trader
 from modules.reviewer import ReviewWorker
+from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
@@ -47,6 +48,10 @@ class Kabuto(QMainWindow):
     # デバッグ用
     requestReviewInit = Signal()
     requestCurrentPriceReview = Signal(float)
+
+    # 売買
+    requestPositionOpen = Signal(str, float, float, PositionType)
+    requestPositionClose = Signal(str, float, float)
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -210,6 +215,7 @@ class Kabuto(QMainWindow):
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = Trader(self.res, ticker)
+            # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
             trader.dock.clickedSell.connect(self.on_sell)
@@ -295,8 +301,12 @@ class Kabuto(QMainWindow):
 
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
+        # ---------------------------------------------------------------------
+        # 初期化後の銘柄情報の取得
         acquire.notifyTickerN.connect(self.on_create_trader)
+        # タイマーで現在時刻と株価を取得
         acquire.notifyCurrentPrice.connect(self.on_update_data)
+        # スレッド終了関連
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
         acquire_thread.finished.connect(acquire_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -461,14 +471,29 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_sell(self, ticker, price):
-        print(f"clicked SELL button at {ticker} {price}")
-
     def on_buy(self, ticker, price):
-        print(f"clicked BUY button at {ticker} {price}")
+        # --------------------------------------------------------
+        # 🧿 買建で建玉取得をワーカースレッドに通知
+        self.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.BUY
+        )
+        # --------------------------------------------------------
+
+    def on_sell(self, ticker, price):
+        # ---------------------------------------------------------
+        # 🧿 売建で建玉取得をワーカースレッドに通知
+        self.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.SELL
+        )
+        # ---------------------------------------------------------
 
     def on_repay(self, ticker, price):
-        print(f"clicked REPAY button at {ticker} {price}")
+        # --------------------------------------
+        # 🧿 建玉返済をワーカースレッドに通知
+        self.requestPositionClose.emit(
+            ticker, self.ts_system, price
+        )
+        # --------------------------------------
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # デバッグ用メソッド
@@ -505,15 +530,24 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         review_thread.started.connect(self.requestReviewInit.emit)
-        # 初期化処理は指定された Excel ファイルを読み込むこと
+        # 初期化処理は指定された Excel ファイルの読み込み
         self.requestReviewInit.connect(review.loadExcel)
+
+        # 売買ポジション
+        self.requestPositionOpen.connect(review.posman.openPosition)
+        self.requestPositionClose.connect(review.posman.closePosition)
 
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(review.readCurrentPrice)
 
-        # シグナルとスロットの接続
+        # _____________________________________________________________________
+        # ワーカー・スレッド側のシグナルとスロットの接続
+        # ---------------------------------------------------------------------
+        # 初期化後の銘柄情報の取得
         review.notifyTickerN.connect(self.on_create_trader_review)
+        # タイマーで現在時刻と株価を取得
         review.notifyCurrentPrice.connect(self.on_update_data_review)
+        # スレッド終了関連
         review.threadFinished.connect(self.on_thread_finished)
         review.threadFinished.connect(review_thread.quit)  # スレッド終了時
         review_thread.finished.connect(review_thread.deleteLater)  # スレッドオブジェクトの削除
@@ -580,7 +614,7 @@ class Kabuto(QMainWindow):
         self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
         self.timer.setInterval(interval)
 
-    def on_update_data_review(self, dict_data):
+    def on_update_data_review(self, dict_data, dict_profit, dict_total):
         """
         ティックデータの更新（デバッグ用）
         :param dict_data:
@@ -588,10 +622,12 @@ class Kabuto(QMainWindow):
         """
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
+            trader = self.dict_trader[ticker]
             if y > 0:
                 # 該当するデータが無い場合は 0 が帰ってくるため
-                trader = self.dict_trader[ticker]
                 trader.setTimePrice(x, y)
+            trader.dock.setProfit(dict_profit[ticker])
+            trader.dock.setTotal(dict_total[ticker])
 
 
 def main():

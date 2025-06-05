@@ -4,6 +4,7 @@ from PySide6.QtCore import QObject, Signal
 
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
+from modules.position_mannager import PositionManager
 
 
 class ReviewWorker(QObject):
@@ -14,7 +15,7 @@ class ReviewWorker(QObject):
     notifyTickerN = Signal(list, dict, dict)
 
     # ティックデータの表示
-    notifyCurrentPrice = Signal(dict)
+    notifyCurrentPrice = Signal(dict, dict, dict)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -24,6 +25,8 @@ class ReviewWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.excel_path = excel_path
         self.dict_sheet = dict()
+        # ポジション・マネージャのインスタンス
+        self.posman = PositionManager()
 
     def loadExcel(self):
         """
@@ -41,21 +44,27 @@ class ReviewWorker(QObject):
             # ------------------------------
             return
 
+        # 取得した Excel のシート名を銘柄コード (ticker) として扱う
         list_ticker = list(self.dict_sheet.keys())
+        # 銘柄コードから銘柄名を取得
         dict_name = get_ticker_name_list(list_ticker)
+        # デバッグ・モードでは、現在のところは前日終値を 0 とする
         dict_lastclose = dict()
         for ticker in list_ticker:
             dict_lastclose[ticker] = 0
-
         # -----------------------------------------------
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
             list_ticker, dict_name, dict_lastclose
         )
         # -----------------------------------------------
+        # ポジション・マネージャの初期化
+        self.posman.initPosition(list_ticker)
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
+        dict_profit = dict()
+        dict_total = dict()
         for ticker in self.dict_sheet.keys():
             df = self.dict_sheet[ticker]
             # 指定された時刻から +1 秒未満で株価が存在するか確認
@@ -67,10 +76,15 @@ class ReviewWorker(QObject):
                 dict_data[ticker] = [time, price]
             else:
                 # 存在しなければ、指定時刻と株価 = 0 を設定
-                dict_data[ticker] = [ts, 0]
+                price = 0
+                dict_data[ticker] = [ts, price]
+
+            dict_profit[ticker] = self.posman.getProfit(ticker, price)
+            dict_total[ticker] = self.posman.getTotal(ticker)
+
         # --------------------------------------
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data)
+        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
         # --------------------------------------
 
     def stopProcess(self):
