@@ -26,7 +26,7 @@ class ButtonBuy(QPushButton):
                 background-color: #d75879;
             }
             QPushButton:disabled:checked {
-                background-color: #ed6286;
+                background-color: #d75879;
                 color: white;
             }
         """)
@@ -48,7 +48,7 @@ class ButtonSell(QPushButton):
                 background-color: #099588;
             }
             QPushButton:disabled:checked {
-                background-color: #0ba596;
+                background-color: #099588;
                 color: white;
             }
         """)
