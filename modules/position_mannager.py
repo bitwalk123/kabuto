@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from PySide6.QtCore import QObject, Signal
 
 from structs.posman import PositionType
@@ -13,6 +14,18 @@ class PositionManager(QObject):
         self.logger = logging.getLogger(__name__)
         self.order = 0  # 注文番号
         self.unit = 100  # 売買単位
+        dict_columns = {
+            '注文番号': [],
+            '注文日時': [],
+            '銘柄コード': [],
+            '売買': [],
+            '約定単価': [],
+            '約定数量': [],
+            '損益': [],
+            '備考': [],
+        }
+        df = pd.DataFrame.from_dict(dict_columns)
+        self.df_order = df.astype(object)
 
     def initPosition(self, list_ticker: list):
         self.dict_price = dict()
@@ -32,6 +45,7 @@ class PositionManager(QObject):
         :param position:
         :return:
         """
+        self.order += 1
         self.dict_price[ticker] = price
         self.dict_position[ticker] = position
 
@@ -43,10 +57,13 @@ class PositionManager(QObject):
         :param price:
         :return:
         """
+        self.order += 1
         if self.dict_position[ticker] == PositionType.BUY:
-            self.dict_total[ticker] += (price - self.dict_price[ticker]) * self.unit
+            profit = (price - self.dict_price[ticker]) * self.unit
+            self.dict_total[ticker] += profit
         elif self.dict_position[ticker] == PositionType.SELL:
-            self.dict_total[ticker] += (self.dict_price[ticker] - price) * self.unit
+            profit = (self.dict_price[ticker] - price) * self.unit
+            self.dict_total[ticker] += profit
 
         self.dict_price[ticker] = 0
         self.dict_position[ticker] = PositionType.NONE
