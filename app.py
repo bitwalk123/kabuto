@@ -601,7 +601,6 @@ class Kabuto(QMainWindow):
 
         # タイマーで現在時刻と株価を通知
         review.notifyCurrentPrice.connect(self.on_update_data)
-        # review.notifyCurrentPrice.connect(self.on_update_data)
 
         # Parabolic SAR の情報を通知
         review.notifyPSAR.connect(self.on_update_psar)
