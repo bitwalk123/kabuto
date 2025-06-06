@@ -599,6 +599,8 @@ class Kabuto(QMainWindow):
         if self.ts_end < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+            # 取引結果を取得
+            self.requestTransactionResult.emit()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
