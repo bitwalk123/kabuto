@@ -487,7 +487,7 @@ class Kabuto(QMainWindow):
             save_dataframe_to_excel(name_excel, dict_df)
             self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
         except ValueError as e:
-            self.logger.error(f"{__name__} error occured!: {e}")
+            self.logger.error(f"{__name__} error occurred!: {e}")
 
     def set_intraday_time(self, year, month, day):
         """
@@ -616,7 +616,8 @@ class Kabuto(QMainWindow):
         """
         Trader インスタンスの生成（デバッグ用）
         :param list_ticker:
-        :param dict_times:
+        :param dict_name:
+        :param dict_lastclose:
         :return:
         """
         # 銘柄数分の Trader インスタンスの生成
@@ -679,6 +680,8 @@ class Kabuto(QMainWindow):
         """
         ティックデータの更新（デバッグ用）
         :param dict_data:
+        :param dict_profit:
+        :param dict_total:
         :return:
         """
         for ticker in dict_data.keys():
