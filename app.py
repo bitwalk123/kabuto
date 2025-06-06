@@ -5,6 +5,7 @@ import re
 import sys
 import time
 
+import pandas as pd
 from PySide6.QtCore import QThread, QTimer, Signal
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import (
@@ -52,6 +53,7 @@ class Kabuto(QMainWindow):
     # 売買
     requestPositionOpen = Signal(str, float, float, PositionType)
     requestPositionClose = Signal(str, float, float)
+    requestTransactionResult = Signal()
 
     def __init__(self, options: list = None):
         super().__init__()
@@ -122,6 +124,10 @@ class Kabuto(QMainWindow):
         # ticker インスタンスを保持する辞書
         self.dict_trader = dict()
 
+        # 取引履歴
+        self.df_transaction: pd.DataFrame | None = None
+        self.transaction_history: QMainWindow | None = None
+
         # ---------------------------------------------------------------------
         #  UI
         # ---------------------------------------------------------------------
@@ -138,6 +144,7 @@ class Kabuto(QMainWindow):
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
         toolbar.stopClicked.connect(self.on_review_stop)
+        toolbar.transactionClicked.connect(self.on_show_transaction)
         toolbar.timerIntervalChanged.connect(self.on_timer_interval_changed)
         self.addToolBar(toolbar)
 
@@ -376,6 +383,11 @@ class Kabuto(QMainWindow):
             self.save_tick_data(name_excel, dict_df)
             return True
 
+    def on_show_transaction(self):
+        self.transaction_history = th = QMainWindow()
+        th.setWindowTitle("Transaction History")
+        th.show()
+
     def on_thread_finished(self, result: bool):
         """
         スレッド終了時のログ
@@ -390,6 +402,20 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+
+    def on_transaction_result(self, df: pd.DataFrame):
+        """
+        取引結果のデータフレームを取得（リアルタイム、デバッグ・モード共通）
+        :param df:
+        :return:
+        """
+        # self.toolbar.set_transaction(df)
+        print(df)
+        print("実現損益", df["損益"].sum())
+        # インスタンス変数に保存
+        self.df_transaction = df
+        # ツールバーの「取引履歴」ボタンを Enabled にする
+        self.toolbar.set_transaction()
 
     def on_update_data(self, dict_data):
         """
@@ -536,6 +562,8 @@ class Kabuto(QMainWindow):
         # 売買ポジション
         self.requestPositionOpen.connect(review.posman.openPosition)
         self.requestPositionClose.connect(review.posman.closePosition)
+        # 取引結果を取得するメソッドへキューイング
+        self.requestTransactionResult.connect(review.getTransactionResult)
 
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(review.readCurrentPrice)
@@ -545,8 +573,13 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # 初期化後の銘柄情報の取得
         review.notifyTickerN.connect(self.on_create_trader_review)
+
         # タイマーで現在時刻と株価を取得
         review.notifyCurrentPrice.connect(self.on_update_data_review)
+
+        # 取引結果を取得
+        self.review.notifyTransactionResult.connect(self.on_transaction_result)
+
         # スレッド終了関連
         review.threadFinished.connect(self.on_thread_finished)
         review.threadFinished.connect(review_thread.quit)  # スレッド終了時
@@ -581,6 +614,8 @@ class Kabuto(QMainWindow):
         if self.ts_end < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+            # 取引結果を取得
+            self.requestTransactionResult.emit()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
@@ -604,6 +639,8 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+            # 取引結果を取得
+            self.requestTransactionResult.emit()
 
     def on_timer_interval_changed(self, interval: int):
         """

@@ -3,6 +3,7 @@ import logging
 import pandas as pd
 from PySide6.QtCore import QObject
 
+from funcs.tide import conv_datetime_from_timestamp
 from structs.posman import PositionType
 
 
@@ -18,14 +19,14 @@ class PositionManager(QObject):
         self.dict_position = dict()
 
         dict_columns = {
-            '注文番号': [],
-            '注文日時': [],
-            '銘柄コード': [],
-            '売買': [],
-            '約定単価': [],
-            '約定数量': [],
-            '損益': [],
-            '備考': [],
+            "注文番号": [],
+            "注文日時": [],
+            "銘柄コード": [],
+            "売買": [],
+            "約定単価": [],
+            "約定数量": [],
+            "損益": [],
+            "備考": [],
         }
         df = pd.DataFrame.from_dict(dict_columns)
         self.df_order = df.astype(object)
@@ -45,9 +46,21 @@ class PositionManager(QObject):
         :param position:
         :return:
         """
-        self.order += 1
         self.dict_price[ticker] = price
         self.dict_position[ticker] = position
+
+        # 取引履歴
+        self.order += 1
+        r = len(self.df_order)
+        self.df_order.at[r, "注文番号"] = self.order
+        self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
+        self.df_order.at[r, "銘柄コード"] = ticker
+        if position == PositionType.BUY:
+            self.df_order.at[r, "売買"] = "買建"
+        elif position == PositionType.SELL:
+            self.df_order.at[r, "売買"] = "売建"
+        self.df_order.at[r, "約定単価"] = price
+        self.df_order.at[r, "約定数量"] = self.unit
 
     def closePosition(self, ticker: str, ts: float, price: float):
         """
@@ -57,14 +70,30 @@ class PositionManager(QObject):
         :param price:
         :return:
         """
-        self.order += 1
-        if self.dict_position[ticker] == PositionType.BUY:
+        position = self.dict_position[ticker]
+        profit = 0
+        if position == PositionType.BUY:
             profit = (price - self.dict_price[ticker]) * self.unit
             self.dict_total[ticker] += profit
-        elif self.dict_position[ticker] == PositionType.SELL:
+        elif position == PositionType.SELL:
             profit = (self.dict_price[ticker] - price) * self.unit
             self.dict_total[ticker] += profit
 
+        # 取引履歴
+        self.order += 1
+        r = len(self.df_order)
+        self.df_order.at[r, "注文番号"] = self.order
+        self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
+        self.df_order.at[r, "銘柄コード"] = ticker
+        if position == PositionType.BUY:
+            self.df_order.at[r, "売買"] = "売埋"
+        elif position == PositionType.SELL:
+            self.df_order.at[r, "売買"] = "買埋"
+        self.df_order.at[r, "約定単価"] = price
+        self.df_order.at[r, "約定数量"] = self.unit
+        self.df_order.at[r, "損益"] = profit
+
+        # 売買状態のリセット
         self.dict_price[ticker] = 0
         self.dict_position[ticker] = PositionType.NONE
 
@@ -80,3 +109,6 @@ class PositionManager(QObject):
 
     def getTotal(self, ticker: str) -> float:
         return self.dict_total[ticker]
+
+    def getTransactionResult(self) -> pd.DataFrame:
+        return self.df_order
