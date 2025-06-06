@@ -124,6 +124,10 @@ class Kabuto(QMainWindow):
         # ticker インスタンスを保持する辞書
         self.dict_trader = dict()
 
+        # 取引履歴
+        self.df_transaction: pd.DataFrame | None = None
+        self.transaction_history: QMainWindow | None = None
+
         # ---------------------------------------------------------------------
         #  UI
         # ---------------------------------------------------------------------
@@ -140,6 +144,7 @@ class Kabuto(QMainWindow):
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
         toolbar.stopClicked.connect(self.on_review_stop)
+        toolbar.transactionClicked.connect(self.on_show_transaction)
         toolbar.timerIntervalChanged.connect(self.on_timer_interval_changed)
         self.addToolBar(toolbar)
 
@@ -378,6 +383,11 @@ class Kabuto(QMainWindow):
             self.save_tick_data(name_excel, dict_df)
             return True
 
+    def on_show_transaction(self):
+        self.transaction_history = th = QMainWindow()
+        th.setWindowTitle("Transaction History")
+        th.show()
+
     def on_thread_finished(self, result: bool):
         """
         スレッド終了時のログ
@@ -399,7 +409,13 @@ class Kabuto(QMainWindow):
         :param df:
         :return:
         """
-        self.toolbar.set_transaction(df)
+        # self.toolbar.set_transaction(df)
+        print(df)
+        print("実現損益", df["損益"].sum())
+        # インスタンス変数に保存
+        self.df_transaction = df
+        # ツールバーの「取引履歴」ボタンを Enabled にする
+        self.toolbar.set_transaction()
 
     def on_update_data(self, dict_data):
         """

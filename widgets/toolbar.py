@@ -21,12 +21,12 @@ class ToolBar(QToolBar):
     playClicked = Signal()
     saveClicked = Signal()
     stopClicked = Signal()
+    transactionClicked = Signal()
     timerIntervalChanged = Signal(int)
 
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
-        self.df_transaction: pd.DataFrame | None = None
 
         if res.debug:
             action_open = QAction(
@@ -71,9 +71,6 @@ class ToolBar(QToolBar):
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 取引履歴の取扱いは、この ToolBar クラスで面倒をみる
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.action_transaction = action_transaction = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogListView),
             "取引履歴",
@@ -150,7 +147,10 @@ class ToolBar(QToolBar):
         # -------------------------------------------
 
     def on_transaction(self):
-        pass
+        # ---------------------------------------
+        # 🧿 「取引履歴」ボタンがクリックされたことを通知
+        self.transactionClicked.emit()
+        # ---------------------------------------
 
     def updateTime(self, ts: float):
         dt = datetime.datetime.fromtimestamp(ts)
@@ -163,13 +163,10 @@ class ToolBar(QToolBar):
             self.timerIntervalChanged.emit(rb.getValue())
             # --------------------------------------------
 
-    def set_transaction(self, df: pd.DataFrame):
+    def set_transaction(self):
         """
-        取引履歴の取扱いは、この ToolBar クラスで面倒をみる
+        取引履歴の表示ボタンを Enable にする
         :param df:
         :return:
         """
-        self.df_transaction = df
         self.action_transaction.setEnabled(True)
-        print(df)
-        print("実現損益", df["損益"].sum())
