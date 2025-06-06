@@ -1,5 +1,6 @@
 import datetime
 
+import pandas as pd
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction
 from PySide6.QtWidgets import (
@@ -25,6 +26,7 @@ class ToolBar(QToolBar):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+        self.df_transaction: pd.DataFrame | None = None
 
         if res.debug:
             action_open = QAction(
@@ -68,6 +70,18 @@ class ToolBar(QToolBar):
             )
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 取引履歴の取扱いは、この ToolBar クラスで面倒をみる
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        self.action_transaction = action_transaction = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogListView),
+            "取引履歴",
+            self
+        )
+        action_transaction.setEnabled(False)
+        action_transaction.triggered.connect(self.on_transaction)
+        self.addAction(action_transaction)
         # --- debug ここまで ---
 
         action_save = QAction(
@@ -135,6 +149,9 @@ class ToolBar(QToolBar):
         self.stopClicked.emit()
         # -------------------------------------------
 
+    def on_transaction(self):
+        pass
+
     def updateTime(self, ts: float):
         dt = datetime.datetime.fromtimestamp(ts)
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
@@ -145,3 +162,14 @@ class ToolBar(QToolBar):
             # 🧿 倍速設定（タイマー間隔）が変更されたことの通知
             self.timerIntervalChanged.emit(rb.getValue())
             # --------------------------------------------
+
+    def set_transaction(self, df: pd.DataFrame):
+        """
+        取引履歴の取扱いは、この ToolBar クラスで面倒をみる
+        :param df:
+        :return:
+        """
+        self.df_transaction = df
+        self.action_transaction.setEnabled(True)
+        print(df)
+        print("実現損益", df["損益"].sum())

@@ -399,8 +399,7 @@ class Kabuto(QMainWindow):
         :param df:
         :return:
         """
-        print(df)
-        print("実現損益", df["損益"].sum())
+        self.toolbar.set_transaction(df)
 
     def on_update_data(self, dict_data):
         """
