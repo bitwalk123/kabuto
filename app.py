@@ -20,6 +20,7 @@ from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
 from modules.trader import Trader
 from modules.reviewer import ReviewWorker
+from modules.trans import WinTransaction
 from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
@@ -126,7 +127,7 @@ class Kabuto(QMainWindow):
 
         # 取引履歴
         self.df_transaction: pd.DataFrame | None = None
-        self.transaction_history: QMainWindow | None = None
+        self.win_transaction: QMainWindow | None = None
 
         # ---------------------------------------------------------------------
         #  UI
@@ -390,9 +391,8 @@ class Kabuto(QMainWindow):
             return True
 
     def on_show_transaction(self):
-        self.transaction_history = th = QMainWindow()
-        th.setWindowTitle("Transaction History")
-        th.show()
+        self.win_transaction = wt = WinTransaction(self.res, self.df_transaction)
+        wt.show()
 
     def on_thread_finished(self, result: bool):
         """
@@ -415,13 +415,18 @@ class Kabuto(QMainWindow):
         :param df:
         :return:
         """
-        # self.toolbar.set_transaction(df)
         print(df)
         print("実現損益", df["損益"].sum())
+
         # インスタンス変数に保存
         self.df_transaction = df
+
         # ツールバーの「取引履歴」ボタンを Enabled にする
         self.toolbar.set_transaction()
+
+        # テスト用サンプル
+        # if len(df) > 0:
+        #    df.to_pickle('sample.pkl')
 
     def on_update_data(self, dict_data, dict_profit, dict_total):
         """
