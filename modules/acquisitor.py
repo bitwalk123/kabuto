@@ -4,6 +4,9 @@ import time
 
 import xlwings as xw
 
+from modules.position_mannager import PositionManager
+from modules.psar import RealtimePSAR
+
 # Windows 固有のライブラリ
 if sys.platform == "win32":
     from pywintypes import com_error
@@ -18,8 +21,13 @@ class AquireWorker(QObject):
     """
     # 登録されている銘柄数ち銘柄情報通知シグナル
     notifyTickerN = Signal(list, dict, dict)
+
     # 最新株価情報通知シグナル
     notifyCurrentPrice = Signal(dict)
+
+    # Parabolic SAR の情報を通知
+    notifyPSAR = Signal(str, int, float, float)
+
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
@@ -59,6 +67,12 @@ class AquireWorker(QObject):
         # プログラム的に登録されている銘柄数を調べるべきだが、現在のところ 3 銘柄に固定
         self.num_max = 3
 
+        # ポジション・マネージャのインスタンス
+        self.posman = PositionManager()
+
+        # Parabolic SAR の辞書
+        self.dict_psar = dict()
+
     def loadExcel(self):
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
@@ -86,7 +100,14 @@ class AquireWorker(QObject):
         self.notifyTickerN.emit(
             self.list_ticker, dict_name, dict_lastclose
         )
-        # ----------------------------------------------------
+        # -----------------------------------------------
+
+        # ポジション・マネージャの初期化
+        self.posman.initPosition(self.list_ticker)
+
+        # Parabolic SAR インスタンスの生成
+        for ticker in self.list_ticker:
+            self.dict_psar[ticker] = RealtimePSAR()
 
     def readCurrentPrice(self):
         """
@@ -132,6 +153,22 @@ class AquireWorker(QObject):
         # 🧿 現在時刻と株価を通知
         self.notifyCurrentPrice.emit(dict_data)
         # --------------------------------------
+
+        # Parabolic SAR の算出
+        for ticker in self.list_ticker:
+            x, y = dict_data[ticker]
+            if y > 0:
+                # ticker 毎に RealtimePSAR オブジェクトを取り出す
+                psar: RealtimePSAR = self.dict_psar[ticker]
+                # Realtime PSAR の算出
+                ret = psar.add(y)
+                # トレンドと PSAR の値を転記
+                trend = ret.trend
+                y_psar = ret.psar
+                # ---------------------------------------------------
+                # 🧿 Parabolic SAR の情報を通知
+                self.notifyPSAR.emit(ticker, trend, x, y_psar)
+                # ---------------------------------------------------
 
     def stopProcess(self):
         """

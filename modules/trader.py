@@ -6,7 +6,6 @@ import pyqtgraph as pg
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
-from modules.psar import RealtimePSAR
 from structs.res import AppRes
 from widgets.docks import DockTrader
 from widgets.graph import TrendGraph
@@ -29,7 +28,7 @@ class Trader(QMainWindow):
         self.counter_data = 0
 
         # Parabolic SAR
-        self.psar = RealtimePSAR()
+        # self.psar = RealtimePSAR()
 
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
@@ -140,27 +139,21 @@ class Trader(QMainWindow):
         # 株価表示の更新
         self.dock.setPrice(y)
 
-        #######################################################################
-        # Parabolic SAR
-        # 現在のところ、株価と一緒に産出する仕様にした。
-        ret = self.psar.add(y)
-        y_psar = ret.psar
-        if 0 < ret.trend:
+    def setPSAR(self, trend: int, x: float, y: float):
+        if 0 < trend:
             self.x_bull[self.counter_bull] = x
-            self.y_bull[self.counter_bull] = y_psar
+            self.y_bull[self.counter_bull] = y
             self.counter_bull += 1
             self.trend_bull.setData(
                 self.x_bull[0: self.counter_bull], self.y_bull[0:self.counter_bull]
             )
-        elif ret.trend < 0:
+        elif trend < 0:
             self.x_bear[self.counter_bear] = x
-            self.y_bear[self.counter_bear] = y_psar
+            self.y_bear[self.counter_bear] = y
             self.counter_bear += 1
             self.trend_bear.setData(
                 self.x_bear[0: self.counter_bear], self.y_bear[0:self.counter_bear]
             )
-        #
-        #######################################################################
 
     def setTimeRange(self, ts_start, ts_end):
         """

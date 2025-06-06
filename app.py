@@ -283,7 +283,7 @@ class Kabuto(QMainWindow):
         year = dt.year
         month = dt.month
         day = dt.day
-        # ザラ場日時時間情報
+        # ザラ場日付情報
         self.set_intraday_time(year, month, day)
 
         # _____________________________________________________________________
@@ -294,6 +294,7 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         acquire_thread.started.connect(self.requestAcquireInit.emit)
+
         # _____________________________________________________________________
         # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
         # 初期化処理は指定された Excel ファイルを読み込むこと
@@ -309,10 +310,15 @@ class Kabuto(QMainWindow):
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
         # ---------------------------------------------------------------------
-        # 初期化後の銘柄情報の取得
+        # 初期化後の銘柄情報を通知
         acquire.notifyTickerN.connect(self.on_create_trader)
-        # タイマーで現在時刻と株価を取得
+
+        # タイマーで現在時刻と株価を通知
         acquire.notifyCurrentPrice.connect(self.on_update_data)
+
+        # Parabolic SAR の情報を通知
+        acquire.notifyPSAR.connect(self.on_update_psar)
+
         # スレッド終了関連
         acquire.threadFinished.connect(self.on_thread_finished)
         acquire.threadFinished.connect(acquire_thread.quit)  # スレッド終了時
@@ -427,6 +433,18 @@ class Kabuto(QMainWindow):
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
+
+    def on_update_psar(self, ticker: str, trend: int, x: float, y: float):
+        """
+        Parabolic SAR のトレンド点を追加
+        :param ticker:
+        :param trend:
+        :param x:
+        :param y:
+        :return:
+        """
+        trader = self.dict_trader[ticker]
+        trader.setPSAR(trend, x, y)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
@@ -546,7 +564,7 @@ class Kabuto(QMainWindow):
             year = 1970
             month = 1
             day = 1
-        # ザラ場日時時間情報
+        # ザラ場日付情報
         self.set_intraday_time(year, month, day)
 
         # Excelを読み込むスレッド処理
@@ -556,12 +574,14 @@ class Kabuto(QMainWindow):
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         review_thread.started.connect(self.requestReviewInit.emit)
+
         # 初期化処理は指定された Excel ファイルの読み込み
         self.requestReviewInit.connect(review.loadExcel)
 
         # 売買ポジション
         self.requestPositionOpen.connect(review.posman.openPosition)
         self.requestPositionClose.connect(review.posman.closePosition)
+
         # 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(review.getTransactionResult)
 
@@ -571,11 +591,15 @@ class Kabuto(QMainWindow):
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
         # ---------------------------------------------------------------------
-        # 初期化後の銘柄情報の取得
+        # 初期化後の銘柄情報を通知
         review.notifyTickerN.connect(self.on_create_trader_review)
 
-        # タイマーで現在時刻と株価を取得
+        # タイマーで現在時刻と株価を通知
         review.notifyCurrentPrice.connect(self.on_update_data_review)
+        #review.notifyCurrentPrice.connect(self.on_update_data)
+
+        # Parabolic SAR の情報を通知
+        review.notifyPSAR.connect(self.on_update_psar)
 
         # 取引結果を取得
         self.review.notifyTransactionResult.connect(self.on_transaction_result)
@@ -660,9 +684,8 @@ class Kabuto(QMainWindow):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
-            if y > 0:
-                # 該当するデータが無い場合は 0 が帰ってくるため
-                trader.setTimePrice(x, y)
+            trader.setTimePrice(x, y)
+            # 銘柄単位の含み益と収益を更新
             trader.dock.setProfit(dict_profit[ticker])
             trader.dock.setTotal(dict_total[ticker])
 
