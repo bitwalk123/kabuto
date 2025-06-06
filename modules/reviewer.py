@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from PySide6.QtCore import QObject, Signal
 
 from funcs.ios import load_excel
@@ -17,6 +18,9 @@ class ReviewWorker(QObject):
     # ティックデータの表示
     notifyCurrentPrice = Signal(dict, dict, dict)
 
+    # 取引結果のデータフレームを通知
+    notifyTransactionResult = Signal(pd.DataFrame)
+
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
@@ -27,6 +31,14 @@ class ReviewWorker(QObject):
         self.dict_sheet = dict()
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
+
+    def getTransactionResult(self):
+        """
+        取引結果を取得
+        :return:
+        """
+        df = self.posman.getTransactionResult()
+        self.notifyTransactionResult.emit(df)
 
     def loadExcel(self):
         """
