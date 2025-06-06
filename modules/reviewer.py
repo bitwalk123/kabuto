@@ -99,23 +99,24 @@ class ReviewWorker(QObject):
             df_tick = df[(ts <= df['Time']) & (df['Time'] < ts + 1)]
             if len(df_tick) > 0:
                 # 時刻が存在していれば、データにある時刻と株価を返値に設定
-                time = df_tick.iloc[0, 0]
+                ts = df_tick.iloc[0, 0]
                 price = df_tick.iloc[0, 1]
-                dict_data[ticker] = [time, price]
+                dict_data[ticker] = [ts, price]
+                dict_profit[ticker] = self.posman.getProfit(ticker, price)
+                dict_total[ticker] = self.posman.getTotal(ticker)
             else:
                 # 存在しなければ、指定時刻と株価 = 0 を設定
-                #price = 0
-                #dict_data[ticker] = [ts, price]
+                # price = 0
+                # dict_data[ticker] = [ts, price]
                 # 存在しなければ処理しない
                 continue
 
-            dict_profit[ticker] = self.posman.getProfit(ticker, price)
-            dict_total[ticker] = self.posman.getTotal(ticker)
-
-        # --------------------------------------
+        # -------------------------------------------
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
-        # --------------------------------------
+        self.notifyCurrentPrice.emit(
+            dict_data, dict_profit, dict_total
+        )
+        # -------------------------------------------
 
         # Parabolic SAR の算出
         for ticker in dict_data.keys():

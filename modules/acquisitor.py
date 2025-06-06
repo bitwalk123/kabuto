@@ -14,7 +14,7 @@ if sys.platform == "win32":
 from PySide6.QtCore import QObject, Signal
 
 
-class AquireWorker(QObject):
+class AcquireWorker(QObject):
     """
     【Windows 専用】
     楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
@@ -115,6 +115,8 @@ class AquireWorker(QObject):
         :return:
         """
         dict_data = dict()
+        dict_profit = dict()
+        dict_total = dict()
         for i, ticker in enumerate(self.list_ticker):
             row = i + 1
             # Excel シートから株価情報を取得
@@ -124,11 +126,14 @@ class AquireWorker(QObject):
                 # COM エラーが発生するため、リトライできるようにしている。
                 # -------------------------------------------------------------
                 try:
+                    ts = time.time()
                     # Excelシートから株価データを取得
-                    y = self.sheet[row, self.col_price].value
-                    if y > 0:
+                    price = self.sheet[row, self.col_price].value
+                    if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
-                        dict_data[ticker] = [time.time(), y]
+                        dict_data[ticker] = [ts, price]
+                        dict_profit[ticker] = self.posman.getProfit(ticker, price)
+                        dict_total[ticker] = self.posman.getTotal(ticker)
                     break
                 except com_error as e:
                     # ---------------------------------------------------------
@@ -149,26 +154,28 @@ class AquireWorker(QObject):
                     raise  # その他の例外はそのまま発生させる
                 #
                 ###############################################################
-        # --------------------------------------
+
+        # -------------------------------------------
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data)
-        # --------------------------------------
+        self.notifyCurrentPrice.emit(
+            dict_data, dict_profit, dict_total
+        )
+        # -------------------------------------------
 
         # Parabolic SAR の算出
-        for ticker in self.list_ticker:
-            x, y = dict_data[ticker]
-            if y > 0:
-                # ticker 毎に RealtimePSAR オブジェクトを取り出す
-                psar: RealtimePSAR = self.dict_psar[ticker]
-                # Realtime PSAR の算出
-                ret = psar.add(y)
-                # トレンドと PSAR の値を転記
-                trend = ret.trend
-                y_psar = ret.psar
-                # ---------------------------------------------------
-                # 🧿 Parabolic SAR の情報を通知
-                self.notifyPSAR.emit(ticker, trend, x, y_psar)
-                # ---------------------------------------------------
+        for ticker in dict_data.keys():
+            ts, price = dict_data[ticker]
+            # ticker 毎に RealtimePSAR オブジェクトを取り出す
+            psar: RealtimePSAR = self.dict_psar[ticker]
+            # Realtime PSAR の算出
+            ret = psar.add(price)
+            # トレンドと PSAR の値を転記
+            trend = ret.trend
+            y_psar = ret.psar
+            # ---------------------------------------------------
+            # 🧿 Parabolic SAR の情報を通知
+            self.notifyPSAR.emit(ticker, trend, ts, y_psar)
+            # ---------------------------------------------------
 
     def stopProcess(self):
         """
@@ -188,7 +195,7 @@ class AquireWorker(QObject):
                     print("Worker: Excel app quit.")
                 except Exception as e:
                     print(f"Worker: Error quitting app: {e}")
-            self.book = None  # オブジェクト参照をクリア
+            self.wb = None  # オブジェクト参照をクリア
         # -------------------------
         # 🧿 スレッド終了シグナルの通知
         self.threadFinished.emit()

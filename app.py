@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
-from modules.acquisitor import AquireWorker
+from modules.acquisitor import AcquireWorker
 from modules.trader import Trader
 from modules.reviewer import ReviewWorker
 from structs.posman import PositionType
@@ -115,7 +115,7 @@ class Kabuto(QMainWindow):
 
         # ザラ場用インスタンス（ランタイム・スレッド）
         self.acquire_thread: QThread | None = None
-        self.acquire: AquireWorker | None = None
+        self.acquire: AcquireWorker | None = None
 
         # Excel レビュー用インスタンス（デバッグ・スレッド）
         self.review_thread: QThread | None = None
@@ -289,7 +289,7 @@ class Kabuto(QMainWindow):
         # _____________________________________________________________________
         # Excelを読み込むスレッド処理
         self.acquire_thread = acquire_thread = QThread()
-        self.acquire = acquire = AquireWorker(excel_path)
+        self.acquire = acquire = AcquireWorker(excel_path)
         acquire.moveToThread(acquire_thread)
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
@@ -423,16 +423,21 @@ class Kabuto(QMainWindow):
         # ツールバーの「取引履歴」ボタンを Enabled にする
         self.toolbar.set_transaction()
 
-    def on_update_data(self, dict_data):
+    def on_update_data(self, dict_data, dict_profit, dict_total):
         """
-        ティックデータの更新
+        ティックデータ、含み益、損益の更新
         :param dict_data:
+        :param dict_profit:
+        :param dict_total:
         :return:
         """
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
             trader.setTimePrice(x, y)
+            # 銘柄単位の含み益と収益を更新
+            trader.dock.setProfit(dict_profit[ticker])
+            trader.dock.setTotal(dict_total[ticker])
 
     def on_update_psar(self, ticker: str, trend: int, x: float, y: float):
         """
@@ -595,8 +600,8 @@ class Kabuto(QMainWindow):
         review.notifyTickerN.connect(self.on_create_trader_review)
 
         # タイマーで現在時刻と株価を通知
-        review.notifyCurrentPrice.connect(self.on_update_data_review)
-        #review.notifyCurrentPrice.connect(self.on_update_data)
+        review.notifyCurrentPrice.connect(self.on_update_data)
+        # review.notifyCurrentPrice.connect(self.on_update_data)
 
         # Parabolic SAR の情報を通知
         review.notifyPSAR.connect(self.on_update_psar)
@@ -675,22 +680,6 @@ class Kabuto(QMainWindow):
         """
         self.logger.info(f"タイマー間隔が {interval} ミリ秒に設定されました。")
         self.timer.setInterval(interval)
-
-    def on_update_data_review(self, dict_data, dict_profit, dict_total):
-        """
-        ティックデータの更新（デバッグ用）
-        :param dict_data:
-        :param dict_profit:
-        :param dict_total:
-        :return:
-        """
-        for ticker in dict_data.keys():
-            x, y = dict_data[ticker]
-            trader = self.dict_trader[ticker]
-            trader.setTimePrice(x, y)
-            # 銘柄単位の含み益と収益を更新
-            trader.dock.setProfit(dict_profit[ticker])
-            trader.dock.setTotal(dict_total[ticker])
 
 
 def main():
