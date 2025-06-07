@@ -14,7 +14,8 @@ class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         df = pd.read_pickle('sample.pkl')
-        self.setWindowTitle('QTableView')
+
+        self.setWindowTitle('取引履歴')
         self.resize(600, 400)
 
         view = QTableView()
