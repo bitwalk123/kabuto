@@ -8,8 +8,9 @@ from PySide6.QtWidgets import (
     QTableView,
 )
 
-from samples.sample_010_tablemodel import PandasModel
+from widgets.model import ModelTransaction
 from widgets.labels import LabelRight, LabelPrice
+from widgets.table import TransactionView
 
 
 class Example(QMainWindow):
@@ -20,16 +21,10 @@ class Example(QMainWindow):
         self.setWindowTitle('取引履歴')
         self.resize(600, 400)
 
-        view = QTableView()
-        view.setStyleSheet("""
-            QTableView {
-                font-family: monospace;
-            }
-        """)
-        view.setAlternatingRowColors(True)
+        view = TransactionView()
         self.setCentralWidget(view)
 
-        model = PandasModel(df)
+        model = ModelTransaction(df)
         view.setModel(model)
 
         header = view.horizontalHeader()

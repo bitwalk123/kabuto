@@ -2,14 +2,10 @@ import math
 from typing import Any
 
 import pandas as pd
-from PySide6.QtCore import (
-    QAbstractTableModel,
-    QModelIndex,
-    Qt,
-)
+from PySide6.QtCore import QAbstractTableModel, QModelIndex, Qt
 
 
-class PandasModel(QAbstractTableModel):
+class ModelTransaction(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
 
     def __init__(self, dataframe: pd.DataFrame, parent=None):
