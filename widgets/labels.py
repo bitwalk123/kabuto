@@ -53,6 +53,7 @@ class LabelPrice(LabelRight):
             QLabel {
                 font-family: monospace;
                 background-color: white;
+                color: black;
                 padding-left: 5px;
                 padding-right: 5px;
             }
