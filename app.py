@@ -416,7 +416,7 @@ class Kabuto(QMainWindow):
         :return:
         """
         print(df)
-        print("実現損益", df["損益"].sum())
+        print("合計損益", df["損益"].sum())
 
         # インスタンス変数に保存
         self.df_transaction = df

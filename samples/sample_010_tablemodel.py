@@ -55,6 +55,9 @@ class PandasModel(QAbstractTableModel):
             if col == 2:
                 # 銘柄コード
                 flag = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+            elif col == 3:
+                # 売買
+                flag = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
             elif (type(value) is int) | (type(value) is float):
                 flag = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
             else:

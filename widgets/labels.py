@@ -1,16 +1,26 @@
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtWidgets import QLCDNumber, QLabel, QPlainTextEdit
+from PySide6.QtWidgets import QLCDNumber, QLabel, QPlainTextEdit, QFrame, QSizePolicy
 
 
 class Label(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setStyleSheet("""
+            QLabel {
+                font-family: monospace;
+            }
+        """)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
 
 class LabelLeft(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setStyleSheet("""
+            QLabel {
+                font-family: monospace;
+            }
+        """)
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
@@ -18,8 +28,36 @@ class LabelLeft(QLabel):
 class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setStyleSheet("""
+            QLabel {
+                font-family: monospace;
+            }
+        """)
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+
+class LabelPrice(LabelRight):
+    def __init__(self, price: float):
+        super().__init__()
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(2)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+        self.setFixedWidth(120)
+        self.setText(f"{price:,.1f}")
+        self.setStyleSheet("""
+            QLabel {
+                font-family: monospace;
+                background-color: white;
+                padding-left: 5px;
+                padding-right: 5px;
+            }
+        """)
 
 
 class LCDNumber(QLCDNumber):

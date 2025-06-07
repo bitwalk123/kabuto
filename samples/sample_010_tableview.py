@@ -4,10 +4,12 @@ from PySide6.QtWidgets import (
     QApplication,
     QHeaderView,
     QMainWindow,
+    QStatusBar,
     QTableView,
 )
 
 from samples.sample_010_tablemodel import PandasModel
+from widgets.labels import LabelRight, LabelPrice
 
 
 class Example(QMainWindow):
@@ -34,6 +36,15 @@ class Example(QMainWindow):
         header.setSectionResizeMode(
             QHeaderView.ResizeMode.ResizeToContents
         )
+
+        statusbar = QStatusBar()
+        self.setStatusBar(statusbar)
+
+        lab_total = LabelRight("合計収益")
+        statusbar.addWidget(lab_total, stretch=1)
+
+        lab_price = LabelPrice(df["損益"].sum())
+        statusbar.addWidget(lab_price)
 
 
 def main():
