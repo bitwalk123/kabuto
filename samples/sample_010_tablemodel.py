@@ -1,6 +1,6 @@
+import math
 from typing import Any
 
-import numpy as np
 import pandas as pd
 from PySide6.QtCore import (
     QAbstractTableModel,
@@ -45,11 +45,17 @@ class PandasModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         value = self._dataframe.iloc[row, col]
+        if (type(value) is int) | (type(value) is float):
+            if math.isnan(value):
+                value = ''
 
         if role == Qt.ItemDataRole.DisplayRole:
             return str(value)
         elif role == Qt.ItemDataRole.TextAlignmentRole:
-            if (type(value) is np.int64) | (type(value) is np.float64):
+            if col == 2:
+                # 銘柄コード
+                flag = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+            elif (type(value) is int) | (type(value) is float):
                 flag = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
             else:
                 flag = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter

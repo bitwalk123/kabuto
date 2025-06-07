@@ -1,6 +1,6 @@
+import math
 from typing import Any
 
-import numpy as np
 import pandas as pd
 from PySide6.QtCore import (
     QAbstractTableModel,
@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
 from structs.res import AppRes
 
 
-class PandasModel(QAbstractTableModel):
+class ModelTransaction(QAbstractTableModel):
     """A model to interface a Qt view with pandas dataframe """
 
     def __init__(self, dataframe: pd.DataFrame, parent=None):
@@ -52,11 +52,17 @@ class PandasModel(QAbstractTableModel):
         row = index.row()
         col = index.column()
         value = self._dataframe.iloc[row, col]
+        if (type(value) is int) | (type(value) is float):
+            if math.isnan(value):
+                value = ''
 
         if role == Qt.ItemDataRole.DisplayRole:
             return str(value)
         elif role == Qt.ItemDataRole.TextAlignmentRole:
-            if (type(value) is np.int64) | (type(value) is np.float64):
+            if col == 2:
+                # 銘柄コード
+                flag = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
+            elif (type(value) is int) | (type(value) is float):
                 flag = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
             else:
                 flag = Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter
@@ -84,16 +90,20 @@ class WinTransaction(QMainWindow):
     def __init__(self, res: AppRes, df: pd.DataFrame):
         super().__init__()
         self.res = res
+
+        self.resize(600, 600)
         self.setWindowTitle("取引履歴")
 
         view = QTableView()
+        view.setStyleSheet("""
+            QTableView {
+                font-family: monospace;
+            }
+        """)
+        view.setAlternatingRowColors(True)
         self.setCentralWidget(view)
 
-        view.setAlternatingRowColors(True)
-        # view.horizontalHeader().setStretchLastSection(True)
-        # view.setSelectionBehavior(QTableView.SelectRows)
-
-        model = PandasModel(df)
+        model = ModelTransaction(df)
         view.setModel(model)
 
         header = view.horizontalHeader()
