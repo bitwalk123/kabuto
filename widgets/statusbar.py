@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
 )
 
 from structs.res import AppRes
+from widgets.labels import LabelRight, LabelPrice
 
 
 class StatusBar(QStatusBar):
@@ -28,3 +29,16 @@ class StatusBar(QStatusBar):
 
     def setValue(self, x: int):
         self.pbar.setValue(x)  # エラー時はプログレスバーをリセット
+
+
+class TotalBar(QStatusBar):
+    def __init__(self):
+        super().__init__()
+        lab_total = LabelRight("合計収益")
+        self.addWidget(lab_total, stretch=1)
+
+        self.lab_price = lab_price = LabelPrice()
+        self.addWidget(lab_price)
+
+    def setTotal(self, price: float):
+        self.lab_price.setPrice(price)

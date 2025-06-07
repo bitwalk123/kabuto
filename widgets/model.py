@@ -48,7 +48,10 @@ class ModelTransaction(QAbstractTableModel):
         if role == Qt.ItemDataRole.DisplayRole:
             return str(value)
         elif role == Qt.ItemDataRole.TextAlignmentRole:
-            if col == 2:
+            if col == 1:
+                # 注文日時
+                flag = Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+            elif col == 2:
                 # 銘柄コード
                 flag = Qt.AlignmentFlag.AlignCenter | Qt.AlignmentFlag.AlignVCenter
             elif col == 3:

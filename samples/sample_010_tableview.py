@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
 
 from widgets.model import ModelTransaction
 from widgets.labels import LabelRight, LabelPrice
+from widgets.statusbar import TotalBar
 from widgets.table import TransactionView
 
 
@@ -27,19 +28,11 @@ class Example(QMainWindow):
         model = ModelTransaction(df)
         view.setModel(model)
 
-        header = view.horizontalHeader()
-        header.setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
-
-        statusbar = QStatusBar()
+        statusbar = TotalBar()
         self.setStatusBar(statusbar)
 
-        lab_total = LabelRight("合計収益")
-        statusbar.addWidget(lab_total, stretch=1)
-
-        lab_price = LabelPrice(df["損益"].sum())
-        statusbar.addWidget(lab_price)
+        total = df["損益"].sum()
+        statusbar.setTotal(total)
 
 
 def main():

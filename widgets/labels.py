@@ -38,7 +38,7 @@ class LabelRight(QLabel):
 
 
 class LabelPrice(LabelRight):
-    def __init__(self, price: float):
+    def __init__(self, price: float = 0):
         super().__init__()
         self.setFrameStyle(
             QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
@@ -49,7 +49,6 @@ class LabelPrice(LabelRight):
             QSizePolicy.Policy.Preferred
         )
         self.setFixedWidth(120)
-        self.setText(f"{price:,.1f}")
         self.setStyleSheet("""
             QLabel {
                 font-family: monospace;
@@ -58,6 +57,10 @@ class LabelPrice(LabelRight):
                 padding-right: 5px;
             }
         """)
+        self.setPrice(price)
+
+    def setPrice(self, price: float):
+        self.setText(f"{price:,.1f}")
 
 
 class LCDNumber(QLCDNumber):

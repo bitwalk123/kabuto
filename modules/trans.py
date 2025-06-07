@@ -1,11 +1,9 @@
 import pandas as pd
-from PySide6.QtWidgets import (
-    QHeaderView,
-    QMainWindow,
-)
+from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
 from widgets.model import ModelTransaction
+from widgets.statusbar import TotalBar
 from widgets.table import TransactionView
 
 
@@ -23,7 +21,8 @@ class WinTransaction(QMainWindow):
         model = ModelTransaction(df)
         view.setModel(model)
 
-        header = view.horizontalHeader()
-        header.setSectionResizeMode(
-            QHeaderView.ResizeMode.ResizeToContents
-        )
+        statusbar = TotalBar()
+        self.setStatusBar(statusbar)
+
+        total = df["損益"].sum()
+        statusbar.setTotal(total)
