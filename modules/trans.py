@@ -1,3 +1,10 @@
+"""
+取引履歴表示
+
+機能スコープ
+1. 取引履歴をテーブルに表示
+2. Excel / HTML 形式で保存
+"""
 import pandas as pd
 from PySide6.QtWidgets import QMainWindow
 

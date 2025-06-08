@@ -170,3 +170,9 @@ class ToolBar(QToolBar):
         :return:
         """
         self.action_transaction.setEnabled(True)
+
+class ToolBarTransaction(QToolBar):
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
