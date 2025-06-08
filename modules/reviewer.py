@@ -23,7 +23,7 @@ class ReviewWorker(QObject):
     notifyTransactionResult = Signal(pd.DataFrame)
 
     # Parabolic SAR の情報を通知
-    notifyPSAR = Signal(str, int, float, float)
+    # notifyPSAR = Signal(str, int, float, float)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -41,7 +41,7 @@ class ReviewWorker(QObject):
         self.posman = PositionManager()
 
         # Parabolic SAR の辞書
-        self.dict_psar = dict()
+        # self.dict_psar = dict()
 
     def getTransactionResult(self):
         """
@@ -86,8 +86,8 @@ class ReviewWorker(QObject):
         self.posman.initPosition(self.list_ticker)
 
         # Parabolic SAR インスタンスの生成
-        for ticker in self.list_ticker:
-            self.dict_psar[ticker] = RealtimePSAR()
+        #for ticker in self.list_ticker:
+        #    self.dict_psar[ticker] = RealtimePSAR()
 
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
@@ -118,6 +118,7 @@ class ReviewWorker(QObject):
         )
         # -------------------------------------------
 
+        """
         # Parabolic SAR の算出
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
@@ -132,6 +133,7 @@ class ReviewWorker(QObject):
             # 🧿 Parabolic SAR の情報を通知
             self.notifyPSAR.emit(ticker, trend, x, y_psar)
             # ---------------------------------------------------
+        """
 
     def stopProcess(self):
         # -----------------------------

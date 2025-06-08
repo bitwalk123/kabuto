@@ -18,6 +18,7 @@ from funcs.ios import save_dataframe_to_excel
 from funcs.logs import setup_logging
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
+from modules.ticker import ThreadTicker
 from modules.trader import Trader
 from modules.reviewer import ReviewWorker
 from modules.trans import WinTransaction
@@ -124,6 +125,8 @@ class Kabuto(QMainWindow):
 
         # ticker インスタンスを保持する辞書
         self.dict_trader = dict()
+        # Thread ticker インスタンスを保持する辞書
+        self.dict_thread_ticker = dict()
 
         # 取引履歴
         self.df_transaction: pd.DataFrame | None = None
@@ -179,10 +182,12 @@ class Kabuto(QMainWindow):
         :param event:
         :return:
         """
+        # タイマーの停止
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
 
+        # self.acquire_thread スレッドの削除
         if self.acquire_thread is not None:
             try:
                 if self.acquire_thread.isRunning():
@@ -193,6 +198,7 @@ class Kabuto(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
 
+        # self.review_thread スレッドの削除
         if self.review_thread is not None:
             try:
                 if self.review_thread.isRunning():
@@ -201,6 +207,14 @@ class Kabuto(QMainWindow):
                     self.logger.info(f"reviewer スレッドを削除しました。")
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
+
+        # Thread Ticker の削除
+        for ticker, thread in self.dict_thread_ticker.items():
+            if thread.isRunning():
+                self.logger.info(f"Stopping ThreadTicker for {ticker}...")
+                thread.quit()  # スレッドのイベントループに終了を指示
+                thread.wait()  # スレッドが完全に終了するまで待機
+                self.logger.info(f"ThreadTicker for {ticker} safely terminated.")
 
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
@@ -218,6 +232,8 @@ class Kabuto(QMainWindow):
 
         # Trader 辞書のクリア
         self.dict_trader = dict()
+        # Thread ticker インスタンスをクリア
+        self.dict_thread_ticker = dict()
 
         # 銘柄数分の Trader インスタンスの生成
         for ticker in list_ticker:
@@ -243,6 +259,16 @@ class Kabuto(QMainWindow):
 
             # 配置
             self.layout.addWidget(trader)
+
+            # Thread Ticker
+            self.thread_ticker = ThreadTicker(ticker)
+            self.thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
+            self.thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
+            self.thread_ticker.start()
+            self.dict_thread_ticker[ticker] = self.thread_ticker
+
+    def on_thread_ticker_ready(self, str):
+        self.logger.info(f"{__name__} {str}")
 
     def get_current_tick_data(self) -> dict:
         """
@@ -318,7 +344,7 @@ class Kabuto(QMainWindow):
         acquire.notifyCurrentPrice.connect(self.on_update_data)
 
         # Parabolic SAR の情報を通知
-        acquire.notifyPSAR.connect(self.on_update_psar)
+        # acquire.notifyPSAR.connect(self.on_update_psar)
 
         # スレッド終了関連
         acquire.threadFinished.connect(self.on_thread_finished)
@@ -443,6 +469,9 @@ class Kabuto(QMainWindow):
             # 銘柄単位の含み益と収益を更新
             trader.dock.setProfit(dict_profit[ticker])
             trader.dock.setTotal(dict_total[ticker])
+            # Parabolic SAR
+            thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
+            thread_ticker.notifyNewPrice.emit(x, y)
 
     def on_update_psar(self, ticker: str, trend: int, x: float, y: float):
         """
@@ -479,7 +508,7 @@ class Kabuto(QMainWindow):
             r += len(df)
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} データ無いため {name_excel} への保存はキャンセルされました。")
+            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
             return False
         else:
             # ティックデータの保存処理
@@ -608,7 +637,7 @@ class Kabuto(QMainWindow):
         review.notifyCurrentPrice.connect(self.on_update_data)
 
         # Parabolic SAR の情報を通知
-        review.notifyPSAR.connect(self.on_update_psar)
+        # review.notifyPSAR.connect(self.on_update_psar)
 
         # 取引結果を取得
         self.review.notifyTransactionResult.connect(self.on_transaction_result)
