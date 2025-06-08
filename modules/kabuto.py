@@ -127,7 +127,7 @@ class Kabuto(QMainWindow):
 
         # 取引履歴
         self.df_transaction: pd.DataFrame | None = None
-        self.win_transaction: QMainWindow | None = None
+        self.win_transaction: WinTransaction | None = None
 
         # ---------------------------------------------------------------------
         #  UI
@@ -219,6 +219,7 @@ class Kabuto(QMainWindow):
     def create_trader(self, list_ticker, dict_name, dict_lastclose):
         """
         銘柄数分の Trader インスタンスの生成
+        （リアルタイム・モード、デバッグ・モード共通）
         :param list_ticker:
         :param dict_name:
         :param dict_lastclose:

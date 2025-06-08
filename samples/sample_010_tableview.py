@@ -1,8 +1,10 @@
+import os
+
 import pandas as pd
 import sys
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow, QToolBar,
+    QMainWindow, QFileDialog,
 )
 
 from structs.res import AppRes
@@ -15,13 +17,14 @@ from widgets.toolbar import ToolBarTransaction
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        res = AppRes()
-        df = pd.read_pickle('sample.pkl')
+        self.res = res = AppRes()
+        self.df = df = pd.read_pickle('sample.pkl')
 
         self.setWindowTitle('取引履歴')
         self.resize(600, 400)
 
         toolbar = ToolBarTransaction(res)
+        toolbar.saveClicked.connect(self.on_save_dlg)
         self.addToolBar(toolbar)
 
         view = TransactionView()
@@ -36,6 +39,18 @@ class Example(QMainWindow):
         total = df["損益"].sum()
         statusbar.setTotal(total)
 
+    def on_save_dlg(self):
+        excel_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            os.path.join(self.res.dir_transaction, "untitled.xlsx"),
+            "Excel File (*.xlsx)"
+        )
+        if excel_path == "":
+            return
+        else:
+            print(excel_path)
+            self.df.to_excel(excel_path, index=False, header=True)
 
 def main():
     app = QApplication(sys.argv)

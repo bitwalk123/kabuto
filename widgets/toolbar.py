@@ -171,8 +171,24 @@ class ToolBar(QToolBar):
         """
         self.action_transaction.setEnabled(True)
 
+
 class ToolBarTransaction(QToolBar):
+    saveClicked = Signal()
 
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+
+        action_save = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
+            "取引履歴を保存する",
+            self
+        )
+        action_save.triggered.connect(self.on_save)
+        self.addAction(action_save)
+
+    def on_save(self):
+        # ----------------------------------------------
+        # 🧿 「取引履歴を保存する」ボタンがクリックされたことを通知
+        self.saveClicked.emit()
+        # ----------------------------------------------

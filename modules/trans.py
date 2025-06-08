@@ -5,22 +5,30 @@
 1. 取引履歴をテーブルに表示
 2. Excel / HTML 形式で保存
 """
+import os
+
 import pandas as pd
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QFileDialog
 
 from structs.res import AppRes
 from widgets.model import ModelTransaction
 from widgets.statusbar import TotalBar
 from widgets.table import TransactionView
+from widgets.toolbar import ToolBarTransaction
 
 
 class WinTransaction(QMainWindow):
     def __init__(self, res: AppRes, df: pd.DataFrame):
         super().__init__()
         self.res = res
+        self.df = df
 
         self.resize(600, 600)
         self.setWindowTitle("取引履歴")
+
+        toolbar = ToolBarTransaction(res)
+        toolbar.saveClicked.connect(self.on_save_dlg)
+        self.addToolBar(toolbar)
 
         view = TransactionView()
         self.setCentralWidget(view)
@@ -33,3 +41,16 @@ class WinTransaction(QMainWindow):
 
         total = df["損益"].sum()
         statusbar.setTotal(total)
+
+    def on_save_dlg(self):
+        excel_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save File",
+            os.path.join(self.res.dir_transaction, "untitled.xlsx"),
+            "Excel File (*.xlsx)"
+        )
+        if excel_path == "":
+            return
+        else:
+            print(excel_path)
+            self.df.to_excel(excel_path, index=False, header=True)

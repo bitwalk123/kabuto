@@ -8,6 +8,7 @@ class AppRes:
     dir_font = 'fonts'
     dir_image = 'images'
     dir_output = 'output'
+    dir_transaction = 'transaction'
 
     debug = False
 
