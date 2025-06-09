@@ -87,6 +87,7 @@ class ButtonSemiAuto(QPushButton):
         self.setStyleSheet("""
             QPushButton {
                 font-size: 7pt;
+                color: black;
                 background-color: #fca;
             }
         """)
