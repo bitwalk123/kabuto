@@ -391,6 +391,7 @@ class Kabuto(QMainWindow):
         """
         タイマー処理（リアルタイム）
         """
+        # システム時刻
         self.ts_system = time.time()
         if self.ts_start <= self.ts_system <= self.ts_end_1h:
             # --------------------------------------
