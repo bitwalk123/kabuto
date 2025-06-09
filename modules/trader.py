@@ -58,10 +58,10 @@ class Trader(QMainWindow):
 
         # 最新株価の点
         self.point_latest = pg.ScatterPlotItem(
-            size=6,
+            size=10,
             pen=None,
             brush=pg.mkBrush(color=(255, 165, 0)),
-            symbol='o',
+            symbol='x',
             pxMode=True,  # サイズをピクセル単位で固定
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
         )

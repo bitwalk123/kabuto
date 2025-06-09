@@ -121,9 +121,12 @@ class Kabuto(QMainWindow):
         self.review_thread: QThread | None = None
         self.review: ReviewWorker | None = None
 
-        # ticker インスタンスを保持する辞書
+        # trader インスタンスを保持する辞書
         self.dict_trader = dict()
-        # Thread ticker インスタンスを保持する辞書
+
+        # ThreadTicker 用インスタンス
+        self.thread_ticker: ThreadTicker | None = None
+        # ThreadTicker インスタンスを保持する辞書
         self.dict_thread_ticker = dict()
 
         # 取引履歴
@@ -268,11 +271,11 @@ class Kabuto(QMainWindow):
             self.layout.addWidget(trader)
 
             # Thread Ticker
-            self.thread_ticker = ThreadTicker(ticker)
-            self.thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
-            self.thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            self.thread_ticker.start()
-            self.dict_thread_ticker[ticker] = self.thread_ticker
+            self.thread_ticker = thread_ticker = ThreadTicker(ticker)
+            thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
+            thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
+            thread_ticker.start()
+            self.dict_thread_ticker[ticker] = thread_ticker
 
     def on_thread_ticker_ready(self, ticker: str):
         self.logger.info(f"Thread for {ticker} is ready.")
