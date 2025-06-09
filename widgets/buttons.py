@@ -86,7 +86,7 @@ class ButtonSemiAuto(QPushButton):
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
-                font-size: 7pt;
+                font-size: 8pt;
                 color: black;
                 background-color: #fed;
             }
@@ -95,7 +95,7 @@ class ButtonSemiAuto(QPushButton):
                 background-color: #432;
             }
         """)
-        self.setText("手動エントリ\n自動（強制）返済")
+        self.setText("手動エントリ・自動返済")
 
 
 class RadioButton(QRadioButton):
