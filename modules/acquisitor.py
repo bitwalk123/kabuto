@@ -2,6 +2,7 @@ import logging
 import sys
 import time
 
+import pandas as pd
 import xlwings as xw
 
 from modules.position_mannager import PositionManager
