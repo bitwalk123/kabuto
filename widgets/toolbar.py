@@ -173,6 +173,7 @@ class ToolBar(QToolBar):
 
 
 class ToolBarTransaction(QToolBar):
+    excelSelected = Signal(str)
     saveClicked = Signal()
 
     def __init__(self, res: AppRes):
@@ -187,8 +188,31 @@ class ToolBarTransaction(QToolBar):
         action_save.triggered.connect(self.on_save)
         self.addAction(action_save)
 
+        action_open = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon),
+            "Excel ファイルを開く",
+            self
+        )
+        action_open.triggered.connect(self.on_select_excel)
+        self.addAction(action_open)
+
     def on_save(self):
         # ----------------------------------------------
         # 🧿 「取引履歴を保存する」ボタンがクリックされたことを通知
         self.saveClicked.emit()
         # ----------------------------------------------
+
+    def on_select_excel(self):
+        excel_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Open File",
+            self.res.dir_transaction,
+            "Excel File (*.xlsx)"
+        )
+        if excel_path == "":
+            return
+        else:
+            # ----------------------------------
+            # 🧿 Excel ファイルが選択されたことの通知
+            self.excelSelected.emit(excel_path)
+            # ----------------------------------
