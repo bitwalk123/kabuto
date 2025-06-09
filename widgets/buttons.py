@@ -92,7 +92,7 @@ class ButtonSemiAuto(QPushButton):
             }
             QPushButton:checked {
                 color: white;
-                background-color: #321;
+                background-color: #432;
             }
         """)
         self.setText("手動エントリ\n自動（強制）返済")
