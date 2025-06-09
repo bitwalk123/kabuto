@@ -18,6 +18,10 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
+        #######################################################################
+        # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
+        # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
+
         # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
         self.max_data_points = 19800
 
@@ -26,13 +30,6 @@ class Trader(QMainWindow):
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
         self.counter_data = 0
-
-        # Parabolic SAR
-        # self.psar = RealtimePSAR()
-
-        #######################################################################
-        # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
-        # スライスでデータを渡すようにして、その他の処理を減らす。
 
         # bull（上昇トレンド）
         self.x_bull = np.empty(self.max_data_points, dtype=np.float64)
