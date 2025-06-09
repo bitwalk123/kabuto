@@ -72,7 +72,7 @@ class Trader(QMainWindow):
 
         # bull（Parabolic SAR 上昇トレンド）
         self.trend_bull = pg.ScatterPlotItem(
-            size=3,
+            size=1,
             pen=pg.mkPen(color=(255, 0, 255)),
             brush=None,
             symbol='o',
@@ -83,7 +83,7 @@ class Trader(QMainWindow):
 
         # bear（Parabolic SAR 下降トレンド）
         self.trend_bear = pg.ScatterPlotItem(
-            size=3,
+            size=1,
             pen=pg.mkPen(color=(0, 255, 255)),
             brush=None,
             symbol='o',
@@ -91,6 +91,16 @@ class Trader(QMainWindow):
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
         )
         chart.addItem(self.trend_bear)
+
+        self.psar_latest = pg.ScatterPlotItem(
+            size=6,
+            pen=pg.mkPen(color=(0, 0, 0)),
+            brush=None,
+            symbol='o',
+            pxMode=True,  # サイズをピクセル単位で固定
+            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
+        )
+        chart.addItem(self.psar_latest)
 
     def addLastCloseLine(self, price_close: float):
         """
@@ -144,6 +154,9 @@ class Trader(QMainWindow):
             self.trend_bull.setData(
                 self.x_bull[0: self.counter_bull], self.y_bull[0:self.counter_bull]
             )
+            self.psar_latest.setPen(pg.mkPen(color=(255, 0, 255)))
+            self.psar_latest.setBrush(pg.mkBrush(color=(255, 128, 255)))
+            self.psar_latest.setData([x], [y])
         elif trend < 0:
             self.x_bear[self.counter_bear] = x
             self.y_bear[self.counter_bear] = y
@@ -151,6 +164,14 @@ class Trader(QMainWindow):
             self.trend_bear.setData(
                 self.x_bear[0: self.counter_bear], self.y_bear[0:self.counter_bear]
             )
+            self.psar_latest.setPen(pg.mkPen(color=(0, 255, 255)))
+            self.psar_latest.setBrush(pg.mkBrush(color=(192, 255, 255)))
+            self.psar_latest.setData([x], [y])
+        else:
+            self.psar_latest.setPen(pg.mkPen(None))
+            self.psar_latest.setBrush(pg.mkBrush(None))
+            self.psar_latest.setData([x], [y])
+
 
     def setTimeRange(self, ts_start, ts_end):
         """
