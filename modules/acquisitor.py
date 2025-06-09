@@ -18,14 +18,14 @@ class AcquireWorker(QObject):
     【Windows 専用】
     楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
     """
-    # 登録されている銘柄数ち銘柄情報通知シグナル
+    # 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict, dict)
 
-    # 最新株価情報通知シグナル
+    # ティックデータを通知
     notifyCurrentPrice = Signal(dict, dict, dict)
 
-    # Parabolic SAR の情報を通知
-    #notifyPSAR = Signal(str, int, float, float)
+    # 取引結果のデータフレームを通知
+    notifyTransactionResult = Signal(pd.DataFrame)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -70,7 +70,15 @@ class AcquireWorker(QObject):
         self.posman = PositionManager()
 
         # Parabolic SAR の辞書
-        #self.dict_psar = dict()
+        # self.dict_psar = dict()
+
+    def getTransactionResult(self):
+        """
+        取引結果を取得
+        :return:
+        """
+        df = self.posman.getTransactionResult()
+        self.notifyTransactionResult.emit(df)
 
     def loadExcel(self):
         #######################################################################
@@ -103,10 +111,6 @@ class AcquireWorker(QObject):
 
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_ticker)
-
-        # Parabolic SAR インスタンスの生成
-        #for ticker in self.list_ticker:
-        #    self.dict_psar[ticker] = RealtimePSAR()
 
     def readCurrentPrice(self):
         """
@@ -160,23 +164,6 @@ class AcquireWorker(QObject):
             dict_data, dict_profit, dict_total
         )
         # -------------------------------------------
-
-        """
-        # Parabolic SAR の算出
-        for ticker in dict_data.keys():
-            ts, price = dict_data[ticker]
-            # ticker 毎に RealtimePSAR オブジェクトを取り出す
-            psar: RealtimePSAR = self.dict_psar[ticker]
-            # Realtime PSAR の算出
-            ret = psar.add(price)
-            # トレンドと PSAR の値を転記
-            trend = ret.trend
-            y_psar = ret.psar
-            # ---------------------------------------------------
-            # 🧿 Parabolic SAR の情報を通知
-            self.notifyPSAR.emit(ticker, trend, ts, y_psar)
-            # ---------------------------------------------------
-        """
 
     def stopProcess(self):
         """

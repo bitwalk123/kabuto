@@ -34,6 +34,7 @@ else:
     # Windows でないプラットフォーム上ではデバッグ・モードになる
     debug = True
 
+
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
     __version__ = "0.4.0"
@@ -339,6 +340,13 @@ class Kabuto(QMainWindow):
 
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(acquire.stopProcess)
+
+        # 売買ポジション
+        self.requestPositionOpen.connect(acquire.posman.openPosition)
+        self.requestPositionClose.connect(acquire.posman.closePosition)
+
+        # 取引結果を取得するメソッドへキューイング
+        self.requestTransactionResult.connect(acquire.getTransactionResult)
 
         # _____________________________________________________________________
         # ワーカー・スレッド側のシグナルとスロットの接続
