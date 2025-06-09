@@ -12,7 +12,7 @@ def conv_transaction_df2html(df: pd.DataFrame) -> list:
     list_html.append("</tr>")
     list_html.append("</thead>")
 
-    list_html.append("<tbody")
+    list_html.append("<tbody>")
     for rowname in df.index:
         list_html.append("<tr>")
         for colname in df.columns:
