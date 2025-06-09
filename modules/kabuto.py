@@ -132,7 +132,6 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         #  UI
         # ---------------------------------------------------------------------
-
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "kabuto.png"))
         self.setWindowIcon(icon)
@@ -179,12 +178,16 @@ class Kabuto(QMainWindow):
         :param event:
         :return:
         """
+        # ---------------------------------------------------------------------
         # タイマーの停止
+        # ---------------------------------------------------------------------
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
 
+        # ---------------------------------------------------------------------
         # self.acquire_thread スレッドの削除
+        # ---------------------------------------------------------------------
         if self.acquire_thread is not None:
             try:
                 if self.acquire_thread.isRunning():
@@ -195,7 +198,9 @@ class Kabuto(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
 
+        # ---------------------------------------------------------------------
         # self.review_thread スレッドの削除
+        # ---------------------------------------------------------------------
         if self.review_thread is not None:
             try:
                 if self.review_thread.isRunning():
@@ -205,7 +210,9 @@ class Kabuto(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"終了時: {e}")
 
+        # ---------------------------------------------------------------------
         # Thread Ticker の削除
+        # ---------------------------------------------------------------------
         for ticker, thread in self.dict_thread_ticker.items():
             if thread.isRunning():
                 self.logger.info(f"Stopping ThreadTicker for {ticker}...")
@@ -213,6 +220,7 @@ class Kabuto(QMainWindow):
                 thread.wait()  # スレッドが完全に終了するまで待機
                 self.logger.info(f"ThreadTicker for {ticker} safely terminated.")
 
+        # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 

@@ -6,7 +6,6 @@ from PySide6.QtCore import QObject, Signal
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
 from modules.position_mannager import PositionManager
-from modules.psar import RealtimePSAR
 
 
 class ReviewWorker(QObject):

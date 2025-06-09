@@ -5,7 +5,6 @@ import time
 import xlwings as xw
 
 from modules.position_mannager import PositionManager
-from modules.psar import RealtimePSAR
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
@@ -23,7 +22,7 @@ class AcquireWorker(QObject):
     notifyTickerN = Signal(list, dict, dict)
 
     # 最新株価情報通知シグナル
-    notifyCurrentPrice = Signal(dict)
+    notifyCurrentPrice = Signal(dict, dict, dict)
 
     # Parabolic SAR の情報を通知
     #notifyPSAR = Signal(str, int, float, float)
