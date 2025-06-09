@@ -274,8 +274,8 @@ class Kabuto(QMainWindow):
             self.thread_ticker.start()
             self.dict_thread_ticker[ticker] = self.thread_ticker
 
-    def on_thread_ticker_ready(self, str):
-        self.logger.info(f"{__name__} {str}")
+    def on_thread_ticker_ready(self, ticker: str):
+        self.logger.info(f"Thread for {ticker} is ready.")
 
     def get_current_tick_data(self) -> dict:
         """
@@ -357,8 +357,8 @@ class Kabuto(QMainWindow):
         # タイマーで現在時刻と株価を通知
         acquire.notifyCurrentPrice.connect(self.on_update_data)
 
-        # Parabolic SAR の情報を通知
-        # acquire.notifyPSAR.connect(self.on_update_psar)
+        # 取引結果を通知
+        acquire.notifyTransactionResult.connect(self.on_transaction_result)
 
         # スレッド終了関連
         acquire.threadFinished.connect(self.on_thread_finished)
@@ -402,7 +402,10 @@ class Kabuto(QMainWindow):
         elif self.ts_ca < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+            # ティックデータの保存
             self.save_regular_tick_data()
+            # 取引結果を取得
+            self.requestTransactionResult.emit()
         else:
             pass
 
@@ -646,11 +649,8 @@ class Kabuto(QMainWindow):
         # タイマーで現在時刻と株価を通知
         review.notifyCurrentPrice.connect(self.on_update_data)
 
-        # Parabolic SAR の情報を通知
-        # review.notifyPSAR.connect(self.on_update_psar)
-
-        # 取引結果を取得
-        self.review.notifyTransactionResult.connect(self.on_transaction_result)
+        # 取引結果を通知
+        review.notifyTransactionResult.connect(self.on_transaction_result)
 
         # スレッド終了関連
         review.threadFinished.connect(self.on_thread_finished)

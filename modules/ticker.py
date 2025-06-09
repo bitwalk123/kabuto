@@ -58,8 +58,7 @@ class ThreadTicker(QThread):
         self.notifyNewPrice.connect(self.worker.addPrice4PSAR)
 
     def thread_ready(self):
-        msg = f"Thread for {self.ticker} is ready."
-        self.threadReady.emit(msg)
+        self.threadReady.emit(self.ticker)
 
     def run(self):
         """
