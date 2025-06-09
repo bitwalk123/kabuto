@@ -60,7 +60,7 @@ class Trader(QMainWindow):
         self.point_latest = pg.ScatterPlotItem(
             size=6,
             pen=None,
-            brush=pg.mkBrush(color=(255, 128, 0)),
+            brush=pg.mkBrush(color=(255, 165, 0)),
             symbol='o',
             pxMode=True,  # サイズをピクセル単位で固定
             antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
