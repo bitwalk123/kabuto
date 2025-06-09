@@ -4,7 +4,8 @@ import pandas as pd
 import sys
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow, QFileDialog,
+    QFileDialog,
+    QMainWindow,
 )
 
 from funcs.conv import conv_transaction_df2html
@@ -26,7 +27,7 @@ class Example(QMainWindow):
 
         toolbar = ToolBarTransaction(res)
         toolbar.saveClicked.connect(self.on_save_dlg)
-        toolbar.excelSelected.connect(self.on_excel_selected)
+        toolbar.transdataSelected.connect(self.on_excel_tickdata_selected)
         self.addToolBar(toolbar)
 
         view = TransactionView()
@@ -54,7 +55,7 @@ class Example(QMainWindow):
             print(excel_path)
             self.df.to_excel(excel_path, index=False, header=True)
 
-    def on_excel_selected(self, path_excel: str):
+    def on_excel_tickdata_selected(self, path_excel: str):
         df = pd.read_excel(path_excel)
         list_html = conv_transaction_df2html(df)
         for line in list_html:

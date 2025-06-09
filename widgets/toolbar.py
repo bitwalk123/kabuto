@@ -173,7 +173,7 @@ class ToolBar(QToolBar):
 
 
 class ToolBarTransaction(QToolBar):
-    excelSelected = Signal(str)
+    transdataSelected = Signal(str)
     saveClicked = Signal()
 
     def __init__(self, res: AppRes):
@@ -190,7 +190,7 @@ class ToolBarTransaction(QToolBar):
 
         action_open = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon),
-            "Excel ファイルを開く",
+            "Excel ファイル（取引履歴）を開く",
             self
         )
         action_open.triggered.connect(self.on_select_excel)
@@ -214,5 +214,5 @@ class ToolBarTransaction(QToolBar):
         else:
             # ----------------------------------
             # 🧿 Excel ファイルが選択されたことの通知
-            self.excelSelected.emit(excel_path)
+            self.transdataSelected.emit(excel_path)
             # ----------------------------------

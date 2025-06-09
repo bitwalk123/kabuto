@@ -6,7 +6,7 @@ from widgets.buttons import (
     ButtonBuy,
     ButtonRepay,
     ButtonSave,
-    ButtonSell,
+    ButtonSell, ButtonSemiAuto,
 )
 from widgets.containers import (
     Frame,
@@ -81,6 +81,11 @@ class DockTrader(QDockWidget):
         self.lcd_total = lcd_total = LCDNumber(self)
         layout.addWidget(lcd_total)
 
+        # セミオートボタン
+        self.but_semi = but_semi = ButtonSemiAuto()
+        but_semi.clicked.connect(self.on_semi)
+        layout.addWidget(but_semi)
+
         # その他ツール用フレーム
         row_tool = Frame()
         layout.addWidget(row_tool)
@@ -147,6 +152,9 @@ class DockTrader(QDockWidget):
         self.clickedSell.emit(self.ticker, self.getPrice())
         # --------------------------------------------------------
         self.actSellBuy()
+
+    def on_semi(self):
+        pass
 
     def setPrice(self, price: float):
         self.lcd_price.display(f"{price:.1f}")

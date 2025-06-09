@@ -80,6 +80,18 @@ class ButtonSell(QPushButton):
         self.setText("売建")
 
 
+class ButtonSemiAuto(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setCheckable(True)
+        self.setStyleSheet("""
+            QPushButton {
+                font-size: 7pt;
+            }
+        """)
+        self.setText("手動エントリ\n自動（強制）返済")
+
+
 class RadioButton(QRadioButton):
     def __init__(self, *args):
         super().__init__(*args)

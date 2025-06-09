@@ -3,13 +3,15 @@
 
 機能スコープ
 1. 取引履歴をテーブルに表示
-2. Excel / HTML 形式で保存
+2. Excel 形式で保存
+3. HTML 形式で出力
 """
 import os
 
 import pandas as pd
 from PySide6.QtWidgets import QMainWindow, QFileDialog
 
+from funcs.conv import conv_transaction_df2html
 from structs.res import AppRes
 from widgets.model import ModelTransaction
 from widgets.statusbar import TotalBar
@@ -28,6 +30,7 @@ class WinTransaction(QMainWindow):
 
         toolbar = ToolBarTransaction(res)
         toolbar.saveClicked.connect(self.on_save_dlg)
+        toolbar.transdataSelected.connect(self.on_excel_transaction_selected)
         self.addToolBar(toolbar)
 
         view = TransactionView()
@@ -54,3 +57,9 @@ class WinTransaction(QMainWindow):
         else:
             print(excel_path)
             self.df.to_excel(excel_path, index=False, header=True)
+
+    def on_excel_transaction_selected(self, path_excel: str):
+        df = pd.read_excel(path_excel)
+        list_html = conv_transaction_df2html(df)
+        for line in list_html:
+            print(line)

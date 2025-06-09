@@ -12,7 +12,7 @@ class TrendGraph(pg.PlotWidget):
             },
             enableMenu=False
         )
-        self.setFixedSize(1000, 200)
+        self.setFixedSize(1000, 250)
         self.showGrid(x=True, y=True, alpha=0.5)
 
         # ★★★ X軸のティックラベルのフォントを設定 ★★★
