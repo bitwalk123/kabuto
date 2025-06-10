@@ -20,7 +20,7 @@ class DataGeneratorWorker(QObject):
         self.y_data = np.empty(max_data, dtype=np.float64)
 
     @Slot(int)
-    def addNewData(self, counter: int):
+    def generateNewData(self, counter: int):
         x = counter
         y = math.sin(counter / 10.) * 2 + random.random() + 100
         self.notifyNewData.emit(x, y)
@@ -39,7 +39,7 @@ class DataGeneratorWorker(QObject):
 
 
 class ThreadDataGenerator(QThread):
-    addNewData = Signal(int)
+    requestNewData = Signal(int)
     threadReady = Signal()
 
     def __init__(self, max_data: int, parent=None):
@@ -48,7 +48,7 @@ class ThreadDataGenerator(QThread):
         self.worker.moveToThread(self)
 
         self.started.connect(self.thread_ready)
-        self.addNewData.connect(self.worker.addNewData)
+        self.requestNewData.connect(self.worker.generateNewData)
 
     def thread_ready(self):
         self.threadReady.emit()
@@ -124,7 +124,7 @@ class Example(QMainWindow):
             print("リアルタイム更新が終了しました。")
             return
 
-        self.thread.addNewData.emit(self.count)
+        self.thread.requestNewData.emit(self.count)
         self.count += 1
 
     def on_update_data(self, x: int, y: float):
