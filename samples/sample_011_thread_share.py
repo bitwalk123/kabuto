@@ -16,8 +16,8 @@ class DataGeneratorWorker(QObject):
 
     def __init__(self, max_data: int, parent=None):
         super().__init__(parent)
-        self.x_data = np.empty(max_data, dtype=np.int64)
-        self.y_data = np.empty(max_data, dtype=np.float64)
+        self.x_datapoints = np.empty(max_data, dtype=np.int64)
+        self.y_datapoints = np.empty(max_data, dtype=np.float64)
 
     @Slot(int)
     def generateNewData(self, counter: int):
@@ -27,19 +27,21 @@ class DataGeneratorWorker(QObject):
         :return:
         """
         x = counter
-        y = 5 * math.sin(x / 10.) + random.random() + 10
+        # 乱数と正弦関数を利用したサンプル点
+        y = math.sin(x / 10.) + random.random() + 1
         self.notifyNewData.emit(x, y)
+        self.x_datapoints[counter] = x
+        self.y_datapoints[counter] = y
 
-        # スムージング処理
-        self.x_data[counter] = x
-        self.y_data[counter] = y
-        if counter > 5:
+        # スムージングには最低5点必要
+        if counter >= 5:
             spl = make_smoothing_spline(
-                self.x_data[0:counter + 1],
-                self.y_data[0:counter + 1]
+                self.x_datapoints[0:counter + 1],
+                self.y_datapoints[0:counter + 1]
             )
-            ys_data = spl(self.x_data[0:counter + 1])
-            self.notifySmoothLine.emit(self.x_data[0:counter + 1], ys_data)
+            xs_data = self.x_datapoints[0:counter + 1]
+            ys_data = spl(xs_data)
+            self.notifySmoothLine.emit(xs_data, ys_data)
             # スムージングしたデータに対して Parabolic SAR の計算を適用したい！
 
 
@@ -107,7 +109,7 @@ class TrendGraph(pg.PlotWidget):
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("PyQtGraph + PySide6 リアルタイム風トレンドグラフ (Scatter Plot)")
+        self.setWindowTitle("リアルタイム風トレンドグラフ")
         self.setFixedSize(800, 600)
 
         # データの最大数とカウンタ
