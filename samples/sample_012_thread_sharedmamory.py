@@ -388,7 +388,7 @@ class Example(QMainWindow):
         self.data_generator_thread.worker.notifySmoothLineReady.connect(self.chart.updateSmoothedLine)
 
         # 全ての準備が整ったので、タイマーを開始
-        self.timer.start(100)  # 100msごとにデータ生成をトリガー
+        self.timer.start(1000)  # 1000msごとにデータ生成をトリガー
 
     def closeEvent(self, event: QCloseEvent):
         """
