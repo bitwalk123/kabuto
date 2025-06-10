@@ -16,37 +16,47 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 # --- 共有メモリのキー定義 ---
-# このキーは、共有メモリを作成する側とアタッチする側で同じである必要がある
 SHARED_MEMORY_KEY_X = "my_shared_array_x_key"
 SHARED_MEMORY_KEY_Y = "my_shared_array_y_key"
-# NumPy配列のデータ型とサイズを定義 (バイトサイズ計算用)
-# ここではfloat64を想定
 DTYPE = np.float64
-INT_DTYPE = np.int64  # x_datapoints用
+INT_DTYPE = np.int64
 ITEM_SIZE = np.dtype(DTYPE).itemsize  # float64のバイトサイズ
 INT_ITEM_SIZE = np.dtype(INT_DTYPE).itemsize  # int64のバイトサイズ
 
 
 class DataGeneratorWorker(QObject):
-    # シグナルにデータ自体は渡さない（共有メモリ上のデータ更新を通知するだけ）
-    # 引数なし、または更新範囲などのメタデータのみ
     notifySmoothLineReady = Signal()
-    notifyNewData = Signal(int, float)  # 個別データ点はこれまで通り
+    notifyNewData = Signal(int, float)
+    # 内部的な共有メモリ準備完了通知
+    _internalSharedMemoryReady = Signal()
 
-    def __init__(self, max_data: int, parent=None):
-        super().__init__(parent)
+    def __init__(self, max_data: int, parent: QObject = None):
+        super().__init__(parent)  # parentはNoneとして渡される
         self.logger = logging.getLogger(self.__class__.__name__)
         self.max_data = max_data
 
-        # --- QSharedMemory の設定 ---
         self.shm_x = QSharedMemory(SHARED_MEMORY_KEY_X)
         self.shm_y = QSharedMemory(SHARED_MEMORY_KEY_Y)
 
-        # 共有メモリのサイズを計算 (最大データ数 * 各要素のバイトサイズ)
         self.shm_size_x = max_data * INT_ITEM_SIZE
         self.shm_size_y = max_data * ITEM_SIZE
 
-        # 共有メモリの作成を試みる（存在しなければ作成）
+        self.shm_initialized = False
+
+        self.shm_data_x = None
+        self.shm_data_y = None
+
+    @Slot()
+    def initialize_shared_memory(self):
+        """
+        ワーカースレッド内で共有メモリの作成と初期化を行うスロット。
+        このスロットは、QThreadが起動した後に呼ばれる。
+        """
+        if self.shm_initialized:
+            return
+
+        # --- QSharedMemory の作成とアタッチ ---
+        # create()を試み、もし既に存在すればattach()する
         if not self.shm_x.create(self.shm_size_x):
             if self.shm_x.error() == QSharedMemory.SharedMemoryError.AlreadyExists:
                 self.logger.warning(f"Shared memory for X already exists, attaching: {self.shm_x.errorString()}")
@@ -73,15 +83,14 @@ class DataGeneratorWorker(QObject):
             self.logger.info(
                 f"Shared memory for Y created with key '{SHARED_MEMORY_KEY_Y}' and size {self.shm_size_y} bytes.")
 
-        # 共有メモリのバイト配列ビュー
-        # NumPy配列として直接操作できるようにする
+        # 共有メモリのバイト配列ビューをNumPy配列としてマップ
         self.shm_data_x = np.ndarray(
-            shape=(max_data,),
+            shape=(self.max_data,),
             dtype=INT_DTYPE,
             buffer=self.shm_x.data()
         )
         self.shm_data_y = np.ndarray(
-            shape=(max_data,),
+            shape=(self.max_data,),
             dtype=DTYPE,
             buffer=self.shm_y.data()
         )
@@ -90,62 +99,57 @@ class DataGeneratorWorker(QObject):
         self.shm_data_x.fill(0)
         self.shm_data_y.fill(0)
 
+        self.shm_initialized = True
+        # 共有メモリの準備ができたことを親スレッドに通知
+        self._internalSharedMemoryReady.emit()
+
     @Slot(int)
     def generateNewData(self, counter: int):
         """
-        サンプルデータ生成とスムージング、共有メモリへの書き込み
+        メインスレッドからのリクエストに応じて新しいデータを生成し、
+        共有メモリに書き込むスロット。
         """
+        if not self.shm_initialized:
+            self.logger.warning("Shared memory not initialized yet, skipping data generation.")
+            return
+
         x = counter
         y = math.sin(x / 10.) + random.random() + 1
 
-        # 個別データ点はこれまで通りシグナルで送る (オーバーヘッドは小さい)
+        # 個別データ点はこれまで通りシグナルで送る
         self.notifyNewData.emit(x, y)
 
-        # --- 共有メモリへの書き込み ---
-        if not self.shm_x.lock():  # ロック
+        # ロックの前に共有メモリが有効か確認する（念のため）
+        if not (self.shm_x.isAttached() and self.shm_y.isAttached()):
+            self.logger.error("Shared memory not attached in worker, cannot lock.")
+            return
+
+        # 共有メモリをロックし、データを書き込む
+        if not self.shm_x.lock():
             self.logger.error(f"Failed to lock shared memory for X (worker): {self.shm_x.errorString()}")
             return
-        if not self.shm_y.lock():  # ロック
+        if not self.shm_y.lock():
             self.logger.error(f"Failed to lock shared memory for Y (worker): {self.shm_y.errorString()}")
-            self.shm_x.unlock()  # ロックが一つでも失敗したら、もう片方もアンロック
+            self.shm_x.unlock()  # 片方がロック失敗したらもう片方もアンロック
             return
 
         try:
-            # NumPy配列のデータを直接共有メモリに書き込む（メモリビュー経由）
             self.shm_data_x[counter] = x
             self.shm_data_y[counter] = y
 
             # スムージングには最低5点必要
             if counter >= 5:
-                # 注: make_smoothing_splineはNumPy配列をコピーして渡す必要があるため、
-                # ここでは共有メモリの直接操作ではなく、NumPy配列スライスを渡します。
-                # ただし、スライスはビューなので、データ自体はコピーされません。
-                # splは新しいNumPy配列を返します。
-                spl = make_smoothing_spline(
-                    self.shm_data_x[0:counter + 1],  # 共有メモリ上のデータからビューを作成して渡す
-                    self.shm_data_y[0:counter + 1]
-                )
-                # スプライン結果は新しい配列なので、これを共有メモリに書き戻す場合は
-                # その領域を確保するか、別の共有メモリにする必要があります。
-                # 今回はsmoothing_splineの結果を再度書き戻すのではなく、
-                # メインスレッドが共有メモリの生データを読み込み、
-                # メインスレッド側でspline計算するように変更します。
-
-                # ★重要変更★ workerは生データを共有メモリに書き込むだけに集中
-                # スムージング処理はメインスレッドに移管し、グラフの描画スロットで実行
-                # これにより、共有メモリの役割が「生データの共有」に限定され、
-                # 各スレッドの役割分担が明確になります。
-                self.notifySmoothLineReady.emit()  # データが更新されたことを通知
+                # 共有メモリ上のデータが更新されたことをメインスレッドに通知
+                self.notifySmoothLineReady.emit()
 
         finally:
             self.shm_x.unlock()  # アンロック
             self.shm_y.unlock()  # アンロック
 
     def __del__(self):
-        # アプリケーション終了時に共有メモリをデタッチ
-        # create()で作成した側がdetach()すると、共有メモリはOSから解放される
-        # attach()した側はdetach()しても、他のプロセス/スレッドが使用していれば残る
-        # プロデューサーであるworkerがdetach()を呼ぶのが適切
+        """
+        DataGeneratorWorkerオブジェクトが削除される際に共有メモリをデタッチする。
+        """
         if self.shm_x.isAttached():
             self.logger.info(f"Detaching shared memory for X: {SHARED_MEMORY_KEY_X}")
             self.shm_x.detach()
@@ -155,25 +159,40 @@ class DataGeneratorWorker(QObject):
 
 
 class ThreadDataGenerator(QThread):
-    requestNewData = Signal(int)
-    threadReady = Signal()
+    requestNewData = Signal(int)  # メインスレッドからのデータ生成リクエスト
+    threadReady = Signal()  # スレッドがイベントループを開始したことを通知
+    sharedMemoryReady = Signal()  # ワーカーが共有メモリの準備を完了したことを通知
 
     def __init__(self, max_data: int, parent=None):
         super().__init__(parent)
         self.logger = logging.getLogger(self.__class__.__name__)
+        # DataGeneratorWorkerの親をNoneにしてmoveToThreadが有効になるようにする
         self.worker = DataGeneratorWorker(max_data)
+
+        # ワーカーオブジェクトをこのQThreadのイベントループに移動
         self.worker.moveToThread(self)
 
-        self.started.connect(self.thread_ready)
-        self.requestNewData.connect(self.worker.generateNewData)
+        # シグナルとスロットの接続
+        self.started.connect(self.thread_ready)  # QThread起動時にthreadReadyシグナルを発行
+        self.requestNewData.connect(self.worker.generateNewData)  # メインスレッドからのリクエストをワーカーのスロットに接続
 
-    @Slot()  # Slotデコレータを追加
+        # ワーカーの内部シグナルを、このスレッドの公開シグナルに接続
+        self.worker._internalSharedMemoryReady.connect(self.sharedMemoryReady)
+
+        # QThreadが起動したら、ワーカーの共有メモリ初期化メソッドを実行
+        self.started.connect(self.worker.initialize_shared_memory)
+
+    @Slot()
     def thread_ready(self):
         self.threadReady.emit()
 
     def run(self):
+        """
+        QThreadの実行エントリポイント。
+        このメソッドが完了するとスレッドは終了する。exec()でイベントループを開始させる。
+        """
         self.logger.info(f"{self.__class__.__name__} for data generation: run() method started. Entering event loop...")
-        self.exec()  # イベントループを開始
+        self.exec()  # このスレッドのイベントループを開始
         self.logger.info(f"{self.__class__.__name__} for data generation: run() method finished. Event loop exited.")
 
 
@@ -183,50 +202,22 @@ class TrendGraph(pg.PlotWidget):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.max_data = max_data
 
-        # --- QSharedMemory の設定 (Main Thread 側) ---
         self.shm_x = QSharedMemory(SHARED_MEMORY_KEY_X)
         self.shm_y = QSharedMemory(SHARED_MEMORY_KEY_Y)
 
-        # 共有メモリのサイズを計算 (念のため、作成時と同じ計算)
         self.shm_size_x = max_data * INT_ITEM_SIZE
         self.shm_size_y = max_data * ITEM_SIZE
 
-        # 共有メモリへのアタッチを試みる（ワーカーが作成済みであることを期待）
-        if not self.shm_x.attach():
-            self.logger.error(f"Failed to attach shared memory for X (graph): {self.shm_x.errorString()}")
-            raise RuntimeError("Failed to attach shared memory for X (graph)")
-        else:
-            self.logger.info(f"Shared memory for X attached to graph with key '{SHARED_MEMORY_KEY_X}'.")
+        self.shm_data_x = None
+        self.shm_data_y = None
 
-        if not self.shm_y.attach():
-            self.logger.error(f"Failed to attach shared memory for Y (graph): {self.shm_y.errorString()}")
-            raise RuntimeError("Failed to attach shared memory for Y (graph)")
-        else:
-            self.logger.info(f"Shared memory for Y attached to graph with key '{SHARED_MEMORY_KEY_Y}'.")
-
-        # 共有メモリのバイト配列ビュー
-        self.shm_data_x = np.ndarray(
-            shape=(max_data,),
-            dtype=INT_DTYPE,
-            buffer=self.shm_x.data(),
-            # 読み取り専用として安全に扱う
-            # flags = 'C_CONTIGUOUS,OWNDATA' などでコピーを強制することも可能だが、目的から外れる
-        )
-        self.shm_data_y = np.ndarray(
-            shape=(max_data,),
-            dtype=DTYPE,
-            buffer=self.shm_y.data(),
-        )
-
-        # データを保持するリスト（個々のデータ点用）
         self.x_data_points = []
         self.y_data_points = []
 
         self.showGrid(x=True, y=True, alpha=0.5)
         self.setXRange(0, max_data)
 
-        # データ点
-        self.data_points_item = pg.ScatterPlotItem(  # 変数名を変更
+        self.data_points_item = pg.ScatterPlotItem(
             size=5,
             pen=pg.mkPen(color=(0, 255, 255), width=1),
             brush=pg.mkBrush(color=(0, 255, 255)),
@@ -236,16 +227,55 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.data_points_item)
 
-        self.smoothed_line_item = pg.PlotDataItem(  # 変数名を変更
+        self.smoothed_line_item = pg.PlotDataItem(
             pen=pg.mkPen(color=(255, 255, 0), width=1),
             pxMode=True,
             antialias=False
         )
         self.addItem(self.smoothed_line_item)
 
-    @Slot(int, float)  # Slotデコレータを追加
+    @Slot()
+    def initialize_shared_memory(self):
+        """
+        メインスレッド内で共有メモリへのアタッチを行うスロット。
+        ワーカーが共有メモリを作成した後に呼ばれる。
+        """
+        # 既にアタッチ済みなら何もしない
+        if self.shm_x.isAttached() and self.shm_y.isAttached():
+            return
+
+            # 共有メモリへのアタッチ
+        if not self.shm_x.attach():
+            self.logger.error(f"Failed to attach shared memory for X (graph): {self.shm_x.errorString()}")
+            raise RuntimeError("Failed to attach shared memory for X (graph)")
+        else:
+            self.logger.info(f"Shared memory for X attached to graph with key '{SHARED_MEMORY_KEY_X}'.")
+
+        if not self.shm_y.attach():
+            self.logger.error(f"Failed to attach shared memory for Y (graph): {self.shm_y.errorString()}")
+            self.shm_x.detach()  # 片方失敗したらもう片方もデタッチ
+            raise RuntimeError("Failed to attach shared memory for Y (graph)")
+        else:
+            self.logger.info(f"Shared memory for Y attached to graph with key '{SHARED_MEMORY_KEY_Y}'.")
+
+        # 共有メモリのバイト配列ビューをNumPy配列としてマップ
+        self.shm_data_x = np.ndarray(
+            shape=(self.max_data,),
+            dtype=INT_DTYPE,
+            buffer=self.shm_x.data(),
+        )
+        self.shm_data_y = np.ndarray(
+            shape=(self.max_data,),
+            dtype=DTYPE,
+            buffer=self.shm_y.data(),
+        )
+        self.logger.info("TrendGraph: Shared memory views initialized.")
+
+    @Slot(int, float)
     def addPoints(self, x: int, y: float):
-        # データをリストに追加（個々のデータ点用）
+        """
+        個々のデータ点を受け取り、グラフに追加するスロット。
+        """
         self.x_data_points.append(x)
         self.y_data_points.append(y)
 
@@ -258,30 +288,33 @@ class TrendGraph(pg.PlotWidget):
 
         self.logger.info(f"追加データ: X={x}, Y={y}")
 
-    @Slot()  # 引数なしに変更 (データは共有メモリから読み込むため)
+    @Slot()
     def updateSmoothedLine(self):
-        # --- 共有メモリからの読み込み ---
-        # 読み込み中は共有メモリをロックする
+        """
+        共有メモリから最新のデータを読み込み、スムージングラインを更新するスロット。
+        """
+        # 共有メモリがまだアタッチされていなければ処理をスキップ
+        if not (self.shm_x.isAttached() and self.shm_y.isAttached()):
+            self.logger.warning("TrendGraph: Shared memory not attached yet, skipping smooth line update.")
+            return
+
+        # 共有メモリをロックし、データを読み込む
         if not self.shm_x.lock():
             self.logger.error(f"Failed to lock shared memory for X (graph): {self.shm_x.errorString()}")
             return
         if not self.shm_y.lock():
             self.logger.error(f"Failed to lock shared memory for Y (graph): {self.shm_y.errorString()}")
-            self.shm_x.unlock()  # ロックが一つでも失敗したら、もう片方もアンロック
+            self.shm_x.unlock()  # 片方がロック失敗したらもう片方もアンロック
             return
 
         try:
-            # 共有メモリからデータを読み込み、NumPy配列として再構成
-            # shm_data_x/y はすでにビューなので、それ自体が共有メモリを指している
-            # 実際に使用する範囲をスライスして取得
-
-            # 現在データがどこまで入っているかを知るために、self.count (メインスレッドのカウンタ) を使う必要がある
-            # または、共有メモリに別途「現在の有効なデータ点数」を書き込むフィールドを用意する
-            # 今回はExampleクラスのself.countが最新のデータ数を表すので、それを利用する
-            current_data_count = QApplication.instance()._main_window_instance.count  # メインウィンドウへの参照を頑張って取得（簡易的な例）
-            if current_data_count < 5:  # スムージングの最低点数
+            # 現在データがどこまで入っているかを知るために、メインウィンドウのカウンタを使う
+            # ★注意: この方法はExampleへの依存性が高い。より堅牢な設計では、シグナルで必要な情報を渡す。
+            current_data_count = QApplication.instance()._main_window_instance.count
+            if current_data_count == 0 or current_data_count < 5:  # スムージングの最低点数
                 return
 
+            # 共有メモリ上のNumPy配列ビューからデータをスライスして取得
             xs_data = self.shm_data_x[0:current_data_count]
             ys_data = self.shm_data_y[0:current_data_count]
 
@@ -297,8 +330,9 @@ class TrendGraph(pg.PlotWidget):
             self.shm_y.unlock()  # アンロック
 
     def __del__(self):
-        # アプリケーション終了時に共有メモリをデタッチ
-        # コンシューマーであるグラフ側はdetach()のみ
+        """
+        TrendGraphオブジェクトが削除される際に共有メモリからデタッチする。
+        """
         if self.shm_x.isAttached():
             self.logger.info(f"Detaching shared memory for X: {SHARED_MEMORY_KEY_X}")
             self.shm_x.detach()
@@ -314,32 +348,52 @@ class Example(QMainWindow):
         self.setWindowTitle("リアルタイム風トレンドグラフ (Shared Memory)")
         self.setFixedSize(800, 600)
 
-        # データの最大数とカウンタ
-        self.max_data = 180  # テスト用、実際の19800点もこの値で制御
+        self.max_data = 180
         self.count = 0
 
-        self.chart = TrendGraph(self.max_data)
-        self.setCentralWidget(self.chart)
-
-        self.data_generator_thread = ThreadDataGenerator(self.max_data)  # 変数名を明確化
-        self.data_generator_thread.threadReady.connect(self.on_data_generator_thread_ready)
-
-        # ★重要変更★ workerからのシグナル接続
-        self.data_generator_thread.worker.notifyNewData.connect(self.chart.addPoints)
-        # スムージングライン更新シグナルは引数なしで接続
-        self.data_generator_thread.worker.notifySmoothLineReady.connect(self.chart.updateSmoothedLine)
-
-        self.data_generator_thread.start()
-
-        # メインウィンドウからQApplicationインスタンスを通じて自分自身を保存（TrendGraphからの参照用）
+        # メインウィンドウのインスタンスをQApplication経由で保存（TrendGraphからの参照用）
+        # ★注意: この方法は簡易的。より堅牢な設計では、シグナルで必要な情報を渡す。
         QApplication.instance()._main_window_instance = self
 
-        # リアルタイム更新のためのQTimer (データ生成をトリガー)
+        self.chart = None  # TrendGraphのインスタンスは共有メモリ準備後に作成
+
+        self.data_generator_thread = ThreadDataGenerator(self.max_data)
+        self.data_generator_thread.threadReady.connect(self.on_data_generator_thread_ready)
+
+        # DataGeneratorThreadから共有メモリ準備完了シグナルを受け取る
+        self.data_generator_thread.sharedMemoryReady.connect(self.on_shared_memory_ready)
+
+        # ワーカースレッドを開始
+        self.data_generator_thread.start()
+
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_chart)
-        self.timer.start(100)  # テスト用に速く (100ms)
+        # ★ここを修正しました★ タイマーを繰り返し発火させるため False に設定
+        self.timer.setSingleShot(False)
+
+    @Slot()
+    def on_shared_memory_ready(self):
+        """
+        ワーカースレッドが共有メモリの作成・初期化を完了した後に呼ばれるスロット。
+        ここでTrendGraphのインスタンスを作成し、共有メモリにアタッチする。
+        """
+        self.logger.info("Main thread: Shared memory is ready from worker.")
+        # TrendGraphのインスタンス作成と共有メモリのアタッチ処理
+        self.chart = TrendGraph(self.max_data)
+        self.setCentralWidget(self.chart)
+        self.chart.initialize_shared_memory()  # ここでTrendGraphが共有メモリにアタッチする
+
+        # シグナル接続
+        self.data_generator_thread.worker.notifyNewData.connect(self.chart.addPoints)
+        self.data_generator_thread.worker.notifySmoothLineReady.connect(self.chart.updateSmoothedLine)
+
+        # 全ての準備が整ったので、タイマーを開始
+        self.timer.start(100)  # 100msごとにデータ生成をトリガー
 
     def closeEvent(self, event: QCloseEvent):
+        """
+        アプリケーション終了時のクリーンアップ処理。
+        """
         # タイマー停止
         if self.timer.isActive():
             self.timer.stop()
@@ -347,25 +401,32 @@ class Example(QMainWindow):
         # スレッドの安全な終了
         if self.data_generator_thread.isRunning():
             self.logger.info("Stopping data generator thread...")
+            # QThreadのquit()はイベントループを終了させる
             self.data_generator_thread.quit()
+            # スレッドが終了するまで待機
             self.data_generator_thread.wait()
             self.logger.info("The data generator thread safely terminated.")
 
-        # 共有メモリのデタッチはWorkerとTrendGraphの__del__で行われる
-        # __del__が呼ばれるタイミングはPythonのガベージコレクションに依存するので、
-        # ここで明示的にdetatch()を呼ぶことも可能だが、QSharedMemoryはプロセス終了時に
-        # 自動的にリソースを解放するため、基本的には不要。
-        # ただし、create()した側がdetach()を呼んでからquit()/wait()するのがより確実な解放手順。
+        # chart が None の場合があるのでチェック
+        if self.chart:
+            # chart の __del__ が呼ばれることを保証する（明示的なデタッチは__del__に任せる）
+            pass
 
-        super().closeEvent(event)  # QMainWindowのcloseEventを呼び出す
+        super().closeEvent(event)
         event.accept()
 
-    @Slot()  # Slotデコレータを追加
+    @Slot()
     def on_data_generator_thread_ready(self):
-        self.logger.info("Data generator thread is ready!")
+        """
+        データ生成スレッドがそのイベントループを開始したときに呼ばれるスロット。
+        """
+        self.logger.info("Data generator thread started its event loop.")
 
-    @Slot()  # Slotデコレータを追加
+    @Slot()
     def update_chart(self):
+        """
+        QTimerから定期的に呼び出され、データ生成をトリガーするスロット。
+        """
         if self.count >= self.max_data:
             self.timer.stop()
             self.logger.info("リアルタイム更新が終了しました。")
@@ -377,6 +438,7 @@ class Example(QMainWindow):
 
 
 if __name__ == "__main__":
+    # pyqtgraphのグローバル設定
     pg.setConfigOption('background', 'k')  # 黒背景 (ダークモード風)
     pg.setConfigOption('foreground', 'w')  # 白前景 (テキストなど)
 
