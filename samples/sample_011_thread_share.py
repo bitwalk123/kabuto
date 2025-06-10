@@ -15,8 +15,8 @@ class DataGeneratorWorker(QObject):
 
     def __init__(self, max_data: int, parent=None):
         super().__init__(parent)
-        self.smooth_x_data = np.empty(max_data, dtype=np.int64)
-        self.smooth_y_data = np.empty(max_data, dtype=np.float64)
+        self.x_data = np.empty(max_data, dtype=np.int64)
+        self.y_data = np.empty(max_data, dtype=np.float64)
 
     @Slot(int)
     def addNewData(self, counter: int):
@@ -25,15 +25,16 @@ class DataGeneratorWorker(QObject):
         self.notifyNewData.emit(x, y)
 
         # スムージング処理
-        self.smooth_x_data[counter] = x
-        self.smooth_y_data[counter] = y
+        self.x_data[counter] = x
+        self.y_data[counter] = y
         if counter > 5:
             spl = make_smoothing_spline(
-                self.smooth_x_data[0:counter + 1],
-                self.smooth_y_data[0:counter + 1]
+                self.x_data[0:counter + 1],
+                self.y_data[0:counter + 1]
             )
-            ys = spl(self.smooth_x_data[0:counter + 1])
-            self.notifySmoothLine.emit(self.smooth_x_data[0:counter + 1], ys)
+            ys_data = spl(self.x_data[0:counter + 1])
+            self.notifySmoothLine.emit(self.x_data[0:counter + 1], ys_data)
+            # スムージングしたデータに対して Parabolic SAR の計算を適用したい！
 
 
 class ThreadDataGenerator(QThread):
@@ -63,8 +64,8 @@ class TrendGraph(pg.PlotWidget):
 
         self.data_points = pg.ScatterPlotItem(
             size=5,
-            pen=pg.mkPen(color=(255, 255, 0), width=1),
-            brush=pg.mkBrush(color=(255, 255, 0)),
+            pen=pg.mkPen(color=(0, 255, 255), width=1),
+            brush=pg.mkBrush(color=(0, 255, 255)),
             symbol='o',
             pxMode=True,
             antialias=False
@@ -117,7 +118,7 @@ class Example(QMainWindow):
         print("Thread is ready!")
 
     def update_chart(self):
-        if self.count > self.max_data:
+        if self.count >= self.max_data:
             self.timer.stop()
             print("リアルタイム更新が終了しました。")
             return
