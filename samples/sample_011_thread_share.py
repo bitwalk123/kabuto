@@ -1,3 +1,4 @@
+import math
 import sys
 import random
 
@@ -21,7 +22,7 @@ class DataGeneratorWorker(QObject):
     @Slot(int)
     def addNewData(self, counter: int):
         x = counter
-        y = random.randint(0, 100)
+        y = math.sin(counter / 10.) * 2 + random.random() + 100
         self.notifyNewData.emit(x, y)
 
         # スムージング処理
