@@ -2,6 +2,11 @@ import pandas as pd
 
 
 def conv_transaction_df2html(df: pd.DataFrame) -> list:
+    """
+    取引履歴のデータフレームを HTML のテーブルに変換し、リストにして返す
+    :param df:
+    :return:
+    """
     list_html = list()
     list_html.append("<table>")
 
