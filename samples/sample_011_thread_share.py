@@ -21,8 +21,13 @@ class DataGeneratorWorker(QObject):
 
     @Slot(int)
     def generateNewData(self, counter: int):
+        """
+        サンプルデータ
+        :param counter:
+        :return:
+        """
         x = counter
-        y = math.sin(counter / 10.) * 2 + random.random() + 100
+        y = 5 * math.sin(x / 10.) + random.random() + 10
         self.notifyNewData.emit(x, y)
 
         # スムージング処理
@@ -60,9 +65,14 @@ class ThreadDataGenerator(QThread):
 class TrendGraph(pg.PlotWidget):
     def __init__(self, max_data: int):
         super().__init__()
+        # データを保持するリスト
+        self.x_data = []
+        self.y_data = []
+
         self.showGrid(x=True, y=True, alpha=0.5)
         self.setXRange(0, max_data)
 
+        # データ点
         self.data_points = pg.ScatterPlotItem(
             size=5,
             pen=pg.mkPen(color=(0, 255, 255), width=1),
@@ -73,12 +83,25 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.data_points)
 
-        self.smooth_line = pg.PlotDataItem(
+        self.smoothed_line = pg.PlotDataItem(
             pen=pg.mkPen(color=(255, 255, 0), width=1),
             pxMode=True,
             antialias=False
         )
-        self.addItem(self.smooth_line)
+        self.addItem(self.smoothed_line)
+
+    def addPoints(self, x, y):
+        # データをリストに追加
+        self.x_data.append(x)
+        self.y_data.append(y)
+
+        self.data_points.setData(self.x_data, self.y_data)
+
+        # 例として、最新のデータ点をコンソールに出力
+        print(f"追加データ: X={x}, Y={y}")
+
+    def updateSmoothedLine(self, x_array: np.ndarray, y_array: np.ndarray):
+        self.smoothed_line.setData(x_array, y_array)
 
 
 class Example(QMainWindow):
@@ -87,20 +110,17 @@ class Example(QMainWindow):
         self.setWindowTitle("PyQtGraph + PySide6 リアルタイム風トレンドグラフ (Scatter Plot)")
         self.setFixedSize(800, 600)
 
-        # データの最大数とプロットするデータを保持するリスト
+        # データの最大数とカウンタ
         self.max_data = 180
         self.count = 0
-        self.x_data = []
-        self.y_data = []
 
-        # QMainWindowの中央ウィジェットとしてTrendGraphを設定
         self.chart = TrendGraph(self.max_data)
         self.setCentralWidget(self.chart)
 
         self.thread = thread = ThreadDataGenerator(self.max_data)
         thread.threadReady.connect(self.on_thread_ticker_ready)
-        thread.worker.notifyNewData.connect(self.on_update_data)
-        thread.worker.notifySmoothLine.connect(self.on_update_smooth_line)
+        thread.worker.notifyNewData.connect(self.chart.addPoints)
+        thread.worker.notifySmoothLine.connect(self.chart.updateSmoothedLine)
         thread.start()
 
         # リアルタイム更新のためのQTimer
@@ -126,18 +146,6 @@ class Example(QMainWindow):
 
         self.thread.requestNewData.emit(self.count)
         self.count += 1
-
-    def on_update_data(self, x: int, y: float):
-        # データをリストに追加
-        self.x_data.append(x)
-        self.y_data.append(y)
-
-        self.chart.data_points.setData(self.x_data, self.y_data)
-        # 例として、最新のデータ点をコンソールに出力
-        print(f"追加データ: X={x}, Y={y}")
-
-    def on_update_smooth_line(self, x_array: np.ndarray, y_array: np.ndarray):
-        self.chart.smooth_line.setData(x_array, y_array)
 
 
 if __name__ == "__main__":
