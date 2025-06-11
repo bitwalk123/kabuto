@@ -7,8 +7,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
+from widgets.containers import Widget
 from widgets.docks import DockTrader
-from widgets.graph import TrendGraph
+from widgets.graph import TrendGraph, TrendGraph2
+from widgets.layouts import VBoxLayout
 
 
 class Trader(QMainWindow):
@@ -49,9 +51,24 @@ class Trader(QMainWindow):
         self.dock = dock = DockTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
+        base = Widget()
+        self.setCentralWidget(base)
+        layout = VBoxLayout()
+        base.setLayout(layout)
+
         # PyQtGraph インスタンス
         self.chart = chart = TrendGraph()
-        self.setCentralWidget(chart)
+        xaxis = chart.getAxis('bottom')
+        xaxis.setStyle(showValues=False)
+        xaxis.showLabel(False)
+        layout.addWidget(chart)
+
+        # PyQtGraph インスタンス２
+        self.chart2 = chart2 = TrendGraph2()
+        layout.addWidget(chart2)
+        # x軸を chart とリンク
+        chart2.setXLink(chart)
+
 
         # 株価トレンドライン
         self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=0.5))
@@ -183,6 +200,7 @@ class Trader(QMainWindow):
         :return:
         """
         self.chart.setXRange(ts_start, ts_end)
+        #self.chart2.setXRange(ts_start, ts_end)
 
     def setTitle(self, title: str):
         """
