@@ -1,12 +1,14 @@
 backports.tarfile
 importlib-metadata
+inflect
 jaraco.collections
 mplfinance
 openpyxl
 pip-chill
 pip-review
 pyqtgraph
-pyside6==6.9.0
+pyside6
+scipy
 tomli
 xlrd
 xlwings
