@@ -369,7 +369,7 @@ class Example(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_chart)
         # ★ここを修正しました★ タイマーを繰り返し発火させるため False に設定
-        self.timer.setSingleShot(False)
+        # self.timer.setSingleShot(False)
 
     @Slot()
     def on_shared_memory_ready(self):
