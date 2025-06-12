@@ -129,7 +129,7 @@ class Trader(QMainWindow):
         chart2.setXLink(chart)
 
         # MR
-        self.trend_mr: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(255, 255, 0), width=1))
+        self.trend_mr: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
 
     def addLastCloseLine(self, price_close: float):
         """
