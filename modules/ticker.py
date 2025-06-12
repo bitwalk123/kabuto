@@ -1,3 +1,9 @@
+"""
+Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
+機能スコープ
+1. Realtime PSAR
+2. Moving Range
+"""
 import logging
 from collections import deque
 
@@ -21,7 +27,8 @@ class TickerWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.psar = RealtimePSAR()
-        self.deque_mr = deque(maxlen=30)
+        self.period = 30
+        self.deque_mr = deque(maxlen=self.period)
 
     @Slot(float, float)
     def addPrice4PSAR(self, x, y):
@@ -32,20 +39,20 @@ class TickerWorker(QObject):
         # トレンドと PSAR の値を転記
         trend = ret.trend
         y_psar = ret.psar
-        # ---------------------------------------------------
+        # --------------------------------------------------------
         # 🧿 Parabolic SAR の情報を通知
         self.notifyPSAR.emit(self.ticker, trend, x, y_psar)
-        # ---------------------------------------------------
+        # --------------------------------------------------------
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Moving Ranga の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.deque_mr.append(y)
         y_mr = max(self.deque_mr) - min(self.deque_mr)
-        # ---------------------------------------------------
+        # ---------------------------------------------
         # 🧿 MR の情報を通知
         self.notifyMR.emit(self.ticker, x, y_mr)
-        # ---------------------------------------------------
+        # ---------------------------------------------
 
 
 # QThreadを継承した銘柄スレッドクラス
