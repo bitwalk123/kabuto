@@ -44,6 +44,12 @@ class Trader(QMainWindow):
         self.y_bear = np.empty(self.max_data_points, dtype=np.float64)
         # bear 用のカウンター
         self.counter_bear = 0
+
+        # MR
+        self.x_mr = np.empty(self.max_data_points, dtype=np.float64)
+        self.y_mr = np.empty(self.max_data_points, dtype=np.float64)
+        # MR 用のカウンター
+        self.counter_mr = 0
         #
         #######################################################################
 
@@ -56,19 +62,14 @@ class Trader(QMainWindow):
         layout = VBoxLayout()
         base.setLayout(layout)
 
+        # ---------------------
         # PyQtGraph インスタンス
+        # ---------------------
         self.chart = chart = TrendGraph()
         xaxis = chart.getAxis('bottom')
         xaxis.setStyle(showValues=False)
         xaxis.showLabel(False)
         layout.addWidget(chart)
-
-        # PyQtGraph インスタンス２
-        self.chart2 = chart2 = TrendGraph2()
-        layout.addWidget(chart2)
-        # x軸を chart とリンク
-        chart2.setXLink(chart)
-
 
         # 株価トレンドライン
         self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=0.5))
@@ -119,6 +120,17 @@ class Trader(QMainWindow):
         )
         chart.addItem(self.psar_latest)
 
+        # ----------------------
+        # PyQtGraph インスタンス２
+        # ----------------------
+        self.chart2 = chart2 = TrendGraph2()
+        layout.addWidget(chart2)
+        # x軸を chart とリンク
+        chart2.setXLink(chart)
+
+        # MR
+        self.trend_mr: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(255, 255, 0), width=1))
+
     def addLastCloseLine(self, price_close: float):
         """
         前日終値ラインの描画
@@ -163,6 +175,15 @@ class Trader(QMainWindow):
         # 株価表示の更新
         self.dock.setPrice(y)
 
+    def setMR(self, x: np.float64, y: np.float64):
+        self.x_mr[self.counter_mr] = x
+        self.y_mr[self.counter_mr] = y
+        self.counter_mr += 1
+
+        self.trend_mr.setData(
+            self.x_mr[0: self.counter_mr], self.y_mr[0:self.counter_mr]
+        )
+
     def setPSAR(self, trend: int, x: float, y: float):
         if 0 < trend:
             self.x_bull[self.counter_bull] = x
@@ -189,7 +210,6 @@ class Trader(QMainWindow):
             self.psar_latest.setBrush(pg.mkBrush(None))
             self.psar_latest.setData([x], [y])
 
-
     def setTimeRange(self, ts_start, ts_end):
         """
         x軸のレンジ
@@ -200,7 +220,7 @@ class Trader(QMainWindow):
         :return:
         """
         self.chart.setXRange(ts_start, ts_end)
-        #self.chart2.setXRange(ts_start, ts_end)
+        # self.chart2.setXRange(ts_start, ts_end)
 
     def setTitle(self, title: str):
         """

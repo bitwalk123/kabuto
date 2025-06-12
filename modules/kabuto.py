@@ -270,10 +270,13 @@ class Kabuto(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Thread Ticker
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             self.thread_ticker = thread_ticker = ThreadTicker(ticker)
             thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
             thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
+            thread_ticker.worker.notifyMR.connect(self.on_update_mr)
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
 
@@ -501,6 +504,17 @@ class Kabuto(QMainWindow):
         """
         trader = self.dict_trader[ticker]
         trader.setPSAR(trend, x, y)
+
+    def on_update_mr(self, ticker: str, x: float, y: float):
+        """
+        MR のトレンドを更新
+        :param ticker:
+        :param x:
+        :param y:
+        :return:
+        """
+        trader = self.dict_trader[ticker]
+        trader.setMR(x, y)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
