@@ -1,5 +1,12 @@
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtWidgets import QLCDNumber, QLabel, QPlainTextEdit, QFrame, QSizePolicy
+from PySide6.QtGui import QFont
+from PySide6.QtWidgets import (
+    QFrame,
+    QLabel,
+    QLCDNumber,
+    QPlainTextEdit,
+    QSizePolicy,
+)
 
 
 class Label(QLabel):
@@ -62,6 +69,25 @@ class LabelPrice(LabelRight):
 
     def setPrice(self, price: float):
         self.setText(f"{price:,.1f}")
+
+
+class LabelSmall(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setStyleSheet("""
+            QLabel {
+                margin: 0 5;
+            }
+        """)
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(6)
+        self.setFont(font)
 
 
 class LCDNumber(QLCDNumber):
