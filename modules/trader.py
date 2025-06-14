@@ -131,7 +131,17 @@ class Trader(QMainWindow):
         # MR
         self.trend_mr: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
 
-    def addLastCloseLine(self, price_close: float):
+    def getTimePrice(self) -> pd.DataFrame:
+        """
+        保持している時刻、株価情報をデータフレームで返す。
+        :return:
+        """
+        return pd.DataFrame({
+            "Time": self.x_data[0: self.counter_data],
+            "Price": self.y_data[0: self.counter_data]
+        })
+
+    def setLastCloseLine(self, price_close: float):
         """
         前日終値ラインの描画
         :param price_close:
@@ -143,37 +153,6 @@ class Trader(QMainWindow):
             pen=pg.mkPen(color=(255, 0, 0), width=1)
         )
         self.chart.addItem(self.lastclose_line)
-
-    def getTimePrice(self) -> pd.DataFrame:
-        """
-        保持している時刻、株価情報をデータフレームで返す。
-        :return:
-        """
-        return pd.DataFrame({
-            "Time": self.x_data[0: self.counter_data],
-            "Price": self.y_data[0: self.counter_data]
-        })
-
-    def setTimePrice(self, x: np.float64, y: np.float64):
-        """
-        時刻、株価の追加
-        あらかじめ確保しておいた配列を用い、
-        カウンタで位置を管理してスライスで PyQtGraoh へ渡す
-        :param x:
-        :param y:
-        :return:
-        """
-        self.x_data[self.counter_data] = x
-        self.y_data[self.counter_data] = y
-        self.counter_data += 1
-
-        self.trend_line.setData(
-            self.x_data[0: self.counter_data], self.y_data[0:self.counter_data]
-        )
-        self.point_latest.setData([x], [y])
-
-        # 株価表示の更新
-        self.dock.setPrice(y)
 
     def setMR(self, x: np.float64, y: np.float64):
         self.x_mr[self.counter_mr] = x
@@ -209,6 +188,27 @@ class Trader(QMainWindow):
             self.psar_latest.setPen(pg.mkPen(None))
             self.psar_latest.setBrush(pg.mkBrush(None))
             self.psar_latest.setData([x], [y])
+
+    def setTimePrice(self, x: np.float64, y: np.float64):
+        """
+        時刻、株価の追加
+        あらかじめ確保しておいた配列を用い、
+        カウンタで位置を管理してスライスで PyQtGraoh へ渡す
+        :param x:
+        :param y:
+        :return:
+        """
+        self.x_data[self.counter_data] = x
+        self.y_data[self.counter_data] = y
+        self.counter_data += 1
+
+        self.trend_line.setData(
+            self.x_data[0: self.counter_data], self.y_data[0:self.counter_data]
+        )
+        self.point_latest.setData([x], [y])
+
+        # 株価表示の更新
+        self.dock.setPrice(y)
 
     def setTimeRange(self, ts_start, ts_end):
         """

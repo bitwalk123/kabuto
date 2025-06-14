@@ -19,9 +19,9 @@ from widgets.layouts import HBoxLayout, VBoxLayout
 
 class DockTrader(QDockWidget):
     clickedSave = Signal()
-    clickedBuy = Signal(str, float)
-    clickedSell = Signal(str, float)
-    clickedRepay = Signal(str, float)
+    clickedBuy = Signal(str, float, str)
+    clickedSell = Signal(str, float, str)
+    clickedRepay = Signal(str, float, str)
 
     def __init__(self, res: AppRes, ticker: str):
         super().__init__()
@@ -82,9 +82,9 @@ class DockTrader(QDockWidget):
         layout.addWidget(lcd_total)
 
         # セミオートボタン
-        self.but_semi = but_semi = ButtonSemiAuto()
-        but_semi.clicked.connect(self.on_semi)
-        layout.addWidget(but_semi)
+        self.but_semiauto = but_semiauto = ButtonSemiAuto()
+        but_semiauto.clicked.connect(self.on_semiauto)
+        layout.addWidget(but_semiauto)
 
         # その他ツール用フレーム
         row_tool = Frame()
@@ -126,18 +126,22 @@ class DockTrader(QDockWidget):
     def getPrice(self) -> float:
         return self.lcd_price.value()
 
-    def on_buy(self):
-        # -------------------------------------------------------
+    def on_buy(self, note: str = ""):
+        # -------------------------------------------
         # 🧿 買建ボタンがクリックされたことを通知
-        self.clickedBuy.emit(self.ticker, self.getPrice())
-        # -------------------------------------------------------
+        self.clickedBuy.emit(
+            self.ticker, self.getPrice(), note
+        )
+        # -------------------------------------------
         self.actSellBuy()
 
-    def on_repay(self):
-        # ---------------------------------------------------------
+    def on_repay(self, note: str = ""):
+        # -------------------------------------------
         # 🧿 返済ボタンがクリックされたことを通知
-        self.clickedRepay.emit(self.ticker, self.getPrice())
-        # ---------------------------------------------------------
+        self.clickedRepay.emit(
+            self.ticker, self.getPrice(), note
+        )
+        # -------------------------------------------
         self.actRepay()
 
     def on_save(self):
@@ -146,14 +150,16 @@ class DockTrader(QDockWidget):
         self.clickedSave.emit()
         # ---------------------------------
 
-    def on_sell(self):
-        # --------------------------------------------------------
+    def on_sell(self, note: str = ""):
+        # -------------------------------------------
         # 🧿 売建ボタンがクリックされたことを通知
-        self.clickedSell.emit(self.ticker, self.getPrice())
-        # --------------------------------------------------------
+        self.clickedSell.emit(
+            self.ticker, self.getPrice(), note
+        )
+        # -------------------------------------------
         self.actSellBuy()
 
-    def on_semi(self):
+    def on_semiauto(self, state: bool):
         pass
 
     def setPrice(self, price: float):

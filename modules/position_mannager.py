@@ -37,13 +37,14 @@ class PositionManager(QObject):
             self.dict_total[ticker] = 0.  # 銘柄毎の収益
             self.dict_position[ticker] = PositionType.NONE
 
-    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType):
+    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType, note: str):
         """
         ポジションをオープン（建玉取得）
         :param ticker:
         :param ts:
         :param price:
         :param position:
+        :param note:
         :return:
         """
         self.dict_price[ticker] = price
@@ -61,13 +62,15 @@ class PositionManager(QObject):
             self.df_order.at[r, "売買"] = "売建"
         self.df_order.at[r, "約定単価"] = price
         self.df_order.at[r, "約定数量"] = self.unit
+        self.df_order.at[r, "備考"] = note
 
-    def closePosition(self, ticker: str, ts: float, price: float):
+    def closePosition(self, ticker: str, ts: float, price: float, note: str):
         """
         ポジションをクローズ（建玉返済）
         :param ticker:
         :param ts:
         :param price:
+        :param note:
         :return:
         """
         position = self.dict_position[ticker]
@@ -92,6 +95,7 @@ class PositionManager(QObject):
         self.df_order.at[r, "約定単価"] = price
         self.df_order.at[r, "約定数量"] = self.unit
         self.df_order.at[r, "損益"] = profit
+        self.df_order.at[r, "備考"] = note
 
         # 売買状態のリセット
         self.dict_price[ticker] = 0

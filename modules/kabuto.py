@@ -37,7 +37,7 @@ else:
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.5.0"
+    __version__ = "0.6.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -51,8 +51,8 @@ class Kabuto(QMainWindow):
     requestCurrentPriceReview = Signal(float)
 
     # 売買
-    requestPositionOpen = Signal(str, float, float, PositionType)
-    requestPositionClose = Signal(str, float, float)
+    requestPositionOpen = Signal(str, float, float, PositionType, str)
+    requestPositionClose = Signal(str, float, float, str)
     requestTransactionResult = Signal()
 
     def __init__(self, options: list = None):
@@ -265,7 +265,7 @@ class Kabuto(QMainWindow):
 
             # 前日終値
             if dict_lastclose[ticker] > 0:
-                trader.addLastCloseLine(dict_lastclose[ticker])
+                trader.setLastCloseLine(dict_lastclose[ticker])
 
             # 配置
             self.layout.addWidget(trader)
@@ -585,27 +585,27 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, ticker, price):
+    def on_buy(self, ticker: str, price: float, note: str):
         # --------------------------------------------------------
         # 🧿 買建で建玉取得をワーカースレッドに通知
         self.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.BUY
+            ticker, self.ts_system, price, PositionType.BUY, note
         )
         # --------------------------------------------------------
 
-    def on_sell(self, ticker, price):
+    def on_sell(self, ticker: str, price: float, note: str):
         # ---------------------------------------------------------
         # 🧿 売建で建玉取得をワーカースレッドに通知
         self.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.SELL
+            ticker, self.ts_system, price, PositionType.SELL, note
         )
         # ---------------------------------------------------------
 
-    def on_repay(self, ticker, price):
+    def on_repay(self, ticker: str, price: float, note: str):
         # --------------------------------------
         # 🧿 建玉返済をワーカースレッドに通知
         self.requestPositionClose.emit(
-            ticker, self.ts_system, price
+            ticker, self.ts_system, price, note
         )
         # --------------------------------------
 
