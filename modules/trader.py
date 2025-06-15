@@ -172,7 +172,7 @@ class Trader(QMainWindow):
                 self.x_bull[0: self.counter_bull], self.y_bull[0:self.counter_bull]
             )
             self.psar_latest.setPen(pg.mkPen(color=(255, 0, 255)))
-            self.psar_latest.setBrush(pg.mkBrush(color=(255, 128, 255)))
+            self.psar_latest.setBrush(pg.mkBrush(color=(255, 64, 255)))
             self.psar_latest.setData([x], [y])
         elif trend < 0:
             self.x_bear[self.counter_bear] = x
@@ -182,7 +182,7 @@ class Trader(QMainWindow):
                 self.x_bear[0: self.counter_bear], self.y_bear[0:self.counter_bear]
             )
             self.psar_latest.setPen(pg.mkPen(color=(0, 255, 255)))
-            self.psar_latest.setBrush(pg.mkBrush(color=(192, 255, 255)))
+            self.psar_latest.setBrush(pg.mkBrush(color=(64, 255, 255)))
             self.psar_latest.setData([x], [y])
         else:
             self.psar_latest.setPen(pg.mkPen(None))

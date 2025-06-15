@@ -182,6 +182,7 @@ class DockTrader(QDockWidget):
         elif self.trend < 0:
             note = "売建（セミオート）"
             self.on_sell(note)
+        self.but_repay.setEnabled(False)
 
     def semi_auto_position_close(self):
         note = "トレンド反転→返済（セミオート）"
