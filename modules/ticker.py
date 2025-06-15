@@ -27,7 +27,7 @@ class TickerWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.psar = RealtimePSAR()
-        self.period = 30
+        self.period = 60
         self.deque_mr = deque(maxlen=self.period)
 
     @Slot(float, float)
