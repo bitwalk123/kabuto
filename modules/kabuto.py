@@ -159,8 +159,8 @@ class Kabuto(QMainWindow):
         base.setLayout(layout)
 
         # ステータス・バー
-        self.statusbar = statusbar = StatusBar(res)
-        self.setStatusBar(statusbar)
+        # self.statusbar = statusbar = StatusBar(res)
+        # self.setStatusBar(statusbar)
 
         # ---------------------------------------------------------------------
         # タイマー
