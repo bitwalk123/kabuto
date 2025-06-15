@@ -125,12 +125,6 @@ class DockTrader(QDockWidget):
         self.but_sell.setChecked(False)
         self.but_repay.setEnabled(False)
 
-    def do_repay(self):
-        note = "トレンド反転→返済（セミオート）"
-        self.on_repay(note)
-        self.started_semiauto = False
-        self.but_semi_auto.setChecked(False)
-
     def getPrice(self) -> float:
         return self.lcd_price.value()
 
@@ -169,17 +163,29 @@ class DockTrader(QDockWidget):
 
     def on_semi_auto(self, state: bool):
         if state:
-            if self.trend > 0:
-                note = "買建（セミオート）"
-                self.on_buy(note)
-            elif self.trend < 0:
-                note = "売建（セミオート）"
-                self.on_sell(note)
+            self.semi_auto_position_open()
         else:
-            note = "強制返済（セミオート）"
-            self.on_repay(note)
+            self.semi_out_position_close_force()
 
         self.started_semiauto = state
+
+    def semi_auto_position_open(self):
+        if self.trend > 0:
+            note = "買建（セミオート）"
+            self.on_buy(note)
+        elif self.trend < 0:
+            note = "売建（セミオート）"
+            self.on_sell(note)
+
+    def semi_auto_position_close(self):
+        note = "トレンド反転→返済（セミオート）"
+        self.on_repay(note)
+        self.started_semiauto = False
+        self.but_semi_auto.setChecked(False)
+
+    def semi_out_position_close_force(self):
+        note = "強制返済（セミオート）"
+        self.on_repay(note)
 
     def setPrice(self, price: float):
         self.lcd_price.display(f"{price:.1f}")
@@ -193,5 +199,5 @@ class DockTrader(QDockWidget):
     def setTrend(self, trend: int):
         if self.started_semiauto:
             if self.trend != trend:
-                self.do_repay()
+                self.semi_auto_position_close()
         self.trend = trend
