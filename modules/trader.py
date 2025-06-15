@@ -111,7 +111,7 @@ class Trader(QMainWindow):
         chart.addItem(self.trend_bear)
 
         self.psar_latest = pg.ScatterPlotItem(
-            size=6,
+            size=8,
             pen=pg.mkPen(color=(0, 0, 0)),
             brush=None,
             symbol='o',
