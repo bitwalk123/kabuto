@@ -189,6 +189,9 @@ class Trader(QMainWindow):
             self.psar_latest.setBrush(pg.mkBrush(None))
             self.psar_latest.setData([x], [y])
 
+        # トレンドの向きをドックに設定
+        self.dock.setTrend(trend)
+
     def setTimePrice(self, x: np.float64, y: np.float64):
         """
         時刻、株価の追加

@@ -27,6 +27,7 @@ class DockTrader(QDockWidget):
         super().__init__()
         self.res = res
         self.ticker = ticker
+        self.trend: int = 0
 
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
@@ -170,3 +171,6 @@ class DockTrader(QDockWidget):
 
     def setTotal(self, total: float):
         self.lcd_total.display(f"{total:.1f}")
+
+    def setTrend(self, trend: int):
+        self.trend = trend
