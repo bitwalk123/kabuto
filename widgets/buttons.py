@@ -7,6 +7,7 @@ class ButtonBuy(QPushButton):
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
+                font-size: 8pt;
                 background-color: #ed6286;
             }
             QPushButton:hover {
@@ -39,6 +40,7 @@ class ButtonRepay(QPushButton):
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
+                font-size: 8pt;
                 background-color: #238fe7;
             }
             QPushButton:hover {
@@ -64,6 +66,7 @@ class ButtonSell(QPushButton):
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
+                font-size: 8pt;
                 background-color: #0ba596;
             }
             QPushButton:hover {
@@ -84,7 +87,6 @@ class ButtonSemiAuto(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
         self.setCheckable(True)
-        self.setFixedHeight(48)
         self.setStyleSheet("""
             QPushButton {
                 font-size: 8pt;
