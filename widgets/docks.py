@@ -13,7 +13,7 @@ from widgets.containers import (
     PadH,
     Widget,
 )
-from widgets.labels import LCDNumber
+from widgets.labels import LCDNumber, LabelSmall
 from widgets.layouts import HBoxLayout, VBoxLayout
 
 
@@ -46,6 +46,8 @@ class DockTrader(QDockWidget):
         base.setLayout(layout)
 
         # 現在株価表示
+        lab_title_price = LabelSmall("現在株価")
+        layout.addWidget(lab_title_price)
         self.lcd_price = lcd_price = LCDNumber(self)
         layout.addWidget(lcd_price)
 
@@ -70,6 +72,8 @@ class DockTrader(QDockWidget):
         layout_buysell.addWidget(but_buy)
 
         # 含み損益表示
+        lab_title_profit = LabelSmall("含み損益")
+        layout.addWidget(lab_title_profit)
         self.lcd_profit = lcd_profit = LCDNumber(self)
         layout.addWidget(lcd_profit)
 
@@ -80,6 +84,8 @@ class DockTrader(QDockWidget):
         layout.addWidget(but_repay)
 
         # 合計損益表示
+        lab_title_total = LabelSmall("合計損益")
+        layout.addWidget(lab_title_total)
         self.lcd_total = lcd_total = LCDNumber(self)
         layout.addWidget(lcd_total)
 

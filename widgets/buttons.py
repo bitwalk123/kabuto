@@ -84,9 +84,10 @@ class ButtonSemiAuto(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
         self.setCheckable(True)
-        self.setFixedHeight(64)
+        self.setFixedHeight(48)
         self.setStyleSheet("""
             QPushButton {
+                font-size: 8pt;
                 color: black;
                 background-color: #fed;
             }
