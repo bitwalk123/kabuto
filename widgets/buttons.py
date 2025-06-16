@@ -21,7 +21,7 @@ class ButtonBuy(QPushButton):
                 color: white;
             }
         """)
-        self.setText("買建")
+        self.setText("買　建")
 
 
 class ButtonList(QPushButton):
@@ -80,7 +80,7 @@ class ButtonSell(QPushButton):
                 color: white;
             }
         """)
-        self.setText("売建")
+        self.setText("売　建")
 
 
 class ButtonSemiAuto(QPushButton):
