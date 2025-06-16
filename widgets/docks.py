@@ -102,7 +102,6 @@ class DockTrader(QDockWidget):
 
         # その他ツール用フレーム
         row_tool = Frame()
-        row_tool.setFixedHeight(20)
         layout.addWidget(row_tool)
         layout_tool = HBoxLayout()
         row_tool.setLayout(layout_tool)
