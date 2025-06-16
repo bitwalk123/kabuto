@@ -276,7 +276,7 @@ class Kabuto(QMainWindow):
             self.thread_ticker = thread_ticker = ThreadTicker(ticker)
             thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
             thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            thread_ticker.worker.notifyMR.connect(self.on_update_mr)
+            thread_ticker.worker.notifyIndex.connect(self.on_update_index)
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
 
@@ -493,7 +493,7 @@ class Kabuto(QMainWindow):
             thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
             thread_ticker.notifyNewPrice.emit(x, y)
 
-    def on_update_psar(self, ticker: str, trend: int, x: float, y: float):
+    def on_update_psar(self, ticker: str, trend: int, x: float, y: float, epupd: int):
         """
         Parabolic SAR のトレンド点を追加
         :param ticker:
@@ -503,18 +503,18 @@ class Kabuto(QMainWindow):
         :return:
         """
         trader = self.dict_trader[ticker]
-        trader.setPSAR(trend, x, y)
+        trader.setPSAR(trend, x, y, epupd)
 
-    def on_update_mr(self, ticker: str, x: float, y: float):
+    def on_update_index(self, ticker: str, x: float, y: float):
         """
-        MR のトレンドを更新
+        指標トレンドを更新
         :param ticker:
         :param x:
         :param y:
         :return:
         """
         trader = self.dict_trader[ticker]
-        trader.setMR(x, y)
+        trader.setIndex(x, y)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理

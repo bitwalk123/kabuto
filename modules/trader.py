@@ -129,7 +129,7 @@ class Trader(QMainWindow):
         chart2.setXLink(chart)
 
         # MR
-        self.trend_mr: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
+        self.trend_index: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
 
     def getTimePrice(self) -> pd.DataFrame:
         """
@@ -154,16 +154,16 @@ class Trader(QMainWindow):
         )
         self.chart.addItem(self.lastclose_line)
 
-    def setMR(self, x: np.float64, y: np.float64):
+    def setIndex(self, x: np.float64, y: np.float64):
         self.x_mr[self.counter_mr] = x
         self.y_mr[self.counter_mr] = y
         self.counter_mr += 1
 
-        self.trend_mr.setData(
+        self.trend_index.setData(
             self.x_mr[0: self.counter_mr], self.y_mr[0:self.counter_mr]
         )
 
-    def setPSAR(self, trend: int, x: float, y: float):
+    def setPSAR(self, trend: int, x: float, y: float, epupd: int):
         if 0 < trend:
             self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = y
@@ -190,7 +190,7 @@ class Trader(QMainWindow):
             self.psar_latest.setData([x], [y])
 
         # トレンドの向きをドックに設定
-        self.dock.setTrend(trend)
+        self.dock.setTrend(trend, epupd)
 
     def setTimePrice(self, x: np.float64, y: np.float64):
         """

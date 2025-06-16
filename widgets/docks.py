@@ -13,7 +13,7 @@ from widgets.containers import (
     PadH,
     Widget,
 )
-from widgets.labels import LCDNumber, LabelSmall
+from widgets.labels import LCDNumber, LabelSmall, LCDInt
 from widgets.layouts import HBoxLayout, VBoxLayout
 
 
@@ -83,19 +83,26 @@ class DockTrader(QDockWidget):
         but_repay.clicked.connect(self.on_repay)
         layout.addWidget(but_repay)
 
-        # 合計損益表示
-        lab_title_total = LabelSmall("合計損益")
-        layout.addWidget(lab_title_total)
-        self.lcd_total = lcd_total = LCDNumber(self)
-        layout.addWidget(lcd_total)
+        # EP 更新回数
+        lab_epupd = LabelSmall("EP 更新回数")
+        layout.addWidget(lab_epupd)
+        self.lcd_epupd = lcd_epupd = LCDInt(self)
+        layout.addWidget(lcd_epupd)
 
         # セミオートボタン
         self.but_semi_auto = but_semi_auto = ButtonSemiAuto()
         but_semi_auto.clicked.connect(self.on_semi_auto)
         layout.addWidget(but_semi_auto)
 
+        # 合計損益表示
+        lab_title_total = LabelSmall("合計損益")
+        layout.addWidget(lab_title_total)
+        self.lcd_total = lcd_total = LCDNumber(self)
+        layout.addWidget(lcd_total)
+
         # その他ツール用フレーム
         row_tool = Frame()
+        row_tool.setFixedHeight(20)
         layout.addWidget(row_tool)
         layout_tool = HBoxLayout()
         row_tool.setLayout(layout_tool)
@@ -194,6 +201,9 @@ class DockTrader(QDockWidget):
         note = "強制返済（セミオート）"
         self.on_repay(note)
 
+    def setEPUpd(self, epupd: int):
+        self.lcd_epupd.display(f"{epupd}")
+
     def setPrice(self, price: float):
         self.lcd_price.display(f"{price:.1f}")
 
@@ -203,8 +213,9 @@ class DockTrader(QDockWidget):
     def setTotal(self, total: float):
         self.lcd_total.display(f"{total:.1f}")
 
-    def setTrend(self, trend: int):
+    def setTrend(self, trend: int, epupd: int):
         if self.started_semiauto:
             if self.trend != trend:
                 self.semi_auto_position_close()
         self.trend = trend
+        self.setEPUpd(epupd)

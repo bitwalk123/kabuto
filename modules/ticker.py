@@ -19,8 +19,8 @@ from modules.psar import RealtimePSAR
 
 class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
-    notifyPSAR = Signal(str, int, float, float)
-    notifyMR = Signal(str, float, float)
+    notifyPSAR = Signal(str, int, float, float, int)
+    notifyIndex = Signal(str, float, float)
 
     def __init__(self, ticker, parent=None):
         super().__init__(parent)
@@ -39,10 +39,13 @@ class TickerWorker(QObject):
         # トレンドと PSAR の値を転記
         trend = ret.trend
         y_psar = ret.psar
-        # --------------------------------------------------------
+        epupd = ret.epupd
+        # ---------------------------------------------
         # 🧿 Parabolic SAR の情報を通知
-        self.notifyPSAR.emit(self.ticker, trend, x, y_psar)
-        # --------------------------------------------------------
+        self.notifyPSAR.emit(
+            self.ticker, trend, x, y_psar, epupd
+        )
+        # ---------------------------------------------
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Moving Ranga の算出
@@ -51,7 +54,7 @@ class TickerWorker(QObject):
         y_mr = max(self.deque_mr) - min(self.deque_mr)
         # ---------------------------------------------
         # 🧿 MR の情報を通知
-        self.notifyMR.emit(self.ticker, x, y_mr)
+        self.notifyIndex.emit(self.ticker, x, y_mr)
         # ---------------------------------------------
 
 

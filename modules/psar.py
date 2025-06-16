@@ -5,6 +5,7 @@ class PSARObject:
         self.ep: float = 0.
         self.af: float = -1.  # AF は 0 以上の実数
         self.psar: float = 0.
+        self.epupd: int = 0
 
 
 class RealtimePSAR:
@@ -57,6 +58,8 @@ class RealtimePSAR:
                 self.obj.ep = price
                 # AF は初期値
                 self.obj.af = self.af_init
+                # EP更新カウンタをリセット
+                self.obj.epupd = 0
 
                 return self.obj
             else:
@@ -96,6 +99,7 @@ class RealtimePSAR:
         """
         # EP の更新
         self.obj.ep = price
+        self.obj.epupd += 1
 
         # AF の更新
         if self.obj.af < self.af_max - self.af_step:

@@ -89,6 +89,13 @@ class LabelSmall(QLabel):
         font.setPointSize(6)
         self.setFont(font)
 
+class LCDInt(QLCDNumber):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setFixedWidth(160)
+        self.setFixedHeight(24)
+        self.setDigitCount(12)
+        self.display('0')
 
 class LCDNumber(QLCDNumber):
     def __init__(self, *args):
