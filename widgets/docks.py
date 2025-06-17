@@ -91,6 +91,7 @@ class DockTrader(QDockWidget):
 
         # セミオートボタン
         self.but_semi_auto = but_semi_auto = ButtonSemiAuto()
+        but_semi_auto.setEnabled(False)
         but_semi_auto.clicked.connect(self.on_semi_auto)
         layout.addWidget(but_semi_auto)
 
@@ -201,6 +202,11 @@ class DockTrader(QDockWidget):
         self.on_repay(note)
 
     def setEPUpd(self, epupd: int):
+        if epupd > 0:
+            self.but_semi_auto.setEnabled(True)
+        else:
+            self.but_semi_auto.setEnabled(False)
+
         self.lcd_epupd.display(f"{epupd}")
 
     def setPrice(self, price: float):
