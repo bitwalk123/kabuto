@@ -17,6 +17,7 @@ from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
 from modules.reviewer import ReviewWorker
+from modules.spottrade import SpotTrade
 from modules.ticker import ThreadTicker
 from modules.trader import Trader
 from modules.trans import WinTransaction
@@ -132,6 +133,9 @@ class Kabuto(QMainWindow):
         self.df_transaction: pd.DataFrame | None = None
         self.win_transaction: WinTransaction | None = None
 
+        # 現物取引
+        self.spot_trade: SpotTrade | None = None
+
         # ---------------------------------------------------------------------
         #  UI
         # ---------------------------------------------------------------------
@@ -146,6 +150,7 @@ class Kabuto(QMainWindow):
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.saveClicked.connect(self.on_save_data)
+        toolbar.spotTradeClicked.connect(self.on_spot_trade)
         toolbar.stopClicked.connect(self.on_review_stop)
         toolbar.transactionClicked.connect(self.on_show_transaction)
         toolbar.timerIntervalChanged.connect(self.on_timer_interval_changed)
@@ -442,6 +447,10 @@ class Kabuto(QMainWindow):
     def on_show_transaction(self):
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
+
+    def on_spot_trade(self):
+        self.spot_trade = SpotTrade(self.res)
+        self.spot_trade.show()
 
     def on_thread_finished(self, result: bool):
         """

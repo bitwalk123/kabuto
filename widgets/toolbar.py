@@ -21,6 +21,7 @@ class ToolBar(QToolBar):
     excelSelected = Signal(str)
     playClicked = Signal()
     saveClicked = Signal()
+    spotTradeClicked = Signal()
     stopClicked = Signal()
     transactionClicked = Signal()
     timerIntervalChanged = Signal(int)
@@ -71,13 +72,6 @@ class ToolBar(QToolBar):
             )
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
-        else:
-            action_pig = QAction(
-                QIcon(os.path.join(res.dir_image, 'pig.png')),
-                "現物",
-                self
-            )
-            self.addAction(action_pig)
         # --- debug ここまで ---
 
         self.action_transaction = action_transaction = QAction(
@@ -104,6 +98,14 @@ class ToolBar(QToolBar):
         )
         action_info.triggered.connect(self.on_about)
         self.addAction(action_info)
+
+        action_pig = QAction(
+            QIcon(os.path.join(res.dir_image, 'pig.png')),
+            "現物取引",
+            self
+        )
+        action_pig.triggered.connect(self.on_spot_trade)
+        self.addAction(action_pig)
 
         hpad = PadH()
         self.addWidget(hpad)
@@ -147,6 +149,12 @@ class ToolBar(QToolBar):
         # 🧿 「データを保存する」ボタンがクリックされたことを通知
         self.saveClicked.emit()
         # ----------------------------------------------
+
+    def on_spot_trade(self):
+        # -------------------------------------------
+        # 🧿 「現物取引」ボタンがクリックされたことを通知
+        self.spotTradeClicked.emit()
+        # -------------------------------------------
 
     def on_stop(self):
         # -------------------------------------------
