@@ -85,7 +85,8 @@ class AcquireWorker(QObject):
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
         self.wb = wb = xw.Book(self.excel_path)
-        self.sheet = wb.sheets["Sheet1"]
+        name_sheet = "Cover"
+        self.sheet = wb.sheets[name_sheet]
 
         dict_name = dict()
         dict_lastclose = dict()
