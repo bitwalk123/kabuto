@@ -28,7 +28,7 @@ class TickerWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.psar = RealtimePSAR()
-        self.factor_median = 3
+        self.factor_median = 3  # メディアン値を算出するデータ点数
         self.deque_median = deque(maxlen=self.factor_median)
         self.period = 60
         self.deque_mr = deque(maxlen=self.period)
@@ -38,9 +38,10 @@ class TickerWorker(QObject):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 直近のデータのメディアン値を使って Parabolic SAR を算出
         self.deque_median.append(y)
         y_median = median(self.deque_median)
-        #ret = self.psar.add(y)
+        # ret = self.psar.add(y)
         ret = self.psar.add(y_median)
         # トレンドと PSAR の値を転記
         trend = ret.trend
