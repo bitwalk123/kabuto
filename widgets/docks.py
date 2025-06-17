@@ -1,24 +1,31 @@
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtWidgets import QDockWidget, QWidget
+from PySide6.QtWidgets import QDockWidget
 
 from structs.res import AppRes
 from widgets.buttons import (
     ButtonBuy,
+    ButtonConf,
     ButtonRepay,
     ButtonSave,
-    ButtonSell, ButtonSemiAuto,
+    ButtonSell,
+    ButtonSemiAuto,
 )
 from widgets.containers import (
     Frame,
     PadH,
     Widget,
 )
-from widgets.labels import LCDNumber, LabelSmall, LCDInt
+from widgets.labels import (
+    LabelSmall,
+    LCDInt,
+    LCDNumber,
+)
 from widgets.layouts import HBoxLayout, VBoxLayout
 
 
 class DockTrader(QDockWidget):
-    clickedSave = Signal()
+    clickedConf = Signal(str)
+    clickedSave = Signal(str)
     clickedBuy = Signal(str, float, str)
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
@@ -33,9 +40,9 @@ class DockTrader(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
-        self.setTitleBarWidget(QWidget())
+        self.setTitleBarWidget(Widget())
 
-        base = QWidget()
+        base = Widget()
         self.setWidget(base)
 
         layout = VBoxLayout()
@@ -113,8 +120,15 @@ class DockTrader(QDockWidget):
 
         # 画像保存ボタン
         but_save = ButtonSave()
+        but_save.setToolTip("チャート保存")
         but_save.clicked.connect(self.on_save)
         layout_tool.addWidget(but_save)
+
+        # 設定ボタン
+        but_conf = ButtonConf()
+        but_conf.setToolTip("設定")
+        but_conf.clicked.connect(self.on_conf)
+        layout_tool.addWidget(but_conf)
 
     def actSellBuy(self):
         """
@@ -150,6 +164,12 @@ class DockTrader(QDockWidget):
         # -------------------------------------------
         self.actSellBuy()
 
+    def on_conf(self):
+        # ---------------------------------
+        # 🧿 設定ボタンがクリックされたことを通知
+        self.clickedConf.emit(self.ticker)
+        # ---------------------------------
+
     def on_repay(self, note: str = ""):
         # -------------------------------------------
         # 🧿 返済ボタンがクリックされたことを通知
@@ -162,7 +182,7 @@ class DockTrader(QDockWidget):
     def on_save(self):
         # ---------------------------------
         # 🧿 保存ボタンがクリックされたことを通知
-        self.clickedSave.emit()
+        self.clickedSave.emit(self.ticker)
         # ---------------------------------
 
     def on_sell(self, note: str = ""):

@@ -50,6 +50,15 @@ class ButtonRepay(QPushButton):
         self.setText("返　　済")
 
 
+class ButtonConf(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setIcon(
+            self.style().standardIcon(
+                QStyle.StandardPixmap.SP_FileDialogDetailedView
+            )
+        )
+
 class ButtonSave(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
@@ -58,7 +67,6 @@ class ButtonSave(QPushButton):
                 QStyle.StandardPixmap.SP_DialogSaveButton
             )
         )
-
 
 class ButtonSell(QPushButton):
     def __init__(self, *args):
@@ -98,8 +106,8 @@ class ButtonSemiAuto(QPushButton):
                 background-color: #432;
             }
             QPushButton:disabled {
-                color: #666;
-                background-color: #888;
+                color: #888;
+                background-color: #ccc;
             }
         """)
         self.setText("手動エントリ\n自動返済")
