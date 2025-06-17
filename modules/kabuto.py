@@ -25,7 +25,6 @@ from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
 from widgets.layouts import VBoxLayout
-from widgets.statusbar import StatusBar
 from widgets.toolbar import ToolBar
 
 if sys.platform == "win32":
