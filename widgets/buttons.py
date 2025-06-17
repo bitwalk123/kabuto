@@ -1,4 +1,14 @@
-from PySide6.QtWidgets import QPushButton, QStyle, QRadioButton, QButtonGroup
+import os
+
+from PySide6.QtGui import QIcon
+from PySide6.QtWidgets import (
+    QButtonGroup,
+    QPushButton,
+    QRadioButton,
+    QStyle,
+)
+
+from structs.res import AppRes
 
 
 class ButtonBuy(QPushButton):
@@ -59,6 +69,14 @@ class ButtonConf(QPushButton):
             )
         )
 
+
+class ButtonPig(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        imgname = os.path.join(res.dir_image, 'pig.png')
+        self.setIcon(QIcon(imgname))
+
+
 class ButtonSave(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
@@ -67,6 +85,7 @@ class ButtonSave(QPushButton):
                 QStyle.StandardPixmap.SP_DialogSaveButton
             )
         )
+
 
 class ButtonSell(QPushButton):
     def __init__(self, *args):

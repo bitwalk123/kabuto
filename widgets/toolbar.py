@@ -1,8 +1,9 @@
 import datetime
+import os
 
 import pandas as pd
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
     QStyle,
@@ -70,6 +71,14 @@ class ToolBar(QToolBar):
             )
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
+        else:
+            action_pig = QAction(
+                QIcon(os.path.join(res.dir_image, 'pig.png')),
+                "現物",
+                self
+            )
+            self.addAction(action_pig)
+        # --- debug ここまで ---
 
         self.action_transaction = action_transaction = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogListView),
@@ -79,7 +88,6 @@ class ToolBar(QToolBar):
         action_transaction.setEnabled(False)
         action_transaction.triggered.connect(self.on_transaction)
         self.addAction(action_transaction)
-        # --- debug ここまで ---
 
         action_save = QAction(
             self.style().standardIcon(QStyle.StandardPixmap.SP_DialogSaveButton),
