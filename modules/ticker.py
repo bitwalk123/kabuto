@@ -6,6 +6,7 @@ Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 """
 import logging
 from collections import deque
+from statistics import median
 
 from PySide6.QtCore import (
     QObject,
@@ -27,6 +28,8 @@ class TickerWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.psar = RealtimePSAR()
+        self.factor_median = 3
+        self.deque_median = deque(maxlen=self.factor_median)
         self.period = 60
         self.deque_mr = deque(maxlen=self.period)
 
@@ -35,7 +38,10 @@ class TickerWorker(QObject):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        ret = self.psar.add(y)
+        self.deque_median.append(y)
+        y_median = median(self.deque_median)
+        #ret = self.psar.add(y)
+        ret = self.psar.add(y_median)
         # トレンドと PSAR の値を転記
         trend = ret.trend
         y_psar = ret.psar
@@ -47,6 +53,7 @@ class TickerWorker(QObject):
         )
         # ---------------------------------------------
 
+        """
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Moving Ranga の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -56,6 +63,7 @@ class TickerWorker(QObject):
         # 🧿 MR の情報を通知
         self.notifyIndex.emit(self.ticker, x, y_mr)
         # ---------------------------------------------
+        """
 
 
 # QThreadを継承した銘柄スレッドクラス

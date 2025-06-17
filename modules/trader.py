@@ -192,6 +192,9 @@ class Trader(QMainWindow):
         # トレンドの向きをドックに設定
         self.dock.setTrend(trend, epupd)
 
+        # EP 更新頻度をインデックス・トレンドに表示
+        self.setIndex(np.float64(x), np.float64(epupd))
+
     def setTimePrice(self, x: np.float64, y: np.float64):
         """
         時刻、株価の追加
