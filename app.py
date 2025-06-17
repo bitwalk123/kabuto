@@ -17,5 +17,4 @@ def main():
 if __name__ == "__main__":
     # ロギング設定を適用（ルートロガーを設定）
     main_logger = setup_logging()
-    # main_logger.info("Application starting up and logging initialized.")
     main()
