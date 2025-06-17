@@ -91,14 +91,6 @@ class ToolBar(QToolBar):
         action_save.triggered.connect(self.on_save)
         self.addAction(action_save)
 
-        action_info = QAction(
-            self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation),
-            "アプリケーションの情報",
-            self
-        )
-        action_info.triggered.connect(self.on_about)
-        self.addAction(action_info)
-
         action_pig = QAction(
             QIcon(os.path.join(res.dir_image, 'pig.png')),
             "現物取引",
@@ -106,6 +98,14 @@ class ToolBar(QToolBar):
         )
         action_pig.triggered.connect(self.on_spot_trade)
         self.addAction(action_pig)
+
+        action_info = QAction(
+            self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation),
+            "アプリケーションの情報",
+            self
+        )
+        action_info.triggered.connect(self.on_about)
+        self.addAction(action_info)
 
         hpad = PadH()
         self.addWidget(hpad)
