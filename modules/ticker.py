@@ -28,7 +28,7 @@ class TickerWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.psar = RealtimePSAR()
-        self.factor_median = 60  # メディアン値を算出するデータ点数
+        self.factor_median = 3  # メディアン値を算出するデータ点数
         self.deque_median = deque(maxlen=self.factor_median)
         self.period = 60
         self.deque_mr = deque(maxlen=self.period)
