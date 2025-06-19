@@ -76,7 +76,7 @@ class Trader(QMainWindow):
 
         # 最新株価の点
         self.point_latest = pg.ScatterPlotItem(
-            size=10,
+            size=12,
             pen=None,
             brush=pg.mkBrush(color=(255, 165, 0)),
             symbol='x',
@@ -111,7 +111,7 @@ class Trader(QMainWindow):
         chart.addItem(self.trend_bear)
 
         self.psar_latest = pg.ScatterPlotItem(
-            size=8,
+            size=6,
             pen=pg.mkPen(color=(0, 0, 0)),
             brush=None,
             symbol='o',

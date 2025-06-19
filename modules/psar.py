@@ -9,7 +9,8 @@ class PSARObject:
 
 
 class RealtimePSAR:
-    def __init__(self, af_init=0.0, af_step=0.0001, af_max=0.01):
+    # def __init__(self, af_init=0.0, af_step=0.0001, af_max=0.01):
+    def __init__(self, af_init=0.0, af_step=0.00002, af_max=0.002):
         self.af_init = af_init
         self.af_step = af_step
         self.af_max = af_max
