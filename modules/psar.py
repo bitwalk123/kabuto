@@ -1,4 +1,4 @@
-import numpy as np # 今は直接使わないが、将来的に必要な場合のためにインポート例
+import numpy as np
 
 class PSARObject:
     def __init__(self):
@@ -14,7 +14,7 @@ class RealtimePSAR:
         self.af_init = af_init
         self.af_step = af_step
         self.af_max = af_max
-        self.initial_min_data_points = initial_min_data_points # 新しい n の定義 (最低点数)
+        self.initial_min_data_points = initial_min_data_points # n の値 (最低点数)
         self.initial_prices = [] # 寄り付き後の初期データを蓄積
         # self.logger = logging.getLogger(__name__) # ロギングは既存の環境に合わせて追加
 
@@ -45,7 +45,6 @@ class RealtimePSAR:
         # ここから既存のPSAR計算ロジック
         # self.obj.trend が 0 でない場合、または上記で 0 から変更された場合
         if self.obj.trend != 0: # トレンドが確立している場合
-            # ... (既存のPSAR計算ロジック: cmp_psar, cmp_ep, update_ep_af, psar更新)
             # PSARが現在価格を越えないように調整 (通常のPSARロジックの必須部分)
             if self.cmp_psar(price): # トレンド反転
                 # logger.info("Trend reversal detected!") # 必要に応じてロギング
@@ -60,13 +59,15 @@ class RealtimePSAR:
                     self.update_ep_af(price)
 
                 if self.obj.trend == +1: # 上昇トレンド
+                    # PSARが現在の価格より高くなるのを防ぐためmax(psar, price)
                     self.obj.psar = max(self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar), price)
                 else: # 下降トレンド
+                    # PSARが現在の価格より低くなるのを防ぐためmin(psar, price)
                     self.obj.psar = min(self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar), price)
 
             self.obj.price = price # 最新価格を保持
             return self.obj
-        else: # 理論上はここに到達しないはずだが、念のため。トレンドが確立していない場合はPSARは更新しない
+        else:
             self.obj.price = price
             return self.obj
 
@@ -74,58 +75,55 @@ class RealtimePSAR:
     def _determine_initial_trend_and_ep_weighted_diff(self):
         """
         蓄積されたデータを使って、隣接する2点間の差分に重み付けをして多数決によりトレンドを決定する。
-        2:1以上の多数決条件を満たさない限り、トレンドは決定しない。
+        2:1（2/3以上）多数決条件を満たさない限り、トレンドは決定しない (trend=0)。
         """
         prices_len = len(self.initial_prices)
-        if prices_len < 2: # 最低2点ないと差分が取れない。このメソッドが呼ばれる時点では prices_len >= initial_min_data_points なので、通常は心配ない。
-            return # トレンド決定せず、trend=0 を維持
+        if prices_len < 2:
+            self.obj.trend = 0
+            return
 
-        weighted_sum_of_directions = 0.0
+        weighted_up_sum = 0.0
+        weighted_down_sum = 0.0
 
-        # 各差分に対して、直近のものほど大きな重みを付与する
-        # 線形重み付けの例: 最古が重み1, 最新が重み (prices_len - 1)
-        # 差分は prices_len - 1 個ある
         for i in range(prices_len - 1):
             diff = self.initial_prices[i+1] - self.initial_prices[i]
-
-            # 重み計算: i が小さいほど古いデータ、大きいほど新しいデータ
-            # 重みを i + 1 とすることで、最古の差分が重み 1、最新の差分が重み (prices_len - 1) になる
             weight = i + 1
 
             if diff > 0:
-                weighted_sum_of_directions += weight
+                weighted_up_sum += weight
             elif diff < 0:
-                weighted_sum_of_directions -= weight
-            # diff == 0 の場合は加算も減算もしない (中立)
+                weighted_down_sum -= weight
 
-        # 多数決の判断
-        # 総重み (全ての重みの合計) を計算: 1 + 2 + ... + (prices_len - 1) = (prices_len - 1) * prices_len / 2
-        total_possible_weight = (prices_len - 1) * prices_len / 2
+        total_weighted_absolute_votes = abs(weighted_up_sum) + abs(weighted_down_sum)
 
-        # 2:1以上の多数決基準 (66.6...%以上)
-        required_weight_for_majority = total_possible_weight * (2/3) # 66.6%
+        if total_weighted_absolute_votes == 0:
+            self.obj.trend = 0
+            return
 
-        if weighted_sum_of_directions > required_weight_for_majority:
+        # ★★★ ここを修正: 多数決の基準を 2:1 (2/3 以上) に変更 ★★★
+        required_weighted_votes_for_majority = total_weighted_absolute_votes * (2/3)
+
+        if weighted_up_sum > required_weighted_votes_for_majority:
             self.obj.trend = +1 # 上昇トレンドと決定
-        elif weighted_sum_of_directions < -required_weight_for_majority: # マイナス方向も同じ閾値
+        elif abs(weighted_down_sum) > required_weighted_votes_for_majority:
             self.obj.trend = -1 # 下降トレンドと決定
         else:
             # 2:1以上の多数決条件を満たさない場合はトレンド未決定 (trend=0 のまま)
             self.obj.trend = 0
-            # logger.info(f"Trend not decisively determined (weighted sum: {weighted_sum_of_directions:.2f}, required: {required_weight_for_majority:.2f}). Waiting for more data.")
-            return # EPとPSARは設定せず、obj.trend=0 のまま add メソッドに戻る
+            return
 
-        # トレンドが決定できた場合のみ、EPとPSARを初期設定
-        if self.obj.trend == +1:
-            self.obj.ep = min(self.initial_prices) # 上昇トレンドなら初期データの最安値をEPに
-            self.obj.psar = max(self.initial_prices) # PSARの初期値はEPとは逆方向の極値
-        else: # self.obj.trend == -1
-            self.obj.ep = max(self.initial_prices) # 下降トレンドなら初期データの最高値をEPに
-            self.obj.psar = min(self.initial_prices) # PSARの初期値はEPとは逆方向の極値
+        # EPとPSARの初期値設定（これは前回の高橋さんのご指示通り）
+        if self.obj.trend == +1: # 上昇トレンド
+            self.obj.ep = min(self.initial_prices)
+            self.obj.psar = self.initial_prices[0] # PSARの初期値は最初の価格
+        else: # self.obj.trend == -1 (下降トレンド)
+            self.obj.ep = max(self.initial_prices)
+            self.obj.psar = self.initial_prices[0] # PSARの初期値は最初の価格
+
+        print(weighted_up_sum, required_weighted_votes_for_majority, self.obj.ep, self.obj.psar)
 
         self.obj.af = self.af_init
         self.obj.epupd = 0
-        # self.obj.price は add メソッドで既に最新価格になっている（呼び出し元で設定される）
 
     def cmp_ep(self, price: float) -> bool:
         # ... (既存のコードと同じ)
