@@ -4,11 +4,14 @@ from PySide6.QtWidgets import QStyle, QWidget
 
 
 class AppRes:
+    dir_collection = 'collection'
     dir_excel = 'excel'
     dir_font = 'fonts'
     dir_image = 'images'
     dir_output = 'output'
     dir_transaction = 'transaction'
+
+    excel_collector = "collector.xlsx"
 
     debug = False
 

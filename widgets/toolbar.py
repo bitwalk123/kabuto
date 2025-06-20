@@ -232,3 +232,18 @@ class ToolBarTransaction(QToolBar):
             # 🧿 Excel ファイルが選択されたことの通知
             self.transdataSelected.emit(excel_path)
             # ----------------------------------
+
+
+class ToolBarVein(QToolBar):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+
+        hpad = PadH()
+        self.addWidget(hpad)
+
+        lab_time = Label("システム時刻 ")
+        self.addWidget(lab_time)
+
+        self.lcd_time = lcd_time = LCDTime()
+        self.addWidget(lcd_time)

@@ -5,11 +5,11 @@ import time
 import pandas as pd
 import xlwings as xw
 
-from modules.position_mannager import PositionManager
-
 # Windows 固有のライブラリ
 if sys.platform == "win32":
     from pywintypes import com_error
+
+from modules.position_mannager import PositionManager
 
 from PySide6.QtCore import QObject, Signal
 
