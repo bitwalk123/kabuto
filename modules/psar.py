@@ -89,42 +89,32 @@ class RealtimePSAR:
             return self.obj
 
         # --- トレンド判定ロジック ---
-        lower_votes = 0
-        higher_votes = 0
+        votes_lower = 0
+        votes_higher = 0
 
         # deque 内の全要素を対象とする
         # ただし、現在価格と同じ場合はカウントしない
         for p in self.prices_deque:
             if p < price:  # 現時点での価格以下のデータ
-                lower_votes += 1
+                votes_lower += 1
             elif price < p:  # 現時点での価格より高いデータ
-                higher_votes += 1
+                votes_higher += 1
 
-        total_votes = lower_votes + higher_votes
+        total_votes = votes_lower + votes_higher
 
         if total_votes == 0:
-            # 全要素が現在価格と同じ場合（現実にはほぼありえない）
+            # 全要素が現在価格と同じ場合（現実には、ほぼありえない）
             self.obj.trend = 0
-
-        elif self.threshold_ratio < lower_votes / total_votes:
+        elif self.threshold_ratio < votes_lower / total_votes:
             # 「低いデータが多い場合」は上昇トレンド
             self.obj.trend = +1
             self.obj.ep = max(self.prices_deque)  # EPは期間内の最高値
             self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
-
-            # トレンド決定後、deque をクリアして次のトレンド決定に備える（必要であれば）
-            # もしトレンドが一度決定されたら、dequeはもう使用しないためクリア
-            self.prices_deque.clear()
-
-        elif self.threshold_ratio < higher_votes / total_votes:
+        elif self.threshold_ratio < votes_higher / total_votes:
             # 「高いデータが多い場合」は下降トレンド
             self.obj.trend = -1
             self.obj.ep = min(self.prices_deque)  # EPは期間内の最低値
             self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
-
-            # トレンド決定後、deque をクリア
-            self.prices_deque.clear()
-
         else:
             # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
             self.obj.trend = 0
@@ -133,6 +123,8 @@ class RealtimePSAR:
             # トレンドが決定された場合のみ、AFを初期化
             self.obj.af = self.af_init
             self.obj.epupd = 0
+            # トレンド決定後、deque をクリア
+            self.prices_deque.clear()
 
         self.obj.price = price
         return self.obj
