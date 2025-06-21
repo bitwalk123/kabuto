@@ -1,4 +1,5 @@
 import numpy as np
+from collections import deque  # deque をインポート
 
 
 class PSARObject:
@@ -12,26 +13,28 @@ class PSARObject:
 
 
 class RealtimePSAR:
-    def __init__(self, af_init=0.0, af_step=0.00002, af_max=0.002, initial_min_data_points=30):  # n の値を指定
+    # initial_min_data_points は n を固定長として使うため、ここでは n と解釈
+    def __init__(self, af_init=0.0, af_step=0.00002, af_max=0.002, n=30):
         self.af_init = af_init
         self.af_step = af_step
         self.af_max = af_max
-        self.initial_min_data_points = initial_min_data_points  # 初期トレンド決定に必要な最小データ点数
+        self.n = n  # 固定長のデータ点数として n を使用
 
         self.obj = PSARObject()
-        self.initial_prices = []  # 初期データ蓄積用のリストを追加
+        # deque を使用し、最大長を n に設定
+        self.prices_deque = deque(maxlen=self.n)
 
     def add(self, price: float) -> PSARObject:
         if self.obj.trend == 0:
-            # 最初の add 呼び出しで obj.price を初期化し、同時に initial_prices にも追加
-            if self.obj.price == 0 and not self.initial_prices:
+            # 最初の add 呼び出しで obj.price を初期化し、同時に prices_deque にも追加
+            if self.obj.price == 0 and not self.prices_deque:
                 self.obj.price = price
-                self.initial_prices.append(price)
+                self.prices_deque.append(price)
                 return self.obj
             else:
-                return self.decide_first_trend(price)  # price は現在の価格
+                return self.decide_first_trend(price)
         else:
-            # trend が 0 でない時 (元のコードのまま、変更なし)
+            # trend が 0 でない時 (既存のロジック、変更なし)
             if self.cmp_psar(price):
                 self.obj.price = price
                 self.obj.trend *= -1
@@ -49,56 +52,63 @@ class RealtimePSAR:
 
     def decide_first_trend(self, price):
         """
-        重み付けなしの多数決ロジックで初期トレンドを決定するメソッド。
-        多数決条件の閾値を緩和。
+        現時点の価格を基準に多数決を行い、固定長 n のデータで判定するメソッド。
+        「低いデータが多い場合は上昇トレンド、そうでない場合は下降トレンド」として実装。
         """
-        self.initial_prices.append(price)  # 現在の価格を蓄積リストに追加
+        self.prices_deque.append(price)  # deque に追加 (maxlen により古いデータは自動削除)
 
-        if len(self.initial_prices) < self.initial_min_data_points:
-            # 必要なデータ点数に達するまでトレンドは決定しない
-            self.obj.price = price  # 最新価格は更新しておく
-            return self.obj
-        else:
-            # データ点数が揃ったら、重み付けなし多数決で初期トレンドを決定
-            up_votes = 0
-            down_votes = 0
-            total_votes = 0
-
-            for i in range(1, self.initial_min_data_points):
-                prev_price = self.initial_prices[i - 1]
-                current_price = self.initial_prices[i]
-
-                if current_price > prev_price:
-                    up_votes += 1
-                    total_votes += 1
-                elif current_price < prev_price:
-                    down_votes += 1
-                    total_votes += 1
-
-            # トレンドの最終決定
-            # 閾値を 0.6 (60%以上) に変更
-            threshold = 0.6
-
-            if total_votes == 0:
-                self.obj.trend = 0
-            elif up_votes / total_votes >= threshold:  # 上昇が閾値以上
-                self.obj.trend = +1
-                self.obj.ep = max(self.initial_prices)
-                self.obj.psar = min(self.initial_prices)
-            elif down_votes / total_votes >= threshold:  # 下降が閾値以上
-                self.obj.trend = -1
-                self.obj.ep = min(self.initial_prices)
-                self.obj.psar = max(self.initial_prices)
-            else:
-                self.obj.trend = 0
-
-            if self.obj.trend != 0:
-                self.obj.af = self.af_init
-                self.obj.epupd = 0
-                self.initial_prices = []
-
+        # 必要なデータ点数に達しているか確認 (deque の長さが n に達しているか)
+        if len(self.prices_deque) < self.n:
             self.obj.price = price
             return self.obj
+
+        # --- トレンド判定ロジック ---
+        lower_votes = 0
+        higher_votes = 0
+
+        # deque 内の全要素を対象とする
+        for p in self.prices_deque:
+            if p <= price:  # 現時点での価格以下のデータ
+                lower_votes += 1
+            else:  # 現時点での価格より高いデータ
+                higher_votes += 1
+
+        total_votes = lower_votes + higher_votes
+
+        # 多数決の閾値 (2:1 = 約66.6%)
+        threshold_ratio = 2 / 3  # 今回のご要望に合わせて 2/3 に戻します
+
+        if total_votes == 0:
+            self.obj.trend = 0
+        elif lower_votes / total_votes >= threshold_ratio:
+            # 「低いデータが多い場合」は上昇トレンド
+            self.obj.trend = +1
+            self.obj.ep = max(self.prices_deque)  # EPは期間内の最高値
+            self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
+
+            # トレンド決定後、deque をクリアして次のトレンド決定に備える（必要であれば）
+            # もしトレンドが一度決定されたら、dequeはもう使用しないためクリア
+            self.prices_deque.clear()
+
+        elif higher_votes / total_votes >= threshold_ratio:
+            # 「高いデータが多い場合」は下降トレンド
+            self.obj.trend = -1
+            self.obj.ep = min(self.prices_deque)  # EPは期間内の最低値
+            self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
+
+            # トレンド決定後、deque をクリア
+            self.prices_deque.clear()
+        else:
+            # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
+            self.obj.trend = 0
+
+            # トレンドが決定された場合のみ、AFを初期化
+        if self.obj.trend != 0:
+            self.obj.af = self.af_init
+            self.obj.epupd = 0
+
+        self.obj.price = price
+        return self.obj
 
     def cmp_ep(self, price: float) -> bool:
         if 0 < self.obj.trend:
