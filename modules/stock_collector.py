@@ -1,6 +1,7 @@
 import logging
 import sys
 
+import pandas as pd
 import xlwings as xw
 
 # Windows 固有のライブラリ
@@ -39,7 +40,11 @@ class StockCollectorWorker(QObject):
 
         # Excel ワークシート情報
         self.cell_bottom = "------"
-        self.list_ticker = list()
+        self.list_ticker = list()  # 銘柄リスト
+        self.dict_row = dict()  # 銘柄の行位置
+        self.dict_name = dict()  # 銘柄名
+        self.dict_df = dict()  # 銘柄別データフレーム
+
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
         self.col_name = 1  # 銘柄名
@@ -57,7 +62,6 @@ class StockCollectorWorker(QObject):
         #
         #######################################################################
 
-        dict_name = dict()
         row = 1
         flag_loop = True
         while flag_loop:
@@ -68,16 +72,25 @@ class StockCollectorWorker(QObject):
                 # 銘柄コード
                 self.list_ticker.append(ticker)
 
+                # 行位置
+                self.dict_row[ticker] = row
+
                 # 銘柄名
-                dict_name[ticker] = self.sheet[row, self.col_name].value
+                self.dict_name[ticker] = self.sheet[row, self.col_name].value
+
+                # 銘柄別に空のデータフレームを準備
+                self.dict_df[ticker] = pd.DataFrame({
+                    "Time": list(),
+                    "Price": list()
+                })
 
                 # 行番号のインクリメント
                 row += 1
 
-        # ---------------------------------------------------------
+        # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
-        self.notifyTickerN.emit(self.list_ticker, dict_name)
-        # ---------------------------------------------------------
+        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
+        # --------------------------------------------------------------
 
 
 class StockCollector(QThread):
