@@ -54,6 +54,7 @@ class StockVein(QMainWindow):
         self.stock_collector = stock_collector = StockCollector(res)
         stock_collector.threadReady.connect(self.on_stock_collector_ready)
         stock_collector.worker.notifyTickerN.connect(self.on_ticker_list)
+        stock_collector.worker.saveCompleted.connect(self.on_save_completed)
         stock_collector.start()
 
         self.timer = timer = QTimer()
@@ -78,12 +79,11 @@ class StockVein(QMainWindow):
         # Thread Stock Collector の削除
         # ---------------------------------------------------------------------
         if self.stock_collector.isRunning():
-            self.logger.info(f"Stopping StockCollector...")
             self.stock_collector.requestStopProcess.emit()
-            time.sleep(5)
+            self.logger.info("Stopping StockCollector...")
             self.stock_collector.quit()  # スレッドのイベントループに終了を指示
             self.stock_collector.wait()  # スレッドが完全に終了するまで待機
-            self.logger.info(f"StockCollector safely terminated.")
+            self.logger.info("StockCollector safely terminated.")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
@@ -105,11 +105,19 @@ class StockVein(QMainWindow):
         elif self.ts_ca < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+            # 収集したデータの保存
+            self.stock_collector.requestSaveDataFrame.emit()
         else:
             pass
 
         # ツールバーの時刻を更新
         self.toolbar.updateTime(self.ts_system)
+
+    def on_save_completed(self, state:bool):
+        if state:
+            self.logger.info("データを正常に保存しました。")
+        else:
+            self.logger.info("データを正常に保存できませんでした。")
 
     def on_ticker_list(self, list_ticker: list, dict_name: dict):
         for ticker in list_ticker:

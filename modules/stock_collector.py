@@ -21,6 +21,8 @@ from structs.res import AppRes
 class StockCollectorWorker(QObject):
     # 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict)
+    # 保存の終了を通知
+    saveCompleted = Signal(bool)
     # スレッドの終了を通知
     threadFinished = Signal()
 
@@ -142,6 +144,37 @@ class StockCollectorWorker(QObject):
                 #
                 ###############################################################
 
+    def saveDataFrame(self):
+        # 保存するファイル名
+        date_str = get_date_str_today()
+        name_excel = os.path.join(
+            self.res.dir_collection,
+            f"ticks_{date_str}.xlsx"
+        )
+        # 念のため、空のデータでないか確認して空でなければ保存
+        r = 0
+        for ticker in self.list_ticker:
+            df = self.dict_df[ticker]
+            r += len(df)
+        if r == 0:
+            # すべてのデータフレームの行数が 0 の場合は保存しない。
+            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            flag = False
+        else:
+            # ティックデータの保存処理
+            try:
+                save_dataframe_to_excel(name_excel, self.dict_df)
+                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+                flag = True
+            except ValueError as e:
+                self.logger.error(f"{__name__} error occurred!: {e}")
+                flag = False
+
+        # ----------------------------
+        # 🧿 保存の終了を通知
+        self.saveCompleted.emit(flag)
+        # ----------------------------
+
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
@@ -166,40 +199,16 @@ class StockCollectorWorker(QObject):
             """
             self.wb = None  # オブジェクト参照をクリア
 
-        # 保存するファイル名
-        date_str = get_date_str_today()
-        name_excel = os.path.join(
-            self.res.dir_collection,
-            f"ticks_{date_str}.xlsx"
-        )
-
-        # 念のため、空のデータでないか確認して空でなければ保存
-        r = 0
-        for ticker in self.list_ticker:
-            df = self.dict_df[ticker]
-            r += len(df)
-
-        if r == 0:
-            # すべてのデータフレームの行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
-        else:
-            # ティックデータの保存処理
-            try:
-                save_dataframe_to_excel(name_excel, self.dict_df)
-                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
-            except ValueError as e:
-                self.logger.error(f"{__name__} error occurred!: {e}")
-
         # -------------------------------
         # 🧿 スレッド終了シグナルの通知
         self.threadFinished.emit()
         # -------------------------------
 
 
-
 class StockCollector(QThread):
     requestWorkerInit = Signal()
     requestCurrentPrice = Signal()
+    requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
@@ -228,6 +237,9 @@ class StockCollector(QThread):
 
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
+
+        # データフレームを保存するメソッドへキューイング
+        self.requestSaveDataFrame.connect(worker.saveDataFrame)
 
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
