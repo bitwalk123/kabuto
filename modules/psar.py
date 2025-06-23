@@ -12,7 +12,13 @@ class PSARObject:
 
 
 class RealtimePSAR:
-    def __init__(self, af_init: float = 0.0, af_step: float = 0.00002, af_max: float = 0.002, n: int = 30):
+    def __init__(
+            self,
+            af_init: float = 0.0,
+            af_step: float = 0.00002,
+            af_max: float = 0.002,
+            n: int = 30
+    ):
         self.af_init = af_init
         self.af_step = af_step
         self.af_max = af_max
