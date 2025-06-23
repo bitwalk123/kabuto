@@ -4,11 +4,14 @@ from PySide6.QtWidgets import QApplication, QMainWindow
 from PySide6.QtCore import QTimer
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-
+import matplotlib.pyplot as plt
 
 class TrendChartWidget(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+        # Matplotlib のスタイルシートを適用
+        # ここで 'dark_background' を使うことで、背景が暗くなり、テキストや線が明るくなります。
+        plt.style.use('dark_background')
 
         # データの初期化
         self.counter = 0
