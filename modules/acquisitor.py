@@ -173,6 +173,7 @@ class AcquireWorker(QObject):
         :return:
         """
         if self.wb:
+            """
             try:
                 self.wb.close()  # ブックを閉じる
                 print("Worker: Excel book closed.")
@@ -185,6 +186,7 @@ class AcquireWorker(QObject):
                     print("Worker: Excel app quit.")
                 except Exception as e:
                     print(f"Worker: Error quitting app: {e}")
+            """
             self.wb = None  # オブジェクト参照をクリア
         # -------------------------
         # 🧿 スレッド終了シグナルの通知

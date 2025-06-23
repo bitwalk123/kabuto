@@ -200,6 +200,7 @@ class Kabuto(QMainWindow):
             try:
                 if self.acquire_thread.isRunning():
                     self.requestStopProcess.emit()
+                    time.sleep(1)
                     self.acquire_thread.quit()
                     self.acquire_thread.deleteLater()
                     self.logger.info(f"acquire スレッドを削除しました。")
