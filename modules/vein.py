@@ -1,6 +1,9 @@
+import datetime
 import logging
 import os
+import time
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
@@ -16,6 +19,25 @@ class StockVein(QMainWindow):
         self.logger = logging.getLogger(__name__)
 
         self.res = res = AppRes()
+        self.timer_interval = 1000
+
+        # _____________________________________________________________________
+        # 本日の日時情報より、ザラバ中の時刻情報を定義
+        dt = datetime.datetime.now()
+        year = dt.year
+        month = dt.month
+        day = dt.day
+        dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
+        dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
+        dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
+        dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
+        dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
+        # タイムスタンプに変換してインスタンス変数で保持
+        self.ts_start = dt_start.timestamp()
+        self.ts_end_1h = dt_end_1h.timestamp()
+        self.ts_start_2h = dt_start_2h.timestamp()
+        self.ts_ca = dt_ca.timestamp()
+        self.ts_end = dt_end.timestamp()
 
         # ---------------------------------------------------------------------
         #  UI
@@ -34,6 +56,11 @@ class StockVein(QMainWindow):
         stock_collector.worker.notifyTickerN.connect(self.on_ticker_list)
         stock_collector.start()
 
+        self.timer = timer = QTimer()
+        timer.setInterval(self.timer_interval)
+        timer.timeout.connect(self.on_request_data)
+        timer.start()
+
     def closeEvent(self, event: QCloseEvent):
         """
         アプリ終了イベント
@@ -41,10 +68,19 @@ class StockVein(QMainWindow):
         :return:
         """
         # ---------------------------------------------------------------------
+        # タイマーの停止
+        # ---------------------------------------------------------------------
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+
+        # ---------------------------------------------------------------------
         # Thread Stock Collector の削除
         # ---------------------------------------------------------------------
         if self.stock_collector.isRunning():
             self.logger.info(f"Stopping StockCollector...")
+            self.stock_collector.requestStopProcess.emit()
+            time.sleep(5)
             self.stock_collector.quit()  # スレッドのイベントループに終了を指示
             self.stock_collector.wait()  # スレッドが完全に終了するまで待機
             self.logger.info(f"StockCollector safely terminated.")
@@ -52,6 +88,32 @@ class StockVein(QMainWindow):
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
+
+    def on_request_data(self):
+        # システム時刻
+        self.ts_system = time.time()
+        if self.ts_start <= self.ts_system <= self.ts_end_1h:
+            # --------------------------------------
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
+            self.stock_collector.requestCurrentPrice.emit()
+            # --------------------------------------
+        elif self.ts_start_2h <= self.ts_system <= self.ts_ca:
+            # --------------------------------------
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
+            self.stock_collector.requestCurrentPrice.emit()
+            # --------------------------------------
+        elif self.ts_ca < self.ts_system:
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+            # ティックデータの保存
+            # self.save_regular_tick_data()
+            # 取引結果を取得
+            # self.requestTransactionResult.emit()
+        else:
+            pass
+
+        # ツールバーの時刻を更新
+        self.toolbar.updateTime(self.ts_system)
 
     def on_ticker_list(self, list_ticker: list, dict_name: dict):
         for ticker in list_ticker:

@@ -237,6 +237,7 @@ class ToolBarTransaction(QToolBar):
 class ToolBarVein(QToolBar):
     def __init__(self, res: AppRes):
         super().__init__()
+        self.setFixedHeight(32)
         self.res = res
 
         hpad = PadH()
@@ -247,3 +248,7 @@ class ToolBarVein(QToolBar):
 
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
+
+    def updateTime(self, ts: float):
+        dt = datetime.datetime.fromtimestamp(ts)
+        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
