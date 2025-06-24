@@ -190,5 +190,5 @@ class AcquireWorker(QObject):
             self.wb = None  # オブジェクト参照をクリア
         # -------------------------
         # 🧿 スレッド終了シグナルの通知
-        self.threadFinished.emit()
+        self.threadFinished.emit(True)
         # -------------------------
