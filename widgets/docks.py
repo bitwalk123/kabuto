@@ -8,7 +8,7 @@ from widgets.buttons import (
     ButtonRepay,
     ButtonSave,
     ButtonSell,
-    ButtonSemiAuto,
+    ButtonSemiAuto, ToggleButtonAuto,
 )
 from widgets.containers import (
     Frame,
@@ -113,6 +113,10 @@ class DockTrader(QDockWidget):
         layout.addWidget(row_tool)
         layout_tool = HBoxLayout()
         row_tool.setLayout(layout_tool)
+
+        # （フル）オート用トグルボタン
+        but_auto = ToggleButtonAuto(res)
+        layout_tool.addWidget(but_auto)
 
         # 余白
         pad = PadH()

@@ -1,5 +1,6 @@
 import os
 
+from PySide6.QtCore import QMargins
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QButtonGroup,
@@ -63,6 +64,7 @@ class ButtonRepay(QPushButton):
 class ButtonConf(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setIcon(
             self.style().standardIcon(
                 QStyle.StandardPixmap.SP_FileDialogDetailedView
@@ -70,9 +72,15 @@ class ButtonConf(QPushButton):
         )
 
 
+class ButtonGroup(QButtonGroup):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+
 class ButtonPig(QPushButton):
     def __init__(self, res: AppRes):
         super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
         imgname = os.path.join(res.dir_image, 'pig.png')
         self.setIcon(QIcon(imgname))
 
@@ -113,6 +121,7 @@ class ButtonSell(QPushButton):
 class ButtonSemiAuto(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
+        self.setFixedHeight(32)
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
@@ -129,7 +138,7 @@ class ButtonSemiAuto(QPushButton):
                 background-color: #ccc;
             }
         """)
-        self.setText("手動エントリ\n自動返済")
+        self.setText("セミオート")
 
 
 class RadioButton(QRadioButton):
@@ -149,6 +158,10 @@ class RadioButtonInt(QRadioButton):
         return self.value
 
 
-class ButtonGroup(QButtonGroup):
-    def __init__(self, *args):
-        super().__init__(*args)
+class ToggleButtonAuto(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setCheckable(True)
+        imgname = os.path.join(res.dir_image, "autopilot.png")
+        self.setIcon(QIcon(imgname))
