@@ -113,12 +113,10 @@ class RealtimePSAR:
         elif self.threshold_ratio < votes_lower / total_votes:
             # 「低いデータが多い場合」は上昇トレンド
             self.obj.trend = +1
-            # self.obj.ep = max(self.prices_deque)  # EPは期間内の最高値
             self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
         elif self.threshold_ratio < votes_higher / total_votes:
             # 「高いデータが多い場合」は下降トレンド
             self.obj.trend = -1
-            # self.obj.ep = min(self.prices_deque)  # EPは期間内の最低値
             self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
         else:
             # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
@@ -126,7 +124,7 @@ class RealtimePSAR:
 
         if self.obj.trend != 0:
             # トレンドが決定された場合のみ、EPとAFを初期化
-            self.obj.ep = price
+            self.obj.ep = price # EPは現在価格から
             self.obj.af = self.af_init
             self.obj.epupd = 0
             # トレンド決定後、deque をクリア
