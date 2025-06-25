@@ -115,7 +115,7 @@ class DockTrader(QDockWidget):
         row_tool.setLayout(layout_tool)
 
         # （フル）オート用トグルボタン
-        but_auto = ToggleButtonAuto(res)
+        self.autopilot = but_auto = ToggleButtonAuto(res)
         layout_tool.addWidget(but_auto)
 
         # 余白
