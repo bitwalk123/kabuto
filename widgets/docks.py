@@ -35,7 +35,7 @@ class DockTrader(QDockWidget):
         self.res = res
         self.ticker = ticker
         self.trend: int = 0
-        self.started_semiauto = False
+        self.flag_position_open_by_trend = False  # トレンドに従った売買
 
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
@@ -99,7 +99,7 @@ class DockTrader(QDockWidget):
         # セミオートボタン
         self.but_semi_auto = but_semi_auto = ButtonSemiAuto()
         but_semi_auto.setEnabled(False)
-        but_semi_auto.clicked.connect(self.on_semi_auto)
+        but_semi_auto.clicked.connect(self.on_position_open_by_trend)
         layout.addWidget(but_semi_auto)
 
         # 合計損益表示
@@ -194,32 +194,32 @@ class DockTrader(QDockWidget):
         # -------------------------------------------
         self.actSellBuy()
 
-    def on_semi_auto(self, state: bool):
+    def on_position_open_by_trend(self, state: bool):
         if state:
-            self.semi_auto_position_open()
+            self.position_open_by_trend()
         else:
-            self.semi_out_position_close_force()
+            self.position_close()
 
-        self.started_semiauto = state
+        self.flag_position_open_by_trend = state
 
-    def semi_auto_position_open(self):
+    def position_open_by_trend(self):
         if self.trend > 0:
-            note = "買建（セミオート）"
+            note = "買建（トレンド追従）"
             self.on_buy(note)
         elif self.trend < 0:
-            note = "売建（セミオート）"
+            note = "売建（トレンド追従）"
             self.on_sell(note)
         self.but_repay.setEnabled(False)
 
-    def semi_auto_position_close(self):
-        note = "トレンド反転→返済（セミオート）"
+    def position_close(self):
+        note = "強制返済（手動）"
         self.on_repay(note)
-        self.started_semiauto = False
-        self.but_semi_auto.setChecked(False)
 
-    def semi_out_position_close_force(self):
-        note = "強制返済（セミオート）"
+    def position_close_auto(self):
+        note = "トレンド反転→返済（オート）"
         self.on_repay(note)
+        self.flag_position_open_by_trend = False
+        self.but_semi_auto.setChecked(False)
 
     def setEPUpd(self, epupd: int):
         if epupd > 0:
@@ -239,8 +239,8 @@ class DockTrader(QDockWidget):
         self.lcd_total.display(f"{total:.1f}")
 
     def setTrend(self, trend: int, epupd: int):
-        if self.started_semiauto:
+        if self.flag_position_open_by_trend:
             if self.trend != trend:
-                self.semi_auto_position_close()
+                self.position_close_auto()
         self.trend = trend
         self.setEPUpd(epupd)
