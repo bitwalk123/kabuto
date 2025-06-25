@@ -228,6 +228,10 @@ class DockTrader(QDockWidget):
     def setEPUpd(self, epupd: int):
         if epupd > 0:
             self.but_semi_auto.setEnabled(True)
+            if self.autopilot.isChecked():
+                if not self.but_semi_auto.isChecked():
+                    self.but_semi_auto.setChecked(True)
+                    self.on_position_open_by_trend(True)
         else:
             self.but_semi_auto.setEnabled(False)
 
