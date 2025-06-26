@@ -129,8 +129,9 @@ class DockTrader(QDockWidget):
         row_tool.setLayout(layout_tool)
 
         # オート用トグルボタン
-        self.autopilot = but_auto = ToggleButtonAuto(res)
-        layout_tool.addWidget(but_auto)
+        self.autopilot = but_autopilot = ToggleButtonAuto(res)
+        but_autopilot.setChecked(True)  # デフォルトで ON
+        layout_tool.addWidget(but_autopilot)
 
         # 余白
         pad = PadH()
@@ -217,7 +218,6 @@ class DockTrader(QDockWidget):
             self.position_open_by_trend()
         else:
             self.position_close()
-
 
     def position_open_by_trend(self):
         if self.trend > 0:
