@@ -65,6 +65,10 @@ class DockTrader(QDockWidget):
 
         # 売掛ボタン
         self.but_sell = but_sell = ButtonSell()
+        # ----------------------------------------------------------
+        # 意図的に clicked シグナルを使用している
+        # 買建、売建、返済ボタンの組み合わせで Enable, Disable をカスタマイズ
+        # ----------------------------------------------------------
         but_sell.clicked.connect(self.on_sell)
         layout_buysell.addWidget(but_sell)
 
@@ -74,6 +78,10 @@ class DockTrader(QDockWidget):
 
         # 買掛ボタン
         self.but_buy = but_buy = ButtonBuy()
+        # ----------------------------------------------------------
+        # 意図的に clicked シグナルを使用している
+        # 買建、売建、返済ボタンの組み合わせで Enable, Disable をカスタマイズ
+        # ----------------------------------------------------------
         but_buy.clicked.connect(self.on_buy)
         layout_buysell.addWidget(but_buy)
 
@@ -86,6 +94,10 @@ class DockTrader(QDockWidget):
         # 建玉返済ボタン
         self.but_repay = but_repay = ButtonRepay()
         self.but_repay.setDisabled(True)
+        # ----------------------------------------------------------
+        # 意図的に clicked シグナルを使用している
+        # 買建、売建、返済ボタンの組み合わせで Enable, Disable をカスタマイズ
+        # ----------------------------------------------------------
         but_repay.clicked.connect(self.on_repay)
         layout.addWidget(but_repay)
 
@@ -95,9 +107,12 @@ class DockTrader(QDockWidget):
         self.lcd_epupd = lcd_epupd = LCDInt(self)
         layout.addWidget(lcd_epupd)
 
-        # セミオートボタン
+        # セミオートボタン（利確・損切のために手動で返済できる）
         self.semi_auto = but_semi_auto = ButtonSemiAuto()
         but_semi_auto.setEnabled(False)
+        # ----------------------------------
+        # 通常通り toggled シグナルを使用している
+        # ----------------------------------
         but_semi_auto.toggled.connect(self.on_toggled_semi_auto)
         layout.addWidget(but_semi_auto)
 
@@ -113,7 +128,7 @@ class DockTrader(QDockWidget):
         layout_tool = HBoxLayout()
         row_tool.setLayout(layout_tool)
 
-        # （フル）オート用トグルボタン
+        # オート用トグルボタン
         self.autopilot = but_auto = ToggleButtonAuto(res)
         layout_tool.addWidget(but_auto)
 
