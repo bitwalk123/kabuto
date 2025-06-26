@@ -139,6 +139,7 @@ class ButtonSemiAuto(QPushButton):
             }
         """)
         self.setText("Semi AUTO")
+        self.setToolTip("セミオート")
 
 
 class RadioButton(QRadioButton):
