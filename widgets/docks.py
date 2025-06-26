@@ -8,7 +8,7 @@ from widgets.buttons import (
     ButtonRepay,
     ButtonSave,
     ButtonSell,
-    ButtonSemiAuto, ToggleButtonAuto,
+    ButtonSemiAuto, ToggleButtonAutoPilot,
 )
 from widgets.containers import (
     Frame,
@@ -129,7 +129,7 @@ class DockTrader(QDockWidget):
         row_tool.setLayout(layout_tool)
 
         # オート用トグルボタン
-        self.autopilot = but_autopilot = ToggleButtonAuto(res)
+        self.autopilot = but_autopilot = ToggleButtonAutoPilot(res)
         but_autopilot.setChecked(True)  # デフォルトで ON
         layout_tool.addWidget(but_autopilot)
 

@@ -121,11 +121,11 @@ class ButtonSell(QPushButton):
 class ButtonSemiAuto(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedHeight(32)
         self.setCheckable(True)
         self.setStyleSheet("""
             QPushButton {
                 font-size: 8pt;
+                font-weight: bold;
                 color: black;
                 background-color: #fed;
             }
@@ -138,7 +138,7 @@ class ButtonSemiAuto(QPushButton):
                 background-color: #ccc;
             }
         """)
-        self.setText("セミオート")
+        self.setText("Semi AUTO")
 
 
 class RadioButton(QRadioButton):
@@ -158,7 +158,7 @@ class RadioButtonInt(QRadioButton):
         return self.value
 
 
-class ToggleButtonAuto(QPushButton):
+class ToggleButtonAutoPilot(QPushButton):
     def __init__(self, res: AppRes):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
