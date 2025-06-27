@@ -11,6 +11,10 @@ class Apostle:
         self.res = AppRes()
 
     def get_sources(self) -> list:
+        """
+        集計対象のファイルリストを返す
+        :return:
+        """
         dir_path = self.res.dir_collection
         list_excel = glob.glob(os.path.join(dir_path, "ticks_*.xlsx"))
         return list_excel
