@@ -40,7 +40,7 @@ class Apostle:
             # Excel ワークシート名の一覧
             list_sheet = wb.sheet_names
             dict_ticker = get_ticker_name_list(list_sheet)
-            for sheet in sorted(list_sheet[:1]):
+            for sheet in sorted(list_sheet):
                 df = pd.read_excel(file_excel, sheet_name=sheet)
                 df.index = pd.to_datetime(
                     [datetime.datetime.fromtimestamp(t) for t in df["Time"]]
