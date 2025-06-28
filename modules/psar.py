@@ -17,7 +17,7 @@ class RealtimePSAR:
             af_init: float = 0.00004,
             af_step: float = 0.00004,
             af_max: float = 0.004,
-            n: int = 30
+            rolling_n: int = 30
     ):
         self.af_init = af_init
         self.af_step = af_step
@@ -27,8 +27,8 @@ class RealtimePSAR:
         self.obj = PSARObject()
 
         # 最初のエントリは多数決ロジックで決定する
-        self.n = n  # 固定長のデータ点数（n 個でローリング）
-        self.prices_deque = deque(maxlen=self.n)  # deque を使用し、最大長を n に設定
+        self.rolling_n = rolling_n  # 固定長のデータ点数（n 個でローリング）
+        self.prices_deque = deque(maxlen=self.rolling_n)  # deque を使用し、最大長を n に設定
         self.threshold_ratio = 2 / 3  # 多数決の閾値 (2:1 = 約66.6%)
 
     def add(self, price: float) -> PSARObject:
@@ -89,7 +89,7 @@ class RealtimePSAR:
         self.prices_deque.append(price)  # deque に追加 (maxlen により古いデータは自動削除)
 
         # 必要なデータ点数に達しているか確認 (deque の長さが n に達しているか)
-        if len(self.prices_deque) < self.n:
+        if len(self.prices_deque) < self.rolling_n:
             self.obj.price = price
             return self.obj
 
