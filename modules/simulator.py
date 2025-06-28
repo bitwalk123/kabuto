@@ -7,7 +7,14 @@ class TradeSimulator:
     def __init__(self, df: pd.DataFrame, dict_conf: dict):
         self.df = df
         self.dict_conf = dict_conf
-        self.psar = RealtimePSAR()
+        af = dict_conf["AF"]
+        af_init = af
+        af_step = af
+        af_max = af * 100
+        rolling_n = dict_conf["rolling N"]
+        self.psar = RealtimePSAR(
+            af_init, af_step, af_max, rolling_n
+        )
 
     def run(self):
         # 移動メディアンの算出
@@ -21,4 +28,5 @@ class TradeSimulator:
             p = self.df.at[t, "MMPrice"]
             self.psar.add(p)
             self.df.at[t, "Trend"] = self.psar.obj.trend
+            self.df.at[t, "EPupd"] = self.psar.obj.epupd
             self.df.at[t, "PSAR"] = self.psar.obj.psar
