@@ -1,13 +1,12 @@
 import logging
 
 import pandas as pd
-from PySide6.QtCore import QObject
 
 from funcs.tide import conv_datetime_from_timestamp
 from structs.posman import PositionType
 
 
-class PositionManager(QObject):
+class PositionManager:
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)

@@ -109,9 +109,11 @@ class Kabuto(QMainWindow):
         self.ts_start = 0
         self.ts_end_1h = 0
         self.ts_start_2h = 0
+        self.ts_end_2h = 0  # CA 前に取引を終了する時間
         self.ts_ca = 0
         self.ts_end = 0
         self.date_str = 0
+        self.finished_trading = False  # 取引が終了したかどうかのフラグ
 
         # ザラ場用インスタンス（ランタイム・スレッド）
         self.acquire_thread: QThread | None = None
@@ -285,8 +287,10 @@ class Kabuto(QMainWindow):
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
 
-    def on_thread_ticker_ready(self, ticker: str):
-        self.logger.info(f"Thread for {ticker} is ready.")
+    def force_closing_position(self):
+        for ticker in self.dict_trader.keys():
+            trader = self.dict_trader[ticker]
+            trader.dock.finishAutoTrade()
 
     def get_current_tick_data(self) -> dict:
         """
@@ -406,11 +410,16 @@ class Kabuto(QMainWindow):
             # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
             # --------------------------------------
-        elif self.ts_start_2h <= self.ts_system <= self.ts_ca:
+        elif self.ts_start_2h <= self.ts_system <= self.ts_end_2h:
             # --------------------------------------
             # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
             # --------------------------------------
+        elif self.ts_end_2h < self.ts_system <= self.ts_ca:
+            if not self.finished_trading:
+                # ポジションがあればクローズする
+                self.force_closing_position()
+                self.finished_trading = True
         elif self.ts_ca < self.ts_system:
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
@@ -422,6 +431,29 @@ class Kabuto(QMainWindow):
             pass
 
         # ツールバーの時刻を更新
+        self.toolbar.updateTime(self.ts_system)
+
+    def on_request_data_review(self):
+        """
+        タイマー処理（デバッグ）
+        """
+        # --------------------------------------------------
+        # 🧿 現在価格の取得要求をワーカースレッドに通知
+        self.requestCurrentPriceReview.emit(self.ts_system)
+        # --------------------------------------------------
+        self.ts_system += 1
+        if self.ts_end_2h < self.ts_system <= self.ts_ca:
+            if not self.finished_trading:
+                # ポジションがあればクローズする
+                self.force_closing_position()
+                self.finished_trading = True
+        elif self.ts_end < self.ts_system:
+            self.timer.stop()
+            self.logger.info("タイマーを停止しました。")
+            # 取引結果を取得
+            self.requestTransactionResult.emit()
+
+        # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
 
     def on_save_data(self) -> bool:
@@ -467,6 +499,9 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info("タイマーを停止しました。")
+
+    def on_thread_ticker_ready(self, ticker: str):
+        self.logger.info(f"Thread for {ticker} is ready.")
 
     def on_transaction_result(self, df: pd.DataFrame):
         """
@@ -580,12 +615,14 @@ class Kabuto(QMainWindow):
         dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
         dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)
         dt_start_2h = datetime.datetime(year, month, day, hour=12, minute=30)
+        dt_end_2h = datetime.datetime(year, month, day, hour=15, minute=24, second=50)
         dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
         dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
         # タイムスタンプに変換してインスタンス変数で保持
         self.ts_start = dt_start.timestamp()
         self.ts_end_1h = dt_end_1h.timestamp()
         self.ts_start_2h = dt_start_2h.timestamp()
+        self.ts_end_2h = dt_end_2h.timestamp()
         self.ts_ca = dt_ca.timestamp()
         self.ts_end = dt_end.timestamp()
         # 日付文字列
@@ -701,24 +738,6 @@ class Kabuto(QMainWindow):
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         self.data_ready = True
         self.logger.info("レビューの準備完了です。")
-
-    def on_request_data_review(self):
-        """
-        タイマー処理（デバッグ）
-        """
-        # --------------------------------------------------
-        # 🧿 現在価格の取得要求をワーカースレッドに通知
-        self.requestCurrentPriceReview.emit(self.ts_system)
-        # --------------------------------------------------
-        self.ts_system += 1
-        if self.ts_end < self.ts_system:
-            self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
-            # 取引結果を取得
-            self.requestTransactionResult.emit()
-
-        # ツールバーの時刻を更新（現在時刻を表示するだけ）
-        self.toolbar.updateTime(self.ts_system)
 
     def on_review_play(self):
         """

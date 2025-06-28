@@ -1,3 +1,5 @@
+import logging
+
 from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import QDockWidget
 
@@ -32,6 +34,7 @@ class DockTrader(QDockWidget):
 
     def __init__(self, res: AppRes, ticker: str):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.res = res
         self.ticker = ticker
         self.trend: int = 0
@@ -171,6 +174,19 @@ class DockTrader(QDockWidget):
         self.but_sell.setChecked(False)
         self.but_repay.setEnabled(False)
 
+    def finishAutoTrade(self):
+        if self.autopilot.isChecked():
+            self.autopilot.setChecked(False)
+            self.logger.info(
+                f"{__name__} {self.ticker} のオートボタンのチェックを外しました。"
+            )
+            if self.semi_auto.isEnabled():
+                if self.semi_auto.isChecked():
+                    self.semi_auto.setChecked(False)
+                    self.logger.info(
+                        f"{__name__} {self.ticker} のセミオートボタンのチェックを外しました。"
+                    )
+
     def getPrice(self) -> float:
         return self.lcd_price.value()
 
@@ -243,6 +259,9 @@ class DockTrader(QDockWidget):
             if epupd == 1 and self.autopilot.isChecked():
                 if not self.semi_auto.isChecked():
                     self.semi_auto.setChecked(True)
+                    self.logger.info(
+                        f"{__name__} {self.ticker} のセミオートボタンをチェックしました。"
+                    )
         else:
             self.semi_auto.setEnabled(False)
 
@@ -261,5 +280,9 @@ class DockTrader(QDockWidget):
         if self.trend != trend:
             if self.semi_auto.isChecked():
                 self.semi_auto.setChecked(False)
+                self.logger.info(
+                    f"{__name__} {self.ticker} のセミオートボタンのチェックを外しました。"
+                )
+
         self.trend = trend
         self.setEPUpd(epupd)
