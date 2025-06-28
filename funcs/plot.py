@@ -27,6 +27,5 @@ def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
     ax.set_title(condition, fontsize="small")
 
     plt.suptitle(title)
-    #plt.tight_layout()
     plt.savefig(imgname)
     plt.close()
