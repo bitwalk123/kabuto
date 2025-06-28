@@ -51,8 +51,11 @@ class Apostle:
                     "AF": 0.00004,
                     "rolling N": 30,
                 }
-                simulator = TradeSimulator(df, dict_conf)
-                simulator.run()
+                simulator = TradeSimulator(sheet, df, dict_conf)
+                profit = simulator.run()
+                print(sheet, profit)
+
+                # チャート
                 title = f"{dict_ticker[sheet]} ({sheet}) on {date_str}"
                 condition = (
                     f"moving median = {dict_conf["moving median"]}, "

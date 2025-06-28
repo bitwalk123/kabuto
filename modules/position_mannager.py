@@ -36,7 +36,7 @@ class PositionManager:
             self.dict_total[ticker] = 0.  # 銘柄毎の収益
             self.dict_position[ticker] = PositionType.NONE
 
-    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType, note: str):
+    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType, note: str = ""):
         """
         ポジションをオープン（建玉取得）
         :param ticker:
@@ -63,7 +63,7 @@ class PositionManager:
         self.df_order.at[r, "約定数量"] = self.unit
         self.df_order.at[r, "備考"] = note
 
-    def closePosition(self, ticker: str, ts: float, price: float, note: str):
+    def closePosition(self, ticker: str, ts: float, price: float, note: str = ""):
         """
         ポジションをクローズ（建玉返済）
         :param ticker:
@@ -80,6 +80,8 @@ class PositionManager:
         elif position == PositionType.SELL:
             profit = (self.dict_price[ticker] - price) * self.unit
             self.dict_total[ticker] += profit
+        else:
+            return
 
         # 取引履歴
         self.order += 1
