@@ -9,6 +9,7 @@ class AppRes:
     dir_font = 'fonts'
     dir_image = 'images'
     dir_output = 'output'
+    dir_report = 'report'
     dir_transaction = 'transaction'
 
     excel_collector = "collector.xlsx"
