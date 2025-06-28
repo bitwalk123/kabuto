@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QStyle, QWidget
@@ -17,6 +19,22 @@ class AppRes:
     debug = False
 
     tse = 'https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls'
+
+    def __init__(self):
+        if not os.path.exists(self.dir_collection):
+            os.mkdir(self.dir_collection)
+
+        if not os.path.exists(self.dir_excel):
+            os.mkdir(self.dir_excel)
+
+        if not os.path.exists(self.dir_output):
+            os.mkdir(self.dir_output)
+
+        if not os.path.exists(self.dir_report):
+            os.mkdir(self.dir_report)
+
+        if not os.path.exists(self.dir_transaction):
+            os.mkdir(self.dir_transaction)
 
     def getBuiltinIcon(self, parent: QWidget, name: str) -> QIcon:
         pixmap_icon = getattr(QStyle.StandardPixmap, 'SP_%s' % name)
