@@ -33,9 +33,11 @@ def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
     ax[0].scatter(x=ser_bear.index, y=ser_bear, s=5, c="blue")
 
     ax[0].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    ax[0].set_ylabel("Normalized Price")
     ax[0].set_title(condition, fontsize="small")
 
     ax[1].plot(df["EPupd"], color="#880", linewidth=0.5)
+    ax[1].set_ylabel("EP update")
 
     plt.suptitle(title)
     plt.savefig(imgname)
