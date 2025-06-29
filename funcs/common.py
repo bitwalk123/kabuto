@@ -1,4 +1,6 @@
 import datetime
+import glob
+import os
 import re
 
 
@@ -25,3 +27,12 @@ def get_date_str_from_collections(file_excel:str)->str:
     else:
         date_str = "1970-01-01"
     return date_str
+
+
+def get_sources_for_collection(dir_path:str) -> list:
+    """
+    シミュレーション対象のファイルリストを返す
+    :return:
+    """
+    list_excel = glob.glob(os.path.join(dir_path, "ticks_*.xlsx"))
+    return list_excel

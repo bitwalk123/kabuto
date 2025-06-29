@@ -12,8 +12,9 @@ openpyxl
 pip-chill
 pip-review
 pyqtgraph
-pyside6==6.9.0
+pyside6
 scipy
+seaborn
 tinycss2
 tomli
 uri-template
