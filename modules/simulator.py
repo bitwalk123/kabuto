@@ -36,8 +36,8 @@ class TradeSimulator:
         for t in self.df.index:
             ts = self.df.at[t, "Time"]
             price = self.df.at[t, "MinMaxPrice"]
-            p = self.df.at[t, "MMPrice"]
-            self.psar.add(p)
+            mmprice = self.df.at[t, "MMPrice"]
+            self.psar.add(mmprice)
 
             trend_new = self.psar.obj.trend
             epupd = self.psar.obj.epupd
@@ -59,7 +59,7 @@ class TradeSimulator:
                     self.posman.openPosition(self.ticker, ts, price, PositionType.SELL)
 
         ts = self.df.at[t, "Time"]
-        price = self.df.at[t, "MinMaxPrice"]
+        price = self.df.at[t, "MinMaxPrice"]  # 実価格
         self.posman.closePosition(self.ticker, ts, price)
         df_result = self.posman.getTransactionResult()
 
