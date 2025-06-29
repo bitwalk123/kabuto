@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 
@@ -65,3 +66,29 @@ def conv_transaction_df2html(df: pd.DataFrame) -> list:
     list_html.append("</table>")
 
     return list_html
+
+
+def min_max_scale(data):
+    """
+    Min-Maxスケーリングを使ってデータを [0, 1] の範囲に規格化する関数。
+
+    Args:
+        data (array-like): 規格化したい数値データのリストまたはNumPy配列。
+
+    Returns:
+        numpy.ndarray: [0, 1] の範囲に規格化されたデータ。
+    """
+    data_array = np.array(data)
+
+    # データの最小値と最大値を計算
+    min_val = np.min(data_array)
+    max_val = np.max(data_array)
+
+    # 最小値と最大値が同じ場合（データがすべて同じ値の場合）は、ゼロ除算を避ける
+    if max_val == min_val:
+        return np.zeros_like(data_array)  # 全て0にするか、適切な値を返す
+
+    # Min-Maxスケーリングを適用
+    scaled_data = (data_array - min_val) / (max_val - min_val)
+
+    return scaled_data

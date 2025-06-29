@@ -1,5 +1,6 @@
 import pandas as pd
 
+from funcs.conv import min_max_scale
 from modules.position_mannager import PositionManager
 from modules.psar import RealtimePSAR
 from structs.posman import PositionType
@@ -23,8 +24,10 @@ class TradeSimulator:
         self.trend = 0
 
     def run(self) -> int:
+        # 銘柄コード間で比較ができるように、株価を [0, 1] にスケーリング
+        self.df["MinMaxPrice"] = min_max_scale(self.df["Price"])
         # 移動メディアンの算出
-        self.df["MMPrice"] = self.df["Price"].rolling(
+        self.df["MMPrice"] = self.df["MinMaxPrice"].rolling(
             self.dict_conf["moving median"],
             min_periods=1
         ).median()
@@ -32,7 +35,7 @@ class TradeSimulator:
         # Parabolic SAR の算出
         for t in self.df.index:
             ts = self.df.at[t, "Time"]
-            price = self.df.at[t, "Price"]
+            price = self.df.at[t, "MinMaxPrice"]
             p = self.df.at[t, "MMPrice"]
             self.psar.add(p)
 
@@ -56,7 +59,7 @@ class TradeSimulator:
                     self.posman.openPosition(self.ticker, ts, price, PositionType.SELL)
 
         ts = self.df.at[t, "Time"]
-        price = self.df.at[t, "Price"]
+        price = self.df.at[t, "MinMaxPrice"]
         self.posman.closePosition(self.ticker, ts, price)
         df_result = self.posman.getTransactionResult()
 
