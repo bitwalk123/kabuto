@@ -60,9 +60,9 @@ class Apostle:
                     [datetime.datetime.fromtimestamp(t) for t in df["Time"]]
                 )
                 # シミュレーション
-                for mm in [3, 30, 60]:
+                for mm in [5, 15, 25]:
                     for af in [0.00005, 0.0001, 0.00015]:
-                        for rn in [30, 90, 150]:
+                        for rn in [30, 60, 90]:
                             dict_conf = {
                                 "moving median": mm,
                                 "AF": af,
