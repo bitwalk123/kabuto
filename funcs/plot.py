@@ -24,7 +24,7 @@ def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
         ax[i] = axis
         ax[i].grid()
 
-    ax[0].plot(df["Price"], color="gray", linewidth=0.5)
+    ax[0].plot(df["MinMaxPrice"], color="gray", linewidth=0.5)
 
     # Parabolic SAR
     ser_bull = df[df["Trend"] > 0]["PSAR"]
