@@ -46,7 +46,6 @@ class Apostle:
             })
             df_result = df_result.astype(object)
 
-
             # Excel ブックの読み込み
             wb = pd.ExcelFile(file_excel)
 
@@ -99,4 +98,4 @@ class Apostle:
             # 結果の出力
             print(df_result)
             name_report = os.path.join(dir_report, f"report_{date_str}.csv")
-            df_result.to_csv(name_report)
+            df_result.to_csv(name_report, index=False)
