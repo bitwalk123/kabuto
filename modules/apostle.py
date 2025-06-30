@@ -18,7 +18,7 @@ class Apostle:
         # ファイル一覧の取得
         list_excel = get_sources_for_collection(self.res.dir_collection)
         # 日付（Excel ファイル）毎ループ
-        file_excel = list_excel[2]
+        file_excel = list_excel[3]
         print(file_excel)
         # 出力先のディレクトリ
         date_str = get_date_str_from_collections(file_excel)
@@ -58,8 +58,8 @@ class Apostle:
                             "AF": af,
                             "rolling N": rn,
                         }
-                        simulator = TradeSimulator(sheet, df, dict_conf)
-                        profit = simulator.run()
+                        self.simulator = TradeSimulator(sheet, df, dict_conf)
+                        profit = self.simulator.run()
                         row = len(df_result)
                         df_result.at[row, "日付"] = date_str
                         df_result.at[row, "銘柄コード"] = sheet
