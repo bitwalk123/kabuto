@@ -19,7 +19,7 @@ def get_name_15min_chart_now(code: str) -> str:
     return f"{year:4d}/{month:02d}{day:02d}_15min_chart_{code}.png"
 
 
-def get_date_str_from_collections(file_excel:str)->str:
+def get_date_str_from_collections(file_excel: str) -> str:
     pattern = re.compile(r".+ticks_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
     m = pattern.match(file_excel)
     if m:
@@ -28,8 +28,16 @@ def get_date_str_from_collections(file_excel:str)->str:
         date_str = "1970-01-01"
     return date_str
 
+def get_date_str_from_report(file_excel: str) -> str:
+    pattern = re.compile(r".+report_([0-9]{4}-[0-9]{2}-[0-9]{2})\.csv")
+    m = pattern.match(file_excel)
+    if m:
+        date_str = m.group(1)
+    else:
+        date_str = "1970-01-01"
+    return date_str
 
-def get_sources_for_collection(dir_path:str) -> list:
+def get_sources_for_collection(dir_path: str) -> list:
     """
     シミュレーション対象のファイルリストを返す
     :return:
