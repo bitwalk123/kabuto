@@ -72,13 +72,13 @@ class Apostle:
                         title = f"{dict_ticker[sheet]} ({sheet}) on {date_str}"
                         condition = (
                             f"moving median = {dict_conf["moving median"]}, "
-                            f"AF = {dict_conf["AF"]:.5f}, "
+                            f"AF = {dict_conf["AF"]:.6f}, "
                             f"rolling N = {dict_conf["rolling N"]}, "
                         )
                         file_img = (
                             f'{sheet}_'
                             f'{dict_conf["moving median"]:02}_'
-                            f'{dict_conf["AF"]:.5f}_'
+                            f'{dict_conf["AF"]:.6f}_'
                             f'{dict_conf["rolling N"]:03}'
                             '.png'
                         )
