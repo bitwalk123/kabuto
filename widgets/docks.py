@@ -245,7 +245,7 @@ class DockTrader(QDockWidget):
         self.but_repay.setEnabled(False)
 
     def position_close(self):
-        note = "強制返済（手動）"
+        note = "返済"
         self.on_repay(note)
 
     def position_close_auto(self):
