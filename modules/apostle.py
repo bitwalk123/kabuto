@@ -1,10 +1,9 @@
 import datetime
-import glob
 import os
 
 import pandas as pd
 
-from funcs.common import get_date_str_from_collections
+from funcs.common import get_date_str_from_collections, get_sources_for_collection
 from funcs.plot import plot_mpl_chart
 from funcs.tse import get_ticker_name_list
 from modules.simulator import TradeSimulator
@@ -15,18 +14,9 @@ class Apostle:
     def __init__(self):
         self.res = AppRes()
 
-    def get_sources(self) -> list:
-        """
-        集計対象のファイルリストを返す
-        :return:
-        """
-        dir_path = self.res.dir_collection
-        list_excel = glob.glob(os.path.join(dir_path, "ticks_*.xlsx"))
-        return list_excel
-
     def run(self):
         # ファイル一覧の取得
-        list_excel = self.get_sources()
+        list_excel = get_sources_for_collection(self.res.dir_collection)
 
         # 日付（Excel ファイル）毎ループ
         for file_excel in sorted(list_excel):
