@@ -43,4 +43,4 @@ def get_sources_for_collection(dir_path: str) -> list:
     :return:
     """
     list_excel = glob.glob(os.path.join(dir_path, "ticks_*.xlsx"))
-    return list_excel
+    return sorted(list_excel)
