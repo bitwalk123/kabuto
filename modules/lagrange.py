@@ -16,7 +16,7 @@ class Lagrange:
         self.res = AppRes()
 
     def run(self):
-        list_csv = glob.glob(os.path.join(self.res.dir_report, "*", "report_*.csv"))
+        list_csv = sorted(glob.glob(os.path.join(self.res.dir_report, "*", "report_*.csv")))
         csv = list_csv[-1]
         print(csv)
 
