@@ -18,7 +18,7 @@ class Apostle:
         # ファイル一覧の取得
         list_excel = get_sources_for_collection(self.res.dir_collection)
         # 日付（Excel ファイル）毎ループ
-        file_excel = list_excel[3]
+        file_excel = list_excel[-1]
         print(file_excel)
         # 出力先のディレクトリ
         date_str = get_date_str_from_collections(file_excel)
@@ -50,9 +50,9 @@ class Apostle:
                 [datetime.datetime.fromtimestamp(t) for t in df["Time"]]
             )
             # シミュレーション
-            for mm in [3, 6, 9, 12, 15]:
-                for af in [0.00005, 0.0001, 0.00015, 0.0002]:
-                    for rn in [30, 60, 90]:
+            for mm in [3, 6]:
+                for af in [0.000025, 0.00005, 0.000075, 0.0001]:
+                    for rn in [30, 60]:
                         dict_conf = {
                             "moving median": mm,
                             "AF": af,
