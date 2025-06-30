@@ -53,7 +53,7 @@ class Lagrange:
         plt.close()
 
         # 銘柄コード別パフォーマンス by 移動メディアン数
-        fig, ax = plt.subplots(figsize=(8, 15))
+        fig, ax = plt.subplots(figsize=(8, 6))
         sns.boxplot(data=df, x="損益", y="銘柄コード", hue="移動メディアン数", ax=ax)
         ax.axvline(0, color="red", linewidth=0.5)
         ax.set_xlabel("Profit in Normalized Price")
@@ -67,7 +67,7 @@ class Lagrange:
         plt.close()
 
         # 銘柄コード別パフォーマンス by 加速因数
-        fig, ax = plt.subplots(figsize=(8, 13))
+        fig, ax = plt.subplots(figsize=(8, 10))
         sns.boxplot(data=df, x="損益", y="銘柄コード", hue="加速因数", ax=ax)
         ax.axvline(0, color="red", linewidth=0.5)
         ax.set_xlabel("Profit in Normalized Price")
@@ -81,7 +81,7 @@ class Lagrange:
         plt.close()
 
         # 銘柄コード別パフォーマンス by 多数決数
-        fig, ax = plt.subplots(figsize=(8, 10))
+        fig, ax = plt.subplots(figsize=(8, 6))
         sns.boxplot(data=df, x="損益", y="銘柄コード", hue="多数決数", ax=ax)
         ax.axvline(0, color="red", linewidth=0.5)
         ax.set_xlabel("Profit in Normalized Price")
