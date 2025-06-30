@@ -50,7 +50,6 @@ class Lagrange:
 
         plt.tight_layout()
         plt.savefig(os.path.join(path_dir, f"{date_str}_performance_overall.png"))
-        #plt.show()
         plt.close()
 
         # 銘柄コード別パフォーマンス by 移動メディアン数
@@ -65,7 +64,6 @@ class Lagrange:
 
         plt.tight_layout()
         plt.savefig(os.path.join(path_dir, f"{date_str}_performance_by_moving_average.png"))
-        #plt.show()
         plt.close()
 
         # 銘柄コード別パフォーマンス by 加速因数
@@ -80,7 +78,6 @@ class Lagrange:
 
         plt.tight_layout()
         plt.savefig(os.path.join(path_dir, f"{date_str}_performance_by_af.png"))
-        #plt.show()
         plt.close()
 
         # 銘柄コード別パフォーマンス by 多数決数
@@ -95,5 +92,4 @@ class Lagrange:
 
         plt.tight_layout()
         plt.savefig(os.path.join(path_dir, f"{date_str}_performance_by_majority_vote.png"))
-        #plt.show()
         plt.close()
