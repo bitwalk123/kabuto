@@ -18,7 +18,7 @@ class Apostle:
         # ファイル一覧の取得
         list_excel = get_sources_for_collection(self.res.dir_collection)
         # 日付（Excel ファイル）毎ループ
-        file_excel = list_excel[1]
+        file_excel = list_excel[2]
         print(file_excel)
         # 出力先のディレクトリ
         date_str = get_date_str_from_collections(file_excel)
