@@ -8,7 +8,8 @@ class PSARObject:
         self.ep: float = 0.
         self.af: float = -1.  # AF は 0 以上の実数
         self.psar: float = 0.
-        self.epupd: int = 0
+        self.epupd: int = 0  # EP が更新された回数
+        self.total: int = 0  # 同一 Trend のカウンタ
 
 
 class RealtimePSAR:
@@ -43,18 +44,22 @@ class RealtimePSAR:
         else:
             # trend が 0 でない時 (既存のロジック、変更なし)
             if self.cmp_psar(price):
+                # トレンド反転
                 self.obj.price = price
                 self.obj.trend *= -1
                 self.obj.psar = self.obj.ep
                 self.obj.ep = price
                 self.obj.af = self.af_init
-                self.obj.epupd = 0
+                self.obj.epupd = 0  # EP 更新回数リセット
+                self.obj.total = 0  # 同一 Trend のカウンタリセット
                 return self.obj
             else:
+                # トレンド維持
                 if self.cmp_ep(price):
                     self.update_ep_af(price)
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
                 self.obj.price = price
+                self.obj.total += 1  # 同一 Trend のカウンタのインクリメント
                 return self.obj
 
     def cmp_ep(self, price: float) -> bool:
@@ -124,9 +129,10 @@ class RealtimePSAR:
 
         if self.obj.trend != 0:
             # トレンドが決定された場合のみ、EPとAFを初期化
-            self.obj.ep = price # EPは現在価格から
-            self.obj.af = self.af_init
-            self.obj.epupd = 0
+            self.obj.ep = price  # EPは現在価格から
+            self.obj.af = self.af_init # AF の初期化
+            self.obj.epupd = 0  # EP 更新回数のリセット
+            self.obj.trend = 0  # 同一 Trend のカウンタのリセット
             # トレンド決定後、deque をクリア
             self.prices_deque.clear()
 
