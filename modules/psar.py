@@ -33,6 +33,12 @@ class RealtimePSAR:
         self.threshold_ratio = 2 / 3  # 多数決の閾値 (2:1 = 約66.6%)
 
     def add(self, price: float) -> PSARObject:
+        """
+        現在価格の追加
+        ほぼ等間隔でこのメソッドが呼び出されることを前提としているため、時刻情報は扱わない。
+        :param price:
+        :return:
+        """
         if self.obj.trend == 0:
             # 最初の add 呼び出しで obj.price を初期化し、同時に prices_deque にも追加
             if self.obj.price == 0 and not self.prices_deque:
@@ -63,6 +69,11 @@ class RealtimePSAR:
                 return self.obj
 
     def cmp_ep(self, price: float) -> bool:
+        """
+        現在価格 price と EP の比較
+        :param price:
+        :return:
+        """
         if 0 < self.obj.trend:
             if self.obj.ep < price:
                 return True
@@ -75,6 +86,11 @@ class RealtimePSAR:
                 return False
 
     def cmp_psar(self, price: float) -> bool:
+        """
+        現在価格 price と PSAR の比較
+        :param price:
+        :return:
+        """
         if 0 < self.obj.trend:
             if price < self.obj.psar:
                 return True
@@ -140,6 +156,11 @@ class RealtimePSAR:
         return self.obj
 
     def update_ep_af(self, price: float):
+        """
+        EP と AF の更新
+        :param price:
+        :return:
+        """
         self.obj.ep = price
         self.obj.epupd += 1
         if self.obj.af < self.af_max - self.af_step:
