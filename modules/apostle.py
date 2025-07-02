@@ -51,7 +51,7 @@ class Apostle:
             )
             # シミュレーション
             for mm in [3, 6]:
-                for af in [0.000025, 0.00005, 0.000075, 0.0001]:
+                for af in [0.00002, 0.00004, 0.00006, 0.00008]:
                     for rn in [30, 60]:
                         dict_conf = {
                             "moving median": mm,
@@ -72,13 +72,13 @@ class Apostle:
                         title = f"{dict_ticker[sheet]} ({sheet}) on {date_str}"
                         condition = (
                             f"moving median = {dict_conf["moving median"]}, "
-                            f"AF = {dict_conf["AF"]:.6f}, "
+                            f"AF = {dict_conf["AF"]:.5f}, "
                             f"rolling N = {dict_conf["rolling N"]}, "
                         )
                         file_img = (
                             f'{sheet}_'
                             f'{dict_conf["moving median"]:02}_'
-                            f'{dict_conf["AF"]:.6f}_'
+                            f'{dict_conf["AF"]:.5f}_'
                             f'{dict_conf["rolling N"]:03}'
                             '.png'
                         )
