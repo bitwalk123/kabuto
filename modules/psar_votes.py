@@ -18,7 +18,7 @@ class RealtimePSAR:
             af_init: float = 0.00002,
             af_step: float = 0.00002,
             af_max: float = 0.002,
-            rolling_n: int = 10
+            rolling_n: int = 30
     ):
         self.af_init = af_init
         self.af_step = af_step
@@ -116,19 +116,19 @@ class RealtimePSAR:
         elif self.threshold_ratio < votes_lower / total_votes:
             # 「低いデータが多い場合」は上昇トレンド
             self.obj.trend = +1
-            self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
+            #self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
         elif self.threshold_ratio < votes_higher / total_votes:
             # 「高いデータが多い場合」は下降トレンド
             self.obj.trend = -1
-            self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
+            #self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
         else:
             # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
             self.obj.trend = 0
 
         if self.obj.trend != 0:
             # トレンドが決定された場合のみ、EPとAFを初期化
-            self.obj.ep = price  # EP は現在価格から
-            # self.obj.psar = price # PSAR は現在価格から
+            self.obj.ep = price # EP は現在価格から
+            self.obj.psar = price # PSAR は現在価格から
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
