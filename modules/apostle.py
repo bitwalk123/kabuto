@@ -52,7 +52,7 @@ class Apostle:
             # シミュレーション
             for mm in [3, 6]:
                 for af in [0.00002, 0.00004, 0.00006, 0.00008]:
-                    for rn in [30, 60]:
+                    for rn in [60, 120]:
                         dict_conf = {
                             "moving median": mm,
                             "AF": af,

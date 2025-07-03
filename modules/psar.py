@@ -19,7 +19,7 @@ class RealtimePSAR:
             af_init: float = 0.00002,
             af_step: float = 0.00002,
             af_max: float = 0.002,
-            rolling_n: int = 10
+            rolling_n: int = 60
     ):
         self.af_init = af_init
         self.af_step = af_step
@@ -32,6 +32,8 @@ class RealtimePSAR:
         self.rolling_n = rolling_n  # 固定長のデータ点数（n 個でローリング）
         self.prices_deque = deque(maxlen=self.rolling_n)  # deque を使用し、最大長を n に設定
         self.threshold_ratio = 2 / 3  # 多数決の閾値 (2:1 = 約66.6%)
+
+        self.first_trend = True
 
     def add(self, price: float) -> PSARObject:
         if self.obj.trend == 0:
@@ -53,15 +55,30 @@ class RealtimePSAR:
                 self.obj.af = self.af_init
                 self.obj.epupd = 0
                 self.obj.duration = 0
-                return self.obj
+                self.obj.distance = abs(price - self.obj.psar)
+                self.first_trend = False
+                # return self.obj
             else:
                 # トレンド維持
                 if self.cmp_ep(price):
                     self.update_ep_af(price)
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
                 self.obj.price = price
+
+                # 最初のトレンドのみの対応
+                if self.first_trend:
+                    # PSARの調整
+                    distance = abs(price - self.obj.psar)
+                    if self.obj.distance < distance:
+                        if 0 < self.obj.trend:
+                            self.obj.psar = price - self.obj.distance
+                        elif self.obj.trend < 0:
+                            self.obj.psar = price + self.obj.distance
+
                 self.obj.duration += 1
-                return self.obj
+                # return self.obj
+
+            return self.obj
 
     def cmp_ep(self, price: float) -> bool:
         if 0 < self.obj.trend:
@@ -135,6 +152,7 @@ class RealtimePSAR:
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
+            self.obj.distance = abs(price - self.obj.psar)
             # トレンド決定後、deque をクリア
             self.prices_deque.clear()
 
