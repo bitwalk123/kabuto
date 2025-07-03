@@ -10,6 +10,7 @@ class PSARObject:
         self.psar: float = 0.
         self.epupd: int = 0
         self.duration: int = 0
+        self.distance: float = 0
 
 
 class RealtimePSAR:
@@ -44,6 +45,7 @@ class RealtimePSAR:
         else:
             # trend が 0 でない時
             if self.cmp_psar(price):
+                # トレンド反転
                 self.obj.price = price
                 self.obj.trend *= -1
                 self.obj.psar = self.obj.ep
@@ -53,6 +55,7 @@ class RealtimePSAR:
                 self.obj.duration = 0
                 return self.obj
             else:
+                # トレンド維持
                 if self.cmp_ep(price):
                     self.update_ep_af(price)
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
