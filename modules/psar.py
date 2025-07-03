@@ -9,6 +9,7 @@ class PSARObject:
         self.af: float = -1.  # AF は 0 以上の実数
         self.psar: float = 0.
         self.epupd: int = 0
+        self.duration: int = 0
 
 
 class RealtimePSAR:
@@ -41,7 +42,7 @@ class RealtimePSAR:
             else:
                 return self.decide_first_trend(price)
         else:
-            # trend が 0 でない時 (既存のロジック、変更なし)
+            # trend が 0 でない時
             if self.cmp_psar(price):
                 self.obj.price = price
                 self.obj.trend *= -1
@@ -49,12 +50,14 @@ class RealtimePSAR:
                 self.obj.ep = price
                 self.obj.af = self.af_init
                 self.obj.epupd = 0
+                self.obj.duration = 0
                 return self.obj
             else:
                 if self.cmp_ep(price):
                     self.update_ep_af(price)
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
                 self.obj.price = price
+                self.obj.duration += 1
                 return self.obj
 
     def cmp_ep(self, price: float) -> bool:
@@ -113,20 +116,22 @@ class RealtimePSAR:
         elif self.threshold_ratio < votes_lower / total_votes:
             # 「低いデータが多い場合」は上昇トレンド
             self.obj.trend = +1
-            self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
+            #self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
         elif self.threshold_ratio < votes_higher / total_votes:
             # 「高いデータが多い場合」は下降トレンド
             self.obj.trend = -1
-            self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
+            #self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
         else:
             # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
             self.obj.trend = 0
 
         if self.obj.trend != 0:
             # トレンドが決定された場合のみ、EPとAFを初期化
-            self.obj.ep = price # EPは現在価格から
+            self.obj.ep = price # EP は現在価格から
+            self.obj.psar = price # PSAR は現在価格から
             self.obj.af = self.af_init
             self.obj.epupd = 0
+            self.obj.duration = 0
             # トレンド決定後、deque をクリア
             self.prices_deque.clear()
 
@@ -136,5 +141,6 @@ class RealtimePSAR:
     def update_ep_af(self, price: float):
         self.obj.ep = price
         self.obj.epupd += 1
+        self.obj.duration = 0
         if self.obj.af < self.af_max - self.af_step:
             self.obj.af += self.af_step
