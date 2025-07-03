@@ -56,25 +56,21 @@ class RealtimePSAR:
                 self.obj.epupd = 0
                 self.obj.duration = 0
                 self.obj.distance = abs(price - self.obj.psar)
-                self.first_trend = False
+                self.first_trend = False  # 最初のトレンドフラグを False に
                 # return self.obj
             else:
                 # トレンド維持
                 if self.cmp_ep(price):
                     self.update_ep_af(price)
+
+                # PSAR の更新
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
-                self.obj.price = price
 
                 # 最初のトレンドのみの対応
                 if self.first_trend:
-                    # PSARの調整
-                    distance = abs(price - self.obj.psar)
-                    if self.obj.distance < distance:
-                        if 0 < self.obj.trend:
-                            self.obj.psar = price - self.obj.distance
-                        elif self.obj.trend < 0:
-                            self.obj.psar = price + self.obj.distance
+                    self.trend_follow_aggressive(price)
 
+                self.obj.price = price
                 self.obj.duration += 1
                 # return self.obj
 
@@ -158,6 +154,19 @@ class RealtimePSAR:
 
         self.obj.price = price
         return self.obj
+
+    def trend_follow_aggressive(self, price):
+        """
+        現在価格と PSAR の幅を、トレンド反転時と同じに維持してトレンド追跡
+        :param price:
+        :return:
+        """
+        distance = abs(price - self.obj.psar)
+        if self.obj.distance < distance:
+            if 0 < self.obj.trend:
+                self.obj.psar = price - self.obj.distance
+            elif self.obj.trend < 0:
+                self.obj.psar = price + self.obj.distance
 
     def update_ep_af(self, price: float):
         self.obj.ep = price
