@@ -31,7 +31,12 @@ class LosscutSimulator:
 
             self.df.at[t, "Trend"] = trend_new
             self.df.at[t, "EPupd"] = epupd
+            self.df.at[t, "Duration"] = self.psar.obj.duration
             self.df.at[t, "PSAR"] = self.psar.obj.psar
+            if trend_new != 0:
+                self.df.at[t, "Distance"] = abs(price - self.psar.obj.psar)
+
+            self.df.at[t, "Profit"] = self.posman.getProfit(self.ticker, price)
 
             # トレンド反転チェック
             if self.trend != trend_new:
