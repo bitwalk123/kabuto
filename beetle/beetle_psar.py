@@ -4,6 +4,7 @@ from collections import deque  # deque をインポート
 class PSARObject:
     def __init__(self):
         self.price: float = 0.
+        self.y: float = 0.
         self.trend: int = 0
         self.ep: float = 0.
         self.af: float = -1.  # AF は 0 以上の実数
@@ -28,53 +29,42 @@ class RealtimePSAR:
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
-        # 最初のエントリは多数決ロジックで決定する
-        self.rolling_n = rolling_n  # 固定長のデータ点数（n 個でローリング）
-        self.prices_deque = deque(maxlen=self.rolling_n)  # deque を使用し、最大長を n に設定
-        self.threshold_ratio = 2 / 3  # 多数決の閾値 (2:1 = 約66.6%)
-
-        self.first_trend = True
+        n_smoothing = 600
+        self.xs_deque = deque(maxlen=n_smoothing)
+        self.prices_deque = deque(maxlen=n_smoothing)
 
     def add(self, price: float) -> PSARObject:
         if self.obj.trend == 0:
-            # 最初の add 呼び出しで obj.price を初期化し、同時に prices_deque にも追加
-            if self.obj.price == 0 and not self.prices_deque:
-                self.obj.price = price
-                self.prices_deque.append(price)
-                return self.obj
-            else:
-                return self.decide_first_trend(price)
+            pass
+        elif self.cmp_psar(price):
+            # トレンド反転
+            self.obj.price = price
+            self.obj.trend *= -1
+            self.obj.psar = self.obj.ep
+            self.obj.ep = price
+            self.obj.af = self.af_init
+            self.obj.epupd = 0
+            self.obj.duration = 0
+            self.obj.distance = abs(price - self.obj.psar)
+            self.first_trend = False  # 最初のトレンドフラグを False に
+            # return self.obj
         else:
-            # trend が 0 でない時
-            if self.cmp_psar(price):
-                # トレンド反転
-                self.obj.price = price
-                self.obj.trend *= -1
-                self.obj.psar = self.obj.ep
-                self.obj.ep = price
-                self.obj.af = self.af_init
-                self.obj.epupd = 0
-                self.obj.duration = 0
-                self.obj.distance = abs(price - self.obj.psar)
-                self.first_trend = False  # 最初のトレンドフラグを False に
-                # return self.obj
-            else:
-                # トレンド維持
-                if self.cmp_ep(price):
-                    self.update_ep_af(price)
+            # トレンド維持
+            if self.cmp_ep(price):
+                self.update_ep_af(price)
 
-                # PSAR の更新
-                self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
+            # PSAR の更新
+            self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
-                # 最初のトレンドのみの対応
-                if self.first_trend:
-                    self.trend_follow_aggressive(price)
+            # 最初のトレンドのみの対応
+            # if self.first_trend:
+            #    self.trend_follow_aggressive(price)
 
-                self.obj.price = price
-                self.obj.duration += 1
-                # return self.obj
+            self.obj.price = price
+            self.obj.duration += 1
+            # return self.obj
 
-            return self.obj
+        return self.obj
 
     def cmp_ep(self, price: float) -> bool:
         if 0 < self.obj.trend:
@@ -99,74 +89,6 @@ class RealtimePSAR:
                 return True
             else:
                 return False
-
-    def decide_first_trend(self, price: float):
-        """
-        現時点の価格を基準に多数決を行い、固定長 n のデータで判定するメソッド。
-        「低いデータが多い場合は上昇トレンド、そうでない場合は下降トレンド」として実装。
-        """
-        self.prices_deque.append(price)  # deque に追加 (maxlen により古いデータは自動削除)
-
-        # 必要なデータ点数に達しているか確認 (deque の長さが n に達しているか)
-        if len(self.prices_deque) < self.rolling_n:
-            self.obj.price = price
-            return self.obj
-
-        # --- トレンド判定ロジック ---
-        votes_lower = 0
-        votes_higher = 0
-
-        # deque 内の全要素を対象とする
-        # ただし、現在価格と同じ場合はカウントしない
-        for p in self.prices_deque:
-            if p < price:  # 現時点での価格以下のデータ
-                votes_lower += 1
-            elif price < p:  # 現時点での価格より高いデータ
-                votes_higher += 1
-
-        total_votes = votes_lower + votes_higher
-
-        if total_votes == 0:
-            # 全要素が現在価格と同じ場合（現実には、ほぼありえない）
-            self.obj.trend = 0
-        elif self.threshold_ratio < votes_lower / total_votes:
-            # 「低いデータが多い場合」は上昇トレンド
-            self.obj.trend = +1
-            self.obj.psar = min(self.prices_deque)  # PSARは期間内の最低値
-        elif self.threshold_ratio < votes_higher / total_votes:
-            # 「高いデータが多い場合」は下降トレンド
-            self.obj.trend = -1
-            self.obj.psar = max(self.prices_deque)  # PSARは期間内の最高値
-        else:
-            # 閾値を満たさない場合、トレンドは未決定 (n は固定なので増えない)
-            self.obj.trend = 0
-
-        if self.obj.trend != 0:
-            # トレンドが決定された場合のみ、EPとAFを初期化
-            self.obj.ep = price  # EP は現在価格から
-            # self.obj.psar = price # PSAR は現在価格から
-            self.obj.af = self.af_init
-            self.obj.epupd = 0
-            self.obj.duration = 0
-            self.obj.distance = abs(price - self.obj.psar)
-            # トレンド決定後、deque をクリア
-            self.prices_deque.clear()
-
-        self.obj.price = price
-        return self.obj
-
-    def trend_follow_aggressive(self, price):
-        """
-        現在価格と PSAR の幅を、トレンド反転時と同じに維持してトレンド追跡
-        :param price:
-        :return:
-        """
-        distance = abs(price - self.obj.psar)
-        if self.obj.distance < distance:
-            if 0 < self.obj.trend:
-                self.obj.psar = price - self.obj.distance
-            elif self.obj.trend < 0:
-                self.obj.psar = price + self.obj.distance
 
     def update_ep_af(self, price: float):
         self.obj.ep = price
