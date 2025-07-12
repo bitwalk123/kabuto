@@ -6,7 +6,7 @@ class Entry(QLineEdit):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLabel {
+            QLineEdit {
                 font-family: monospace;
             }
         """)
