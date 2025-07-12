@@ -2,7 +2,6 @@ import json
 import logging
 import os
 
-from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtNetwork import (
     QHostAddress,
@@ -24,23 +23,18 @@ class StockBroker(QMainWindow):
         # モジュール固有のロガーを取得
         self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
-
         # json でサーバー情報を取得（ポート番号のみ使用）
         with open(os.path.join(res.dir_conf, "server.json")) as f:
             dict_server = json.load(f)
-
-        # サーバー
+        # サーバー・インスタンス
         self.server = QTcpServer(self)
         self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
         self.server.newConnection.connect(self.connection_new)
-
-        # クライアント
+        # クライアント・インスタンス（常に１つのみで運用）
         self.client: QTcpSocket | None = None
-        # self.peerAddress = ""
-        # self.peerPort = 0
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # UI
+        #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
@@ -50,9 +44,6 @@ class StockBroker(QMainWindow):
         self.setCentralWidget(base)
 
         layout = GridLayout()
-        layout.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
         base.setLayout(layout)
 
         row = 0
@@ -75,6 +66,7 @@ class StockBroker(QMainWindow):
 
     def connection_lost(self):
         self.logger.info(f"{__name__} Disconnected.")
+        # クライアントの切断処理
         self.client = None
         self.ent_address.setClear()
         self.ent_port.setClear()
@@ -104,5 +96,5 @@ class StockBroker(QMainWindow):
     def receive_message(self):
         msg = self.client.readAll().data().decode()
         print(f"Received: {msg}")
-        # server response to client.
+        # サーバーの応答をクライアントへ
         self.client.write(f"Server received: {msg}".encode())
