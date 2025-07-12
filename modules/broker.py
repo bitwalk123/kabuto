@@ -42,7 +42,7 @@ class StockBroker(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.resize(400, 300)
+        #self.resize(400, 300)
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
@@ -53,10 +53,12 @@ class StockBroker(QMainWindow):
         layout = QVBoxLayout()
         base.setLayout(layout)
 
+        """
         self.tedit = tedit = QTextEdit(self)
         tedit.setStyleSheet("QTextEdit {font-family: monospace;}")
         tedit.setReadOnly(True)  # Set it to read-only for history
         layout.addWidget(tedit)
+        """
 
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
@@ -84,6 +86,6 @@ class StockBroker(QMainWindow):
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
-        self.tedit.append(f"Received: {msg}")
+        print(f"Received: {msg}")
         # server response to client.
         self.client.write(f"Server received: {msg}".encode())
