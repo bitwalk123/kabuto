@@ -1,9 +1,5 @@
-# Reference:
-# https://github.com/bhowiebkr/client-server-socket-example/
 import sys
-from PySide6.QtWidgets import (
-    QApplication,
-)
+from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
 from modules.broker import StockBroker
