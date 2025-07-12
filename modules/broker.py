@@ -53,20 +53,26 @@ class StockBroker(QMainWindow):
         tedit.setReadOnly(True)  # Set it to read-only for history
         layout.addWidget(tedit)
 
-    def disconnected_connection(self, *args):
-        print("DEBUG!", *args)
+    def disconnected_connection(self):
+        self.logger.info(f"{__name__} Disconnected.")
+        self.client = None
 
     def new_connection(self):
-        self.client = self.server.nextPendingConnection()
-        self.client.readyRead.connect(self.receive_message)
-        self.client.disconnected.connect(self.disconnected_connection)
+        if self.client is None:
+            self.client = self.server.nextPendingConnection()
+            self.client.readyRead.connect(self.receive_message)
+            self.client.disconnected.connect(self.disconnected_connection)
 
-        # ピア情報
-        peerAddress = self.client.peerAddress()
-        peerPort = self.client.peerPort()
-        peerInfo = f"{peerAddress.toString()}:{peerPort}"
-        self.logger.info(f"{__name__} Connected from {peerInfo}.")
-        self.client.write(f"Server connected from {peerInfo}".encode())
+            # ピア情報
+            peerAddress = self.client.peerAddress()
+            peerPort = self.client.peerPort()
+            peerInfo = f"{peerAddress.toString()}:{peerPort}"
+            self.logger.info(f"{__name__} Connected from {peerInfo}.")
+            self.client.write(f"Server connected from {peerInfo}".encode())
+        else:
+            self.server.pauseAccepting()
+            self.logger.warning(f"{__name__} Pause accepting new connection.")
+
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
