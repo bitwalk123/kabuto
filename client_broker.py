@@ -28,7 +28,7 @@ class TcpSocketClient(QMainWindow):
             dict_server = json.load(f)
 
         self.socket = QTcpSocket(self)
-        self.socket.connected.connect(self.connected)
+        self.socket.connected.connect(self.connecting)
         self.socket.readyRead.connect(self.receive_message)
 
         # UI
@@ -73,8 +73,8 @@ class TcpSocketClient(QMainWindow):
             int(self.ledit_port.text())
         )
 
-    def connected(self):
-        self.tedit.append("Connected to server.")
+    def connecting(self):
+        self.tedit.append("Connecting to server...")
 
     def receive_message(self):
         msg = self.socket.readAll().data().decode()
