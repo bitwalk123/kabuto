@@ -9,12 +9,7 @@ from PySide6.QtNetwork import (
     QTcpServer,
     QTcpSocket,
 )
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget, QGridLayout, QLabel, QLineEdit,
-)
+from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
 from widgets.containers import Widget
@@ -37,17 +32,16 @@ class StockBroker(QMainWindow):
         # サーバー
         self.server = QTcpServer(self)
         self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
-        self.server.newConnection.connect(self.new_connection)
+        self.server.newConnection.connect(self.connection_new)
 
         # クライアント
         self.client: QTcpSocket | None = None
-        #self.peerAddress = ""
-        #self.peerPort = 0
+        # self.peerAddress = ""
+        # self.peerPort = 0
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # self.resize(400, 300)
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
@@ -79,20 +73,20 @@ class StockBroker(QMainWindow):
         self.ent_port = ent_port = EntryPort()
         layout.addWidget(ent_port, row, 2)
 
-    def disconnected_connection(self):
+    def connection_lost(self):
         self.logger.info(f"{__name__} Disconnected.")
         self.client = None
         self.ent_address.setClear()
         self.ent_port.setClear()
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
-            self.new_connection()
+            self.connection_new()
 
-    def new_connection(self):
+    def connection_new(self):
         if self.client is None:
             self.client = self.server.nextPendingConnection()
             self.client.readyRead.connect(self.receive_message)
-            self.client.disconnected.connect(self.disconnected_connection)
+            self.client.disconnected.connect(self.connection_lost)
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             peerPort = self.client.peerPort()
@@ -104,7 +98,7 @@ class StockBroker(QMainWindow):
             self.client.write(f"Server accepted connecting from {peerInfo}".encode())
         else:
             # 一度に接続できるのは１クライアントのみに制限
-            self.server.pauseAccepting()
+            self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__} Pause accepting new connection.")
 
     def receive_message(self):
