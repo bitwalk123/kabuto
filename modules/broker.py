@@ -51,7 +51,9 @@ class StockBroker(QMainWindow):
         # ピア情報
         peerAddress = self.client.peerAddress()
         peerPort = self.client.peerPort()
-        self.logger.info(f"{__name__} Connected from {peerAddress.toString()}:{peerPort}.")
+        peerInfo = f"{peerAddress.toString()}:{peerPort}"
+        self.logger.info(f"{__name__} Connected from {peerInfo}.")
+        self.client.write(f"Server connected from {peerInfo}".encode())
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
