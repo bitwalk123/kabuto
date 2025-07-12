@@ -7,6 +7,7 @@ from PySide6.QtWidgets import QStyle, QWidget
 
 class AppRes:
     dir_collection = 'collection'
+    dir_conf = 'conf'
     dir_excel = 'excel'
     dir_font = 'fonts'
     dir_image = 'images'
@@ -15,6 +16,7 @@ class AppRes:
     dir_transaction = 'transaction'
 
     excel_collector = "collector.xlsx"
+    excel_portfolio = "portfolio.xlsm"
 
     debug = False
 

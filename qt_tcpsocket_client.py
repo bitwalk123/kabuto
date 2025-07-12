@@ -39,7 +39,7 @@ class TcpSocketClient(QMainWindow):
         layout_row = QHBoxLayout()
         layout.addLayout(layout_row)
 
-        self.ledit_ip = ledit_ip = QLineEdit("127.0.0.1")
+        self.ledit_ip = ledit_ip = QLineEdit("192.168.0.38")
         layout_row.addWidget(ledit_ip)
 
         self.ledit_port = ledit_port = QLineEdit("12345")
