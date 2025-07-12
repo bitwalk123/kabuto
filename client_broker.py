@@ -1,5 +1,7 @@
 # Reference:
 # https://github.com/bhowiebkr/client-server-socket-example/
+import json
+import os
 import sys
 
 from PySide6.QtWidgets import (
@@ -13,21 +15,24 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtNetwork import (
-    QHostAddress,
-    QTcpSocket,
-)
+from PySide6.QtNetwork import QTcpSocket
+
+from structs.res import AppRes
 
 
 class TcpSocketClient(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.res = res = AppRes()
+        with open(os.path.join(res.dir_conf, "server.json")) as f:
+            dict_server = json.load(f)
+
         self.socket = QTcpSocket(self)
         self.socket.connected.connect(self.connected)
         self.socket.readyRead.connect(self.receive_message)
 
         # UI
-        self.resize(400, 300)
+        self.resize(600, 300)
         self.setWindowTitle("Client")
 
         base = QWidget()
@@ -39,10 +44,10 @@ class TcpSocketClient(QMainWindow):
         layout_row = QHBoxLayout()
         layout.addLayout(layout_row)
 
-        self.ledit_ip = ledit_ip = QLineEdit("192.168.0.38")
+        self.ledit_ip = ledit_ip = QLineEdit(dict_server["ip"])
         layout_row.addWidget(ledit_ip)
 
-        self.ledit_port = ledit_port = QLineEdit("12345")
+        self.ledit_port = ledit_port = QLineEdit(dict_server["port"])
         layout_row.addWidget(ledit_port)
 
         but_connect = QPushButton("Connect")
@@ -61,7 +66,6 @@ class TcpSocketClient(QMainWindow):
         layout.addLayout(form)
 
     def connect_to_server(self):
-        #self.socket.connectToHost(QHostAddress.SpecialAddress.LocalHost, 12345)
         self.socket.connectToHost(
             self.ledit_ip.text(),
             int(self.ledit_port.text())

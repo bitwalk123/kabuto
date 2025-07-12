@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -23,10 +24,12 @@ class StockBroker(QMainWindow):
         # モジュール固有のロガーを取得
         self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
+        with open(os.path.join(res.dir_conf, "server.json")) as f:
+            dict_server = json.load(f)
 
         self.client: QTcpSocket | None = None
         self.server = QTcpServer(self)
-        self.server.listen(QHostAddress.SpecialAddress.Any, 12345)
+        self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
         self.server.newConnection.connect(self.new_connection)
 
         self.resize(400, 300)
