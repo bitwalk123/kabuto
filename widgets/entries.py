@@ -1,4 +1,4 @@
-from PySide6.QtCore import QMargins
+from PySide6.QtCore import QMargins, Qt
 from PySide6.QtWidgets import QLineEdit
 
 
@@ -17,6 +17,8 @@ class EntryAddress(Entry):
     def __init__(self, *args):
         super().__init__(*args)
         self.setReadOnly(True)
+        self.setFixedWidth(200)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def setAddress(self, address: str):
         self.setText(address)
@@ -27,6 +29,7 @@ class EntryPort(Entry):
         super().__init__(*args)
         self.setReadOnly(True)
         self.setFixedWidth(60)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def setPort(self, port: int):
         self.setText(str(port))
