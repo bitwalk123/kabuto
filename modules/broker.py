@@ -56,6 +56,9 @@ class StockBroker(QMainWindow):
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
         self.client = None
+        # 接続待ちがあれば新しい接続処理へ
+        if self.server.hasPendingConnections():
+            self.new_connection()
 
     def new_connection(self):
         if self.client is None:
@@ -72,7 +75,6 @@ class StockBroker(QMainWindow):
         else:
             self.server.pauseAccepting()
             self.logger.warning(f"{__name__} Pause accepting new connection.")
-
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
