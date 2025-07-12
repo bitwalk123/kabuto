@@ -29,10 +29,15 @@ class StockBroker(QMainWindow):
         with open(os.path.join(res.dir_conf, "server.json")) as f:
             dict_server = json.load(f)
 
-        self.client: QTcpSocket | None = None
+        # サーバー
         self.server = QTcpServer(self)
         self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
         self.server.newConnection.connect(self.new_connection)
+
+        # クライアント
+        self.client: QTcpSocket | None = None
+        self.peerAddress = ""
+        self.peerPort = 0
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
@@ -67,17 +72,18 @@ class StockBroker(QMainWindow):
             self.client.disconnected.connect(self.disconnected_connection)
 
             # ピア情報
-            peerAddress = self.client.peerAddress()
-            peerPort = self.client.peerPort()
+            self.peerAddress = peerAddress = self.client.peerAddress()
+            self.peerPort = peerPort = self.client.peerPort()
             peerInfo = f"{peerAddress.toString()}:{peerPort}"
             self.logger.info(f"{__name__} Connected from {peerInfo}.")
-            self.client.write(f"Server connected from {peerInfo}".encode())
+            self.client.write(f"Server accepted connecting from {peerInfo}".encode())
         else:
+            # 一度に接続できるのは１クライアントのみに制限
             self.server.pauseAccepting()
             self.logger.warning(f"{__name__} Pause accepting new connection.")
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
         self.tedit.append(f"Received: {msg}")
-        # just for verification
+        # server response to client.
         self.client.write(f"Server received: {msg}".encode())
