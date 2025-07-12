@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from structs.res import AppRes
+from widgets.entries import EntryAddress, EntryPort
 from widgets.labels import LabelRaised
 from widgets.layouts import GridLayout
 
@@ -39,13 +40,13 @@ class StockBroker(QMainWindow):
 
         # クライアント
         self.client: QTcpSocket | None = None
-        self.peerAddress = ""
-        self.peerPort = 0
+        #self.peerAddress = ""
+        #self.peerPort = 0
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        #self.resize(400, 300)
+        # self.resize(400, 300)
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
@@ -70,12 +71,13 @@ class StockBroker(QMainWindow):
         layout.addWidget(lab_port, row, 2)
 
         row += 1
-        le_address = QLineEdit()
-        layout.addWidget(le_address, row, 1)
+        self.ent_address = ent_address = EntryAddress()
+        layout.addWidget(ent_address, row, 1)
 
-        le_port = QLineEdit()
-        layout.addWidget(le_port, row, 2)
+        self.ent_port = ent_port = EntryPort()
+        layout.addWidget(ent_port, row, 2)
 
+        layout.setColumnStretch(1, 2)
 
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
@@ -91,9 +93,12 @@ class StockBroker(QMainWindow):
             self.client.disconnected.connect(self.disconnected_connection)
 
             # ピア情報
-            self.peerAddress = peerAddress = self.client.peerAddress()
-            self.peerPort = peerPort = self.client.peerPort()
-            peerInfo = f"{peerAddress.toString()}:{peerPort}"
+            peerAddress = self.client.peerAddress().toString()
+            self.ent_address.setAddress(peerAddress)
+            peerPort = self.client.peerPort()
+            self.ent_port.setPort(peerPort)
+            # ログ出力＆クライアントへ応答
+            peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__} Connected from {peerInfo}.")
             self.client.write(f"Server accepted connecting from {peerInfo}".encode())
         else:
