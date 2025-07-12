@@ -82,6 +82,8 @@ class StockBroker(QMainWindow):
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
         self.client = None
+        self.ent_address.setClear()
+        self.ent_port.setClear()
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
             self.new_connection()
@@ -93,8 +95,8 @@ class StockBroker(QMainWindow):
             self.client.disconnected.connect(self.disconnected_connection)
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
-            self.ent_address.setAddress(peerAddress)
             peerPort = self.client.peerPort()
+            self.ent_address.setAddress(peerAddress)
             self.ent_port.setPort(peerPort)
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"

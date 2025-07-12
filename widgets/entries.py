@@ -23,6 +23,9 @@ class EntryAddress(Entry):
     def setAddress(self, address: str):
         self.setText(address)
 
+    def setClear(self):
+        self.setText("")
+
 
 class EntryPort(Entry):
     def __init__(self, *args):
@@ -33,3 +36,6 @@ class EntryPort(Entry):
 
     def setPort(self, port: int):
         self.setText(str(port))
+
+    def setClear(self):
+        self.setText("")
