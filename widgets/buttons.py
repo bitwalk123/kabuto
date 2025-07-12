@@ -6,11 +6,23 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QPushButton,
     QRadioButton,
-    QStyle,
+    QStyle, QSizePolicy,
 )
 
 from structs.res import AppRes
 
+class Button(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Preferred,
+            QSizePolicy.Policy.Preferred
+        )
+        self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+            }
+        """)
 
 class ButtonBuy(QPushButton):
     def __init__(self, *args):

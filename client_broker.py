@@ -7,18 +7,18 @@ import sys
 from PySide6.QtWidgets import (
     QApplication,
     QFormLayout,
-    QHBoxLayout,
     QLineEdit,
     QMainWindow,
-    QPushButton,
     QTextEdit,
-    QVBoxLayout,
-    QWidget,
 )
 from PySide6.QtNetwork import QTcpSocket
 
 from structs.res import AppRes
+from widgets.buttons import Button
+from widgets.containers import Widget
 from widgets.entries import EntryAddress, EntryPort
+from widgets.labels import LabelRaised
+from widgets.layouts import GridLayout, VBoxLayout
 
 
 class TcpSocketClient(QMainWindow):
@@ -34,27 +34,38 @@ class TcpSocketClient(QMainWindow):
         self.socket.readyRead.connect(self.receive_message)
 
         # UI
-        self.resize(400, 300)
         self.setWindowTitle("Client")
 
-        base = QWidget()
+        base = Widget()
         self.setCentralWidget(base)
 
-        layout = QVBoxLayout()
+        layout = VBoxLayout()
         base.setLayout(layout)
 
-        layout_row = QHBoxLayout()
+        layout_row = GridLayout()
         layout.addLayout(layout_row)
 
+        row = 0
+        lab_server = LabelRaised("Server")
+        lab_server.setFixedWidth(60)
+        layout_row.addWidget(lab_server, row, 0, 2, 1)
+
+        lab_addr = LabelRaised("Address")
+        layout_row.addWidget(lab_addr, row, 1)
+
+        lab_port = LabelRaised("Port")
+        layout_row.addWidget(lab_port, row, 2)
+
+        but_connect = Button("Connect")
+        but_connect.clicked.connect(self.connect_to_server)
+        layout_row.addWidget(but_connect, row, 3, 2, 1)
+
+        row += 1
         self.ent_addr = ent_addr = EntryAddress(dict_server["ip"])
-        layout_row.addWidget(ent_addr)
+        layout_row.addWidget(ent_addr, row, 1)
 
         self.ent_port = ent_port = EntryPort(str(dict_server["port"]))
-        layout_row.addWidget(ent_port)
-
-        but_connect = QPushButton("Connect")
-        but_connect.clicked.connect(self.connect_to_server)
-        layout_row.addWidget(but_connect)
+        layout_row.addWidget(ent_port, row, 2)
 
         self.tedit = tedit = QTextEdit(self)
         tedit.setStyleSheet("QTextEdit {font-family: monospace;}")
