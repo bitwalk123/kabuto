@@ -53,13 +53,13 @@ class StockBroker(QMainWindow):
         tedit.setReadOnly(True)  # Set it to read-only for history
         layout.addWidget(tedit)
 
-    def destroyed_connection(self, *args):
-        print(*args)
+    def disconnected_connection(self, *args):
+        print("DEBUG!", *args)
 
     def new_connection(self):
         self.client = self.server.nextPendingConnection()
         self.client.readyRead.connect(self.receive_message)
-        self.client.destroyed.connect(self.destroyed_connection)
+        self.client.disconnected.connect(self.disconnected_connection)
 
         # ピア情報
         peerAddress = self.client.peerAddress()
