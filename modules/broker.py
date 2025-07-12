@@ -24,6 +24,8 @@ class StockBroker(QMainWindow):
         # モジュール固有のロガーを取得
         self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
+
+        # json でサーバー情報を取得（ポート番号のみ使用）
         with open(os.path.join(res.dir_conf, "server.json")) as f:
             dict_server = json.load(f)
 
@@ -32,6 +34,9 @@ class StockBroker(QMainWindow):
         self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
         self.server.newConnection.connect(self.new_connection)
 
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # UI
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.resize(400, 300)
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
@@ -48,9 +53,14 @@ class StockBroker(QMainWindow):
         tedit.setReadOnly(True)  # Set it to read-only for history
         layout.addWidget(tedit)
 
+    def destroyed_connection(self, *args):
+        print(*args)
+
     def new_connection(self):
         self.client = self.server.nextPendingConnection()
         self.client.readyRead.connect(self.receive_message)
+        self.client.destroyed.connect(self.destroyed_connection)
+
         # ピア情報
         peerAddress = self.client.peerAddress()
         peerPort = self.client.peerPort()

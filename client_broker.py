@@ -32,7 +32,7 @@ class TcpSocketClient(QMainWindow):
         self.socket.readyRead.connect(self.receive_message)
 
         # UI
-        self.resize(600, 300)
+        self.resize(400, 300)
         self.setWindowTitle("Client")
 
         base = QWidget()
@@ -45,9 +45,11 @@ class TcpSocketClient(QMainWindow):
         layout.addLayout(layout_row)
 
         self.ledit_ip = ledit_ip = QLineEdit(dict_server["ip"])
+        ledit_ip.setReadOnly(True)
         layout_row.addWidget(ledit_ip)
 
-        self.ledit_port = ledit_port = QLineEdit(dict_server["port"])
+        self.ledit_port = ledit_port = QLineEdit(str(dict_server["port"]))
+        ledit_port.setReadOnly(True)
         layout_row.addWidget(ledit_port)
 
         but_connect = QPushButton("Connect")
