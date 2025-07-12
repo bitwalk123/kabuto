@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 )
 
 from structs.res import AppRes
+from widgets.containers import Widget
 from widgets.entries import EntryAddress, EntryPort
 from widgets.labels import LabelRaised
 from widgets.layouts import GridLayout
@@ -51,7 +52,7 @@ class StockBroker(QMainWindow):
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
 
-        base = QWidget()
+        base = Widget()
         self.setCentralWidget(base)
 
         layout = GridLayout()
@@ -62,6 +63,7 @@ class StockBroker(QMainWindow):
 
         row = 0
         lab_client = LabelRaised("Client")
+        lab_client.setFixedWidth(60)
         layout.addWidget(lab_client, row, 0, 2, 1)
 
         lab_address = LabelRaised("Address")
@@ -76,8 +78,6 @@ class StockBroker(QMainWindow):
 
         self.ent_port = ent_port = EntryPort()
         layout.addWidget(ent_port, row, 2)
-
-        layout.setColumnStretch(1, 2)
 
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
