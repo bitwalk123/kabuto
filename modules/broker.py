@@ -51,15 +51,15 @@ class StockBroker(QMainWindow):
         lab_client.setFixedWidth(60)
         layout.addWidget(lab_client, row, 0, 2, 1)
 
-        lab_address = LabelRaised("Address")
-        layout.addWidget(lab_address, row, 1)
+        lab_addr = LabelRaised("Address")
+        layout.addWidget(lab_addr, row, 1)
 
         lab_port = LabelRaised("Port")
         layout.addWidget(lab_port, row, 2)
 
         row += 1
-        self.ent_address = ent_address = EntryAddress()
-        layout.addWidget(ent_address, row, 1)
+        self.ent_addr = ent_addr = EntryAddress()
+        layout.addWidget(ent_addr, row, 1)
 
         self.ent_port = ent_port = EntryPort()
         layout.addWidget(ent_port, row, 2)
@@ -68,7 +68,7 @@ class StockBroker(QMainWindow):
         self.logger.info(f"{__name__} Disconnected.")
         # クライアントの切断処理
         self.client = None
-        self.ent_address.setClear()
+        self.ent_addr.setClear()
         self.ent_port.setClear()
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
@@ -82,7 +82,7 @@ class StockBroker(QMainWindow):
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             peerPort = self.client.peerPort()
-            self.ent_address.setAddress(peerAddress)
+            self.ent_addr.setAddress(peerAddress)
             self.ent_port.setPort(peerPort)
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"

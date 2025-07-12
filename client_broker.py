@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtNetwork import QTcpSocket
 
 from structs.res import AppRes
+from widgets.entries import EntryAddress, EntryPort
 
 
 class TcpSocketClient(QMainWindow):
@@ -45,12 +46,11 @@ class TcpSocketClient(QMainWindow):
         layout_row = QHBoxLayout()
         layout.addLayout(layout_row)
 
-        self.ledit_ip = ledit_ip = QLineEdit(dict_server["ip"])
-        layout_row.addWidget(ledit_ip)
+        self.ent_addr = ent_addr = EntryAddress(dict_server["ip"])
+        layout_row.addWidget(ent_addr)
 
-        self.ledit_port = ledit_port = QLineEdit(str(dict_server["port"]))
-        ledit_port.setReadOnly(True)
-        layout_row.addWidget(ledit_port)
+        self.ent_port = ent_port = EntryPort(str(dict_server["port"]))
+        layout_row.addWidget(ent_port)
 
         but_connect = QPushButton("Connect")
         but_connect.clicked.connect(self.connect_to_server)
@@ -69,8 +69,8 @@ class TcpSocketClient(QMainWindow):
 
     def connect_to_server(self):
         self.socket.connectToHost(
-            self.ledit_ip.text(),
-            int(self.ledit_port.text())
+            self.ent_addr.text(),
+            int(self.ent_port.text())
         )
 
     def connection_lost(self):
