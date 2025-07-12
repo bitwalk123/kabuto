@@ -47,10 +47,11 @@ class StockBroker(QMainWindow):
 
     def new_connection(self):
         self.client = self.server.nextPendingConnection()
+        self.client.readyRead.connect(self.receive_message)
+        # ピア情報
         peerAddress = self.client.peerAddress()
         peerPort = self.client.peerPort()
-        self.tedit.append(f"Connected from {peerAddress.toString()}:{peerPort}.")
-        self.client.readyRead.connect(self.receive_message)
+        self.logger.info(f"{__name__} Connected from {peerAddress.toString()}:{peerPort}.")
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
