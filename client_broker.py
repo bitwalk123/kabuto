@@ -29,6 +29,7 @@ class TcpSocketClient(QMainWindow):
 
         self.socket = QTcpSocket(self)
         self.socket.connected.connect(self.connecting)
+        self.socket.disconnected.connect(self.connection_lost)
         self.socket.readyRead.connect(self.receive_message)
 
         # UI
@@ -45,7 +46,6 @@ class TcpSocketClient(QMainWindow):
         layout.addLayout(layout_row)
 
         self.ledit_ip = ledit_ip = QLineEdit(dict_server["ip"])
-        # ledit_ip.setReadOnly(True)
         layout_row.addWidget(ledit_ip)
 
         self.ledit_port = ledit_port = QLineEdit(str(dict_server["port"]))
@@ -72,6 +72,9 @@ class TcpSocketClient(QMainWindow):
             self.ledit_ip.text(),
             int(self.ledit_port.text())
         )
+
+    def connection_lost(self):
+        self.tedit.append("Disconnected.")
 
     def connecting(self):
         self.tedit.append("Connecting to server...")

@@ -17,7 +17,7 @@ class EntryAddress(Entry):
     def __init__(self, *args):
         super().__init__(*args)
         self.setReadOnly(True)
-        self.setFixedWidth(150)
+        self.setFixedWidth(180)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
     def setAddress(self, address: str):
@@ -31,7 +31,7 @@ class EntryPort(Entry):
     def __init__(self, *args):
         super().__init__(*args)
         self.setReadOnly(True)
-        self.setFixedWidth(60)
+        self.setFixedWidth(70)
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
     def setPort(self, port: int):
