@@ -32,6 +32,13 @@ class LabelLeft(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
 
+class LabelRaised(Label):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setFrameStyle(QFrame.Shape.Panel | QFrame.Shadow.Raised)
+        self.setLineWidth(2)
+
+
 class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
@@ -89,6 +96,7 @@ class LabelSmall(QLabel):
         font.setPointSize(6)
         self.setFont(font)
 
+
 class LCDInt(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
@@ -96,6 +104,7 @@ class LCDInt(QLCDNumber):
         self.setFixedHeight(24)
         self.setDigitCount(12)
         self.display('0')
+
 
 class LCDNumber(QLCDNumber):
     def __init__(self, *args):

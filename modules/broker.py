@@ -2,6 +2,7 @@ import json
 import logging
 import os
 
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
 from PySide6.QtNetwork import (
     QHostAddress,
@@ -12,10 +13,12 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QTextEdit,
     QVBoxLayout,
-    QWidget,
+    QWidget, QGridLayout, QLabel, QLineEdit,
 )
 
 from structs.res import AppRes
+from widgets.labels import LabelRaised
+from widgets.layouts import GridLayout
 
 
 class StockBroker(QMainWindow):
@@ -50,15 +53,29 @@ class StockBroker(QMainWindow):
         base = QWidget()
         self.setCentralWidget(base)
 
-        layout = QVBoxLayout()
+        layout = GridLayout()
+        layout.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
         base.setLayout(layout)
 
-        """
-        self.tedit = tedit = QTextEdit(self)
-        tedit.setStyleSheet("QTextEdit {font-family: monospace;}")
-        tedit.setReadOnly(True)  # Set it to read-only for history
-        layout.addWidget(tedit)
-        """
+        row = 0
+        lab_client = LabelRaised("Client")
+        layout.addWidget(lab_client, row, 0, 2, 1)
+
+        lab_address = LabelRaised("Address")
+        layout.addWidget(lab_address, row, 1)
+
+        lab_port = LabelRaised("Port")
+        layout.addWidget(lab_port, row, 2)
+
+        row += 1
+        le_address = QLineEdit()
+        layout.addWidget(le_address, row, 1)
+
+        le_port = QLineEdit()
+        layout.addWidget(le_port, row, 2)
+
 
     def disconnected_connection(self):
         self.logger.info(f"{__name__} Disconnected.")
