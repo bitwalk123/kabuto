@@ -26,6 +26,7 @@ class EntryPort(Entry):
     def __init__(self, *args):
         super().__init__(*args)
         self.setReadOnly(True)
+        self.setFixedWidth(60)
 
     def setPort(self, port: int):
         self.setText(str(port))
