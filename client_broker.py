@@ -45,7 +45,7 @@ class TcpSocketClient(QMainWindow):
         layout.addLayout(layout_row)
 
         self.ledit_ip = ledit_ip = QLineEdit(dict_server["ip"])
-        ledit_ip.setReadOnly(True)
+        # ledit_ip.setReadOnly(True)
         layout_row.addWidget(ledit_ip)
 
         self.ledit_port = ledit_port = QLineEdit(str(dict_server["port"]))
