@@ -91,7 +91,6 @@ class StockBroker(QMainWindow):
             self.client = self.server.nextPendingConnection()
             self.client.readyRead.connect(self.receive_message)
             self.client.disconnected.connect(self.disconnected_connection)
-
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             self.ent_address.setAddress(peerAddress)
