@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 import xlwings as xw
 
@@ -65,15 +66,22 @@ class PortfolioWorker(QObject):
         #
         #######################################################################
 
-        row = 1
-        flag_loop = True
+        # 現在の銘柄リスト
+        self.get_current_tickers()
+
+        # --------------------------------------------------------------
+        # 🧿 銘柄名などの情報を通知
+        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
+        # --------------------------------------------------------------
+
+    def get_current_tickers(self):
         self.list_ticker = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
+        row = 1
         while True:
-            # 銘柄コードを強制的に文字列にする
-            val = self.sheet[row, self.col_code].value
-            ticker = get_ticker_as_string(val)
+            ticker = self.get_ticker(row)
+
             # 終端判定
             if ticker == self.cell_bottom:
                 # flag_loop = False
@@ -86,16 +94,63 @@ class PortfolioWorker(QObject):
                 self.dict_row[ticker] = row
 
                 # 銘柄名
-                name = self.sheet[row, self.col_name].value
+                name = self.get_name(row)
                 self.dict_name[ticker] = name
 
                 # 行番号のインクリメント
                 row += 1
 
-        # --------------------------------------------------------------
-        # 🧿 銘柄名などの情報を通知
-        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
-        # --------------------------------------------------------------
+    def get_name(self, row) -> str:
+        name = ""
+        for attempt in range(self.max_retries):
+            try:
+                name = self.sheet[row, self.col_name].value
+                break
+            except com_error as e:
+                # ---------------------------------------------------------
+                # com_error は Windows 固有
+                # ---------------------------------------------------------
+                if attempt < self.max_retries - 1:
+                    self.logger.warning(
+                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                    )
+                    time.sleep(self.retry_delay)
+                else:
+                    self.logger.error(
+                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                    )
+                    raise  # 最終的に失敗したら例外を再発生させる
+            except Exception as e:
+                self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
+                raise  # その他の例外はそのまま発生させる
+        return name
+
+    def get_ticker(self, row: int) -> str:
+        # 銘柄コードを強制的に文字列にする
+        ticker = ""
+        for attempt in range(self.max_retries):
+            try:
+                val = self.sheet[row, self.col_code].value
+                ticker = get_ticker_as_string(val)
+                break
+            except com_error as e:
+                # ---------------------------------------------------------
+                # com_error は Windows 固有
+                # ---------------------------------------------------------
+                if attempt < self.max_retries - 1:
+                    self.logger.warning(
+                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                    )
+                    time.sleep(self.retry_delay)
+                else:
+                    self.logger.error(
+                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                    )
+                    raise  # 最終的に失敗したら例外を再発生させる
+            except Exception as e:
+                self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
+                raise  # その他の例外はそのまま発生させる
+        return ticker
 
     """
     def readCurrentPrice(self):
