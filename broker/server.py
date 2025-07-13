@@ -82,7 +82,7 @@ class StockBroker(QMainWindow):
             # ---------------------------------------------------------------------
             # 接続処理
             self.client = self.server.nextPendingConnection()
-            self.client.readyRead.connect(self.receive_message)
+            self.client.readyRead.connect(self.receive_json)
             self.client.disconnected.connect(self.connection_lost)
             # ---------------------------------------------------------------------
             # ピア情報
@@ -129,7 +129,7 @@ class StockBroker(QMainWindow):
     def on_portfolio_ready(self):
         self.logger.info(f"{__name__}: Portfolio thread is ready.")
 
-    def receive_message(self):
+    def receive_json(self):
         s = self.client.readAll().data().decode()
         d = json.loads(s)
         if "message" in d.keys():
