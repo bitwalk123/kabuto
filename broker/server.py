@@ -100,6 +100,7 @@ class StockBroker(QMainWindow):
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
     def on_ticker_list(self, list_ticker: list, dict_name: dict):
+        print(dict_name)
         for ticker in list_ticker:
             print(ticker, dict_name[ticker])
 
