@@ -54,3 +54,32 @@ class ToolBarBrokerClient(QToolBar):
         addr = self.ent_addr.getAddress()
         port = self.ent_port.getPort()
         self.requestConnectToServer.emit(addr, port)
+
+class ToolBarBrokerServer(QToolBar):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+
+        base = Widget()
+        self.addWidget(base)
+
+        layout = GridLayout()
+        base.setLayout(layout)
+
+        row = 0
+        lab_client = LabelRaised("Client")
+        lab_client.setFixedWidth(60)
+        layout.addWidget(lab_client, row, 0, 2, 1)
+
+        lab_addr = LabelRaised("Address")
+        layout.addWidget(lab_addr, row, 1)
+
+        lab_port = LabelRaised("Port")
+        layout.addWidget(lab_port, row, 2)
+
+        row += 1
+        self.ent_addr = ent_addr = EntryAddress()
+        layout.addWidget(ent_addr, row, 1)
+
+        self.ent_port = ent_port = EntryPort()
+        layout.addWidget(ent_port, row, 2)

@@ -10,6 +10,7 @@ from PySide6.QtNetwork import (
 )
 from PySide6.QtWidgets import QMainWindow
 
+from broker.toolbar import ToolBarBrokerServer
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.entries import EntryAddress, EntryPort
@@ -40,36 +41,15 @@ class StockBroker(QMainWindow):
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
 
-        base = Widget()
-        self.setCentralWidget(base)
-
-        layout = GridLayout()
-        base.setLayout(layout)
-
-        row = 0
-        lab_client = LabelRaised("Client")
-        lab_client.setFixedWidth(60)
-        layout.addWidget(lab_client, row, 0, 2, 1)
-
-        lab_addr = LabelRaised("Address")
-        layout.addWidget(lab_addr, row, 1)
-
-        lab_port = LabelRaised("Port")
-        layout.addWidget(lab_port, row, 2)
-
-        row += 1
-        self.ent_addr = ent_addr = EntryAddress()
-        layout.addWidget(ent_addr, row, 1)
-
-        self.ent_port = ent_port = EntryPort()
-        layout.addWidget(ent_port, row, 2)
+        self.toolbar = toolbar = ToolBarBrokerServer(res)
+        self.addToolBar(toolbar)
 
     def connection_lost(self):
         self.logger.info(f"{__name__}: Client disconnected.")
         # クライアントの切断処理
         self.client = None
-        self.ent_addr.setClear()
-        self.ent_port.setClear()
+        self.toolbar.ent_addr.setClear()
+        self.toolbar.ent_port.setClear()
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
             self.connection_new()
@@ -82,8 +62,8 @@ class StockBroker(QMainWindow):
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             peerPort = self.client.peerPort()
-            self.ent_addr.setAddress(peerAddress)
-            self.ent_port.setPort(peerPort)
+            self.toolbar.ent_addr.setAddress(peerAddress)
+            self.toolbar.ent_port.setPort(peerPort)
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__}: Connected from {peerInfo}.")
