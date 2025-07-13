@@ -70,7 +70,11 @@ class PortfolioWorker(QObject):
         # self.dict_row = dict()  # 銘柄の行位置
         # self.dict_name = dict()  # 銘柄名
         while flag_loop:
-            ticker = str(self.sheet[row, self.col_code].value)
+            val = self.sheet[row, self.col_code].value
+            if type(val) is str:
+                ticker = val
+            else:
+                ticker = f"{val:d}"
             print(ticker)
             if ticker == self.cell_bottom:
                 flag_loop = False
