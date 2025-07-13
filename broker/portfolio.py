@@ -74,7 +74,8 @@ class PortfolioWorker(QObject):
             if type(val) is str:
                 ticker = val
             else:
-                ticker = f"{val:d}"
+                print(type(val))
+                ticker = f"{int(val)}"
             print(ticker)
             if ticker == self.cell_bottom:
                 flag_loop = False
