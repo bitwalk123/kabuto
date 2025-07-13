@@ -75,15 +75,19 @@ class PortfolioWorker(QObject):
         self.get_current_portfolio()
 
         # --------------------------------------------------------------
-        # 🧿 銘柄名などの情報を通知
+        # 🧿 ポートフォリオ（現物）と初期化終了を通知
         self.notifyInitCompleted.emit(self.list_ticker, self.dict_name)
         # --------------------------------------------------------------
 
     def getCurrentPortfolio(self):
+        """
+        現在のポートフォリオ（現物）情報を取得して通知する
+        :return:
+        """
         self.get_current_portfolio()
 
         # --------------------------------------------------------------
-        # 🧿 銘柄名などの情報を通知
+        # 🧿 ポートフォリオ（現物）の情報を通知
         self.notifyCurrentPortfolio.emit(self.list_ticker, self.dict_name)
         # --------------------------------------------------------------
 
@@ -191,6 +195,7 @@ class Portfolio(QThread):
         self.logger = logging.getLogger(__name__)
         self.res = res
 
+        # スレッドワーカー・インスタンスの処理
         excel_path = res.excel_portfolio
         self.worker = worker = PortfolioWorker(res, excel_path)
         self.worker.moveToThread(self)  # ThreadStockCollectorWorkerをこのQThreadに移動
@@ -201,17 +206,17 @@ class Portfolio(QThread):
         # スレッド開始時にworkerの準備完了を通知 (必要であれば)
         self.started.connect(self.thread_ready)
 
-        # _____________________________________________________________________
-        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
-        # 初期化処理は指定された Excel ファイルを読み込むこと
-        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
-        self.requestWorkerInit.connect(worker.initWorker)
-
         # 現在のポートフォリオを取得するメソッドへキューイング
         self.requestCurrentPortfolio.connect(worker.getCurrentPortfolio)
 
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
+
+        # _____________________________________________________________________
+        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
+        # 初期化処理は指定された Excel ファイルを読み込むこと
+        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
+        self.requestWorkerInit.connect(worker.initWorker)
 
         # スレッド終了関連
         worker.threadFinished.connect(self.quit)  # スレッド終了時

@@ -22,6 +22,9 @@ class TcpSocketClient(QMainWindow):
         super().__init__()
         self.res = res = AppRes()
 
+        self.list_ticker = list()
+        self.dict_name = dict()
+
         self.socket = QTcpSocket(self)
         self.socket.connected.connect(self.connecting)
         self.socket.disconnected.connect(self.connection_lost)
@@ -36,14 +39,14 @@ class TcpSocketClient(QMainWindow):
         toolbar.requestPortfolioUpdate.connect(self.request_portfolio)
         self.addToolBar(toolbar)
 
-        base = Widget()
-        self.setCentralWidget(base)
+        # base = Widget()
+        # self.setCentralWidget(base)
 
-        layout = VBoxLayout()
-        base.setLayout(layout)
+        # layout = VBoxLayout()
+        # base.setLayout(layout)
 
-        self.log_win = log_win = MultilineLog()
-        layout.addWidget(log_win)
+        # self.log_win = log_win = MultilineLog()
+        # layout.addWidget(log_win)
 
         statusbar = StatusBarBrokerClient(res)
         statusbar.requestSendMessage.connect(self.send_message)
@@ -62,6 +65,7 @@ class TcpSocketClient(QMainWindow):
     def receive_message(self):
         s = self.socket.readAll().data().decode()
         d = json.loads(s)
+
         if "message" in d.keys():
             print(f'Received: {d["message"]}')
 
@@ -71,7 +75,12 @@ class TcpSocketClient(QMainWindow):
 
         if "portfolio" in d.keys():
             print("Received updated portfolio.")
-            print(d["portfolio"].keys())
+            if "list_ticker" in d["portfolio"].keys():
+                self.list_ticker = sorted(d["portfolio"]["list_ticker"])
+                if "dict_name" in d["portfolio"].keys():
+                    self.dict_name = d["portfolio"]["dict_name"]
+            print(self.list_ticker)
+            print(self.dict_name)
 
     def request_portfolio(self):
         dict_request = {"request": "portfolio"}
