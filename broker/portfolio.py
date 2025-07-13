@@ -1,13 +1,8 @@
 import logging
-import os
 import sys
-import time
 
 import pandas as pd
 import xlwings as xw
-
-from funcs.ios import save_dataframe_to_excel
-from funcs.tide import get_date_str_today
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
@@ -76,6 +71,7 @@ class PortfolioWorker(QObject):
         self.dict_name = dict()  # 銘柄名
         while flag_loop:
             ticker = self.sheet[row, self.col_code].value
+            print(ticker)
             if ticker == self.cell_bottom:
                 flag_loop = False
             else:
@@ -86,13 +82,9 @@ class PortfolioWorker(QObject):
                 self.dict_row[ticker] = row
 
                 # 銘柄名
-                self.dict_name[ticker] = self.sheet[row, self.col_name].value
-
-                # 銘柄別に空のデータフレームを準備
-                # self.dict_df[ticker] = pd.DataFrame({
-                #    "Time": list(),
-                #    "Price": list()
-                # })
+                name = self.sheet[row, self.col_name].value
+                print(name)
+                self.dict_name[ticker] = name
 
                 # 行番号のインクリメント
                 row += 1
