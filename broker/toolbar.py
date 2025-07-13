@@ -69,7 +69,7 @@ class ToolBarBrokerClient(QToolBar):
 
         row = 0
         lab_server = LabelRaised("Server")
-        lab_server.setFixedWidth(60)
+        lab_server.setFixedWidth(80)
         layout_row.addWidget(lab_server, row, 0, 2, 1)
 
         lab_addr = LabelRaised("Address")
@@ -79,10 +79,12 @@ class ToolBarBrokerClient(QToolBar):
         layout_row.addWidget(lab_port, row, 2)
 
         but_connect = Button("Connect")
+        but_connect.setFixedWidth(80)
         but_connect.clicked.connect(self.connect_to_server)
         layout_row.addWidget(but_connect, row, 3, 2, 1)
 
         self.but_update = but_update = Button("Update")
+        but_update.setFixedWidth(80)
         but_update.setDisabled(True)
         but_update.clicked.connect(self.requestPortfolioUpdate.emit)
         layout_row.addWidget(but_update, row, 4, 2, 1)

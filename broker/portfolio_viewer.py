@@ -1,8 +1,10 @@
 import json
 
+from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QTcpSocket
 from PySide6.QtWidgets import QMainWindow
 
+from broker.dock import DockPortfolio
 from broker.statusbar import StatusBarBrokerClient
 from broker.toolbar import ToolBarBrokerClient
 from structs.res import AppRes
@@ -20,13 +22,20 @@ class PortfolioViewer(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
-        self.setWindowTitle("Client")
+        self.setWindowTitle("Portfolio Viewer")
+        # self.resize(1000, 600)
 
+        # ツールバー
         self.toolbar = toolbar = ToolBarBrokerClient(res)
         toolbar.requestConnectToServer.connect(self.connect_to_server)
         toolbar.requestPortfolioUpdate.connect(self.request_portfolio)
         self.addToolBar(toolbar)
 
+        # 右側のドック
+        self.dock = dock = DockPortfolio(res)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+
+        # ステータスバー
         statusbar = StatusBarBrokerClient(res)
         statusbar.requestSendMessage.connect(self.send_message)
         self.setStatusBar(statusbar)
@@ -60,8 +69,8 @@ class PortfolioViewer(QMainWindow):
                 list_ticker = sorted(d["portfolio"]["list_ticker"])
                 if "dict_name" in d["portfolio"].keys():
                     dict_name = d["portfolio"]["dict_name"]
-            print(list_ticker)
-            print(dict_name)
+            # ドックに最新情報をインプット
+            self.dock.refreshTickerList(list_ticker, dict_name)
 
     def request_portfolio(self):
         dict_request = {"request": "portfolio"}
