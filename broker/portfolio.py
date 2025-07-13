@@ -17,7 +17,7 @@ from structs.res import AppRes
 
 class PortfolioWorker(QObject):
     # 銘柄名（リスト）の通知
-    notifyTickerN = Signal(list, dict)
+    notifyInitCompleted = Signal(list, dict)
     # スレッドの終了を通知
     threadFinished = Signal()
 
@@ -71,7 +71,7 @@ class PortfolioWorker(QObject):
 
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
-        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
+        self.notifyInitCompleted.emit(self.list_ticker, self.dict_name)
         # --------------------------------------------------------------
 
     def get_current_tickers(self):
