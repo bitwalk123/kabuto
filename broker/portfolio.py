@@ -69,7 +69,7 @@ class PortfolioWorker(QObject):
         self.list_ticker = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
-        while flag_loop:
+        while True:
             # 銘柄コードを強制的に文字列にする
             val = self.sheet[row, self.col_code].value
             if type(val) is str:
