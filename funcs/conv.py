@@ -92,3 +92,11 @@ def min_max_scale(data):
     scaled_data = (data_array - min_val) / (max_val - min_val)
 
     return scaled_data
+
+
+def get_ticker_as_string(val) -> str:
+    if type(val) is str:
+        ticker = val
+    else:
+        ticker = f"{int(val)}"
+    return ticker

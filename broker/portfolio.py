@@ -1,8 +1,9 @@
 import logging
 import sys
 
-import pandas as pd
 import xlwings as xw
+
+from funcs.conv import get_ticker_as_string
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
@@ -72,10 +73,7 @@ class PortfolioWorker(QObject):
         while True:
             # 銘柄コードを強制的に文字列にする
             val = self.sheet[row, self.col_code].value
-            if type(val) is str:
-                ticker = val
-            else:
-                ticker = f"{int(val)}"
+            ticker = get_ticker_as_string(val)
             # 終端判定
             if ticker == self.cell_bottom:
                 # flag_loop = False
