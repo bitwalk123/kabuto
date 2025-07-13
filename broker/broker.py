@@ -65,7 +65,7 @@ class StockBroker(QMainWindow):
         layout.addWidget(ent_port, row, 2)
 
     def connection_lost(self):
-        self.logger.info(f"{__name__} Disconnected.")
+        self.logger.info(f"{__name__} Client disconnected.")
         # クライアントの切断処理
         self.client = None
         self.ent_addr.setClear()

@@ -44,13 +44,6 @@ class TcpSocketClient(QMainWindow):
         tedit.setReadOnly(True)  # Set it to read-only for history
         layout.addWidget(tedit)
 
-        """
-        self.ledit = ledit = QLineEdit(self)
-        ledit.returnPressed.connect(self.send_message)  # Send when Return key is pressed
-        form = QFormLayout()
-        form.addRow("Message:", ledit)
-        layout.addLayout(form)
-        """
         statusbar = StatusBarBrokerClient(res)
         statusbar.requestSendMessage.connect(self.send_message)
         self.setStatusBar(statusbar)
@@ -59,7 +52,7 @@ class TcpSocketClient(QMainWindow):
         self.socket.connectToHost(addr, port)
 
     def connection_lost(self):
-        self.tedit.append("Disconnected.")
+        self.tedit.append("Server disconnected.")
 
     def connecting(self):
         self.tedit.append("Connecting to server...")
@@ -68,7 +61,7 @@ class TcpSocketClient(QMainWindow):
         msg = self.socket.readAll().data().decode()
         self.tedit.append(f"Received: {msg}")
 
-    def send_message(self, msg:str):
+    def send_message(self, msg: str):
         if msg:
             self.tedit.append(f"Sent: {msg}")
             self.socket.write(msg.encode())
