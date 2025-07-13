@@ -33,6 +33,7 @@ class TcpSocketClient(QMainWindow):
 
         self.toolbar = toolbar = ToolBarBrokerClient(res)
         toolbar.requestConnectToServer.connect(self.connect_to_server)
+        toolbar.requestPortfolioUpdate.connect(self.request_portfolio)
         self.addToolBar(toolbar)
 
         base = Widget()
@@ -67,6 +68,15 @@ class TcpSocketClient(QMainWindow):
         if "connection" in d.keys():
             print(d["connection"])
             self.toolbar.updateEnable()
+
+        if "portfolio" in d.keys():
+            print("Received updated portfolio.")
+            print(d["portfolio"].keys())
+
+    def request_portfolio(self):
+        dict_request = {"request": "portfolio"}
+        s = json.dumps(dict_request)
+        self.socket.write(s.encode())
 
     def send_message(self, msg: str):
         if msg:

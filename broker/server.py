@@ -104,9 +104,15 @@ class StockBroker(QMainWindow):
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
     def on_portfolio_current(self, list_ticker: list, dict_name: dict):
-        print("### 現在のポートフォリオ（現物） ###")
-        for ticker in list_ticker:
-            print(ticker, dict_name[ticker])
+        print("Updated portfolio obtained.")
+        d = {
+            "portfolio": {
+                "list_ticker": list_ticker,
+                "dict_name": dict_name,
+            }
+        }
+        s = json.dumps(d)
+        self.client.write(s.encode())
 
     @staticmethod
     def on_portfolio_init_completed(list_ticker: list, dict_name: dict):
