@@ -12,10 +12,6 @@ from PySide6.QtWidgets import QMainWindow
 
 from broker.toolbar import ToolBarBrokerServer
 from structs.res import AppRes
-from widgets.containers import Widget
-from widgets.entries import EntryAddress, EntryPort
-from widgets.labels import LabelRaised
-from widgets.layouts import GridLayout
 
 
 class StockBroker(QMainWindow):
