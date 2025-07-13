@@ -47,7 +47,7 @@ class StockBroker(QMainWindow):
         # portfolio スレッド用インスタンス
         self.portfolio = portfolio = Portfolio(res)
         portfolio.threadReady.connect(self.on_portfolio_ready)
-        portfolio.worker.notifyTickerN.connect(self.on_ticker_list)
+        portfolio.worker.notifyTickerN.connect(self.on_portfolio_init_tickers)
         portfolio.start()
 
     def closeEvent(self, event: QCloseEvent):
@@ -99,13 +99,18 @@ class StockBroker(QMainWindow):
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
-    def on_ticker_list(self, list_ticker: list, dict_name: dict):
-        print(dict_name)
+    def on_portfolio_init_tickers(self, list_ticker: list, dict_name: dict):
+        """
+        スレッド初期化後の銘柄リスト
+        :param list_ticker:
+        :param dict_name:
+        :return:
+        """
         for ticker in list_ticker:
             print(ticker, dict_name[ticker])
 
     def on_portfolio_ready(self):
-        self.logger.info(f"{__name__}: Portfolio is ready.")
+        self.logger.info(f"{__name__}: Portfolio thread is ready.")
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
