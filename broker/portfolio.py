@@ -66,17 +66,17 @@ class PortfolioWorker(QObject):
 
         row = 1
         flag_loop = True
-        # self.list_ticker = list()  # 銘柄リスト
-        # self.dict_row = dict()  # 銘柄の行位置
-        # self.dict_name = dict()  # 銘柄名
+        self.list_ticker = list()  # 銘柄リスト
+        self.dict_row = dict()  # 銘柄の行位置
+        self.dict_name = dict()  # 銘柄名
         while flag_loop:
+            # 銘柄コードを強制的に文字列にする
             val = self.sheet[row, self.col_code].value
             if type(val) is str:
                 ticker = val
             else:
-                print(type(val))
                 ticker = f"{int(val)}"
-            print(ticker)
+            # 終端判定
             if ticker == self.cell_bottom:
                 flag_loop = False
             else:
@@ -88,13 +88,11 @@ class PortfolioWorker(QObject):
 
                 # 銘柄名
                 name = self.sheet[row, self.col_name].value
-                print(name)
                 self.dict_name[ticker] = name
 
                 # 行番号のインクリメント
                 row += 1
 
-        print(self.dict_name)
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
         self.notifyTickerN.emit(self.list_ticker, self.dict_name)
