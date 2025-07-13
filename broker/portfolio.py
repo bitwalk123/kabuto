@@ -17,8 +17,10 @@ from structs.res import AppRes
 
 
 class PortfolioWorker(QObject):
-    # 銘柄名（リスト）の通知
+    # 初期化の完了と銘柄名（リスト）の通知
     notifyInitCompleted = Signal(list, dict)
+    # 現在のポートフォリオを通知
+    notifyCurrentPortfolio = Signal(list, dict)
     # スレッドの終了を通知
     threadFinished = Signal()
 
@@ -75,6 +77,14 @@ class PortfolioWorker(QObject):
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
         self.notifyInitCompleted.emit(self.list_ticker, self.dict_name)
+        # --------------------------------------------------------------
+
+    def getCurrentPortfolio(self):
+        self.get_current_portfolio()
+
+        # --------------------------------------------------------------
+        # 🧿 銘柄名などの情報を通知
+        self.notifyCurrentPortfolio.emit(self.list_ticker, self.dict_name)
         # --------------------------------------------------------------
 
     def get_current_portfolio(self):
@@ -170,7 +180,7 @@ class PortfolioWorker(QObject):
 
 class Portfolio(QThread):
     requestWorkerInit = Signal()
-    requestCurrentPrice = Signal()
+    requestCurrentPortfolio = Signal()
     requestStopProcess = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
@@ -197,8 +207,8 @@ class Portfolio(QThread):
         # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
         self.requestWorkerInit.connect(worker.initWorker)
 
-        # 現在株価を取得するメソッドへキューイング。
-        # self.requestCurrentPrice.connect(worker.readCurrentPrice)
+        # 現在のポートフォリオを取得するメソッドへキューイング
+        self.requestCurrentPortfolio.connect(worker.getCurrentPortfolio)
 
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)

@@ -48,6 +48,7 @@ class StockBroker(QMainWindow):
         self.portfolio = portfolio = Portfolio(res)
         portfolio.threadReady.connect(self.on_portfolio_ready)
         portfolio.worker.notifyInitCompleted.connect(self.on_portfolio_init_completed)
+        portfolio.worker.notifyCurrentPortfolio.connect(self.on_portfolio_current)
         portfolio.start()
 
     def closeEvent(self, event: QCloseEvent):
@@ -102,6 +103,11 @@ class StockBroker(QMainWindow):
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
+    def on_portfolio_current(self, list_ticker: list, dict_name: dict):
+        print("### 現在のポートフォリオ（現物） ###")
+        for ticker in list_ticker:
+            print(ticker, dict_name[ticker])
+
     @staticmethod
     def on_portfolio_init_completed(list_ticker: list, dict_name: dict):
         """
@@ -122,6 +128,13 @@ class StockBroker(QMainWindow):
         d = json.loads(s)
         if "message" in d.keys():
             print(f'Received: {d["message"]}')
+
+        if "request" in d.keys():
+            if d["request"] == "portfolio":
+                # --------------------------------------------
+                # 🧿 現在のポートフォリオの情報をリクエスト
+                self.portfolio.requestCurrentPortfolio.emit()
+                # --------------------------------------------
 
         # ---------------------------------------------------------------------
         # サーバーの応答をクライアントへ
