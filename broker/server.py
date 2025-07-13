@@ -93,8 +93,8 @@ class StockBroker(QMainWindow):
             peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__}: Connected from {peerInfo}.")
             msg = f"Server accepted connecting from {peerInfo}"
-            dict_msg = {"message": msg}
-            s = json.dumps(dict_msg)
+            d = {"message": msg}
+            s = json.dumps(d)
             self.client.write(s.encode())
         else:
             # ---------------------------------------------------------------------
@@ -119,9 +119,10 @@ class StockBroker(QMainWindow):
 
     def receive_message(self):
         s = self.client.readAll().data().decode()
-        # print(f"Received: {msg}")
-        dict_msg = json.loads(s)
-        print(dict_msg)
+        d = json.loads(s)
+        if "message" in d.keys():
+            print(f'Received: {d["message"]}')
+
         # ---------------------------------------------------------------------
         # サーバーの応答をクライアントへ
         # self.client.write(f"Server received: {msg}".encode())
