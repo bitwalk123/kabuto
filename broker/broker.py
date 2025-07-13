@@ -65,7 +65,7 @@ class StockBroker(QMainWindow):
         layout.addWidget(ent_port, row, 2)
 
     def connection_lost(self):
-        self.logger.info(f"{__name__} Client disconnected.")
+        self.logger.info(f"{__name__}: Client disconnected.")
         # クライアントの切断処理
         self.client = None
         self.ent_addr.setClear()
@@ -86,12 +86,12 @@ class StockBroker(QMainWindow):
             self.ent_port.setPort(peerPort)
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"
-            self.logger.info(f"{__name__} Connected from {peerInfo}.")
+            self.logger.info(f"{__name__}: Connected from {peerInfo}.")
             self.client.write(f"Server accepted connecting from {peerInfo}".encode())
         else:
             # 一度に接続できるのは１クライアントのみに制限
             self.server.pauseAccepting()  # 接続を保留
-            self.logger.warning(f"{__name__} Pause accepting new connection.")
+            self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
