@@ -78,7 +78,8 @@ class PortfolioWorker(QObject):
                 ticker = f"{int(val)}"
             # 終端判定
             if ticker == self.cell_bottom:
-                flag_loop = False
+                # flag_loop = False
+                break
             else:
                 # 銘柄コード
                 self.list_ticker.append(ticker)
