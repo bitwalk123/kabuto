@@ -6,9 +6,7 @@ class Entry(QLineEdit):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLineEdit {
-                font-family: monospace;
-            }
+            QLineEdit {font-family: monospace;}
         """)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
@@ -19,8 +17,13 @@ class EntryAddress(Entry):
         self.setReadOnly(True)
         self.setFixedWidth(180)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.address: str = self.text()
+
+    def getAddress(self) -> str:
+        return self.address
 
     def setAddress(self, address: str):
+        self.address = address
         self.setText(address)
 
     def setClear(self):
@@ -33,8 +36,14 @@ class EntryPort(Entry):
         self.setReadOnly(True)
         self.setFixedWidth(70)
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
+        if self.text() != "":
+            self.port: int = int(self.text())
+
+    def getPort(self) -> int:
+        return self.port
 
     def setPort(self, port: int):
+        self.port = port
         self.setText(str(port))
 
     def setClear(self):

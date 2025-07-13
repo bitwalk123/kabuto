@@ -79,9 +79,10 @@ class TcpSocketClient(QMainWindow):
         layout.addLayout(form)
 
     def connect_to_server(self):
+        print(f"connecting to {self.ent_addr.getAddress()}:{self.ent_port.getPort()}...")
         self.socket.connectToHost(
-            self.ent_addr.text(),
-            int(self.ent_port.text())
+            self.ent_addr.getAddress(),
+            self.ent_port.getPort()
         )
 
     def connection_lost(self):

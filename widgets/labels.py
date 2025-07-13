@@ -24,9 +24,7 @@ class LabelLeft(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLabel {
-                font-family: monospace;
-            }
+            QLabel {font-family: monospace;}
         """)
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -45,9 +43,7 @@ class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLabel {
-                font-family: monospace;
-            }
+            QLabel {font-family: monospace;}
         """)
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
@@ -89,9 +85,7 @@ class LabelSmall(QLabel):
         )
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setStyleSheet("""
-            QLabel {
-                margin: 0 5;
-            }
+            QLabel {margin: 0 5;}
         """)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
