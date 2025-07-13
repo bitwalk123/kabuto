@@ -89,6 +89,7 @@ class PortfolioWorker(QObject):
                 # 行番号のインクリメント
                 row += 1
 
+        print(self.dict_name)
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
         self.notifyTickerN.emit(self.list_ticker, self.dict_name)
