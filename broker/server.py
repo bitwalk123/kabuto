@@ -20,9 +20,11 @@ class StockBroker(QMainWindow):
         # モジュール固有のロガーを取得
         self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
+        # ---------------------------------------------------------------------
         # json でサーバー情報を取得（ポート番号のみ使用）
         with open(os.path.join(res.dir_conf, "server.json")) as f:
             dict_server = json.load(f)
+        # ---------------------------------------------------------------------
         # サーバー・インスタンス
         self.server = QTcpServer(self)
         self.server.listen(QHostAddress.SpecialAddress.Any, dict_server["port"])
@@ -32,39 +34,46 @@ class StockBroker(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
 
         self.toolbar = toolbar = ToolBarBrokerServer(res)
         self.addToolBar(toolbar)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def connection_lost(self):
         self.logger.info(f"{__name__}: Client disconnected.")
+        # ---------------------------------------------------------------------
         # クライアントの切断処理
         self.client = None
         self.toolbar.ent_addr.setClear()
         self.toolbar.ent_port.setClear()
+        # ---------------------------------------------------------------------
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
             self.connection_new()
 
     def connection_new(self):
         if self.client is None:
+            # ---------------------------------------------------------------------
+            # 接続処理
             self.client = self.server.nextPendingConnection()
             self.client.readyRead.connect(self.receive_message)
             self.client.disconnected.connect(self.connection_lost)
+            # ---------------------------------------------------------------------
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             peerPort = self.client.peerPort()
             self.toolbar.ent_addr.setAddress(peerAddress)
             self.toolbar.ent_port.setPort(peerPort)
+            # ---------------------------------------------------------------------
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__}: Connected from {peerInfo}.")
             self.client.write(f"Server accepted connecting from {peerInfo}".encode())
         else:
+            # ---------------------------------------------------------------------
             # 一度に接続できるのは１クライアントのみに制限
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
@@ -72,5 +81,6 @@ class StockBroker(QMainWindow):
     def receive_message(self):
         msg = self.client.readAll().data().decode()
         print(f"Received: {msg}")
+        # ---------------------------------------------------------------------
         # サーバーの応答をクライアントへ
         self.client.write(f"Server received: {msg}".encode())
