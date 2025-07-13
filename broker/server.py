@@ -37,7 +37,7 @@ class StockBroker(QMainWindow):
         icon = QIcon(os.path.join(res.dir_image, "bee.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("StockBroker")
-
+        # ツールバー
         self.toolbar = toolbar = ToolBarBrokerServer(res)
         self.addToolBar(toolbar)
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -47,8 +47,7 @@ class StockBroker(QMainWindow):
         # ---------------------------------------------------------------------
         # クライアントの切断処理
         self.client = None
-        self.toolbar.ent_addr.setClear()
-        self.toolbar.ent_port.setClear()
+        self.toolbar.setClear()
         # ---------------------------------------------------------------------
         # 接続待ちがあれば新しい接続処理へ
         if self.server.hasPendingConnections():
@@ -65,8 +64,7 @@ class StockBroker(QMainWindow):
             # ピア情報
             peerAddress = self.client.peerAddress().toString()
             peerPort = self.client.peerPort()
-            self.toolbar.ent_addr.setAddress(peerAddress)
-            self.toolbar.ent_port.setPort(peerPort)
+            self.toolbar.setAddressPort(peerAddress, peerPort)
             # ---------------------------------------------------------------------
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"

@@ -83,3 +83,12 @@ class ToolBarBrokerServer(QToolBar):
 
         self.ent_port = ent_port = EntryPort()
         layout.addWidget(ent_port, row, 2)
+
+    def setAddressPort(self, address:str, port:int):
+        self.ent_addr.setAddress(address)
+        self.ent_port.setPort(port)
+
+    def setClear(self):
+        self.ent_addr.setClear()
+        self.ent_port.setClear()
+
