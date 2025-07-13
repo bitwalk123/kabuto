@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtNetwork import (
     QHostAddress,
     QTcpServer,
@@ -10,6 +10,7 @@ from PySide6.QtNetwork import (
 )
 from PySide6.QtWidgets import QMainWindow
 
+from broker.portfolio import Portfolio
 from broker.toolbar import ToolBarBrokerServer
 from structs.res import AppRes
 
@@ -41,6 +42,28 @@ class StockBroker(QMainWindow):
         self.toolbar = toolbar = ToolBarBrokerServer(res)
         self.addToolBar(toolbar)
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+        # ---------------------------------------------------------------------
+        # portfolio スレッド用インスタンス
+        self.portfolio = portfolio = Portfolio(res)
+        portfolio.threadReady.connect(self.on_portfolio_ready)
+        portfolio.worker.notifyTickerN.connect(self.on_ticker_list)
+        portfolio.start()
+
+    def closeEvent(self, event: QCloseEvent):
+        # ---------------------------------------------------------------------
+        # Thread Stock Collector の削除
+        # ---------------------------------------------------------------------
+        if self.portfolio.isRunning():
+            self.portfolio.requestStopProcess.emit()
+            self.logger.info("Stopping Portfolio...")
+            self.portfolio.quit()  # スレッドのイベントループに終了を指示
+            self.portfolio.wait()  # スレッドが完全に終了するまで待機
+            self.logger.info("Portfolio safely terminated.")
+
+        # ---------------------------------------------------------------------
+        self.logger.info(f"{__name__} stopped and closed.")
+        event.accept()
 
     def connection_lost(self):
         self.logger.info(f"{__name__}: Client disconnected.")
@@ -75,6 +98,13 @@ class StockBroker(QMainWindow):
             # 一度に接続できるのは１クライアントのみに制限
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
+
+    def on_ticker_list(self, list_ticker: list, dict_name: dict):
+        for ticker in list_ticker:
+            print(ticker, dict_name[ticker])
+
+    def on_portfolio_ready(self):
+        self.logger.info(f"{__name__}: Portfolio is ready.")
 
     def receive_message(self):
         msg = self.client.readAll().data().decode()
