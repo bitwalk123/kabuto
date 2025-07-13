@@ -66,9 +66,9 @@ class PortfolioWorker(QObject):
 
         row = 1
         flag_loop = True
-        self.list_ticker = list()  # 銘柄リスト
-        self.dict_row = dict()  # 銘柄の行位置
-        self.dict_name = dict()  # 銘柄名
+        # self.list_ticker = list()  # 銘柄リスト
+        # self.dict_row = dict()  # 銘柄の行位置
+        # self.dict_name = dict()  # 銘柄名
         while flag_loop:
             ticker = self.sheet[row, self.col_code].value
             print(ticker)
@@ -138,7 +138,6 @@ class PortfolioWorker(QObject):
                 ###############################################################
     """
 
-
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
@@ -158,7 +157,6 @@ class PortfolioWorker(QObject):
 class Portfolio(QThread):
     requestWorkerInit = Signal()
     requestCurrentPrice = Signal()
-    # requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
