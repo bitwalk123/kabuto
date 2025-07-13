@@ -26,62 +26,64 @@ class PortfolioWorker(QObject):
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.excel_path = excel_path
-
         # ---------------------------------------------------------------------
         # xlwings のインスタンス
-        # この初期化プロセスでは xlwings インスタンスの初期化ができない。
+        # この初期化プロセスでは xlwings インスタンスの初期化をできない。
         # Excel と通信する COM オブジェクトがスレッドアフィニティ（特定のCOMオブジェクトは
-        # 特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため
-        # ---------------------------------------------------------------------
+        # 特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため。
+        # そこで、スレッドが起動した後で初期化処理（initWorker メソッド）をする。
         self.wb = None  # Excel のワークブックインスタンス
         self.sheet = None  # Excel のワークシートインスタンス
-
+        # ---------------------------------------------------------------------
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
         # COM エラーが発生するため、リトライできるようにしている。
         self.max_retries = 3  # 最大リトライ回数
         self.retry_delay = 0.1  # リトライ間の遅延（秒）
         # ---------------------------------------------------------------------
-
         # Excel ワークシート情報
         self.cell_bottom = "--------"
-        self.list_ticker = list()  # 銘柄リスト
-        self.dict_row = dict()  # 銘柄の行位置
-        self.dict_name = dict()  # 銘柄名
-        # self.dict_df = dict()  # 銘柄別データフレーム
-
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
         self.col_name = 1  # 銘柄名称
         self.col_profit = 11  # 評価損益額
         self.col_profit_ratio = 12  # 評価損益率
+        # スレッド内で保持する情報
+        self.list_ticker = list()  # 銘柄リスト
+        self.dict_row = dict()  # 銘柄の行位置
+        self.dict_name = dict()  # 銘柄名
 
     def initWorker(self):
-        self.logger.info("Worker: in init process.")
+        """
+        Excel と通信する COM オブジェクトがスレッドアフィニティ（特定のCOMオブジェクトは
+        特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため。
+        そこで、スレッドが起動した後でこの初期化処理をする。
+        :return:
+        """
+        self.logger.info(f"{__name__} Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
         self.wb = wb = xw.Book(self.excel_path)
         name_sheet = "Portfolio"
         self.sheet = wb.sheets[name_sheet]
-        #
         #######################################################################
 
         # 現在の銘柄リスト
-        self.get_current_tickers()
+        self.get_current_portfolio()
 
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
         self.notifyInitCompleted.emit(self.list_ticker, self.dict_name)
         # --------------------------------------------------------------
 
-    def get_current_tickers(self):
+    def get_current_portfolio(self):
         self.list_ticker = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
+
         row = 1
         while True:
             ticker = self.get_ticker(row)
-
             # 終端判定
             if ticker == self.cell_bottom:
                 # flag_loop = False
@@ -89,14 +91,11 @@ class PortfolioWorker(QObject):
             else:
                 # 銘柄コード
                 self.list_ticker.append(ticker)
-
                 # 行位置
                 self.dict_row[ticker] = row
-
                 # 銘柄名
                 name = self.get_name(row)
                 self.dict_name[ticker] = name
-
                 # 行番号のインクリメント
                 row += 1
 
@@ -108,7 +107,7 @@ class PortfolioWorker(QObject):
                 break
             except com_error as e:
                 # ---------------------------------------------------------
-                # com_error は Windows 固有
+                # com_error（Windows 固有）は、マーケットスピード２ RSS と衝突時
                 # ---------------------------------------------------------
                 if attempt < self.max_retries - 1:
                     self.logger.warning(
@@ -135,7 +134,7 @@ class PortfolioWorker(QObject):
                 break
             except com_error as e:
                 # ---------------------------------------------------------
-                # com_error は Windows 固有
+                # com_error（Windows 固有）は、マーケットスピード２ RSS と衝突時
                 # ---------------------------------------------------------
                 if attempt < self.max_retries - 1:
                     self.logger.warning(
@@ -152,49 +151,6 @@ class PortfolioWorker(QObject):
                 raise  # その他の例外はそのまま発生させる
         return ticker
 
-    """
-    def readCurrentPrice(self):
-        for ticker in self.list_ticker:
-            row_excel = self.dict_row[ticker]
-            df = self.dict_df[ticker]
-            row = len(df)
-            # Excel シートから株価情報を取得
-            for attempt in range(self.max_retries):
-                ###############################################################
-                # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
-                # COM エラーが発生するため、リトライできるようにしている。
-                # -------------------------------------------------------------
-                try:
-                    ts = time.time()
-                    # Excelシートから株価データを取得
-                    price = self.sheet[row_excel, self.col_price].value
-                    if price > 0:
-                        # ここでもタイムスタンプを時刻に採用する
-                        df.at[row, "Time"] = ts
-                        df.at[row, "Price"] = price
-                        # print(ticker, ts, price)
-                    break
-                except com_error as e:
-                    # ---------------------------------------------------------
-                    # com_error は Windows 固有
-                    # ---------------------------------------------------------
-                    if attempt < self.max_retries - 1:
-                        self.logger.warning(
-                            f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
-                        )
-                        time.sleep(self.retry_delay)
-                    else:
-                        self.logger.error(
-                            f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
-                        )
-                        raise  # 最終的に失敗したら例外を再発生させる
-                except Exception as e:
-                    self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
-                    raise  # その他の例外はそのまま発生させる
-                #
-                ###############################################################
-    """
-
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
@@ -204,7 +160,6 @@ class PortfolioWorker(QObject):
 
         if self.wb:
             self.wb = None  # オブジェクト参照をクリア
-
         # -------------------------------
         # 🧿 スレッド終了シグナルの通知
         self.threadFinished.emit()
