@@ -99,7 +99,8 @@ class StockBroker(QMainWindow):
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
-    def on_portfolio_init_completed(self, list_ticker: list, dict_name: dict):
+    @staticmethod
+    def on_portfolio_init_completed(list_ticker: list, dict_name: dict):
         """
         スレッド初期化後の銘柄リスト
         :param list_ticker:
