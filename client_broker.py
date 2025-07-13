@@ -60,6 +60,7 @@ class TcpSocketClient(QMainWindow):
 
     def receive_message(self):
         s = self.socket.readAll().data().decode()
+        print(s)
         dict_msg = json.loads(s)
         if "message" in dict_msg.keys():
             self.log_win.append(f'Received: {dict_msg["message"]}')

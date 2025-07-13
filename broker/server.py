@@ -92,7 +92,10 @@ class StockBroker(QMainWindow):
             # ログ出力＆クライアントへ応答
             peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__}: Connected from {peerInfo}.")
-            self.client.write(f"Server accepted connecting from {peerInfo}".encode())
+            msg = f"Server accepted connecting from {peerInfo}"
+            dict_msg = {"message": msg}
+            s = json.dumps(dict_msg)
+            self.client.write(s.encode())
         else:
             # ---------------------------------------------------------------------
             # 一度に接続できるのは１クライアントのみに制限
@@ -116,7 +119,7 @@ class StockBroker(QMainWindow):
 
     def receive_message(self):
         s = self.client.readAll().data().decode()
-        #print(f"Received: {msg}")
+        # print(f"Received: {msg}")
         dict_msg = json.loads(s)
         print(dict_msg)
         # ---------------------------------------------------------------------
