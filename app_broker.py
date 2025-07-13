@@ -2,7 +2,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from modules.broker import StockBroker
+from broker.broker import StockBroker
 
 
 def main():

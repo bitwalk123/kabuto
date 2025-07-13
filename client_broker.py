@@ -1,7 +1,5 @@
 # Reference:
 # https://github.com/bhowiebkr/client-server-socket-example/
-import json
-import os
 import sys
 
 from PySide6.QtWidgets import (
@@ -13,20 +11,16 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtNetwork import QTcpSocket
 
+from broker.toolbar import ToolBarBrokerClient
 from structs.res import AppRes
-from widgets.buttons import Button
 from widgets.containers import Widget
-from widgets.entries import EntryAddress, EntryPort
-from widgets.labels import LabelRaised
-from widgets.layouts import GridLayout, VBoxLayout
+from widgets.layouts import VBoxLayout
 
 
 class TcpSocketClient(QMainWindow):
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
-        with open(os.path.join(res.dir_conf, "server.json")) as f:
-            dict_server = json.load(f)
 
         self.socket = QTcpSocket(self)
         self.socket.connected.connect(self.connecting)
@@ -36,36 +30,15 @@ class TcpSocketClient(QMainWindow):
         # UI
         self.setWindowTitle("Client")
 
+        toolbar = ToolBarBrokerClient(res)
+        toolbar.requestConnectToServer.connect(self.connect_to_server)
+        self.addToolBar(toolbar)
+
         base = Widget()
         self.setCentralWidget(base)
 
         layout = VBoxLayout()
         base.setLayout(layout)
-
-        layout_row = GridLayout()
-        layout.addLayout(layout_row)
-
-        row = 0
-        lab_server = LabelRaised("Server")
-        lab_server.setFixedWidth(60)
-        layout_row.addWidget(lab_server, row, 0, 2, 1)
-
-        lab_addr = LabelRaised("Address")
-        layout_row.addWidget(lab_addr, row, 1)
-
-        lab_port = LabelRaised("Port")
-        layout_row.addWidget(lab_port, row, 2)
-
-        but_connect = Button("Connect")
-        but_connect.clicked.connect(self.connect_to_server)
-        layout_row.addWidget(but_connect, row, 3, 2, 1)
-
-        row += 1
-        self.ent_addr = ent_addr = EntryAddress(dict_server["ip"])
-        layout_row.addWidget(ent_addr, row, 1)
-
-        self.ent_port = ent_port = EntryPort(str(dict_server["port"]))
-        layout_row.addWidget(ent_port, row, 2)
 
         self.tedit = tedit = QTextEdit(self)
         tedit.setStyleSheet("QTextEdit {font-family: monospace;}")
@@ -78,12 +51,8 @@ class TcpSocketClient(QMainWindow):
         form.addRow("Message:", ledit)
         layout.addLayout(form)
 
-    def connect_to_server(self):
-        print(f"connecting to {self.ent_addr.getAddress()}:{self.ent_port.getPort()}...")
-        self.socket.connectToHost(
-            self.ent_addr.getAddress(),
-            self.ent_port.getPort()
-        )
+    def connect_to_server(self, addr: str, port: int):
+        self.socket.connectToHost(addr, port)
 
     def connection_lost(self):
         self.tedit.append("Disconnected.")
