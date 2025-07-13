@@ -106,6 +106,7 @@ class StockBroker(QMainWindow):
         :param dict_name:
         :return:
         """
+        print("### 起動時のポートフォリオ ###")
         for ticker in list_ticker:
             print(ticker, dict_name[ticker])
 
