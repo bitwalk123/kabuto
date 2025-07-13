@@ -31,7 +31,7 @@ class TcpSocketClient(QMainWindow):
         # UI
         self.setWindowTitle("Client")
 
-        toolbar = ToolBarBrokerClient(res)
+        self.toolbar = toolbar = ToolBarBrokerClient(res)
         toolbar.requestConnectToServer.connect(self.connect_to_server)
         self.addToolBar(toolbar)
 
@@ -53,20 +53,24 @@ class TcpSocketClient(QMainWindow):
         self.socket.connectToHost(addr, port)
 
     def connection_lost(self):
-        self.log_win.append("Server disconnected.")
+        print("Server disconnected.")
 
     def connecting(self):
-        self.log_win.append("Connecting to server...")
+        print("Connecting to server...")
 
     def receive_message(self):
         s = self.socket.readAll().data().decode()
         d = json.loads(s)
         if "message" in d.keys():
-            self.log_win.append(f'Received: {d["message"]}')
+            print(f'Received: {d["message"]}')
+
+        if "connection" in d.keys():
+            print(d["connection"])
+            self.toolbar.updateEnable()
 
     def send_message(self, msg: str):
         if msg:
-            self.log_win.append(f"Sent: {msg}")
+            print(f"Sent: {msg}")
             dict_msg = {"message": msg}
             s = json.dumps(dict_msg)
             self.socket.write(s.encode())

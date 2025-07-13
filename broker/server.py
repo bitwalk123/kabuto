@@ -94,7 +94,7 @@ class StockBroker(QMainWindow):
             peerInfo = f"{peerAddress}:{peerPort}"
             self.logger.info(f"{__name__}: Connected from {peerInfo}.")
             msg = f"Server accepted connecting from {peerInfo}"
-            d = {"message": msg}
+            d = {"connection": msg}
             s = json.dumps(d)
             self.client.write(s.encode())
         else:
