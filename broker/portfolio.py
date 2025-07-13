@@ -1,6 +1,7 @@
 import logging
 import sys
 import time
+import unicodedata
 
 import xlwings as xw
 
@@ -103,7 +104,8 @@ class PortfolioWorker(QObject):
         name = ""
         for attempt in range(self.max_retries):
             try:
-                name = self.sheet[row, self.col_name].value
+                val = self.sheet[row, self.col_name].value
+                name = unicodedata.normalize('NFKC', val)
                 break
             except com_error as e:
                 # ---------------------------------------------------------
