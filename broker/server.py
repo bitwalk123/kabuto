@@ -115,8 +115,10 @@ class StockBroker(QMainWindow):
         self.logger.info(f"{__name__}: Portfolio thread is ready.")
 
     def receive_message(self):
-        msg = self.client.readAll().data().decode()
-        print(f"Received: {msg}")
+        s = self.client.readAll().data().decode()
+        #print(f"Received: {msg}")
+        dict_msg = json.loads(s)
+        print(dict_msg)
         # ---------------------------------------------------------------------
         # サーバーの応答をクライアントへ
-        self.client.write(f"Server received: {msg}".encode())
+        # self.client.write(f"Server received: {msg}".encode())

@@ -1,5 +1,6 @@
 # Reference:
 # https://github.com/bhowiebkr/client-server-socket-example/
+import json
 import sys
 
 from PySide6.QtWidgets import (
@@ -58,13 +59,17 @@ class TcpSocketClient(QMainWindow):
         self.log_win.append("Connecting to server...")
 
     def receive_message(self):
-        msg = self.socket.readAll().data().decode()
-        self.log_win.append(f"Received: {msg}")
+        s = self.socket.readAll().data().decode()
+        dict_msg = json.loads(s)
+        if "message" in dict_msg.keys():
+            self.log_win.append(f'Received: {dict_msg["message"]}')
 
     def send_message(self, msg: str):
         if msg:
             self.log_win.append(f"Sent: {msg}")
-            self.socket.write(msg.encode())
+            dict_msg = {"message": msg}
+            s = json.dumps(dict_msg)
+            self.socket.write(s.encode())
 
 
 def main():
