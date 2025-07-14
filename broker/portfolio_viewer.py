@@ -76,14 +76,14 @@ class PortfolioViewer(QMainWindow):
 
         if "portfolio" in d.keys():
             print("Received updated portfolio.")
-            list_ticker = list()
+            list_code = list()
             dict_name = dict()
             if "list_ticker" in d["portfolio"].keys():
-                list_ticker = sorted(d["portfolio"]["list_ticker"])
+                list_code = sorted(d["portfolio"]["list_ticker"])
                 if "dict_name" in d["portfolio"].keys():
                     dict_name = d["portfolio"]["dict_name"]
             # ドックに最新情報をインプット
-            self.dock.refreshTickerList(list_ticker, dict_name)
+            self.dock.refreshTickerList(list_code, dict_name)
 
     def request_portfolio(self):
         dict_request = {"request": "portfolio"}
@@ -98,7 +98,6 @@ class PortfolioViewer(QMainWindow):
             self.socket.write(s.encode())
 
     def ticker_selected(self, code: str, name: str):
-        print(f"{name} ({code}) is selected.")
         symbol = f"{code}.T"
         ticker = yf.Ticker(symbol)
         df0 = ticker.history(period="3y", interval="1d")
@@ -109,6 +108,7 @@ class PortfolioViewer(QMainWindow):
         tdelta_1y = datetime.timedelta(days=180)
         df = df0[df0.index >= dt_last - tdelta_1y].copy()
 
+        # チャートのクリア
         self.chart.clearAxes()
 
         mm05 = df0["Close"].rolling(5).median()
@@ -151,4 +151,5 @@ class PortfolioViewer(QMainWindow):
         self.chart.ax[0].set_title(f"{name} ({code})")
         self.chart.ax[0].legend(loc="best", fontsize=8)
 
+        # チャートの再描画
         self.chart.refreshDraw()

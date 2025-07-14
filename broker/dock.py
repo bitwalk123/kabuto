@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QButtonGroup,
     QDockWidget,
-    QScrollArea, QSizePolicy,
+    QScrollArea,
 )
 
 from structs.res import AppRes
@@ -45,18 +45,18 @@ class DockPortfolio(QDockWidget):
         self.but_group = but_group = QButtonGroup()
         but_group.buttonToggled.connect(self.selection_changed)
 
-    def refreshTickerList(self, list_ticker: list, dict_name: dict):
+    def refreshTickerList(self, list_code: list, dict_name: dict):
         for but in self.but_group.buttons():
             self.but_group.removeButton(but)
         for i in reversed(range(self.layout.count())):
             self.layout.itemAt(i).widget().setParent(None)
-        for ticker in list_ticker:
-            but = ButtonTicker(ticker, dict_name[ticker])
+        for code in list_code:
+            but = ButtonTicker(code, dict_name[code])
             self.but_group.addButton(but)
             self.layout.addWidget(but)
 
     def selection_changed(self, button: ButtonTicker, state):
         if state:
-            ticker = button.getTicker()
+            code = button.getCode()
             name = button.getName()
-            self.tickerSelected.emit(ticker, name)
+            self.tickerSelected.emit(code, name)

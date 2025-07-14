@@ -133,8 +133,11 @@ class ButtonSell(QPushButton):
 
 
 class ButtonTicker(QPushButton):
-    def __init__(self, ticker: str, name: str):
+    def __init__(self, code: str, name: str):
         super().__init__()
+        self.code = code
+        self.name = name
+        self.setText(f"{code} {name}")
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Preferred
@@ -151,12 +154,9 @@ class ButtonTicker(QPushButton):
         self.setCheckable(True)
         self.setAutoExclusive(True)
 
-        self.ticker = ticker
-        self.name = name
-        self.setText(f"{ticker} {name}")
 
-    def getTicker(self) -> str:
-        return self.ticker
+    def getCode(self) -> str:
+        return self.code
 
     def getName(self) -> str:
         return self.name
