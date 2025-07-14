@@ -4,6 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDockWidget, QWidget
 
 from structs.res import AppRes
+from widgets.buttons import ButtonTicker
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
 
@@ -24,11 +25,13 @@ class DockPortfolio(QDockWidget):
 
         self.layout = layout = VBoxLayout()
         layout.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight
         )
-        layout.setSpacing(2)
+        layout.setSpacing(0)
         base.setLayout(layout)
 
     def refreshTickerList(self, list_ticker: list, dict_name: dict):
         for ticker in list_ticker:
-            print(f"{dict_name[ticker]} ({ticker})")
+            #print(f"{dict_name[ticker]} ({ticker})")
+            but = ButtonTicker(ticker, dict_name[ticker])
+            self.layout.addWidget(but)

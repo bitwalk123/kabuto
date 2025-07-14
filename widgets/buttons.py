@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 
 from structs.res import AppRes
 
+
 class Button(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
@@ -23,6 +24,7 @@ class Button(QPushButton):
                 font-family: monospace;
             }
         """)
+
 
 class ButtonBuy(QPushButton):
     def __init__(self, *args):
@@ -128,6 +130,15 @@ class ButtonSell(QPushButton):
             }
         """)
         self.setText("売　建")
+
+
+class ButtonTicker(QPushButton):
+    def __init__(self, ticker: str, name: str):
+        super().__init__()
+
+        self.ticker = ticker
+        self.name = name
+        self.setText(f"{name} ({ticker})")
 
 
 class ButtonSemiAuto(QPushButton):
