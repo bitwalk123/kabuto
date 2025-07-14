@@ -1,7 +1,7 @@
 import logging
 
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDockWidget, QWidget
+from PySide6.QtWidgets import QDockWidget, QWidget, QScrollArea
 
 from structs.res import AppRes
 from widgets.buttons import ButtonTicker
@@ -20,8 +20,12 @@ class DockPortfolio(QDockWidget):
         )
         self.setTitleBarWidget(Widget())
 
+        sa = QScrollArea()
+        sa.setWidgetResizable(True)
+        self.setWidget(sa)
+
         base = Widget()
-        self.setWidget(base)
+        sa.setWidget(base)
 
         self.layout = layout = VBoxLayout()
         layout.setAlignment(
@@ -31,7 +35,8 @@ class DockPortfolio(QDockWidget):
         base.setLayout(layout)
 
     def refreshTickerList(self, list_ticker: list, dict_name: dict):
+        for i in reversed(range(self.layout.count())):
+            self.layout.itemAt(i).widget().setParent(None)
         for ticker in list_ticker:
-            #print(f"{dict_name[ticker]} ({ticker})")
             but = ButtonTicker(ticker, dict_name[ticker])
             self.layout.addWidget(but)
