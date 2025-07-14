@@ -32,10 +32,13 @@ class CandleChart(FigureCanvas):
         plt.rcParams['font.family'] = font_prop.get_name()
         plt.rcParams['font.size'] = 14
 
+        # dark mode
+        # plt.style.use('dark_background')
+
         # Plot margin
         self.fig.subplots_adjust(
             left=0.075,
-            right=0.90,
+            right=0.98,
             top=0.95,
             bottom=0.05,
         )

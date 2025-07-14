@@ -1,5 +1,8 @@
+import datetime
 import json
 
+import mplfinance as mpf
+import yfinance as yf
 from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QTcpSocket
 from PySide6.QtWidgets import QMainWindow, QStatusBar
@@ -7,6 +10,7 @@ from PySide6.QtWidgets import QMainWindow, QStatusBar
 from broker.dock import DockPortfolio
 from broker.statusbar import StatusBarBrokerClient
 from broker.toolbar import ToolBarBrokerClient
+from modules.psar_conventional import ParabolicSAR
 from structs.res import AppRes
 from widgets.chart import CandleChart, ChartNavigation
 
@@ -24,7 +28,7 @@ class PortfolioViewer(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
         self.setWindowTitle("Portfolio Viewer")
-        self.resize(1200, 600)
+        self.resize(1500, 800)
 
         # ツールバー
         self.toolbar = toolbar = ToolBarBrokerClient(res)
@@ -37,13 +41,14 @@ class PortfolioViewer(QMainWindow):
         dock.tickerSelected.connect(self.ticker_selected)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        canvas = CandleChart()
-        self.setCentralWidget(canvas)
+        self.chart = chart = CandleChart()
+        chart.initChart(2)
+        self.setCentralWidget(chart)
 
         # ステータスバー
         # statusbar = StatusBarBrokerClient(res)
         # statusbar.requestSendMessage.connect(self.send_message)
-        navbar = ChartNavigation(canvas)
+        navbar = ChartNavigation(chart)
         statusbar = QStatusBar()
         statusbar.addWidget(navbar)
         self.setStatusBar(statusbar)
@@ -92,5 +97,41 @@ class PortfolioViewer(QMainWindow):
             s = json.dumps(dict_msg)
             self.socket.write(s.encode())
 
-    def ticker_selected(self, ticker: str, name: str):
-        print(f"{name} ({ticker}) is selected.")
+    def ticker_selected(self, code: str, name: str):
+        print(f"{name} ({code}) is selected.")
+        symbol = f"{code}.T"
+        ticker = yf.Ticker(symbol)
+        df0 = ticker.history(period="3y", interval="1d")
+        psar = ParabolicSAR()
+        psar.calc(df0)
+
+        dt_last = df0.index[len(df0) - 1]
+        tdelta_1y = datetime.timedelta(days=180)
+        df = df0[df0.index >= dt_last - tdelta_1y].copy()
+
+        mm05 = df0["Close"].rolling(5).median()
+        mm25 = df0["Close"].rolling(25).median()
+        mm75 = df0["Close"].rolling(75).median()
+
+        apds = [
+            mpf.make_addplot(mm05[df.index], width=0.75, label=" 5d moving median", ax=self.chart.ax[0]),
+            mpf.make_addplot(mm25[df.index], width=0.75, label="25d moving median", ax=self.chart.ax[0]),
+            mpf.make_addplot(mm75[df.index], width=0.75, label="75d moving median", ax=self.chart.ax[0]),
+            mpf.make_addplot(
+                df["Bear"],
+                type="scatter",
+                marker="o",
+                markersize=5,
+                color="blue",
+                label="down trend",
+                             ax=self.chart.ax[0]
+            ),
+            mpf.make_addplot(df["Bull"], type="scatter", marker="o", markersize=5, color="red", label="up trend",
+                             ax=self.chart.ax[0]),
+        ]
+        mpf.plot(df, type="candle", style="default", volume=self.chart.ax[1], datetime_format="%m-%d", addplot=apds, xrotation=0,
+                 ax=self.chart.ax[0])
+        self.chart.ax[0].set_title(f"{name} ({code})")
+        self.chart.ax[0].legend(loc="best", fontsize=8)
+
+
