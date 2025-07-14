@@ -1,0 +1,12 @@
+[Desktop Entry]
+Name=Portfolio Viewer
+Name[ja]=ポートフォリオ・ビューア
+Comment=PortfolioViewe
+Keywords=trading;
+Keywords[ja]=trading;株式;取引;
+Exec=/home/bitwalk/MyProjects/kabuto/app_portfolio_viewer.sh
+Icon=/home/bitwalk/MyProjects/kabuto/images/swing_trade.png
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=Utility;
