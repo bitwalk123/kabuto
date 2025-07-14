@@ -1,0 +1,72 @@
+import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qtagg import (
+    NavigationToolbar2QT as NavigationToolbar,
+    FigureCanvasQTAgg as FigureCanvas,
+)
+from matplotlib.figure import Figure
+
+FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
+
+
+class CandleChart(FigureCanvas):
+    def __init__(self):
+        self.fig = Figure()
+        super().__init__(self.fig)
+
+        # Font setting
+        fm.fontManager.addfont(FONT_PATH)
+        font_prop = fm.FontProperties(fname=FONT_PATH)
+        plt.rcParams['font.family'] = font_prop.get_name()
+        plt.rcParams['font.size'] = 14
+
+        # dark mode
+        # plt.style.use('dark_background')
+
+        # Plot margin
+        self.fig.subplots_adjust(
+            left=0.075,
+            right=0.98,
+            top=0.95,
+            bottom=0.05,
+        )
+
+        # Axes
+        self.ax = dict()
+
+    def clearAxes(self):
+        axs = self.fig.axes
+        for ax in axs:
+            ax.cla()
+            ax.grid()
+
+    def initAxes(self, ax, n: int):
+        if n > 1:
+            gs = self.fig.add_gridspec(
+                n, 1,
+                wspace=0.0, hspace=0.0,
+                height_ratios=[3 if i == 0 else 1 for i in range(n)]
+            )
+            for i, axis in enumerate(gs.subplots(sharex='col')):
+                ax[i] = axis
+                ax[i].grid()
+        else:
+            ax[0] = self.fig.add_subplot()
+            ax[0].grid()
+
+    def initChart(self, n: int):
+        self.removeAxes()
+        self.initAxes(self.ax, n)
+
+    def refreshDraw(self):
+        self.fig.canvas.draw()
+
+    def removeAxes(self):
+        axs = self.fig.axes
+        for ax in axs:
+            ax.remove()
+
+
+class ChartNavigation(NavigationToolbar):
+    def __init__(self, chart: FigureCanvas):
+        super().__init__(chart)

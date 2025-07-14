@@ -6,10 +6,12 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QPushButton,
     QRadioButton,
-    QStyle, QSizePolicy,
+    QSizePolicy,
+    QStyle,
 )
 
 from structs.res import AppRes
+
 
 class Button(QPushButton):
     def __init__(self, *args):
@@ -23,6 +25,7 @@ class Button(QPushButton):
                 font-family: monospace;
             }
         """)
+
 
 class ButtonBuy(QPushButton):
     def __init__(self, *args):
@@ -128,6 +131,36 @@ class ButtonSell(QPushButton):
             }
         """)
         self.setText("売　建")
+
+
+class ButtonTicker(QPushButton):
+    def __init__(self, code: str, name: str):
+        super().__init__()
+        self.code = code
+        self.name = name
+        self.setText(f"{code} {name}")
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+        self.setStyleSheet("""
+            QPushButton {
+                font-size: small;
+                font-family: monospace;
+                padding-left: 0.5em;
+                padding-right: 0.5em;
+                text-align: left;
+            }
+        """)
+        self.setCheckable(True)
+        self.setAutoExclusive(True)
+
+
+    def getCode(self) -> str:
+        return self.code
+
+    def getName(self) -> str:
+        return self.name
 
 
 class ButtonSemiAuto(QPushButton):
