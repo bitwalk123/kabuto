@@ -109,6 +109,8 @@ class PortfolioViewer(QMainWindow):
         tdelta_1y = datetime.timedelta(days=180)
         df = df0[df0.index >= dt_last - tdelta_1y].copy()
 
+        self.chart.clearAxes()
+
         mm05 = df0["Close"].rolling(5).median()
         mm25 = df0["Close"].rolling(25).median()
         mm75 = df0["Close"].rolling(75).median()
@@ -124,14 +126,29 @@ class PortfolioViewer(QMainWindow):
                 markersize=5,
                 color="blue",
                 label="down trend",
-                             ax=self.chart.ax[0]
+                ax=self.chart.ax[0]
             ),
-            mpf.make_addplot(df["Bull"], type="scatter", marker="o", markersize=5, color="red", label="up trend",
-                             ax=self.chart.ax[0]),
+            mpf.make_addplot(
+                df["Bull"],
+                type="scatter",
+                marker="o",
+                markersize=5,
+                color="red",
+                label="up trend",
+                ax=self.chart.ax[0]
+            ),
         ]
-        mpf.plot(df, type="candle", style="default", volume=self.chart.ax[1], datetime_format="%m-%d", addplot=apds, xrotation=0,
-                 ax=self.chart.ax[0])
+        mpf.plot(
+            df,
+            type="candle",
+            style="default",
+            volume=self.chart.ax[1],
+            datetime_format="%m-%d",
+            addplot=apds,
+            xrotation=0,
+            ax=self.chart.ax[0]
+        )
         self.chart.ax[0].set_title(f"{name} ({code})")
         self.chart.ax[0].legend(loc="best", fontsize=8)
 
-
+        self.chart.refreshDraw()
