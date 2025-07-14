@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QButtonGroup,
     QDockWidget,
-    QScrollArea,
+    QScrollArea, QSizePolicy,
 )
 
 from structs.res import AppRes
@@ -24,10 +24,13 @@ class DockPortfolio(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
+        #self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.setTitleBarWidget(Widget())
 
         sa = QScrollArea()
         sa.setWidgetResizable(True)
+        sa.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        #sa.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.setWidget(sa)
 
         base = Widget()
