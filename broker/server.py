@@ -103,11 +103,11 @@ class StockBroker(QMainWindow):
             self.server.pauseAccepting()  # 接続を保留
             self.logger.warning(f"{__name__}: Pause accepting new connection.")
 
-    def on_portfolio_current(self, list_ticker: list, dict_name: dict):
+    def on_portfolio_current(self, list_code: list, dict_name: dict):
         print("Updated portfolio obtained.")
         d = {
             "portfolio": {
-                "list_ticker": list_ticker,
+                "list_code": list_code,
                 "dict_name": dict_name,
             }
         }
@@ -115,16 +115,16 @@ class StockBroker(QMainWindow):
         self.client.write(s.encode())
 
     @staticmethod
-    def on_portfolio_init_completed(list_ticker: list, dict_name: dict):
+    def on_portfolio_init_completed(list_code: list, dict_name: dict):
         """
         スレッド初期化後の銘柄リスト
-        :param list_ticker:
+        :param list_code:
         :param dict_name:
         :return:
         """
         print("### 起動時のポートフォリオ（現物） ###")
-        for ticker in list_ticker:
-            print(ticker, dict_name[ticker])
+        for code in list_code:
+            print(code, dict_name[code])
 
     def on_portfolio_ready(self):
         self.logger.info(f"{__name__}: Portfolio thread is ready.")

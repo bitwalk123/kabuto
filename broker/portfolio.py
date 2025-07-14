@@ -5,7 +5,7 @@ import unicodedata
 
 import xlwings as xw
 
-from funcs.conv import get_ticker_as_string
+from funcs.conv import get_code_as_string
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
@@ -52,9 +52,9 @@ class PortfolioWorker(QObject):
         self.col_profit = 11  # 評価損益額
         self.col_profit_ratio = 12  # 評価損益率
         # スレッド内で保持する情報
-        self.list_ticker = list()  # 銘柄リスト
-        self.dict_row = dict()  # 銘柄の行位置
-        self.dict_name = dict()  # 銘柄名
+        self.list_code = list()  # 銘柄コードリスト
+        self.dict_row = dict()  # 銘柄の行位置辞書
+        self.dict_name = dict()  # 銘柄名辞書
 
     def initWorker(self):
         """
@@ -76,7 +76,7 @@ class PortfolioWorker(QObject):
 
         # --------------------------------------------------------------
         # 🧿 ポートフォリオ（現物）と初期化終了を通知
-        self.notifyInitCompleted.emit(self.list_ticker, self.dict_name)
+        self.notifyInitCompleted.emit(self.list_code, self.dict_name)
         # --------------------------------------------------------------
 
     def getCurrentPortfolio(self):
@@ -88,31 +88,57 @@ class PortfolioWorker(QObject):
 
         # --------------------------------------------------------------
         # 🧿 ポートフォリオ（現物）の情報を通知
-        self.notifyCurrentPortfolio.emit(self.list_ticker, self.dict_name)
+        self.notifyCurrentPortfolio.emit(self.list_code, self.dict_name)
         # --------------------------------------------------------------
 
     def get_current_portfolio(self):
-        self.list_ticker = list()  # 銘柄リスト
+        self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
 
         row = 1
         while True:
-            ticker = self.get_ticker(row)
+            code = self.get_code(row)
             # 終端判定
-            if ticker == self.cell_bottom:
-                # flag_loop = False
+            if code == self.cell_bottom:
                 break
             else:
                 # 銘柄コード
-                self.list_ticker.append(ticker)
+                self.list_code.append(code)
                 # 行位置
-                self.dict_row[ticker] = row
+                self.dict_row[code] = row
                 # 銘柄名
                 name = self.get_name(row)
-                self.dict_name[ticker] = name
+                self.dict_name[code] = name
                 # 行番号のインクリメント
                 row += 1
+
+    def get_code(self, row: int) -> str:
+        # 銘柄コードを強制的に文字列にする
+        code = ""
+        for attempt in range(self.max_retries):
+            try:
+                val = self.sheet[row, self.col_code].value
+                code = get_code_as_string(val)
+                break
+            except com_error as e:
+                # ---------------------------------------------------------
+                # com_error（Windows 固有）は、マーケットスピード２ RSS と衝突時
+                # ---------------------------------------------------------
+                if attempt < self.max_retries - 1:
+                    self.logger.warning(
+                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                    )
+                    time.sleep(self.retry_delay)
+                else:
+                    self.logger.error(
+                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                    )
+                    raise  # 最終的に失敗したら例外を再発生させる
+            except Exception as e:
+                self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
+                raise  # その他の例外はそのまま発生させる
+        return code
 
     def get_name(self, row) -> str:
         name = ""
@@ -139,33 +165,6 @@ class PortfolioWorker(QObject):
                 self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
                 raise  # その他の例外はそのまま発生させる
         return name
-
-    def get_ticker(self, row: int) -> str:
-        # 銘柄コードを強制的に文字列にする
-        ticker = ""
-        for attempt in range(self.max_retries):
-            try:
-                val = self.sheet[row, self.col_code].value
-                ticker = get_ticker_as_string(val)
-                break
-            except com_error as e:
-                # ---------------------------------------------------------
-                # com_error（Windows 固有）は、マーケットスピード２ RSS と衝突時
-                # ---------------------------------------------------------
-                if attempt < self.max_retries - 1:
-                    self.logger.warning(
-                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
-                    )
-                    time.sleep(self.retry_delay)
-                else:
-                    self.logger.error(
-                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
-                    )
-                    raise  # 最終的に失敗したら例外を再発生させる
-            except Exception as e:
-                self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
-                raise  # その他の例外はそのまま発生させる
-        return ticker
 
     def stopProcess(self):
         """

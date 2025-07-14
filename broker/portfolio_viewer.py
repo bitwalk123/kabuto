@@ -79,8 +79,8 @@ class PortfolioViewer(QMainWindow):
             print("Received updated portfolio.")
             list_code = list()
             dict_name = dict()
-            if "list_ticker" in d["portfolio"].keys():
-                list_code = sorted(d["portfolio"]["list_ticker"])
+            if "list_code" in d["portfolio"].keys():
+                list_code = sorted(d["portfolio"]["list_code"])
                 if "dict_name" in d["portfolio"].keys():
                     dict_name = d["portfolio"]["dict_name"]
             # ドックに最新情報をインプット

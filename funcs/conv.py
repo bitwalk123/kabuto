@@ -94,7 +94,7 @@ def min_max_scale(data):
     return scaled_data
 
 
-def get_ticker_as_string(val) -> str:
+def get_code_as_string(val) -> str:
     if type(val) is str:
         ticker = val
     else:
