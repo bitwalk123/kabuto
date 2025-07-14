@@ -135,10 +135,17 @@ class ButtonSell(QPushButton):
 class ButtonTicker(QPushButton):
     def __init__(self, ticker: str, name: str):
         super().__init__()
-
+        self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+                padding-left: 0.5em;
+                padding-right: 0.5em;
+                text-align: left;
+            }
+        """)
         self.ticker = ticker
         self.name = name
-        self.setText(f"{name} ({ticker})")
+        self.setText(f"{ticker} {name}")
 
 
 class ButtonSemiAuto(QPushButton):
