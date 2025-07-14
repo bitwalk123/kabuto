@@ -6,7 +6,8 @@ from PySide6.QtWidgets import (
     QButtonGroup,
     QPushButton,
     QRadioButton,
-    QStyle, QSizePolicy,
+    QSizePolicy,
+    QStyle,
 )
 
 from structs.res import AppRes
