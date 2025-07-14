@@ -33,6 +33,7 @@ class PortfolioViewer(QMainWindow):
 
         # 右側のドック
         self.dock = dock = DockPortfolio(res)
+        dock.tickerSelected.connect(self.ticker_selected)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ステータスバー
@@ -83,3 +84,6 @@ class PortfolioViewer(QMainWindow):
             dict_msg = {"message": msg}
             s = json.dumps(dict_msg)
             self.socket.write(s.encode())
+
+    def ticker_selected(self, ticker: str, name: str):
+        print(f"{name} ({ticker}) is selected.")

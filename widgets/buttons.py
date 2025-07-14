@@ -143,9 +143,18 @@ class ButtonTicker(QPushButton):
                 text-align: left;
             }
         """)
+        self.setCheckable(True)
+        self.setAutoExclusive(True)
+
         self.ticker = ticker
         self.name = name
         self.setText(f"{ticker} {name}")
+
+    def getTicker(self) -> str:
+        return self.ticker
+
+    def getName(self) -> str:
+        return self.name
 
 
 class ButtonSemiAuto(QPushButton):
