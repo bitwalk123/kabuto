@@ -2,13 +2,13 @@ import json
 
 from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QTcpSocket
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QStatusBar
 
 from broker.dock import DockPortfolio
 from broker.statusbar import StatusBarBrokerClient
 from broker.toolbar import ToolBarBrokerClient
 from structs.res import AppRes
-from widgets.chart import CandleChart
+from widgets.chart import CandleChart, ChartNavigation
 
 
 class PortfolioViewer(QMainWindow):
@@ -24,7 +24,7 @@ class PortfolioViewer(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # UI
         self.setWindowTitle("Portfolio Viewer")
-        # self.resize(1000, 600)
+        self.resize(1200, 600)
 
         # ツールバー
         self.toolbar = toolbar = ToolBarBrokerClient(res)
@@ -41,8 +41,11 @@ class PortfolioViewer(QMainWindow):
         self.setCentralWidget(canvas)
 
         # ステータスバー
-        statusbar = StatusBarBrokerClient(res)
-        statusbar.requestSendMessage.connect(self.send_message)
+        # statusbar = StatusBarBrokerClient(res)
+        # statusbar.requestSendMessage.connect(self.send_message)
+        navbar = ChartNavigation(canvas)
+        statusbar = QStatusBar()
+        statusbar.addWidget(navbar)
         self.setStatusBar(statusbar)
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 

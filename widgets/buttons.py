@@ -135,8 +135,13 @@ class ButtonSell(QPushButton):
 class ButtonTicker(QPushButton):
     def __init__(self, ticker: str, name: str):
         super().__init__()
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
         self.setStyleSheet("""
             QPushButton {
+                font-size: small;
                 font-family: monospace;
                 padding-left: 0.5em;
                 padding-right: 0.5em;

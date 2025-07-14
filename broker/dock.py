@@ -24,13 +24,12 @@ class DockPortfolio(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
-        #self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.setMinimumWidth(200)
         self.setTitleBarWidget(Widget())
 
         sa = QScrollArea()
         sa.setWidgetResizable(True)
         sa.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        #sa.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.setWidget(sa)
 
         base = Widget()
