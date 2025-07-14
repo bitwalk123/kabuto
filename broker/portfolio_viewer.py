@@ -8,6 +8,7 @@ from broker.dock import DockPortfolio
 from broker.statusbar import StatusBarBrokerClient
 from broker.toolbar import ToolBarBrokerClient
 from structs.res import AppRes
+from widgets.chart import CandleChart
 
 
 class PortfolioViewer(QMainWindow):
@@ -35,6 +36,9 @@ class PortfolioViewer(QMainWindow):
         self.dock = dock = DockPortfolio(res)
         dock.tickerSelected.connect(self.ticker_selected)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+
+        canvas = CandleChart()
+        self.setCentralWidget(canvas)
 
         # ステータスバー
         statusbar = StatusBarBrokerClient(res)
