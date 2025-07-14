@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QMainWindow, QStatusBar
 
 from broker.dock import DockPortfolio
 from broker.statusbar import StatusBarBrokerClient
-from broker.technical import Technical
+from broker.technical import TechnicalDrawer
 from broker.toolbar import ToolBarBrokerClient
 from modules.psar_conventional import ParabolicSAR
 from structs.res import AppRes
@@ -99,5 +99,5 @@ class PortfolioViewer(QMainWindow):
             self.socket.write(s.encode())
 
     def ticker_selected(self, code: str, name: str):
-        tech = Technical(self.chart)
-        tech.draw(code, name)
+        drawer = TechnicalDrawer(self.chart)
+        drawer.draw(code, name)

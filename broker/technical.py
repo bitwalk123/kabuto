@@ -7,7 +7,7 @@ from modules.psar_conventional import ParabolicSAR
 from widgets.chart import CandleChart
 
 
-class Technical:
+class TechnicalDrawer:
     def __init__(self, chart: CandleChart):
         self.chart = chart
 
