@@ -6,7 +6,7 @@ from PySide6.QtWidgets import QToolBar
 
 from structs.res import AppRes
 from widgets.buttons import Button
-from widgets.containers import Widget
+from widgets.containers import Widget, PadH
 from widgets.entries import EntryAddress, EntryPort
 from widgets.labels import LabelRaised
 from widgets.layouts import GridLayout
@@ -83,11 +83,14 @@ class ToolBarBrokerClient(QToolBar):
         but_connect.clicked.connect(self.connect_to_server)
         layout_row.addWidget(but_connect, row, 3, 2, 1)
 
+        padh = PadH()
+        layout_row.addWidget(padh, row, 4, 2, 1)
+
         self.but_update = but_update = Button("Update")
         but_update.setFixedWidth(80)
         but_update.setDisabled(True)
         but_update.clicked.connect(self.requestPortfolioUpdate.emit)
-        layout_row.addWidget(but_update, row, 4, 2, 1)
+        layout_row.addWidget(but_update, row, 5, 2, 1)
 
         row += 1
         self.ent_addr = ent_addr = EntryAddress(dict_server["ip"])
