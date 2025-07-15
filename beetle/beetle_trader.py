@@ -77,7 +77,7 @@ class Trader(QMainWindow):
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
-        plt.style.use("dark_background")
+        # plt.style.use("dark_background")
 
         self.figure = Figure()
         self.figure.subplots_adjust(
@@ -93,7 +93,7 @@ class Trader(QMainWindow):
         self.setCentralWidget(chart)
 
         self.trend_line, = self.ax.plot(
-            [], [], color='lightgray', linewidth=0.75
+            [], [], color='gray', linewidth=0.5
         )
 
         """
