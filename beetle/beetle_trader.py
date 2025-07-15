@@ -60,11 +60,6 @@ class Trader(QMainWindow):
         self.dock = dock = DockTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        # base = Widget()
-        # self.setCentralWidget(base)
-        # layout = VBoxLayout()
-        # base.setLayout(layout)
-
         # -----------------------------------
         # Matplotlib FigureCanvas インスタンス
         # -----------------------------------
@@ -92,25 +87,12 @@ class Trader(QMainWindow):
         self.ax.grid(True)
         self.setCentralWidget(chart)
 
+        # 株価トレンドライン
         self.trend_line, = self.ax.plot(
             [], [], color='gray', linewidth=0.5
         )
 
         """
-        # 株価トレンドライン
-        self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=0.5))
-
-        # 最新株価の点
-        self.point_latest = pg.ScatterPlotItem(
-            size=12,
-            pen=None,
-            brush=pg.mkBrush(color=(255, 165, 0)),
-            symbol='x',
-            pxMode=True,  # サイズをピクセル単位で固定
-            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
-        )
-        chart.addItem(self.point_latest)
-
         # 前日終値
         self.lastclose_line: pg.InfiniteLine | None = None
 
