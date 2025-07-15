@@ -3,6 +3,8 @@ import logging
 
 import numpy as np
 import pandas as pd
+import matplotlib.font_manager as fm
+import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib import dates as mdates
 from matplotlib.figure import Figure
@@ -20,7 +22,7 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
-        self.setFixedSize(1500, 250)
+        self.setFixedSize(1500, 300)
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
@@ -66,7 +68,22 @@ class Trader(QMainWindow):
         # -----------------------------------
         # Matplotlib FigureCanvas インスタンス
         # -----------------------------------
+        FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
+        fm.fontManager.addfont(FONT_PATH)
+
+        # FontPropertiesオブジェクト生成（名前の取得のため）
+        font_prop = fm.FontProperties(fname=FONT_PATH)
+        font_prop.get_name()
+
+        plt.rcParams["font.family"] = font_prop.get_name()
+        plt.rcParams["font.size"] = 12
         self.figure = Figure()
+        self.figure.subplots_adjust(
+            left=0.05,
+            right=0.99,
+            top=0.9,
+            bottom=0.075,
+        )
         self.chart = chart = FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
@@ -244,9 +261,9 @@ class Trader(QMainWindow):
         :return:
         """
         td = datetime.timedelta(minutes=5)
-        dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start))
+        dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start)) - td
         dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
-        self.ax.set_xlim(dt_start - td, dt_end)
+        self.ax.set_xlim(dt_start, dt_end)
 
     def setTitle(self, title: str):
         """
@@ -255,4 +272,4 @@ class Trader(QMainWindow):
         :return:
         """
         # self.chart.setTitle(title)
-        pass
+        self.ax.set_title(title)
