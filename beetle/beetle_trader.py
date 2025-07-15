@@ -93,7 +93,7 @@ class Trader(QMainWindow):
         self.setCentralWidget(chart)
 
         self.trend_line, = self.ax.plot(
-            [], [], color='gray', linewidth=0.75
+            [], [], color='lightgray', linewidth=0.75
         )
 
         """
