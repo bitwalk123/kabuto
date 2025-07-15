@@ -4,11 +4,11 @@ import mplfinance as mpf
 import yfinance as yf
 
 from modules.psar_conventional import ParabolicSAR
-from widgets.chart import CandleChart
+from widgets.chart import MplChart
 
 
 class TechnicalDrawer:
-    def __init__(self, chart: CandleChart):
+    def __init__(self, chart: MplChart):
         self.chart = chart
 
     def draw(self, code: str, name: str):
