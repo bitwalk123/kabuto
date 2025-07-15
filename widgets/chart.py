@@ -9,7 +9,7 @@ from matplotlib.figure import Figure
 FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
 
 
-class CandleChart(FigureCanvas):
+class MplChart(FigureCanvas):
     def __init__(self):
         self.fig = Figure()
         super().__init__(self.fig)

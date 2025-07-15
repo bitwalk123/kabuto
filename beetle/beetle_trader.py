@@ -1,16 +1,16 @@
+import datetime
 import logging
 
 import numpy as np
 import pandas as pd
-import pyqtgraph as pg
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib import dates as mdates
+from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
-from widgets.containers import Widget
 from widgets.docks import DockTrader
-from widgets.graph import TrendGraph, TrendGraph2
-from widgets.layouts import VBoxLayout
 
 
 class Trader(QMainWindow):
@@ -20,6 +20,7 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
+        self.setFixedSize(1500, 250)
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
@@ -28,19 +29,19 @@ class Trader(QMainWindow):
         self.max_data_points = 19800
 
         # データ領域の確保
-        self.x_data = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_data = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
         self.counter_data = 0
 
         # bull（上昇トレンド）
-        self.x_bull = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_bull = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bull = np.empty(self.max_data_points, dtype=np.float64)
         # bull 用のカウンター
         self.counter_bull = 0
 
         # bear（下降トレンド）
-        self.x_bear = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_bear = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bear = np.empty(self.max_data_points, dtype=np.float64)
         # bear 用のカウンター
         self.counter_bear = 0
@@ -57,20 +58,26 @@ class Trader(QMainWindow):
         self.dock = dock = DockTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        base = Widget()
-        self.setCentralWidget(base)
-        layout = VBoxLayout()
-        base.setLayout(layout)
+        # base = Widget()
+        # self.setCentralWidget(base)
+        # layout = VBoxLayout()
+        # base.setLayout(layout)
 
-        # ---------------------
-        # PyQtGraph インスタンス
-        # ---------------------
-        self.chart = chart = TrendGraph()
-        xaxis = chart.getAxis('bottom')
-        xaxis.setStyle(showValues=False)
-        xaxis.showLabel(False)
-        layout.addWidget(chart)
+        # -----------------------------------
+        # Matplotlib FigureCanvas インスタンス
+        # -----------------------------------
+        self.figure = Figure()
+        self.chart = chart = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        self.ax.grid(True)
+        self.setCentralWidget(chart)
 
+        self.trend_line, = self.ax.plot(
+            [], [], color='gray', linewidth=0.5
+        )
+
+        """
         # 株価トレンドライン
         self.trend_line: pg.PlotDataItem = chart.plot(pen=pg.mkPen(width=0.5))
 
@@ -130,6 +137,7 @@ class Trader(QMainWindow):
 
         # MR
         self.trend_index: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
+        """
 
     def getTimePrice(self) -> pd.DataFrame:
         """
@@ -147,23 +155,28 @@ class Trader(QMainWindow):
         :param price_close:
         :return:
         """
+        """
         self.lastclose_line = pg.InfiniteLine(
             pos=price_close,
             angle=0,
             pen=pg.mkPen(color=(255, 0, 0), width=1)
         )
         self.chart.addItem(self.lastclose_line)
+        """
+        pass
 
     def setIndex(self, x: np.float64, y: np.float64):
         self.x_mr[self.counter_mr] = x
         self.y_mr[self.counter_mr] = y
         self.counter_mr += 1
-
+        """
         self.trend_index.setData(
             self.x_mr[0: self.counter_mr], self.y_mr[0:self.counter_mr]
         )
+        """
 
     def setPSAR(self, trend: int, x: float, y: float, epupd: int):
+        """
         if 0 < trend:
             self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = y
@@ -188,6 +201,7 @@ class Trader(QMainWindow):
             self.psar_latest.setPen(pg.mkPen(None))
             self.psar_latest.setBrush(pg.mkBrush(None))
             self.psar_latest.setData([x], [y])
+        """
 
         # トレンドの向きをドックに設定
         self.dock.setTrend(trend, epupd)
@@ -204,14 +218,18 @@ class Trader(QMainWindow):
         :param y:
         :return:
         """
-        self.x_data[self.counter_data] = x
+        self.x_data[self.counter_data] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
         self.y_data[self.counter_data] = y
         self.counter_data += 1
 
-        self.trend_line.setData(
-            self.x_data[0: self.counter_data], self.y_data[0:self.counter_data]
-        )
-        self.point_latest.setData([x], [y])
+        self.trend_line.set_xdata(self.x_data[0:self.counter_data])
+        self.trend_line.set_ydata(self.y_data[0:self.counter_data])
+
+        self.ax.relim()
+        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
+
+        # Canvas を再描画
+        self.chart.draw()
 
         # 株価表示の更新
         self.dock.setPrice(y)
@@ -225,8 +243,10 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        self.chart.setXRange(ts_start, ts_end)
-        # self.chart2.setXRange(ts_start, ts_end)
+        td = datetime.timedelta(minutes=5)
+        dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start))
+        dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
+        self.ax.set_xlim(dt_start - td, dt_end)
 
     def setTitle(self, title: str):
         """
@@ -234,4 +254,5 @@ class Trader(QMainWindow):
         :param title:
         :return:
         """
-        self.chart.setTitle(title)
+        # self.chart.setTitle(title)
+        pass

@@ -37,7 +37,7 @@ else:
 
 class Beetle(QMainWindow):
     __app_name__ = "Beetle"
-    __version__ = "0.7.0"
+    __version__ = "0.8.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 

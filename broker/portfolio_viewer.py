@@ -13,7 +13,7 @@ from broker.technical import TechnicalDrawer
 from broker.toolbar import ToolBarBrokerClient
 from modules.psar_conventional import ParabolicSAR
 from structs.res import AppRes
-from widgets.chart import CandleChart, ChartNavigation
+from widgets.chart import MplChart, ChartNavigation
 
 
 class PortfolioViewer(QMainWindow):
@@ -42,7 +42,7 @@ class PortfolioViewer(QMainWindow):
         dock.tickerSelected.connect(self.ticker_selected)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        self.chart = chart = CandleChart()
+        self.chart = chart = MplChart()
         chart.initChart(2)
         self.setCentralWidget(chart)
 
