@@ -34,8 +34,16 @@ class RealtimePSAR:
         self.prices_deque = deque(maxlen=n_smoothing)
 
     def add(self, price: float) -> PSARObject:
-        if self.obj.trend == 0:
-            pass
+        if self.obj.price == 0:
+            # 最初に add メソッドが呼び出されるときは、寄り付いて価格が 0 で無い
+            # 最初は trend = 0 に設定、price は保持
+            self.obj.price = price
+            self.obj.trend = 0
+            return self.obj
+        elif self.obj.trend == 0:
+            # トレンドが 0 の時は寄り付き後で、一旦 trend が +1 あるいは -1 になれば、
+            # 以後はトレンド反転するので 0 になることは無い
+            return self.decide_first_trend(price)
         elif self.cmp_psar(price):
             # トレンド反転
             self.obj.price = price
@@ -89,6 +97,28 @@ class RealtimePSAR:
                 return True
             else:
                 return False
+
+    def decide_first_trend(self, price):
+        # trend = 0 の時
+        if self.obj.price < price:
+            self.obj.trend = +1
+            self.obj.ep = price
+            self.obj.af = self.af_init
+            self.obj.psar = self.obj.price
+            # 保持する株価を更新（順番依存）
+            self.obj.price = price
+            return self.obj
+        elif price < self.obj.price:
+            self.obj.trend = -1
+            self.obj.ep = price
+            self.obj.af = self.af_init
+            self.obj.psar = self.obj.price
+            # 保持する株価を更新（順番依存）
+            self.obj.price = price
+            return self.obj
+        else:
+            # 株価に差が無ければ trend = 0 を維持
+            return self.obj
 
     def update_ep_af(self, price: float):
         self.obj.ep = price

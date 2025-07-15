@@ -72,7 +72,6 @@ class Trader(QMainWindow):
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
-        # plt.style.use("dark_background")
 
         self.figure = Figure()
         self.figure.subplots_adjust(
@@ -92,53 +91,15 @@ class Trader(QMainWindow):
             [], [], color='gray', linewidth=0.5
         )
 
-        """
-        # 前日終値
-        self.lastclose_line: pg.InfiniteLine | None = None
-
         # bull（Parabolic SAR 上昇トレンド）
-        self.trend_bull = pg.ScatterPlotItem(
-            size=1,
-            pen=pg.mkPen(color=(255, 0, 255)),
-            brush=None,
-            symbol='o',
-            pxMode=True,  # サイズをピクセル単位で固定
-            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
+        self.trend_bull, = self.ax.plot(
+            [], [], marker='o', markersize=2, linewidth=0, color='magenta'
         )
-        chart.addItem(self.trend_bull)
 
         # bear（Parabolic SAR 下降トレンド）
-        self.trend_bear = pg.ScatterPlotItem(
-            size=1,
-            pen=pg.mkPen(color=(0, 255, 255)),
-            brush=None,
-            symbol='o',
-            pxMode=True,  # サイズをピクセル単位で固定
-            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
+        self.trend_bear, = self.ax.plot(
+            [], [], marker='o', markersize=2, linewidth=0, color='cyan'
         )
-        chart.addItem(self.trend_bear)
-
-        self.psar_latest = pg.ScatterPlotItem(
-            size=6,
-            pen=pg.mkPen(color=(0, 0, 0)),
-            brush=None,
-            symbol='o',
-            pxMode=True,  # サイズをピクセル単位で固定
-            antialias=False  # アンチエイリアスをオフにすると少し速くなる可能性も
-        )
-        chart.addItem(self.psar_latest)
-
-        # ----------------------
-        # PyQtGraph インスタンス２
-        # ----------------------
-        self.chart2 = chart2 = TrendGraph2()
-        layout.addWidget(chart2)
-        # x軸を chart とリンク
-        chart2.setXLink(chart)
-
-        # MR
-        self.trend_index: pg.PlotDataItem = chart2.plot(pen=pg.mkPen(color=(128, 128, 0), width=1))
-        """
 
     def getTimePrice(self) -> pd.DataFrame:
         """
@@ -156,15 +117,7 @@ class Trader(QMainWindow):
         :param price_close:
         :return:
         """
-        """
-        self.lastclose_line = pg.InfiniteLine(
-            pos=price_close,
-            angle=0,
-            pen=pg.mkPen(color=(255, 0, 0), width=1)
-        )
-        self.chart.addItem(self.lastclose_line)
-        """
-        pass
+        self.ax.axhline(y=price_close)
 
     def setIndex(self, x: np.float64, y: np.float64):
         self.x_mr[self.counter_mr] = x
@@ -177,38 +130,31 @@ class Trader(QMainWindow):
         """
 
     def setPSAR(self, trend: int, x: float, y: float, epupd: int):
-        """
         if 0 < trend:
-            self.x_bull[self.counter_bull] = x
+            self.x_bull[self.counter_bull] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
             self.y_bull[self.counter_bull] = y
             self.counter_bull += 1
-            self.trend_bull.setData(
-                self.x_bull[0: self.counter_bull], self.y_bull[0:self.counter_bull]
-            )
-            self.psar_latest.setPen(pg.mkPen(color=(255, 0, 255)))
-            self.psar_latest.setBrush(pg.mkBrush(color=(255, 64, 255)))
-            self.psar_latest.setData([x], [y])
+            self.trend_bull.set_xdata(self.x_bull[0:self.counter_data])
+            self.trend_bull.set_ydata(self.y_bull[0:self.counter_data])
+
         elif trend < 0:
-            self.x_bear[self.counter_bear] = x
+            self.x_bear[self.counter_bear] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
             self.y_bear[self.counter_bear] = y
             self.counter_bear += 1
-            self.trend_bear.setData(
-                self.x_bear[0: self.counter_bear], self.y_bear[0:self.counter_bear]
-            )
-            self.psar_latest.setPen(pg.mkPen(color=(0, 255, 255)))
-            self.psar_latest.setBrush(pg.mkBrush(color=(64, 255, 255)))
-            self.psar_latest.setData([x], [y])
-        else:
-            self.psar_latest.setPen(pg.mkPen(None))
-            self.psar_latest.setBrush(pg.mkBrush(None))
-            self.psar_latest.setData([x], [y])
-        """
+            self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
+            self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
+
+        self.ax.relim()
+        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
+
+        # Canvas を再描画
+        self.chart.draw()
 
         # トレンドの向きをドックに設定
         self.dock.setTrend(trend, epupd)
 
         # EP 更新頻度をインデックス・トレンドに表示
-        self.setIndex(np.float64(x), np.float64(epupd))
+        # self.setIndex(np.float64(x), np.float64(epupd))
 
     def setTimePrice(self, x: np.float64, y: np.float64):
         """
