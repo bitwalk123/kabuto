@@ -118,7 +118,7 @@ class Trader(QMainWindow):
         :param price_close:
         :return:
         """
-        self.ax.axhline(y=price_close, color="red", linewidth=0.5)
+        self.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
     def setIndex(self, x: np.float64, y: np.float64):
         self.x_mr[self.counter_mr] = x
