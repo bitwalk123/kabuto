@@ -22,7 +22,7 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
-        self.setFixedSize(1500, 300)
+        self.setFixedSize(1200, 300)
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
