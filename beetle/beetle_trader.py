@@ -130,16 +130,18 @@ class Trader(QMainWindow):
         )
         """
 
-    def setPSAR(self, trend: int, x: float, y: float, epupd: int):
+    def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
+        x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
+        # x = pd.Timestamp(ts, unit='s', tz='Asia/Tokyo')
         if 0 < trend:
-            self.x_bull[self.counter_bull] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
+            self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = y
             self.counter_bull += 1
             self.trend_bull.set_xdata(self.x_bull[0:self.counter_data])
             self.trend_bull.set_ydata(self.y_bull[0:self.counter_data])
 
         elif trend < 0:
-            self.x_bear[self.counter_bear] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
+            self.x_bear[self.counter_bear] = x
             self.y_bear[self.counter_bear] = y
             self.counter_bear += 1
             self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
@@ -157,16 +159,19 @@ class Trader(QMainWindow):
         # EP 更新頻度をインデックス・トレンドに表示
         # self.setIndex(np.float64(x), np.float64(epupd))
 
-    def setTimePrice(self, x: np.float64, y: np.float64):
+    def setTimePrice(self, ts: np.float64, y: np.float64):
         """
         時刻、株価の追加
         あらかじめ確保しておいた配列を用い、
         カウンタで位置を管理してスライスで PyQtGraoh へ渡す
-        :param x:
+        :param ts:
         :param y:
         :return:
         """
-        self.x_data[self.counter_data] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
+        x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
+        # x = pd.Timestamp(ts, unit='s')
+        # x = pd.Timestamp(ts, unit='s', tz='Asia/Tokyo')
+        self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = y
         self.counter_data += 1
 
