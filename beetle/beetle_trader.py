@@ -77,12 +77,14 @@ class Trader(QMainWindow):
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
+        plt.style.use("dark_background")
+
         self.figure = Figure()
         self.figure.subplots_adjust(
-            left=0.05,
+            left=0.06,
             right=0.99,
             top=0.9,
-            bottom=0.075,
+            bottom=0.08,
         )
         self.chart = chart = FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
