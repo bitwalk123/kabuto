@@ -3,7 +3,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from beetle.beetle import Beetle
+from beetle.beetle_main import Beetle
 
 
 def main():

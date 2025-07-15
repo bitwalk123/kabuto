@@ -49,7 +49,7 @@ class Trader(QMainWindow):
         self.counter_bear = 0
 
         # MR
-        self.x_mr = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_mr = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_mr = np.empty(self.max_data_points, dtype=np.float64)
         # MR 用のカウンター
         self.counter_mr = 0
