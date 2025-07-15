@@ -10,9 +10,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
-from widgets.containers import Widget
 from widgets.docks import DockTrader
-from widgets.layouts import VBoxLayout
 
 
 class Trader(QMainWindow):
@@ -22,6 +20,7 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
+        self.setFixedSize(1500, 250)
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
@@ -30,19 +29,19 @@ class Trader(QMainWindow):
         self.max_data_points = 19800
 
         # データ領域の確保
-        self.x_data = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_data = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
         self.counter_data = 0
 
         # bull（上昇トレンド）
-        self.x_bull = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_bull = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bull = np.empty(self.max_data_points, dtype=np.float64)
         # bull 用のカウンター
         self.counter_bull = 0
 
         # bear（下降トレンド）
-        self.x_bear = np.empty(self.max_data_points, dtype=np.float64)
+        self.x_bear = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bear = np.empty(self.max_data_points, dtype=np.float64)
         # bear 用のカウンター
         self.counter_bear = 0
@@ -70,12 +69,12 @@ class Trader(QMainWindow):
         self.figure = Figure()
         self.chart = chart = FigureCanvas(self.figure)
         self.ax = self.figure.add_subplot(111)
-        #self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True)
         self.setCentralWidget(chart)
 
         self.trend_line, = self.ax.plot(
-            [], [], label='Trend', color='gray'
+            [], [], color='gray', linewidth=0.5
         )
 
         """
@@ -219,7 +218,7 @@ class Trader(QMainWindow):
         :param y:
         :return:
         """
-        self.x_data[self.counter_data] = x
+        self.x_data[self.counter_data] = pd.to_datetime(datetime.datetime.fromtimestamp(x))
         self.y_data[self.counter_data] = y
         self.counter_data += 1
 
@@ -244,9 +243,10 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        #dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start))
-        #dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
-        self.ax.set_xlim(ts_start, ts_end)
+        td = datetime.timedelta(minutes=5)
+        dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start))
+        dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
+        self.ax.set_xlim(dt_start - td, dt_end)
 
     def setTitle(self, title: str):
         """
