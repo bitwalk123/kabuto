@@ -81,7 +81,7 @@ class Trader(QMainWindow):
 
         self.figure = Figure()
         self.figure.subplots_adjust(
-            left=0.06,
+            left=0.075,
             right=0.99,
             top=0.9,
             bottom=0.08,
