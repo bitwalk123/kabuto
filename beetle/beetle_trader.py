@@ -72,6 +72,7 @@ class Trader(QMainWindow):
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
+        plt.style.use("dark_background")
 
         self.figure = Figure()
         self.figure.subplots_adjust(
@@ -88,7 +89,7 @@ class Trader(QMainWindow):
 
         # 株価トレンドライン
         self.trend_line, = self.ax.plot(
-            [], [], color='gray', linewidth=0.5
+            [], [], color='lightgray', linewidth=0.5
         )
 
         # bull（Parabolic SAR 上昇トレンド）
