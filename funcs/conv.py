@@ -9,7 +9,7 @@ def conv_transaction_df2html(df: pd.DataFrame) -> list:
     :return:
     """
     list_html = list()
-    list_html.append("<table>")
+    list_html.append('<table class="simple">')
 
     list_html.append("<thead>")
     list_html.append("<tr>")
