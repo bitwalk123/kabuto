@@ -29,6 +29,7 @@ class Trader(QMainWindow):
         #######################################################################
         # データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
+        #
 
         # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
         self.max_data_points = 19800
@@ -51,11 +52,6 @@ class Trader(QMainWindow):
         # bear 用のカウンター
         self.counter_bear = 0
 
-        # MR
-        # self.x_mr = np.empty(self.max_data_points, dtype=pd.Timestamp)
-        # self.y_mr = np.empty(self.max_data_points, dtype=np.float64)
-        # MR 用のカウンター
-        # self.counter_mr = 0
         #
         #######################################################################
 
@@ -73,36 +69,55 @@ class Trader(QMainWindow):
         font_prop = fm.FontProperties(fname=FONT_PATH)
         font_prop.get_name()
 
+        # フォント設定
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
+
+        # ダークモードの設定
         plt.style.use("dark_background")
 
         self.figure = Figure()
+
+        # Figure オブジェクトの余白設定
         self.figure.subplots_adjust(
             left=0.075,
             right=0.99,
             top=0.9,
             bottom=0.08,
         )
+
+        # チャートインスタンス (FigureCanvas)
         self.chart = chart = FigureCanvas(self.figure)
+
+        # 描画用インスタンス (ax）
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True)
         self.setCentralWidget(chart)
 
-        # 株価トレンドライン
+        # トレンドライン（株価）
         self.trend_line, = self.ax.plot(
-            [], [], color='lightgray', linewidth=0.5
+            [], [],
+            color='lightgray',
+            linewidth=0.5
         )
 
         # bull（Parabolic SAR 上昇トレンド）
         self.trend_bull, = self.ax.plot(
-            [], [], marker='o', markersize=2, linewidth=0, color='magenta'
+            [], [],
+            marker='o',
+            markersize=2,
+            linewidth=0,
+            color='magenta'
         )
 
         # bear（Parabolic SAR 下降トレンド）
         self.trend_bear, = self.ax.plot(
-            [], [], marker='o', markersize=2, linewidth=0, color='cyan'
+            [], [],
+            marker='o',
+            markersize=2,
+            linewidth=0,
+            color='cyan'
         )
 
     def getTimePrice(self) -> pd.DataFrame:
@@ -110,8 +125,11 @@ class Trader(QMainWindow):
         保持している時刻、株価情報をデータフレームで返す。
         :return:
         """
-        # self.tz を考慮してタイムスタンプへ戻すこと
-        return pd.DataFrame()
+        # タイムスタンプ の Time 列は self.tz を考慮
+        return pd.DataFrame({
+            "Time": [x - self.tz for x in self.x_data[0: self.counter_data]],
+            "Price": self.y_data[0: self.counter_data]
+        })
 
     def setLastCloseLine(self, price_close: float):
         """
@@ -155,6 +173,7 @@ class Trader(QMainWindow):
             self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
             self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
         else:
+            # ret.trend == 0 の時
             pass
 
         # Recompute the data limits based on current artists.
