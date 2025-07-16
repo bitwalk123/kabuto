@@ -2,7 +2,6 @@
 Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 機能スコープ
 1. Realtime PSAR
-2. Moving Range
 """
 import logging
 from collections import deque
@@ -19,9 +18,7 @@ from beetle.beetle_psar import PSARObject, RealtimePSAR
 
 class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
-    # notifyPSAR = Signal(str, int, float, float, int)
     notifyPSAR = Signal(str, float, PSARObject)
-    notifyIndex = Signal(str, float, float)
 
     def __init__(self, ticker, parent=None):
         super().__init__(parent)
@@ -38,34 +35,11 @@ class TickerWorker(QObject):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 直近のデータのメディアン値を使って Parabolic SAR を算出
-        # self.deque_median.append(y)
-        # y_median = median(self.deque_median)
-        # ret = self.psar.add(y)
         ret: PSARObject = self.psar.add(y)
-        # トレンドと PSAR の値を転記
-        # trend = ret.trend
-        # y_psar = ret.psar
-        # epupd = ret.epupd
         # ---------------------------------------------
         # 🧿 Parabolic SAR の情報を通知
-        # self.notifyPSAR.emit(
-        #    self.ticker, trend, x, y_psar, epupd
-        # )
         self.notifyPSAR.emit(self.ticker, x, ret)
         # ---------------------------------------------
-
-        """
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # Moving Ranga の算出
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.deque_mr.append(y)
-        y_mr = max(self.deque_mr) - min(self.deque_mr)
-        # ---------------------------------------------
-        # 🧿 MR の情報を通知
-        self.notifyIndex.emit(self.ticker, x, y_mr)
-        # ---------------------------------------------
-        """
 
 
 # QThreadを継承した銘柄スレッドクラス
@@ -107,7 +81,3 @@ class ThreadTicker(QThread):
         self.logger.info(
             f"{__name__} ThreadTicker for {self.ticker}: run() method finished. Event loop exited."
         )
-
-    # デストラクタでクリーンアップが必要な場合はここに記述
-    # def __del__(self):
-    #     print(f"ThreadTicker {self.ticker_code} is being deleted.")

@@ -27,7 +27,7 @@ class Trader(QMainWindow):
 
         self.setFixedSize(1200, 300)
         #######################################################################
-        # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
+        # データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
         # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
 
         # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
@@ -52,10 +52,10 @@ class Trader(QMainWindow):
         self.counter_bear = 0
 
         # MR
-        self.x_mr = np.empty(self.max_data_points, dtype=pd.Timestamp)
-        self.y_mr = np.empty(self.max_data_points, dtype=np.float64)
+        # self.x_mr = np.empty(self.max_data_points, dtype=pd.Timestamp)
+        # self.y_mr = np.empty(self.max_data_points, dtype=np.float64)
         # MR 用のカウンター
-        self.counter_mr = 0
+        # self.counter_mr = 0
         #
         #######################################################################
 
@@ -121,26 +121,27 @@ class Trader(QMainWindow):
         """
         self.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
-    def setIndex(self, x: np.float64, y: np.float64):
-        self.x_mr[self.counter_mr] = x
-        self.y_mr[self.counter_mr] = y
-        self.counter_mr += 1
-        """
-        self.trend_index.setData(
-            self.x_mr[0: self.counter_mr], self.y_mr[0:self.counter_mr]
-        )
-        """
-
-    # def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
     def setPSAR(self, ts: float, ret: PSARObject):
+        """
+        PSAR に関連するデータをプロット
+        :param ts:
+        :param ret:
+        :return:
+        """
+        # ---------------------------------------------------------------------
+        # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
         x = pd.Timestamp(ts + self.tz, unit='s')
 
+        # ---------------------------------------------------------------------
+        # 現在価格（スムージングした線に変更予定）
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = ret.price
         self.counter_data += 1
         self.trend_line.set_xdata(self.x_data[0:self.counter_data])
         self.trend_line.set_ydata(self.y_data[0:self.counter_data])
 
+        # ---------------------------------------------------------------------
+        # Parabolic SAR のトレンド点
         if 0 < ret.trend:
             self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = ret.psar
@@ -153,48 +154,20 @@ class Trader(QMainWindow):
             self.counter_bear += 1
             self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
             self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
+        else:
+            pass
 
+        # Recompute the data limits based on current artists.
         self.ax.relim()
+        # y軸のみオートスケール
         self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
-
         # Canvas を再描画
         self.chart.draw()
 
-        # トレンドの向きをドックに設定
+        # トレンド情報をドックに設定
         self.dock.setTrend(ret.trend, ret.epupd)
 
-        # EP 更新頻度をインデックス・トレンドに表示
-        # self.setIndex(np.float64(x), np.float64(epupd))
-
-    def setTimePrice(self, ts: np.float64, y: np.float64):
-        """
-        時刻、株価の追加
-        あらかじめ確保しておいた配列を用い、
-        カウンタで位置を管理してスライスで PyQtGraoh へ渡す
-        :param ts:
-        :param y:
-        :return:
-        """
-
-        """
-        x = pd.Timestamp(ts + self.tz, unit='s')
-        self.x_data[self.counter_data] = x
-        self.y_data[self.counter_data] = y
-        self.counter_data += 1
-
-        self.trend_line.set_xdata(self.x_data[0:self.counter_data])
-        self.trend_line.set_ydata(self.y_data[0:self.counter_data])
-        self.ax.relim()
-        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
-
-        # Canvas を再描画
-        self.chart.draw()
-        """
-
-        # 株価表示の更新
-        self.dock.setPrice(y)
-
-    def setTimeRange(self, ts_start, ts_end):
+    def setTimeAxisRange(self, ts_start, ts_end):
         """
         x軸のレンジ
         固定レンジで使いたいため。
@@ -206,10 +179,9 @@ class Trader(QMainWindow):
         pad_left = 5. * 60  # チャート左側の余白（５分）
         dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
         dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
-
         self.ax.set_xlim(dt_start, dt_end)
 
-    def setTitle(self, title: str):
+    def setChartTitle(self, title: str):
         """
         チャートのタイトルを設定
         :param title:

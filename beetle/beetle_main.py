@@ -266,10 +266,10 @@ class Beetle(QMainWindow):
             self.dict_trader[ticker] = trader
 
             # 「銘柄名　(ticker)」をタイトルにして設定し直し
-            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+            trader.setChartTitle(f"{dict_name[ticker]} ({ticker})")
 
             # 当日ザラ場時間
-            trader.setTimeRange(self.ts_start, self.ts_end)
+            trader.setTimeAxisRange(self.ts_start, self.ts_end)
 
             # 前日終値
             if dict_lastclose[ticker] > 0:
@@ -284,7 +284,7 @@ class Beetle(QMainWindow):
             self.thread_ticker = thread_ticker = ThreadTicker(ticker)
             thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
             thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            thread_ticker.worker.notifyIndex.connect(self.on_update_index)
+            # thread_ticker.worker.notifyIndex.connect(self.on_update_index)
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
 
@@ -530,15 +530,16 @@ class Beetle(QMainWindow):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
-            trader.setTimePrice(x, y)
+            # trader.setTimePrice(x, y)
+            trader.dock.setPrice(y)
             # 銘柄単位の含み益と収益を更新
             trader.dock.setProfit(dict_profit[ticker])
             trader.dock.setTotal(dict_total[ticker])
             # Parabolic SAR
             thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
+            # ここで PSAR を算出する処理が呼び出される
             thread_ticker.notifyNewPrice.emit(x, y)
 
-    # def on_update_psar(self, ticker: str, trend: int, x: float, y: float, epupd: int):
     def on_update_psar(self, ticker: str, x: float, ret: PSARObject):
         """
         Parabolic SAR のトレンド点を追加
@@ -548,19 +549,8 @@ class Beetle(QMainWindow):
         :return:
         """
         trader = self.dict_trader[ticker]
-        # trader.setPSAR(trend, x, y, epupd)
         trader.setPSAR(x, ret)
 
-    def on_update_index(self, ticker: str, x: float, y: float):
-        """
-        指標トレンドを更新
-        :param ticker:
-        :param x:
-        :param y:
-        :return:
-        """
-        trader = self.dict_trader[ticker]
-        trader.setIndex(x, y)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
