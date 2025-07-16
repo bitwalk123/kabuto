@@ -13,6 +13,7 @@ from PySide6.QtCore import Signal, QThread, QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow, QFileDialog
 
+from beetle.beetle_psar import PSARObject
 from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
@@ -20,8 +21,8 @@ from beetle.beetle_dialog import DlgAboutBeetle
 from modules.reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
 from beetle.beetle_ticker import ThreadTicker
-from beetle.beetle_toolbar import ToolBar
-from beetle.beetle_trader import Trader
+from beetle.beetle_toolbar import BeetleToolBar
+from beetle.beetle_trader import BeetleTrader
 from modules.trans import WinTransaction
 from structs.posman import PositionType
 from structs.res import AppRes
@@ -147,7 +148,7 @@ class Beetle(QMainWindow):
         self.setWindowTitle(title_window)
 
         # ツールバー
-        self.toolbar = toolbar = ToolBar(res)
+        self.toolbar = toolbar = BeetleToolBar(res)
         toolbar.aboutClicked.connect(self.on_about)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)
@@ -255,7 +256,7 @@ class Beetle(QMainWindow):
         # 銘柄数分の Trader インスタンスの生成
         for ticker in list_ticker:
             # Trader インスタンスの生成
-            trader = Trader(self.res, ticker)
+            trader = BeetleTrader(self.res, ticker)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
@@ -265,10 +266,10 @@ class Beetle(QMainWindow):
             self.dict_trader[ticker] = trader
 
             # 「銘柄名　(ticker)」をタイトルにして設定し直し
-            trader.setTitle(f"{dict_name[ticker]} ({ticker})")
+            trader.setChartTitle(f"{dict_name[ticker]} ({ticker})")
 
             # 当日ザラ場時間
-            trader.setTimeRange(self.ts_start, self.ts_end)
+            trader.setTimeAxisRange(self.ts_start, self.ts_end)
 
             # 前日終値
             if dict_lastclose[ticker] > 0:
@@ -283,7 +284,6 @@ class Beetle(QMainWindow):
             self.thread_ticker = thread_ticker = ThreadTicker(ticker)
             thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
             thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            thread_ticker.worker.notifyIndex.connect(self.on_update_index)
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
 
@@ -406,15 +406,15 @@ class Beetle(QMainWindow):
         # システム時刻
         self.ts_system = time.time()
         if self.ts_start <= self.ts_system <= self.ts_end_1h:
-            # --------------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
-            # --------------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.ts_start_2h <= self.ts_system <= self.ts_end_2h:
-            # --------------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
             self.requestCurrentPrice.emit()
-            # --------------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.ts_end_2h < self.ts_system <= self.ts_ca:
             if not self.finished_trading:
                 # ポジションがあればクローズする
@@ -437,10 +437,10 @@ class Beetle(QMainWindow):
         """
         タイマー処理（デバッグ）
         """
-        # --------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在価格の取得要求をワーカースレッドに通知
         self.requestCurrentPriceReview.emit(self.ts_system)
-        # --------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.ts_system += 1
         if self.ts_end_2h < self.ts_system <= self.ts_ca:
             if not self.finished_trading:
@@ -529,36 +529,26 @@ class Beetle(QMainWindow):
         for ticker in dict_data.keys():
             x, y = dict_data[ticker]
             trader = self.dict_trader[ticker]
-            trader.setTimePrice(x, y)
+            # trader.setTimePrice(x, y)
+            trader.dock.setPrice(y)
             # 銘柄単位の含み益と収益を更新
             trader.dock.setProfit(dict_profit[ticker])
             trader.dock.setTotal(dict_total[ticker])
             # Parabolic SAR
             thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
+            # ここで PSAR を算出する処理が呼び出される
             thread_ticker.notifyNewPrice.emit(x, y)
 
-    def on_update_psar(self, ticker: str, trend: int, x: float, y: float, epupd: int):
+    def on_update_psar(self, ticker: str, x: float, ret: PSARObject):
         """
         Parabolic SAR のトレンド点を追加
         :param ticker:
-        :param trend:
         :param x:
-        :param y:
+        :param ret:
         :return:
         """
-        trader = self.dict_trader[ticker]
-        trader.setPSAR(trend, x, y, epupd)
-
-    def on_update_index(self, ticker: str, x: float, y: float):
-        """
-        指標トレンドを更新
-        :param ticker:
-        :param x:
-        :param y:
-        :return:
-        """
-        trader = self.dict_trader[ticker]
-        trader.setIndex(x, y)
+        trader: BeetleTrader = self.dict_trader[ticker]
+        trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
@@ -632,28 +622,28 @@ class Beetle(QMainWindow):
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_buy(self, ticker: str, price: float, note: str):
-        # --------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建で建玉取得をワーカースレッドに通知
         self.requestPositionOpen.emit(
             ticker, self.ts_system, price, PositionType.BUY, note
         )
-        # --------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_sell(self, ticker: str, price: float, note: str):
-        # ---------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建で建玉取得をワーカースレッドに通知
         self.requestPositionOpen.emit(
             ticker, self.ts_system, price, PositionType.SELL, note
         )
-        # ---------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_repay(self, ticker: str, price: float, note: str):
-        # --------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済をワーカースレッドに通知
         self.requestPositionClose.emit(
             ticker, self.ts_system, price, note
         )
-        # --------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # デバッグ用メソッド

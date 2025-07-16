@@ -20,7 +20,6 @@ class RealtimePSAR:
             af_init: float = 0.00002,
             af_step: float = 0.00002,
             af_max: float = 0.002,
-            rolling_n: int = 60
     ):
         self.af_init = af_init
         self.af_step = af_step
@@ -54,25 +53,16 @@ class RealtimePSAR:
             self.obj.epupd = 0
             self.obj.duration = 0
             self.obj.distance = abs(price - self.obj.psar)
-            self.first_trend = False  # 最初のトレンドフラグを False に
-            # return self.obj
+            return self.obj
         else:
             # トレンド維持
             if self.cmp_ep(price):
                 self.update_ep_af(price)
-
             # PSAR の更新
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
-
-            # 最初のトレンドのみの対応
-            # if self.first_trend:
-            #    self.trend_follow_aggressive(price)
-
             self.obj.price = price
             self.obj.duration += 1
-            # return self.obj
-
-        return self.obj
+            return self.obj
 
     def cmp_ep(self, price: float) -> bool:
         if 0 < self.obj.trend:
