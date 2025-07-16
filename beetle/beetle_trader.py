@@ -39,6 +39,7 @@ class BeetleTrader(QMainWindow):
         # データ領域の確保
         self.x_data = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
+        self.ys_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
         self.counter_data = 0
 
@@ -103,7 +104,7 @@ class BeetleTrader(QMainWindow):
         self.trend_line, = self.ax.plot(
             [], [],
             color='lightgray',
-            linewidth=0.5
+            linewidth=1
         )
 
         # bull（Parabolic SAR 上昇トレンド）
@@ -160,9 +161,10 @@ class BeetleTrader(QMainWindow):
         # ---------------------------------------------------------------------
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = ret.price
+        self.ys_data[self.counter_data] = ret.ys
         self.counter_data += 1
         self.trend_line.set_xdata(self.x_data[0:self.counter_data])
-        self.trend_line.set_ydata(self.y_data[0:self.counter_data])
+        self.trend_line.set_ydata(self.ys_data[0:self.counter_data])
 
         # ---------------------------------------------------------------------
         # Parabolic SAR のトレンド点

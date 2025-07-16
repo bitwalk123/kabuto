@@ -1,17 +1,20 @@
 from collections import deque  # deque をインポート
 
+from scipy.interpolate import make_smoothing_spline
+
 
 class PSARObject:
     def __init__(self):
-        self.price: float = 0.
-        self.y: float = 0.
-        self.trend: int = 0
-        self.ep: float = 0.
         self.af: float = -1.  # AF は 0 以上の実数
-        self.psar: float = 0.
-        self.epupd: int = 0
-        self.duration: int = 0
         self.distance: float = 0
+        self.duration: int = 0
+        self.ep: float = 0.
+        self.epupd: int = 0
+        self.price: float = 0.
+        self.psar: float = 0.
+        self.trend: int = 0
+        # self.y: float = 0.
+        self.ys: float = 0
 
 
 class RealtimePSAR:
@@ -25,21 +28,39 @@ class RealtimePSAR:
         self.af_step = af_step
         self.af_max = af_max
 
+        self.lam = 10 ** 7
+
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
         n_smoothing = 600
-        self.xs_deque = deque(maxlen=n_smoothing)
-        self.prices_deque = deque(maxlen=n_smoothing)
+        # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
+        # 【利点】ランチタイムのブランクを無視できる。
+        self.t = 0.0
+        self.t_deque = deque(maxlen=n_smoothing)
+        self.p_deque = deque(maxlen=n_smoothing)
 
     def add(self, price: float) -> PSARObject:
+        # self.obj.price = price
+
+        # Smoothing Spline
+        self.t_deque.append(self.t)
+        self.p_deque.append(price)
+        self.t += 1.0
+        if len(self.t_deque) > 60:
+            spl = make_smoothing_spline(self.t_deque, self.p_deque, lam=self.lam)
+            self.obj.ys = spl(self.t)
+        else:
+            self.obj.ys = self.p_deque[-1]
+
+        # Parabolic SAR
         if self.obj.price == 0:
-            # 最初に add メソッドが呼び出されるときは、寄り付いて価格が 0 で無い
+            # 最初に add メソッドが呼び出されるときは、寄り付いて価格が 0 では無いはず。
             # 最初は trend = 0 に設定、price は保持
-            self.obj.price = price
             self.obj.trend = 0
+            self.obj.price = price
             return self.obj
-        elif self.obj.trend == 0:
+        if self.obj.trend == 0:
             # トレンドが 0 の時は寄り付き後で、一旦 trend が +1 あるいは -1 になれば、
             # 以後はトレンド反転するので 0 になることは無い
             return self.decide_first_trend(price)
