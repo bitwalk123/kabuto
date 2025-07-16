@@ -23,6 +23,7 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
+        # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
 
         self.setFixedSize(1200, 300)
@@ -55,13 +56,13 @@ class Trader(QMainWindow):
         #
         #######################################################################
 
+        # ---------------------------------------------------------------------
         # 右側のドック
+        # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        # -----------------------------------
-        # Matplotlib FigureCanvas インスタンス
-        # -----------------------------------
+        # Matplotlib 用設定
         FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
         fm.fontManager.addfont(FONT_PATH)
 
@@ -86,14 +87,16 @@ class Trader(QMainWindow):
             bottom=0.08,
         )
 
+        # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
+        # ---------------------------------------------------------------------
         self.chart = chart = FigureCanvas(self.figure)
+        self.setCentralWidget(chart)
 
         # 描画用インスタンス (ax）
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True)
-        self.setCentralWidget(chart)
 
         # トレンドライン（株価）
         self.trend_line, = self.ax.plot(
@@ -148,10 +151,12 @@ class Trader(QMainWindow):
         """
         # ---------------------------------------------------------------------
         # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
+        # ---------------------------------------------------------------------
         x = pd.Timestamp(ts + self.tz, unit='s')
 
         # ---------------------------------------------------------------------
         # 現在価格（スムージングした線に変更予定）
+        # ---------------------------------------------------------------------
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = ret.price
         self.counter_data += 1
@@ -160,6 +165,7 @@ class Trader(QMainWindow):
 
         # ---------------------------------------------------------------------
         # Parabolic SAR のトレンド点
+        # ---------------------------------------------------------------------
         if 0 < ret.trend:
             self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = ret.psar
@@ -183,7 +189,9 @@ class Trader(QMainWindow):
         # Canvas を再描画
         self.chart.draw()
 
+        # ---------------------------------------------------------------------
         # トレンド情報をドックに設定
+        # ---------------------------------------------------------------------
         self.dock.setTrend(ret.trend, ret.epupd)
 
     def setTimeAxisRange(self, ts_start, ts_end):
