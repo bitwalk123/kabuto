@@ -20,7 +20,6 @@ class RealtimePSAR:
             af_init: float = 0.00002,
             af_step: float = 0.00002,
             af_max: float = 0.002,
-            rolling_n: int = 60
     ):
         self.af_init = af_init
         self.af_step = af_step
