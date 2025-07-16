@@ -22,6 +22,8 @@ class Trader(QMainWindow):
         self.res = res
         self.ticker = ticker
 
+        self.tz = 9. * 60 * 60
+
         self.setFixedSize(1200, 300)
         #######################################################################
         # PyQtGraph では、データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
@@ -107,10 +109,11 @@ class Trader(QMainWindow):
         保持している時刻、株価情報をデータフレームで返す。
         :return:
         """
-        return pd.DataFrame({
-            "Time": self.x_data[0: self.counter_data],
-            "Price": self.y_data[0: self.counter_data]
-        })
+        # return pd.DataFrame({
+        #    "Time": self.x_data[0: self.counter_data],
+        #    "Price": self.y_data[0: self.counter_data]
+        # })
+        return pd.DataFrame()
 
     def setLastCloseLine(self, price_close: float):
         """
@@ -131,8 +134,8 @@ class Trader(QMainWindow):
         """
 
     def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
-        x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
-        # x = pd.Timestamp(ts, unit='s', tz='Asia/Tokyo')
+        # x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
+        x = pd.Timestamp(ts + self.tz, unit='s')
         if 0 < trend:
             self.x_bull[self.counter_bull] = x
             self.y_bull[self.counter_bull] = y
@@ -168,9 +171,8 @@ class Trader(QMainWindow):
         :param y:
         :return:
         """
-        x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
-        # x = pd.Timestamp(ts, unit='s')
-        # x = pd.Timestamp(ts, unit='s', tz='Asia/Tokyo')
+        # x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
+        x = pd.Timestamp(ts + self.tz, unit='s')
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = y
         self.counter_data += 1
@@ -196,9 +198,12 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        td = datetime.timedelta(minutes=5)
-        dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start)) - td
-        dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
+        pad_left = 5. * 60
+        # dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start)) - td
+        # dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
+        dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
+        dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
+
         self.ax.set_xlim(dt_start, dt_end)
 
     def setTitle(self, title: str):
