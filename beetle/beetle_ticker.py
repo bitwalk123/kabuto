@@ -6,7 +6,6 @@ Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 """
 import logging
 from collections import deque
-from statistics import median
 
 from PySide6.QtCore import (
     QObject,
@@ -15,12 +14,13 @@ from PySide6.QtCore import (
     Slot,
 )
 
-from beetle.beetle_psar import RealtimePSAR
+from beetle.beetle_psar import PSARObject, RealtimePSAR
 
 
 class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
-    notifyPSAR = Signal(str, int, float, float, int)
+    # notifyPSAR = Signal(str, int, float, float, int)
+    notifyPSAR = Signal(str, float, PSARObject)
     notifyIndex = Signal(str, float, float)
 
     def __init__(self, ticker, parent=None):
@@ -39,19 +39,20 @@ class TickerWorker(QObject):
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 直近のデータのメディアン値を使って Parabolic SAR を算出
-        self.deque_median.append(y)
-        y_median = median(self.deque_median)
+        # self.deque_median.append(y)
+        # y_median = median(self.deque_median)
         # ret = self.psar.add(y)
-        ret = self.psar.add(y_median)
+        ret: PSARObject = self.psar.add(y)
         # トレンドと PSAR の値を転記
-        trend = ret.trend
-        y_psar = ret.psar
-        epupd = ret.epupd
+        # trend = ret.trend
+        # y_psar = ret.psar
+        # epupd = ret.epupd
         # ---------------------------------------------
         # 🧿 Parabolic SAR の情報を通知
-        self.notifyPSAR.emit(
-            self.ticker, trend, x, y_psar, epupd
-        )
+        # self.notifyPSAR.emit(
+        #    self.ticker, trend, x, y_psar, epupd
+        # )
+        self.notifyPSAR.emit(self.ticker, x, ret)
         # ---------------------------------------------
 
         """

@@ -11,6 +11,7 @@ from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_psar import PSARObject
 from structs.res import AppRes
 from widgets.docks import DockTrader
 
@@ -130,18 +131,25 @@ class Trader(QMainWindow):
         )
         """
 
-    def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
+    # def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
+    def setPSAR(self, ts: float, ret: PSARObject):
         x = pd.Timestamp(ts + self.tz, unit='s')
-        if 0 < trend:
+
+        self.x_data[self.counter_data] = x
+        self.y_data[self.counter_data] = ret.price
+        self.counter_data += 1
+        self.trend_line.set_xdata(self.x_data[0:self.counter_data])
+        self.trend_line.set_ydata(self.y_data[0:self.counter_data])
+
+        if 0 < ret.trend:
             self.x_bull[self.counter_bull] = x
-            self.y_bull[self.counter_bull] = y
+            self.y_bull[self.counter_bull] = ret.psar
             self.counter_bull += 1
             self.trend_bull.set_xdata(self.x_bull[0:self.counter_data])
             self.trend_bull.set_ydata(self.y_bull[0:self.counter_data])
-
-        elif trend < 0:
+        elif ret.trend < 0:
             self.x_bear[self.counter_bear] = x
-            self.y_bear[self.counter_bear] = y
+            self.y_bear[self.counter_bear] = ret.psar
             self.counter_bear += 1
             self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
             self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
@@ -153,7 +161,7 @@ class Trader(QMainWindow):
         self.chart.draw()
 
         # トレンドの向きをドックに設定
-        self.dock.setTrend(trend, epupd)
+        self.dock.setTrend(ret.trend, ret.epupd)
 
         # EP 更新頻度をインデックス・トレンドに表示
         # self.setIndex(np.float64(x), np.float64(epupd))
@@ -167,6 +175,8 @@ class Trader(QMainWindow):
         :param y:
         :return:
         """
+
+        """
         x = pd.Timestamp(ts + self.tz, unit='s')
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = y
@@ -174,12 +184,12 @@ class Trader(QMainWindow):
 
         self.trend_line.set_xdata(self.x_data[0:self.counter_data])
         self.trend_line.set_ydata(self.y_data[0:self.counter_data])
-
         self.ax.relim()
         self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
 
         # Canvas を再描画
         self.chart.draw()
+        """
 
         # 株価表示の更新
         self.dock.setPrice(y)
@@ -193,7 +203,7 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        pad_left = 5. * 60 # チャート左側の余白（５分）
+        pad_left = 5. * 60  # チャート左側の余白（５分）
         dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
         dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
 

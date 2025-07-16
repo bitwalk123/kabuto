@@ -13,6 +13,7 @@ from PySide6.QtCore import Signal, QThread, QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow, QFileDialog
 
+from beetle.beetle_psar import PSARObject
 from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
@@ -537,17 +538,18 @@ class Beetle(QMainWindow):
             thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
             thread_ticker.notifyNewPrice.emit(x, y)
 
-    def on_update_psar(self, ticker: str, trend: int, x: float, y: float, epupd: int):
+    # def on_update_psar(self, ticker: str, trend: int, x: float, y: float, epupd: int):
+    def on_update_psar(self, ticker: str, x: float, ret: PSARObject):
         """
         Parabolic SAR のトレンド点を追加
         :param ticker:
-        :param trend:
         :param x:
-        :param y:
+        :param ret:
         :return:
         """
         trader = self.dict_trader[ticker]
-        trader.setPSAR(trend, x, y, epupd)
+        # trader.setPSAR(trend, x, y, epupd)
+        trader.setPSAR(x, ret)
 
     def on_update_index(self, ticker: str, x: float, y: float):
         """
