@@ -5,18 +5,20 @@ import numpy as np
 import pandas as pd
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import (
+    FigureCanvasQTAgg as FigureCanvas
+)
 from matplotlib import dates as mdates
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_dock import DockBeetleTrader
 from beetle.beetle_psar import PSARObject
 from structs.res import AppRes
-from widgets.docks import DockTrader
 
 
-class Trader(QMainWindow):
+class BeetleTrader(QMainWindow):
     def __init__(self, res: AppRes, ticker: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -59,7 +61,7 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # 右側のドック
         # ---------------------------------------------------------------------
-        self.dock = dock = DockTrader(res, ticker)
+        self.dock = dock = DockBeetleTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # Matplotlib 用設定
@@ -142,7 +144,7 @@ class Trader(QMainWindow):
         """
         self.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
-    def setPSAR(self, ts: float, ret: PSARObject):
+    def setPlotData(self, ts: float, ret: PSARObject):
         """
         PSAR に関連するデータをプロット
         :param ts:

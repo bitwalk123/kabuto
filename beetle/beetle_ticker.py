@@ -31,7 +31,7 @@ class TickerWorker(QObject):
         self.deque_mr = deque(maxlen=self.period)
 
     @Slot(float, float)
-    def addPrice4PSAR(self, x, y):
+    def addPrice(self, x, y):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -64,7 +64,7 @@ class ThreadTicker(QThread):
         self.started.connect(self.thread_ready)
 
         # メインスレッドからワーカースレッドへ新たな株価情報を通知
-        self.notifyNewPrice.connect(self.worker.addPrice4PSAR)
+        self.notifyNewPrice.connect(self.worker.addPrice)
 
     def thread_ready(self):
         self.threadReady.emit(self.ticker)

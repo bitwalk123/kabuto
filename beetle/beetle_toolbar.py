@@ -15,7 +15,7 @@ from widgets.containers import PadH
 from widgets.labels import Label, LCDTime
 
 
-class ToolBar(QToolBar):
+class BeetleToolBar(QToolBar):
     aboutClicked = Signal()
     excelSelected = Signal(str)
     playClicked = Signal()

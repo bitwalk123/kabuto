@@ -21,8 +21,8 @@ from beetle.beetle_dialog import DlgAboutBeetle
 from modules.reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
 from beetle.beetle_ticker import ThreadTicker
-from beetle.beetle_toolbar import ToolBar
-from beetle.beetle_trader import Trader
+from beetle.beetle_toolbar import BeetleToolBar
+from beetle.beetle_trader import BeetleTrader
 from modules.trans import WinTransaction
 from structs.posman import PositionType
 from structs.res import AppRes
@@ -148,7 +148,7 @@ class Beetle(QMainWindow):
         self.setWindowTitle(title_window)
 
         # ツールバー
-        self.toolbar = toolbar = ToolBar(res)
+        self.toolbar = toolbar = BeetleToolBar(res)
         toolbar.aboutClicked.connect(self.on_about)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)
@@ -256,7 +256,7 @@ class Beetle(QMainWindow):
         # 銘柄数分の Trader インスタンスの生成
         for ticker in list_ticker:
             # Trader インスタンスの生成
-            trader = Trader(self.res, ticker)
+            trader = BeetleTrader(self.res, ticker)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
@@ -547,8 +547,8 @@ class Beetle(QMainWindow):
         :param ret:
         :return:
         """
-        trader = self.dict_trader[ticker]
-        trader.setPSAR(x, ret)
+        trader: BeetleTrader = self.dict_trader[ticker]
+        trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理

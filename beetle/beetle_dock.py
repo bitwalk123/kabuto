@@ -25,8 +25,7 @@ from widgets.labels import (
 )
 from widgets.layouts import HBoxLayout, VBoxLayout
 
-
-class DockTrader(QDockWidget):
+class DockBeetleTrader(QDockWidget):
     clickedConf = Signal(str)
     clickedSave = Signal(str)
     clickedBuy = Signal(str, float, str)
