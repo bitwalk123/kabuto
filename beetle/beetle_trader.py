@@ -109,10 +109,7 @@ class Trader(QMainWindow):
         保持している時刻、株価情報をデータフレームで返す。
         :return:
         """
-        # return pd.DataFrame({
-        #    "Time": self.x_data[0: self.counter_data],
-        #    "Price": self.y_data[0: self.counter_data]
-        # })
+        # self.tz を考慮してタイムスタンプへ戻すこと
         return pd.DataFrame()
 
     def setLastCloseLine(self, price_close: float):
@@ -134,7 +131,6 @@ class Trader(QMainWindow):
         """
 
     def setPSAR(self, trend: int, ts: float, y: float, epupd: int):
-        # x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
         x = pd.Timestamp(ts + self.tz, unit='s')
         if 0 < trend:
             self.x_bull[self.counter_bull] = x
@@ -171,7 +167,6 @@ class Trader(QMainWindow):
         :param y:
         :return:
         """
-        # x = pd.to_datetime(datetime.datetime.fromtimestamp(ts))
         x = pd.Timestamp(ts + self.tz, unit='s')
         self.x_data[self.counter_data] = x
         self.y_data[self.counter_data] = y
@@ -198,9 +193,7 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        pad_left = 5. * 60
-        # dt_start = pd.to_datetime(datetime.datetime.fromtimestamp(ts_start)) - td
-        # dt_end = pd.to_datetime(datetime.datetime.fromtimestamp(ts_end))
+        pad_left = 5. * 60 # チャート左側の余白（５分）
         dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
         dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
 
