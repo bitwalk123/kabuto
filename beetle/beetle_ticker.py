@@ -2,11 +2,9 @@
 Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 機能スコープ
 1. Realtime PSAR
-2. Moving Range
 """
 import logging
 from collections import deque
-from statistics import median
 
 from PySide6.QtCore import (
     QObject,
@@ -15,13 +13,12 @@ from PySide6.QtCore import (
     Slot,
 )
 
-from beetle.beetle_psar import RealtimePSAR
+from beetle.beetle_psar import PSARObject, RealtimePSAR
 
 
 class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
-    notifyPSAR = Signal(str, int, float, float, int)
-    notifyIndex = Signal(str, float, float)
+    notifyPSAR = Signal(str, float, PSARObject)
 
     def __init__(self, ticker, parent=None):
         super().__init__(parent)
@@ -34,37 +31,15 @@ class TickerWorker(QObject):
         self.deque_mr = deque(maxlen=self.period)
 
     @Slot(float, float)
-    def addPrice4PSAR(self, x, y):
+    def addPrice(self, x, y):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # Realtime PSAR の算出
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 直近のデータのメディアン値を使って Parabolic SAR を算出
-        self.deque_median.append(y)
-        y_median = median(self.deque_median)
-        # ret = self.psar.add(y)
-        ret = self.psar.add(y_median)
-        # トレンドと PSAR の値を転記
-        trend = ret.trend
-        y_psar = ret.psar
-        epupd = ret.epupd
-        # ---------------------------------------------
+        ret: PSARObject = self.psar.add(y)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR の情報を通知
-        self.notifyPSAR.emit(
-            self.ticker, trend, x, y_psar, epupd
-        )
-        # ---------------------------------------------
-
-        """
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # Moving Ranga の算出
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.deque_mr.append(y)
-        y_mr = max(self.deque_mr) - min(self.deque_mr)
-        # ---------------------------------------------
-        # 🧿 MR の情報を通知
-        self.notifyIndex.emit(self.ticker, x, y_mr)
-        # ---------------------------------------------
-        """
+        self.notifyPSAR.emit(self.ticker, x, ret)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 # QThreadを継承した銘柄スレッドクラス
@@ -89,7 +64,7 @@ class ThreadTicker(QThread):
         self.started.connect(self.thread_ready)
 
         # メインスレッドからワーカースレッドへ新たな株価情報を通知
-        self.notifyNewPrice.connect(self.worker.addPrice4PSAR)
+        self.notifyNewPrice.connect(self.worker.addPrice)
 
     def thread_ready(self):
         self.threadReady.emit(self.ticker)
@@ -106,7 +81,3 @@ class ThreadTicker(QThread):
         self.logger.info(
             f"{__name__} ThreadTicker for {self.ticker}: run() method finished. Event loop exited."
         )
-
-    # デストラクタでクリーンアップが必要な場合はここに記述
-    # def __del__(self):
-    #     print(f"ThreadTicker {self.ticker_code} is being deleted.")
