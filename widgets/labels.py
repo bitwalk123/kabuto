@@ -8,6 +8,9 @@ from PySide6.QtWidgets import (
     QSizePolicy,
 )
 
+from widgets.containers import Widget
+from widgets.layouts import VBoxLayout
+
 
 class Label(QLabel):
     def __init__(self, *args):
@@ -48,6 +51,7 @@ class LabelRight(QLabel):
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
+
 class LabelRightSmall(LabelRight):
     def __init__(self, *args):
         super().__init__(*args)
@@ -55,6 +59,7 @@ class LabelRightSmall(LabelRight):
         font.setStyleHint(QFont.StyleHint.Monospace)
         font.setPointSize(6)
         self.setFont(font)
+
 
 class LabelPrice(LabelRight):
     def __init__(self, price: float = 0):
@@ -124,6 +129,35 @@ class LCDTime(QLCDNumber):
         self.setFixedWidth(100)
         self.setDigitCount(8)
         self.display('00:00:00')
+
+
+class LCDValueWithTitle(Widget):
+    def __init__(self, title: str):
+        super().__init__()
+        # layout
+        layout = VBoxLayout()
+        self.setLayout(layout)
+        # title
+        lab_title = LabelSmall(title)
+        layout.addWidget(lab_title)
+        # LCD
+        self.lcd_value = lcd_value = LCDNumber(self)
+        layout.addWidget(lcd_value)
+
+    def getValue(self) -> float:
+        """
+        LCD に表示されている数値を取得
+        :return:
+        """
+        return self.lcd_value.value()
+
+    def setValue(self, value: float):
+        """
+        LCD に数値を表示
+        :param value:
+        :return:
+        """
+        self.lcd_value.display(f"{value:.1f}")
 
 
 class PlainTextEdit(QPlainTextEdit):

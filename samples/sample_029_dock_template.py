@@ -8,28 +8,14 @@ from PySide6.QtWidgets import (
 
 from widgets.containers import Widget
 from widgets.docks import DockWidget
-from widgets.labels import LabelSmall, LCDNumber
-from widgets.layouts import VBoxLayout
-
-
-class DispPrice(Widget):
-    def __init__(self, title: str):
-        super().__init__()
-
-        vbox = VBoxLayout()
-        self.setLayout(vbox)
-
-        lab_price = LabelSmall(title)
-        vbox.addWidget(lab_price)
-        self.lcd_price = lcd_price = LCDNumber(self)
-        vbox.addWidget(lcd_price)
+from widgets.labels import LCDValueWithTitle
 
 
 class DockTemplate(DockWidget):
     def __init__(self, title: str):
         super().__init__(title)
         # 現在株価表示
-        price = DispPrice("現在株価")
+        price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
 
 
@@ -37,7 +23,7 @@ class Example(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Dock Template")
-        ticker = "7011"
+        ticker = "ABCD"
         dock = DockTemplate(ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
