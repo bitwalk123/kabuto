@@ -47,26 +47,33 @@ class RealtimePSAR:
         self.t_deque.append(self.t)
         self.y_deque.append(price)
         self.t += 1.0
-        if self.n_smooth_min < len(self.t_deque):
-            spl = make_smoothing_spline(self.t_deque, self.y_deque, lam=self.lam)
+        if 5 < len(self.t_deque):
+            spl = make_smoothing_spline(
+                self.t_deque,
+                self.y_deque,
+                lam=self.lam
+            )
             self.obj.ys = spl(self.t)
         else:
-            self.obj.ys = self.y_deque[-1]
+            self.obj.ys = price
 
         # Parabolic SAR
-        if len(self.t_deque) <= self.n_smooth_min:
+        if len(self.t_deque) < self.n_smooth_min:
             # -----------------------------------------------------------------
             # データ数が self.n_smooth_min 未満の場合は Parabolic SAR を適用しない。
             # -----------------------------------------------------------------
-            # 最初は trend = 0
-            self.obj.trend = 0
-            return self.obj
+            # なにもしない
+            pass
         elif self.obj.trend == 0:
+            # -----------------------------------------------------------------
             # トレンドが 0 の時は寄り付き後で、一旦 trend が +1 あるいは -1 になれば、
             # 以後はトレンド反転するので 0 になることは無い
-            return self.decide_first_trend(self.obj.ys)
+            # -----------------------------------------------------------------
+            self.decide_first_trend(self.obj.ys)
         elif self.cmp_psar(self.obj.ys):
+            # -----------------------------------------------------------------
             # トレンド反転
+            # -----------------------------------------------------------------
             self.obj.trend *= -1
             self.obj.psar = self.obj.ep
             self.obj.ep = self.obj.ys
@@ -74,17 +81,26 @@ class RealtimePSAR:
             self.obj.epupd = 0
             self.obj.duration = 0
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
-            return self.obj
         else:
+            # -----------------------------------------------------------------
             # トレンド維持
+            # -----------------------------------------------------------------
+            # EP更新かどうか判定
             if self.cmp_ep(self.obj.ys):
+                # EP と AF の更新
                 self.update_ep_af(self.obj.ys)
             # PSAR の更新
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
             self.obj.duration += 1
-            return self.obj
+
+        return self.obj
 
     def cmp_ep(self, y: float) -> bool:
+        """
+        EP更新か判定
+        :param y:
+        :return:
+        """
         if 0 < self.obj.trend:
             if self.obj.ep < y:
                 return True
@@ -97,6 +113,11 @@ class RealtimePSAR:
                 return False
 
     def cmp_psar(self, y: float) -> bool:
+        """
+        トレンド反転か判定
+        :param y:
+        :return:
+        """
         if 0 < self.obj.trend:
             if y < self.obj.psar:
                 return True
@@ -109,23 +130,37 @@ class RealtimePSAR:
                 return False
 
     def decide_first_trend(self, y: float):
+        """
+        最初のトレンド
+        :param y:
+        :return:
+        """
         # trend = 0 の時
         if self.y_deque[-2] < y:
             self.obj.trend = +1
-            return self.init_first_param(y)
+            self.init_first_param(y)
         elif y < self.y_deque[-2]:
             self.obj.trend = -1
-            return self.init_first_param(y)
+            self.init_first_param(y)
         else:
-            # 株価に差が無ければ trend = 0 を維持
-            return self.obj
+            pass
 
     def init_first_param(self, y):
+        """
+        トレンド決定後の最初のパラメータ処理
+        :param y:
+        :return:
+        """
         self.obj.ep = y
         self.obj.af = self.af_init
         self.obj.psar = self.y_deque[-2]
 
     def update_ep_af(self, y: float):
+        """
+        EPとAFの更新
+        :param y:
+        :return:
+        """
         self.obj.ep = y
         self.obj.epupd += 1
         self.obj.duration = 0
