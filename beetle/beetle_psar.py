@@ -19,9 +19,9 @@ class PSARObject:
 class RealtimePSAR:
     def __init__(
             self,
-            af_init: float = 0.00001,
-            af_step: float = 0.00001,
-            af_max: float = 0.001,
+            af_init: float = 0.00002,
+            af_step: float = 0.00002,
+            af_max: float = 0.002,
     ):
         self.af_init = af_init
         self.af_step = af_step
@@ -66,10 +66,19 @@ class RealtimePSAR:
             pass
         elif self.obj.trend == 0:
             # -----------------------------------------------------------------
-            # トレンドが 0 の時は寄り付き後で、一旦 trend が +1 あるいは -1 になれば、
+            # トレンドが 0 の時は寄り付き後で、ひとたび trend が +1 あるいは -1 になれば、
             # 以後はトレンド反転するので 0 になることは無い
             # -----------------------------------------------------------------
-            self.decide_first_trend(self.obj.ys)
+            # self.decide_first_trend(self.obj.ys)
+            if self.y_deque[-2] < self.obj.ys:
+                self.obj.trend = +1
+                self.init_first_param(self.obj.ys)  # トレンド決定後の最初のパラメータ処理
+            elif self.obj.ys < self.y_deque[-2]:
+                self.obj.trend = -1
+                self.init_first_param(self.obj.ys)  # トレンド決定後の最初のパラメータ処理
+            else:
+                # 大小を付けられなければ何もしない。
+                pass
         elif self.cmp_psar(self.obj.ys):
             # -----------------------------------------------------------------
             # トレンド反転
@@ -80,6 +89,8 @@ class RealtimePSAR:
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
+            # トレンド反転後の ys と psar の差異
+            # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
         else:
             # -----------------------------------------------------------------
@@ -128,22 +139,6 @@ class RealtimePSAR:
                 return True
             else:
                 return False
-
-    def decide_first_trend(self, y: float):
-        """
-        最初のトレンド
-        :param y:
-        :return:
-        """
-        # trend = 0 の時
-        if self.y_deque[-2] < y:
-            self.obj.trend = +1
-            self.init_first_param(y)
-        elif y < self.y_deque[-2]:
-            self.obj.trend = -1
-            self.init_first_param(y)
-        else:
-            pass
 
     def init_first_param(self, y):
         """
