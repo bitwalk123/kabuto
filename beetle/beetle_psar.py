@@ -1,17 +1,19 @@
 from collections import deque  # deque をインポート
 
+from scipy.interpolate import make_smoothing_spline
+
 
 class PSARObject:
     def __init__(self):
-        self.price: float = 0.
-        self.y: float = 0.
-        self.trend: int = 0
-        self.ep: float = 0.
         self.af: float = -1.  # AF は 0 以上の実数
-        self.psar: float = 0.
-        self.epupd: int = 0
-        self.duration: int = 0
         self.distance: float = 0
+        self.duration: int = 0
+        self.ep: float = 0.
+        self.epupd: int = 0
+        self.price: float = 0.
+        self.psar: float = 0.
+        self.trend: int = 0
+        self.ys: float = 0
 
 
 class RealtimePSAR:
@@ -25,93 +27,136 @@ class RealtimePSAR:
         self.af_step = af_step
         self.af_max = af_max
 
+        self.lam = 10 ** 7
+
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
-        n_smoothing = 600
-        self.xs_deque = deque(maxlen=n_smoothing)
-        self.prices_deque = deque(maxlen=n_smoothing)
+        self.n_smooth_min = 60
+        self.n_smooth_max = 600
+        # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
+        # 【利点】ランチタイムのブランクを無視できる。
+        self.t = 0.0
+        self.t_deque = deque(maxlen=self.n_smooth_max)
+        self.y_deque = deque(maxlen=self.n_smooth_max)
 
     def add(self, price: float) -> PSARObject:
-        if self.obj.price == 0:
-            # 最初に add メソッドが呼び出されるときは、寄り付いて価格が 0 で無い
-            # 最初は trend = 0 に設定、price は保持
-            self.obj.price = price
-            self.obj.trend = 0
-            return self.obj
+        self.obj.price = price
+
+        # Smoothing Spline
+        self.t_deque.append(self.t)
+        self.y_deque.append(price)
+        self.t += 1.0
+        if 5 < len(self.t_deque):
+            spl = make_smoothing_spline(
+                self.t_deque,
+                self.y_deque,
+                lam=self.lam
+            )
+            self.obj.ys = spl(self.t)
+        else:
+            self.obj.ys = price
+
+        # Parabolic SAR
+        if len(self.t_deque) < self.n_smooth_min:
+            # -----------------------------------------------------------------
+            # データ数が self.n_smooth_min 未満の場合は Parabolic SAR を適用しない。
+            # -----------------------------------------------------------------
+            # なにもしない
+            pass
         elif self.obj.trend == 0:
-            # トレンドが 0 の時は寄り付き後で、一旦 trend が +1 あるいは -1 になれば、
+            # -----------------------------------------------------------------
+            # トレンドが 0 の時は寄り付き後で、ひとたび trend が +1 あるいは -1 になれば、
             # 以後はトレンド反転するので 0 になることは無い
-            return self.decide_first_trend(price)
-        elif self.cmp_psar(price):
+            # -----------------------------------------------------------------
+            # self.decide_first_trend(self.obj.ys)
+            if self.y_deque[-2] < self.obj.ys:
+                self.obj.trend = +1
+                self.init_first_param(self.obj.ys)  # トレンド決定後の最初のパラメータ処理
+            elif self.obj.ys < self.y_deque[-2]:
+                self.obj.trend = -1
+                self.init_first_param(self.obj.ys)  # トレンド決定後の最初のパラメータ処理
+            else:
+                # 大小を付けられなければ何もしない。
+                pass
+        elif self.cmp_psar(self.obj.ys):
+            # -----------------------------------------------------------------
             # トレンド反転
-            self.obj.price = price
+            # -----------------------------------------------------------------
             self.obj.trend *= -1
             self.obj.psar = self.obj.ep
-            self.obj.ep = price
+            self.obj.ep = self.obj.ys
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
-            self.obj.distance = abs(price - self.obj.psar)
-            return self.obj
+            # トレンド反転後の ys と psar の差異
+            # これより差異が大きくなればトレンドをフォローするために使用（未実装）
+            self.obj.distance = abs(self.obj.ys - self.obj.psar)
         else:
+            # -----------------------------------------------------------------
             # トレンド維持
-            if self.cmp_ep(price):
-                self.update_ep_af(price)
+            # -----------------------------------------------------------------
+            # EP更新かどうか判定
+            if self.cmp_ep(self.obj.ys):
+                # EP と AF の更新
+                self.update_ep_af(self.obj.ys)
             # PSAR の更新
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
-            self.obj.price = price
             self.obj.duration += 1
-            return self.obj
 
-    def cmp_ep(self, price: float) -> bool:
+        return self.obj
+
+    def cmp_ep(self, y: float) -> bool:
+        """
+        EP更新か判定
+        :param y:
+        :return:
+        """
         if 0 < self.obj.trend:
-            if self.obj.ep < price:
+            if self.obj.ep < y:
                 return True
             else:
                 return False
         else:
-            if price < self.obj.ep:
+            if y < self.obj.ep:
                 return True
             else:
                 return False
 
-    def cmp_psar(self, price: float) -> bool:
+    def cmp_psar(self, y: float) -> bool:
+        """
+        トレンド反転か判定
+        :param y:
+        :return:
+        """
         if 0 < self.obj.trend:
-            if price < self.obj.psar:
+            if y < self.obj.psar:
                 return True
             else:
                 return False
         else:
-            if self.obj.psar < price:
+            if self.obj.psar < y:
                 return True
             else:
                 return False
 
-    def decide_first_trend(self, price):
-        # trend = 0 の時
-        if self.obj.price < price:
-            self.obj.trend = +1
-            self.obj.ep = price
-            self.obj.af = self.af_init
-            self.obj.psar = self.obj.price
-            # 保持する株価を更新（順番依存）
-            self.obj.price = price
-            return self.obj
-        elif price < self.obj.price:
-            self.obj.trend = -1
-            self.obj.ep = price
-            self.obj.af = self.af_init
-            self.obj.psar = self.obj.price
-            # 保持する株価を更新（順番依存）
-            self.obj.price = price
-            return self.obj
-        else:
-            # 株価に差が無ければ trend = 0 を維持
-            return self.obj
+    def init_first_param(self, y):
+        """
+        トレンド決定後の最初のパラメータ処理
+        :param y:
+        :return:
+        """
+        self.obj.ep = y
+        self.obj.af = self.af_init
+        self.obj.psar = self.y_deque[-2]
 
-    def update_ep_af(self, price: float):
-        self.obj.ep = price
+    def update_ep_af(self, y: float):
+        """
+        EPとAFの更新
+        :param y:
+        :return:
+        """
+        self.obj.ep = y
         self.obj.epupd += 1
         self.obj.duration = 0
         if self.obj.af < self.af_max - self.af_step:
