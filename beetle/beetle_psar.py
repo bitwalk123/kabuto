@@ -21,18 +21,18 @@ class RealtimePSAR:
             self,
             af_init: float = 0.00002,
             af_step: float = 0.00002,
-            af_max: float = 0.002,
+            af_max: float = 0.02,
     ):
         self.af_init = af_init
         self.af_step = af_step
         self.af_max = af_max
 
-        self.lam = 10 ** 7
+        self.lam = 10 ** 8
 
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
-        self.n_smooth_min = 60
+        self.n_smooth_min = 30
         self.n_smooth_max = 600
         # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
         # 【利点】ランチタイムのブランクを無視できる。
