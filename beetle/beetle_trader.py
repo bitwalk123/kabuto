@@ -132,7 +132,7 @@ class BeetleTrader(QMainWindow):
         """
         # タイムスタンプ の Time 列は self.tz を考慮
         return pd.DataFrame({
-            "Time": [x - self.tz for x in self.x_data[0: self.counter_data]],
+            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.counter_data]],
             "Price": self.y_data[0: self.counter_data]
         })
 
