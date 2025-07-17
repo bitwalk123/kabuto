@@ -19,10 +19,10 @@ from widgets.containers import (
     Widget,
 )
 from widgets.labels import (
-    Label,
+    LabelRightSmall,
     LabelSmall,
     LCDInt,
-    LCDNumber, LabelRight, LabelRightSmall,
+    LCDNumber,
 )
 from widgets.layouts import HBoxLayout, VBoxLayout
 
