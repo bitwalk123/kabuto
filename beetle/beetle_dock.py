@@ -249,7 +249,7 @@ class DockBeetleTrader(QDockWidget):
         self.on_repay(note)
 
     def position_close_auto(self):
-        note = "トレンド反転→返済（オート）"
+        note = "トレンド反転 → 返済（オート）"
         self.on_repay(note)
         self.semi_auto.setChecked(False)
 
@@ -263,7 +263,7 @@ class DockBeetleTrader(QDockWidget):
                         f"{__name__} {self.ticker} のセミオートボタンをチェックしました。"
                     )
         else:
-            self.semi_auto.setEnabled(False)
+            self.semi_auto.setDisabled(True)
 
         self.lcd_epupd.display(f"{epupd}")
 
