@@ -1,5 +1,5 @@
 from funcs.logs import setup_logging
-from modules.apostle import Apostle
+from apostle.apostle_main import Apostle
 
 
 def main():

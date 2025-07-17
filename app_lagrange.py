@@ -1,5 +1,5 @@
 from funcs.logs import setup_logging
-from modules.lagrange import Lagrange
+from lagrange.lagrange_main import Lagrange
 
 
 def main():

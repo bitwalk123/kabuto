@@ -3,7 +3,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from modules.kabuto import Kabuto
+from kabuto.kabuto_main import Kabuto
 
 
 def main():

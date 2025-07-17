@@ -19,7 +19,7 @@ from modules.acquisitor import AcquireWorker
 from modules.reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
 from modules.ticker import ThreadTicker
-from modules.trader import Trader
+from kabuto.trader_kabuto import Trader
 from modules.trans import WinTransaction
 from structs.posman import PositionType
 from structs.res import AppRes

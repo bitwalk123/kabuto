@@ -3,7 +3,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from modules.vein import StockVein
+from vein.vein_main import StockVein
 
 
 def main():
