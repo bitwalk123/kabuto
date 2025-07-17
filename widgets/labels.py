@@ -48,6 +48,13 @@ class LabelRight(QLabel):
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
+class LabelRightSmall(LabelRight):
+    def __init__(self, *args):
+        super().__init__(*args)
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(6)
+        self.setFont(font)
 
 class LabelPrice(LabelRight):
     def __init__(self, price: float = 0):

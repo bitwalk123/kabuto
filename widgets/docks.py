@@ -19,11 +19,32 @@ from widgets.containers import (
     Widget,
 )
 from widgets.labels import (
+    Label,
     LabelSmall,
     LCDInt,
-    LCDNumber,
+    LCDNumber, LabelRight, LabelRightSmall,
 )
 from widgets.layouts import HBoxLayout, VBoxLayout
+
+
+class DockWidget(QDockWidget):
+    def __init__(self, title: str = ""):
+        super().__init__()
+
+        self.setFeatures(
+            QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
+        )
+        self.setTitleBarWidget(LabelRightSmall(title))
+
+        base = Widget()
+        self.setWidget(base)
+
+        self.layout = layout = VBoxLayout()
+        layout.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
+        layout.setSpacing(2)
+        base.setLayout(layout)
 
 
 class DockTrader(QDockWidget):
