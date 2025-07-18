@@ -20,6 +20,15 @@ class PanelTrading(Widget):
         self.setLayout(layout)
 
         row = 0
+        # 建玉の売建（インジケータ）
+        self.ind_sell = ind_sell = IndicatorBuySell()
+        layout.addWidget(ind_sell, row, 0)
+
+        # 建玉の買建（インジケータ）
+        self.ind_buy = ind_buy = IndicatorBuySell()
+        layout.addWidget(ind_buy, row, 1)
+
+        row += 1
         # 建玉の売建
         self.sell = but_sell = TradeButton("sell")
         but_sell.clicked.connect(self.on_sell)
@@ -29,15 +38,6 @@ class PanelTrading(Widget):
         self.buy = but_buy = TradeButton("buy")
         but_buy.clicked.connect(self.on_buy)
         layout.addWidget(but_buy, row, 1)
-
-        row += 1
-        # 建玉の売建（インジケータ）
-        self.ind_sell = ind_sell = IndicatorBuySell()
-        layout.addWidget(ind_sell, row, 0)
-
-        # 建玉の買建（インジケータ）
-        self.ind_buy = ind_buy = IndicatorBuySell()
-        layout.addWidget(ind_buy, row, 1)
 
         row += 1
         # 建玉の返却
@@ -89,8 +89,17 @@ class DockTemplate(DockWidget):
         self.layout.addWidget(epupd)
 
         # 取引用パネル
-        trading = PanelTrading()
+        self.trading = trading = PanelTrading()
         self.layout.addWidget(trading)
+
+    def setClickBuy(self):
+        self.trading.buy.animateClick()
+
+    def setClickSell(self):
+        self.trading.sell.animateClick()
+
+    def setClickRepay(self):
+        self.trading.repay.animateClick()
 
 
 class Example(QMainWindow):
@@ -98,17 +107,38 @@ class Example(QMainWindow):
         super().__init__()
         self.setWindowTitle("Dock Template")
         ticker = "Ticker"
-        dock = DockTemplate(ticker)
+        self.dock = dock = DockTemplate(ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         base = Widget()
         self.setCentralWidget(base)
 
         layout = VBoxLayout()
+        layout.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
         base.setLayout(layout)
 
-        but_test = QPushButton("テスト")
-        layout.addWidget(but_test)
+        but_test_buy = QPushButton("買建")
+        but_test_buy.clicked.connect(self.click_test_buy)
+        layout.addWidget(but_test_buy)
+
+        but_test_sell = QPushButton("売建")
+        but_test_sell.clicked.connect(self.click_test_sell)
+        layout.addWidget(but_test_sell)
+
+        but_test_repay = QPushButton("返却")
+        but_test_repay.clicked.connect(self.click_test_repay)
+        layout.addWidget(but_test_repay)
+
+    def click_test_buy(self):
+        self.dock.setClickBuy()
+
+    def click_test_sell(self):
+        self.dock.setClickSell()
+
+    def click_test_repay(self):
+        self.dock.setClickRepay()
 
 
 def main():

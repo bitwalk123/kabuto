@@ -12,14 +12,14 @@ class Frame(QFrame):
         self.setLineWidth(1)
 
 
-class IndicatorBuySell(QWidget):
+class IndicatorBuySell(QFrame):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        # self.setFrameStyle(
-        #    QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
-        # )
-        # self.setLineWidth(1)
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(2)
         self.setFixedHeight(5)
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -27,19 +27,17 @@ class IndicatorBuySell(QWidget):
         )
         palette = self.palette()
         self.background_default = palette.color(QPalette.ColorRole.Window)
+        print(f"Default background color (RGB): {self.background_default.getRgb()}")
 
     def setDefault(self):
+        self.setStyleSheet("")
         self.setPalette(self.background_default)
 
     def setBuy(self):
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(Qt.GlobalColor.red))
-        self.setPalette(palette)
+        self.setStyleSheet("QFrame{background-color: magenta;}")
 
     def setSell(self):
-        palette = self.palette()
-        palette.setColor(QPalette.ColorRole.Window, QColor(Qt.GlobalColor.blue))
-        self.setPalette(palette)
+        self.setStyleSheet("QFrame{background-color: cyan;}")
 
 
 class PadH(QWidget):
