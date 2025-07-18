@@ -1,20 +1,38 @@
-import sys
-
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QPushButton,
-)
+from PySide6.QtWidgets import QFrame, QMainWindow, QPushButton
 
-from widgets.containers import Widget, PanelTrading
+from structs.res import AppRes
+from widgets.buttons import ToggleButtonAutoPilot
+from widgets.containers import PadH, PanelTrading, Widget
 from widgets.docks import DockWidget
-from widgets.labels import LCDIntWithTitle, LCDValueWithTitle
-from widgets.layouts import VBoxLayout
+from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
+from widgets.layouts import HBoxLayout, VBoxLayout
+
+
+class PanelOption(QFrame):
+    """
+    トレーディング用オプションパネル
+    """
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(1)
+        layout = HBoxLayout()
+        self.setLayout(layout)
+
+        self.autopilot = but_autopilot = ToggleButtonAutoPilot(res)
+        but_autopilot.setChecked(True)  # デフォルトで ON
+        layout.addWidget(but_autopilot)
+
+        hpad = PadH()
+        layout.addWidget(hpad)
 
 
 class DockTemplate(DockWidget):
-    def __init__(self, title: str):
+    def __init__(self, res: AppRes, title: str):
         super().__init__(title)
         # 現在株価
         price = LCDValueWithTitle("現在株価")
@@ -32,6 +50,10 @@ class DockTemplate(DockWidget):
         # 取引用パネル
         self.trading = trading = PanelTrading()
         self.layout.addWidget(trading)
+
+        # オプションパネル
+        self.option = option = PanelOption(res)
+        self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
         """
@@ -70,9 +92,11 @@ class DockTemplate(DockWidget):
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
+        res = AppRes()
+
         self.setWindowTitle("Dock Template")
         ticker = "Ticker"
-        self.dock = dock = DockTemplate(ticker)
+        self.dock = dock = DockTemplate(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         base = Widget()
@@ -107,14 +131,3 @@ class Example(QMainWindow):
     def click_test_repay(self):
         if not self.dock.doRepay():
             print("建玉を返却できませんでした。")
-
-
-def main():
-    app = QApplication(sys.argv)
-    win = Example()
-    win.show()
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()
