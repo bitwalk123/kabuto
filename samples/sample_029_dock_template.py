@@ -3,14 +3,14 @@ import sys
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
+    QMainWindow, QPushButton,
 )
 
 from widgets.buttons import TradeButton
 from widgets.containers import IndicatorBuySell, Widget
 from widgets.docks import DockWidget
 from widgets.labels import LCDIntWithTitle, LCDValueWithTitle
-from widgets.layouts import GridLayout
+from widgets.layouts import GridLayout, VBoxLayout
 
 
 class PanelTrading(Widget):
@@ -74,6 +74,13 @@ class Example(QMainWindow):
 
         base = Widget()
         self.setCentralWidget(base)
+
+        layout = VBoxLayout()
+        base.setLayout(layout)
+
+        but_test = QPushButton("テスト")
+        layout.addWidget(but_test)
+
 
 
 def main():
