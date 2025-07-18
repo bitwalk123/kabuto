@@ -1,4 +1,5 @@
-from PySide6.QtCore import QMargins
+from PySide6.QtCore import QMargins, Qt
+from PySide6.QtGui import QPalette, QColor
 from PySide6.QtWidgets import QSizePolicy, QWidget, QFrame
 
 
@@ -9,6 +10,7 @@ class Frame(QFrame):
             QFrame.Shape.StyledPanel | QFrame.Shadow.Plain
         )
         self.setLineWidth(1)
+
 
 class IndicatorBuySell(QFrame):
     def __init__(self):
@@ -23,6 +25,22 @@ class IndicatorBuySell(QFrame):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Minimum
         )
+        palette = self.palette()
+        self.background_default = palette.color(QPalette.ColorRole.Window)
+
+    def setDefault(self):
+        self.setPalette(self.background_default)
+
+    def setBuy(self):
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(Qt.GlobalColor.red))
+        self.setPalette(palette)
+
+    def setSell(self):
+        palette = self.palette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(Qt.GlobalColor.blue))
+        self.setPalette(palette)
+
 
 class PadH(QWidget):
     def __init__(self):
@@ -48,4 +66,3 @@ class Widget(QWidget):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-
