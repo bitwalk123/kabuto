@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtCore import QMargins
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QFont
 from PySide6.QtWidgets import (
     QButtonGroup,
     QPushButton,
@@ -101,6 +101,14 @@ class ButtonPig(QPushButton):
 
 
 class ButtonSave(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        imgname = os.path.join(res.dir_image, "save.png")
+        self.setIcon(QIcon(imgname))
+
+
+class ButtonSave2(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
         self.setIcon(
@@ -155,7 +163,6 @@ class ButtonTicker(QPushButton):
         self.setCheckable(True)
         self.setAutoExclusive(True)
 
-
     def getCode(self) -> str:
         return self.code
 
@@ -187,6 +194,14 @@ class ButtonSemiAuto(QPushButton):
         self.setToolTip("セミオート")
 
 
+class ButtonSetting(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        imgname = os.path.join(res.dir_image, "setting.png")
+        self.setIcon(QIcon(imgname))
+
+
 class RadioButton(QRadioButton):
     def __init__(self, *args):
         super().__init__(*args)
@@ -211,3 +226,25 @@ class ToggleButtonAutoPilot(QPushButton):
         self.setCheckable(True)
         imgname = os.path.join(res.dir_image, "autopilot.png")
         self.setIcon(QIcon(imgname))
+
+
+class TradeButton(QPushButton):
+    def __init__(self, act: str):
+        super().__init__()
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(8)
+        self.setFont(font)
+
+        if act == "buy":
+            self.setText("買　建")
+        elif act == "sell":
+            self.setText("売　建")
+        elif act == "repay":
+            self.setText("返　　却")
+        else:
+            self.setText("不明")

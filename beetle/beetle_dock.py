@@ -8,7 +8,7 @@ from widgets.buttons import (
     ButtonBuy,
     ButtonConf,
     ButtonRepay,
-    ButtonSave,
+    ButtonSave2,
     ButtonSell,
     ButtonSemiAuto,
     ToggleButtonAutoPilot,
@@ -141,7 +141,7 @@ class DockBeetleTrader(QDockWidget):
         layout_tool.addWidget(pad)
 
         # 画像保存ボタン
-        but_save = ButtonSave()
+        but_save = ButtonSave2()
         but_save.setToolTip("チャート保存")
         but_save.clicked.connect(self.on_save)
         layout_tool.addWidget(but_save)

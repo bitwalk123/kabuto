@@ -160,6 +160,35 @@ class LCDValueWithTitle(Widget):
         self.lcd_value.display(f"{value:.1f}")
 
 
+class LCDIntWithTitle(Widget):
+    def __init__(self, title: str):
+        super().__init__()
+        # layout
+        layout = VBoxLayout()
+        self.setLayout(layout)
+        # title
+        lab_title = LabelSmall(title)
+        layout.addWidget(lab_title)
+        # LCD
+        self.lcd_int = lcd_value = LCDInt(self)
+        layout.addWidget(lcd_value)
+
+    def getValue(self) -> int:
+        """
+        LCD に表示されている数値を取得
+        :return:
+        """
+        return int(self.lcd_int.value())
+
+    def setValue(self, value: int):
+        """
+        LCD に数値を表示
+        :param value:
+        :return:
+        """
+        self.lcd_int.display(f"{value:d}")
+
+
 class PlainTextEdit(QPlainTextEdit):
     def __init__(self, *args):
         super().__init__(*args)

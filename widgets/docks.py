@@ -8,7 +8,7 @@ from widgets.buttons import (
     ButtonBuy,
     ButtonConf,
     ButtonRepay,
-    ButtonSave,
+    ButtonSave2,
     ButtonSell,
     ButtonSemiAuto,
     ToggleButtonAutoPilot,
@@ -30,6 +30,7 @@ from widgets.layouts import HBoxLayout, VBoxLayout
 class DockWidget(QDockWidget):
     def __init__(self, title: str = ""):
         super().__init__()
+        self.title = title
 
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
@@ -45,6 +46,13 @@ class DockWidget(QDockWidget):
         )
         layout.setSpacing(2)
         base.setLayout(layout)
+
+    def getTitle(self) -> str:
+        """
+        タイトル文字列を取得
+        :return:
+        """
+        return self.title
 
 
 class DockTrader(QDockWidget):
@@ -163,7 +171,7 @@ class DockTrader(QDockWidget):
         layout_tool.addWidget(pad)
 
         # 画像保存ボタン
-        but_save = ButtonSave()
+        but_save = ButtonSave2()
         but_save.setToolTip("チャート保存")
         but_save.clicked.connect(self.on_save)
         layout_tool.addWidget(but_save)
