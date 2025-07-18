@@ -100,6 +100,14 @@ class ButtonPig(QPushButton):
         self.setIcon(QIcon(imgname))
 
 
+class ButtonFloppy(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        imgname = os.path.join(res.dir_image, "save.png")
+        self.setIcon(QIcon(imgname))
+
+
 class ButtonSave(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
@@ -190,7 +198,6 @@ class ButtonSetting(QPushButton):
     def __init__(self, res: AppRes):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.setCheckable(True)
         imgname = os.path.join(res.dir_image, "setting.png")
         self.setIcon(QIcon(imgname))
 
