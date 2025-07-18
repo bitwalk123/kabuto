@@ -4,10 +4,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow, QPushButton,
+    QMainWindow,
+    QPushButton, QSizePolicy,
 )
 
-from widgets.buttons import ButtonBuy, ButtonSell, ButtonRepay
 from widgets.containers import Widget, PadH
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
@@ -15,12 +15,22 @@ from widgets.layouts import VBoxLayout, HBoxLayout
 
 
 class TradeButton(QPushButton):
-    def __init__(self):
+    def __init__(self, act: str):
         super().__init__()
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
-        font.setPointSize(9)
+        font.setPointSize(8)
         self.setFont(font)
+
+        if act == "buy":
+            self.setText("買　建")
+        elif act == "sell":
+            self.setText("売　建")
+        elif act == "repay":
+            self.setText("返　　却")
+        else:
+            self.setText("不明")
 
 
 class PanelTrading(Widget):
@@ -29,27 +39,24 @@ class PanelTrading(Widget):
         layout = VBoxLayout()
         self.setLayout(layout)
 
-        # 一行用レイアウト
-        layout_row = HBoxLayout()
-        layout.addLayout(layout_row)
+        # 一行用レイアウト①
+        layout_row_1 = HBoxLayout()
+        layout.addLayout(layout_row_1)
 
         # 建玉の売建
-        self.sell = but_sell = TradeButton()
-        but_sell.setText("売　建")
-        layout_row.addWidget(but_sell)
-
-        # 余白
-        pad = PadH()
-        layout_row.addWidget(pad)
+        self.sell = but_sell = TradeButton("sell")
+        layout_row_1.addWidget(but_sell)
 
         # 建玉の買建
-        self.buy = but_buy = TradeButton()
-        but_buy.setText("買　建")
-        layout_row.addWidget(but_buy)
+        self.buy = but_buy = TradeButton("buy")
+        layout_row_1.addWidget(but_buy)
+
+        # 一行用レイアウト②
+        layout_row_2 = HBoxLayout()
+        layout.addLayout(layout_row_2)
 
         # 建玉の返却
-        self.repay = but_repay = TradeButton()
-        but_repay.setText("返　　却")
+        self.repay = but_repay = TradeButton("repay")
         layout.addWidget(but_repay)
 
 
