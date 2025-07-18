@@ -155,7 +155,6 @@ class ButtonTicker(QPushButton):
         self.setCheckable(True)
         self.setAutoExclusive(True)
 
-
     def getCode(self) -> str:
         return self.code
 
@@ -185,6 +184,15 @@ class ButtonSemiAuto(QPushButton):
         """)
         self.setText("Semi AUTO")
         self.setToolTip("セミオート")
+
+
+class ButtonSetting(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setCheckable(True)
+        imgname = os.path.join(res.dir_image, "setting.png")
+        self.setIcon(QIcon(imgname))
 
 
 class RadioButton(QRadioButton):
