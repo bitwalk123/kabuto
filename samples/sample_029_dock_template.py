@@ -2,7 +2,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QMainWindow, QPushButton
 
 from structs.res import AppRes
-from widgets.buttons import ToggleButtonAutoPilot, ButtonSetting, ButtonFloppy
+from widgets.buttons import ToggleButtonAutoPilot, ButtonSetting, ButtonSave
 from widgets.containers import PadH, PanelTrading, Widget
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
@@ -30,7 +30,7 @@ class PanelOption(QFrame):
         hpad = PadH()
         layout.addWidget(hpad)
 
-        self.save = but_save = ButtonFloppy(res)
+        self.save = but_save = ButtonSave(res)
         layout.addWidget(but_save)
 
         self.setting = but_setting = ButtonSetting(res)

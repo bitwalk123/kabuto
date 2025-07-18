@@ -100,7 +100,7 @@ class ButtonPig(QPushButton):
         self.setIcon(QIcon(imgname))
 
 
-class ButtonFloppy(QPushButton):
+class ButtonSave(QPushButton):
     def __init__(self, res: AppRes):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
@@ -108,7 +108,7 @@ class ButtonFloppy(QPushButton):
         self.setIcon(QIcon(imgname))
 
 
-class ButtonSave(QPushButton):
+class ButtonSave2(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
         self.setIcon(
