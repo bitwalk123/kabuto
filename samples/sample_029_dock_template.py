@@ -1,40 +1,11 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QFrame, QMainWindow, QPushButton
+from PySide6.QtWidgets import QMainWindow, QPushButton
 
 from structs.res import AppRes
-from widgets.buttons import ToggleButtonAutoPilot, ButtonSetting, ButtonSave
-from widgets.containers import PadH, PanelTrading, Widget
+from widgets.containers import PanelOption, PanelTrading, Widget
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
-from widgets.layouts import HBoxLayout, VBoxLayout
-
-
-class PanelOption(QFrame):
-    """
-    トレーディング用オプションパネル
-    """
-
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.setFrameStyle(
-            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
-        )
-        self.setLineWidth(1)
-        layout = HBoxLayout()
-        self.setLayout(layout)
-
-        self.autopilot = but_autopilot = ToggleButtonAutoPilot(res)
-        but_autopilot.setChecked(True)  # デフォルトで ON
-        layout.addWidget(but_autopilot)
-
-        hpad = PadH()
-        layout.addWidget(hpad)
-
-        self.save = but_save = ButtonSave(res)
-        layout.addWidget(but_save)
-
-        self.setting = but_setting = ButtonSetting(res)
-        layout.addWidget(but_setting)
+from widgets.layouts import VBoxLayout
 
 
 class DockTemplate(DockWidget):

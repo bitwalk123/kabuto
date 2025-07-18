@@ -6,8 +6,9 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from widgets.buttons import TradeButton
-from widgets.layouts import GridLayout
+from structs.res import AppRes
+from widgets.buttons import TradeButton, ToggleButtonAutoPilot, ButtonSave, ButtonSetting
+from widgets.layouts import GridLayout, HBoxLayout
 
 
 class Frame(QFrame):
@@ -135,3 +136,34 @@ class PanelTrading(Widget):
         self.position_close()
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
+
+
+class PanelOption(QFrame):
+    """
+    トレーディング用オプションパネル
+    """
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(1)
+        layout = HBoxLayout()
+        self.setLayout(layout)
+
+        self.autopilot = but_autopilot = ToggleButtonAutoPilot(res)
+        but_autopilot.setChecked(True)  # デフォルトで ON
+        layout.addWidget(but_autopilot)
+
+        hpad = PadH()
+        layout.addWidget(hpad)
+
+        self.save = but_save = ButtonSave(res)
+        layout.addWidget(but_save)
+
+        self.setting = but_setting = ButtonSetting(res)
+        layout.addWidget(but_setting)
+
+    def isAutoPilotEnabled(self) -> bool:
+        return self.autopilot.isChecked()
