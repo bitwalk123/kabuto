@@ -12,14 +12,14 @@ class Frame(QFrame):
         self.setLineWidth(1)
 
 
-class IndicatorBuySell(QFrame):
+class IndicatorBuySell(QWidget):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.setFrameStyle(
-            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
-        )
-        self.setLineWidth(1)
+        # self.setFrameStyle(
+        #    QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        # )
+        # self.setLineWidth(1)
         self.setFixedHeight(5)
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
