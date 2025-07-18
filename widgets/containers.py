@@ -10,6 +10,19 @@ class Frame(QFrame):
         )
         self.setLineWidth(1)
 
+class IndicatorBuySell(QFrame):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(1)
+        self.setFixedHeight(5)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
 
 class PadH(QWidget):
     def __init__(self):
@@ -35,3 +48,4 @@ class Widget(QWidget):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
+

@@ -5,19 +5,23 @@ from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
-    QPushButton, QSizePolicy,
+    QPushButton,
+    QSizePolicy,
 )
 
-from widgets.containers import Widget, PadH
+from widgets.containers import IndicatorBuySell, Widget
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
-from widgets.layouts import VBoxLayout, HBoxLayout
+from widgets.labels import LCDIntWithTitle, LCDValueWithTitle
+from widgets.layouts import GridLayout
 
 
 class TradeButton(QPushButton):
     def __init__(self, act: str):
         super().__init__()
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
         font.setPointSize(8)
@@ -36,28 +40,31 @@ class TradeButton(QPushButton):
 class PanelTrading(Widget):
     def __init__(self):
         super().__init__()
-        layout = VBoxLayout()
+        layout = GridLayout()
         self.setLayout(layout)
 
-        # 一行用レイアウト①
-        layout_row_1 = HBoxLayout()
-        layout.addLayout(layout_row_1)
-
+        row = 0
         # 建玉の売建
         self.sell = but_sell = TradeButton("sell")
-        layout_row_1.addWidget(but_sell)
+        layout.addWidget(but_sell, row, 0)
 
         # 建玉の買建
         self.buy = but_buy = TradeButton("buy")
-        layout_row_1.addWidget(but_buy)
+        layout.addWidget(but_buy, row, 1)
 
-        # 一行用レイアウト②
-        layout_row_2 = HBoxLayout()
-        layout.addLayout(layout_row_2)
+        row += 1
+        # 建玉の売建（インジケータ）
+        self.ind_sell = ind_sell = IndicatorBuySell()
+        layout.addWidget(ind_sell, row, 0)
 
+        # 建玉の買建（インジケータ）
+        self.ind_buy = ind_buy = IndicatorBuySell()
+        layout.addWidget(ind_buy, row, 1)
+
+        row += 1
         # 建玉の返却
         self.repay = but_repay = TradeButton("repay")
-        layout.addWidget(but_repay)
+        layout.addWidget(but_repay, row, 0, 1, 2)
 
 
 class DockTemplate(DockWidget):
