@@ -1,16 +1,26 @@
 import sys
 
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
     QApplication,
-    QMainWindow,
+    QMainWindow, QPushButton,
 )
 
-from widgets.buttons import ButtonBuy, ButtonSell
+from widgets.buttons import ButtonBuy, ButtonSell, ButtonRepay
 from widgets.containers import Widget, PadH
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
 from widgets.layouts import VBoxLayout, HBoxLayout
+
+
+class TradeButton(QPushButton):
+    def __init__(self):
+        super().__init__()
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(9)
+        self.setFont(font)
 
 
 class PanelTrading(Widget):
@@ -23,17 +33,24 @@ class PanelTrading(Widget):
         layout_row = HBoxLayout()
         layout.addLayout(layout_row)
 
-        # 売建
-        self.sell = but_sell = ButtonSell()
+        # 建玉の売建
+        self.sell = but_sell = TradeButton()
+        but_sell.setText("売　建")
         layout_row.addWidget(but_sell)
 
         # 余白
         pad = PadH()
         layout_row.addWidget(pad)
 
-        # 買建
-        self.buy = but_buy = ButtonBuy()
+        # 建玉の買建
+        self.buy = but_buy = TradeButton()
+        but_buy.setText("買　建")
         layout_row.addWidget(but_buy)
+
+        # 建玉の返却
+        self.repay = but_repay = TradeButton()
+        but_repay.setText("返　　却")
+        layout.addWidget(but_repay)
 
 
 class DockTemplate(DockWidget):
