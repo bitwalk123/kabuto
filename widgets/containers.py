@@ -27,7 +27,7 @@ class IndicatorBuySell(QFrame):
         )
         palette = self.palette()
         self.background_default = palette.color(QPalette.ColorRole.Window)
-        print(f"Default background color (RGB): {self.background_default.getRgb()}")
+        # print(f"Default background color (RGB): {self.background_default.getRgb()}")
 
     def setDefault(self):
         self.setStyleSheet("")

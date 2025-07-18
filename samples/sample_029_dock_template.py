@@ -92,14 +92,38 @@ class DockTemplate(DockWidget):
         self.trading = trading = PanelTrading()
         self.layout.addWidget(trading)
 
-    def setClickBuy(self):
-        self.trading.buy.animateClick()
+    def doBuy(self) -> bool:
+        """
+        「買建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.buy.isEnabled():
+            self.trading.buy.animateClick()
+            return True
+        else:
+            return False
 
-    def setClickSell(self):
-        self.trading.sell.animateClick()
+    def doSell(self) -> bool:
+        """
+        「売建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.sell.isEnabled():
+            self.trading.sell.animateClick()
+            return True
+        else:
+            return False
 
-    def setClickRepay(self):
-        self.trading.repay.animateClick()
+    def doRepay(self) -> bool:
+        """
+        「返済」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.repay.isEnabled():
+            self.trading.repay.animateClick()
+            return True
+        else:
+            return False
 
 
 class Example(QMainWindow):
@@ -132,13 +156,16 @@ class Example(QMainWindow):
         layout.addWidget(but_test_repay)
 
     def click_test_buy(self):
-        self.dock.setClickBuy()
+        if not self.dock.doBuy():
+            print("建玉を買建できませんでした。")
 
     def click_test_sell(self):
-        self.dock.setClickSell()
+        if not self.dock.doSell():
+            print("建玉を売建できませんでした。")
 
     def click_test_repay(self):
-        self.dock.setClickRepay()
+        if not self.dock.doRepay():
+            print("建玉を返却できませんでした。")
 
 
 def main():
