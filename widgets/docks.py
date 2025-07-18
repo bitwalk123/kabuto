@@ -30,6 +30,7 @@ from widgets.layouts import HBoxLayout, VBoxLayout
 class DockWidget(QDockWidget):
     def __init__(self, title: str = ""):
         super().__init__()
+        self.title = title
 
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
@@ -45,6 +46,13 @@ class DockWidget(QDockWidget):
         )
         layout.setSpacing(2)
         base.setLayout(layout)
+
+    def getTitle(self) -> str:
+        """
+        タイトル文字列を取得
+        :return:
+        """
+        return self.title
 
 
 class DockTrader(QDockWidget):
