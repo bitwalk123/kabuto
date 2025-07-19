@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from structs.res import AppRes
 from widgets.containers import Widget
-from widgets.docks import DockTrader
+from kabuto.kabuto_dock import DockTrader
 from widgets.graph import TrendGraph, TrendGraph2
 from widgets.layouts import VBoxLayout
 

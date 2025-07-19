@@ -18,15 +18,15 @@ from funcs.uis import clear_boxlayout
 from modules.acquisitor import AcquireWorker
 from modules.reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
-from modules.ticker import ThreadTicker
-from kabuto.trader_kabuto import Trader
+from kabuto.kabuto_ticker import ThreadTicker
+from kabuto.kabuto_trader import Trader
 from modules.trans import WinTransaction
 from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
 from widgets.layouts import VBoxLayout
-from widgets.toolbar import ToolBar
+from kabuto.kabuto_toolbar import ToolBar
 
 if sys.platform == "win32":
     debug = False
