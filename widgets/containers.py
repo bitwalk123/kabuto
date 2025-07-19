@@ -1,4 +1,4 @@
-from PySide6.QtCore import QMargins
+from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (
     QFrame,
@@ -79,6 +79,9 @@ class PanelTrading(Widget):
     トレーディング用パネル
     固定株数でナンピンしない取引を前提にしている
     """
+    clickedBuy = Signal()
+    clickedSell = Signal()
+    clickedRepay = Signal()
 
     def __init__(self):
         super().__init__()
@@ -125,14 +128,26 @@ class PanelTrading(Widget):
         self.repay.setEnabled(True)
 
     def on_buy(self):
+        # ---------------------------------------------------------------------
+        # 🧿 買建ボタンがクリックされたことを通知
+        self.clickedBuy.emit()
+        # ---------------------------------------------------------------------
         self.position_open()
         self.ind_buy.setBuy()
 
     def on_sell(self):
+        # ---------------------------------------------------------------------
+        # 🧿 売建ボタンがクリックされたことを通知
+        self.clickedSell.emit()
+        # ---------------------------------------------------------------------
         self.position_open()
         self.ind_sell.setSell()
 
     def on_repay(self):
+        # ---------------------------------------------------------------------
+        # 🧿 返却ボタンがクリックされたことを通知
+        self.clickedRepay.emit()
+        # ---------------------------------------------------------------------
         self.position_close()
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()

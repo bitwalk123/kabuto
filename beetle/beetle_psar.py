@@ -27,7 +27,7 @@ class RealtimePSAR:
         self.af_step = af_step
         self.af_max = af_max
 
-        self.lam = 10 ** 8
+        self.lam = 10 ** 7
 
         # PSARObject のインスタンス
         self.obj = PSARObject()

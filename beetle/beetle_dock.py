@@ -11,8 +11,9 @@ class DockBeetleTrader(DockWidget):
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
 
-    def __init__(self, res: AppRes, title: str):
-        super().__init__(title)
+    def __init__(self, res: AppRes, ticker: str):
+        super().__init__(ticker)
+        self.ticker = ticker
         self.trend = 0
 
         # 現在株価
@@ -30,6 +31,9 @@ class DockBeetleTrader(DockWidget):
 
         # 取引用パネル
         self.trading = trading = PanelTrading()
+        trading.clickedBuy.connect(self.on_buy)
+        trading.clickedSell.connect(self.on_sell)
+        trading.clickedRepay.connect(self.on_repay)
         self.layout.addWidget(trading)
 
         # オプションパネル
@@ -71,6 +75,33 @@ class DockBeetleTrader(DockWidget):
 
     def finishAutoTrade(self):
         pass
+
+    def on_buy(self):
+        note = ""
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 買建ボタンがクリックされたことを通知
+        self.clickedBuy.emit(
+            self.ticker, self.price.getValue(), note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_repay(self):
+        note = ""
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 返済ボタンがクリックされたことを通知
+        self.clickedRepay.emit(
+            self.ticker, self.price.getValue(), note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_sell(self):
+        note = ""
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 売建ボタンがクリックされたことを通知
+        self.clickedSell.emit(
+            self.ticker, self.price.getValue(), note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def setEPUpd(self, epupd: int):
         self.epupd.setValue(epupd)
