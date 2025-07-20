@@ -1,3 +1,5 @@
+import logging
+
 from PySide6.QtCore import Signal
 
 from beetle.beetle_pacman import PacMan
@@ -15,6 +17,7 @@ class DockBeetleTrader(DockWidget):
 
     def __init__(self, res: AppRes, ticker: str):
         super().__init__(ticker)
+        self.logger = logging.getLogger(__name__)
         self.ticker = ticker
         self.pacman = PacMan()
 
@@ -76,8 +79,12 @@ class DockBeetleTrader(DockWidget):
         else:
             return False
 
-    def finishAutoTrade(self):
-        pass
+    def forceStopAutoPilot(self):
+        if self.doRepay():
+            self.logger.info(f"{__name__}: '{self.ticker}'の強制返済をしました。")
+        if self.option.isAutoPilotEnabled():
+            self.option.setAutoPilotEnabled(False)
+            self.logger.info(f"{__name__}: '{self.ticker}'の Autopilot をオフにしました。")
 
     def on_buy(self):
         note = ""

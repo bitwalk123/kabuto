@@ -290,7 +290,7 @@ class Beetle(QMainWindow):
     def force_closing_position(self):
         for ticker in self.dict_trader.keys():
             trader = self.dict_trader[ticker]
-            trader.dock.finishAutoTrade()
+            trader.dock.forceStopAutoPilot()
 
     def get_current_tick_data(self) -> dict:
         """

@@ -182,3 +182,6 @@ class PanelOption(QFrame):
 
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
+
+    def setAutoPilotEnabled(self, state: bool = True):
+        self.autopilot.setChecked(state)
