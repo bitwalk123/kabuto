@@ -165,6 +165,9 @@ class BeetleTrader(QMainWindow):
         # ---------------------------------------------------------------------
         x = pd.Timestamp(ts + self.tz, unit='s')
 
+        # ---------------------------------------------------------------------
+        # 最新の株価
+        # ---------------------------------------------------------------------
         self.latest_point.set_xdata([x])
         self.latest_point.set_ydata([ret.price])
 
@@ -197,11 +200,11 @@ class BeetleTrader(QMainWindow):
             # ret.trend == 0 の時
             pass
 
-        # Recompute the data limits based on current artists.
+        # データ範囲を再計算
         self.ax.relim()
         # y軸のみオートスケール
         self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
-        # Canvas を再描画
+        # 再描画
         self.chart.draw()
 
         # ---------------------------------------------------------------------
