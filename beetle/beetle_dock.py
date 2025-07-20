@@ -27,9 +27,6 @@ class DockBeetleTrader(DockWidget):
         # 合計収益
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
-        # EP 更新回数
-        self.epupd = epupd = LCDIntWithTitle("EP 更新回数")
-        self.layout.addWidget(epupd)
 
         # 取引用パネル
         self.trading = trading = PanelTrading()
@@ -37,6 +34,10 @@ class DockBeetleTrader(DockWidget):
         trading.clickedSell.connect(self.on_sell)
         trading.clickedRepay.connect(self.on_repay)
         self.layout.addWidget(trading)
+
+        # EP 更新回数
+        self.epupd = epupd = LCDIntWithTitle("EP 更新回数")
+        self.layout.addWidget(epupd)
 
         # オプションパネル
         self.option = option = PanelOption(res)
