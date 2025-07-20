@@ -100,6 +100,14 @@ class BeetleTrader(QMainWindow):
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True)
 
+        # 最新の株価
+        self.latest_point, = self.ax.plot(
+            [], [],
+            marker='x',
+            markersize=7,
+            color='#ff8'
+        )
+
         # トレンドライン（株価）
         self.trend_line, = self.ax.plot(
             [], [],
@@ -156,6 +164,9 @@ class BeetleTrader(QMainWindow):
         # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
         # ---------------------------------------------------------------------
         x = pd.Timestamp(ts + self.tz, unit='s')
+
+        self.latest_point.set_xdata([x])
+        self.latest_point.set_ydata([ret.price])
 
         # ---------------------------------------------------------------------
         # 現在価格（スムージングした線に変更予定）
