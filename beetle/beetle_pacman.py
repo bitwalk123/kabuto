@@ -20,13 +20,14 @@ class PacMan:
         if self.trend != trend: # トレンド反転時
             if self.trend * trend == -1: # トレンドが -1 と 1 の時
                 self.trend = trend
-                self.has_position = False
+                self.has_position = False # ポジションをリセット
                 return PositionType.REPAY
             else: # 最初のトレンド 0 から -1 あるいは 1 へ変更した時
                 self.trend = trend
+                self.has_position = False # ポジションをリセット
                 return PositionType.NONE
         else:
-            if self.epupd_min < epupd and not self.has_position:
+            if not self.has_position and self.epupd_min < epupd:
                 # 建玉無しで EP 更新回数が必要最低回数より大きくなった時
                 if 0 < self.trend:
                     self.has_position = True
@@ -35,6 +36,7 @@ class PacMan:
                     self.has_position = True
                     return PositionType.SELL
                 else:
+                    self.has_position = False
                     return PositionType.NONE
             else:
-                return PositionType.NONE
+                return PositionType.HOLD
