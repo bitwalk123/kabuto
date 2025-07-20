@@ -1,6 +1,7 @@
 from PySide6.QtCore import Signal
 
 from beetle.beetle_pacman import PacMan
+from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.containers import PanelTrading, PanelOption
 from widgets.docks import DockWidget
@@ -119,5 +120,12 @@ class DockBeetleTrader(DockWidget):
     def setTrend(self, trend: int, epupd: int):
         self.setEPUpd(epupd)
         if self.option.isAutoPilotEnabled():
-            if self.pacman.setTrend(trend, epupd):
+            ptype: PositionType = self.pacman.setTrend(trend, epupd)
+            if ptype == PositionType.BUY:
+                self.doBuy()
+            elif ptype == PositionType.SELL:
+                self.doSell()
+            elif ptype == PositionType.REPAY:
+                self.doRepay()
+            else:
                 pass
