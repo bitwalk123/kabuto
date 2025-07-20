@@ -3,7 +3,7 @@ from structs.posman import PositionType
 
 class PacMan:
     """
-    トレンド判定アルゴリズム
+    トレンド判定ロジック
     """
 
     def __init__(self):
