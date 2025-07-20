@@ -1,5 +1,6 @@
 from PySide6.QtCore import Signal
 
+from beetle.beetle_pacman import PacMan
 from structs.res import AppRes
 from widgets.containers import PanelTrading, PanelOption
 from widgets.docks import DockWidget
@@ -14,7 +15,7 @@ class DockBeetleTrader(DockWidget):
     def __init__(self, res: AppRes, ticker: str):
         super().__init__(ticker)
         self.ticker = ticker
-        self.trend = 0
+        self.pacman = PacMan()
 
         # 現在株価
         self.price = price = LCDValueWithTitle("現在株価")
@@ -116,7 +117,7 @@ class DockBeetleTrader(DockWidget):
         self.total.setValue(total)
 
     def setTrend(self, trend: int, epupd: int):
-        if self.trend != trend:
-            pass
-        self.trend = trend
         self.setEPUpd(epupd)
+        if self.option.isAutoPilotEnabled():
+            if self.pacman.setTrend(trend, epupd):
+                pass
