@@ -4,9 +4,7 @@ from PySide6.QtWidgets import QDockWidget
 from widgets.containers import (
     Widget,
 )
-from widgets.labels import (
-    LabelRightSmall,
-)
+from widgets.labels import LabelRightMedium
 from widgets.layouts import VBoxLayout
 
 
@@ -18,7 +16,7 @@ class DockWidget(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
-        self.setTitleBarWidget(LabelRightSmall(title))
+        self.setTitleBarWidget(LabelRightMedium(title))
 
         base = Widget()
         self.setWidget(base)
