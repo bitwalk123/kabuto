@@ -98,7 +98,7 @@ class BeetleTrader(QMainWindow):
         # 描画用インスタンス (ax）
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-        self.ax.grid(True)
+        self.ax.grid(True, lw=0.5)
 
         # 最新の株価
         self.latest_point, = self.ax.plot(
