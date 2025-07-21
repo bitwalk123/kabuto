@@ -67,7 +67,6 @@ class BeetleTrader(QMainWindow):
         # Matplotlib 用設定
         FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
         fm.fontManager.addfont(FONT_PATH)
-
         # FontPropertiesオブジェクト生成（名前の取得のため）
         font_prop = fm.FontProperties(fname=FONT_PATH)
         font_prop.get_name()
@@ -79,8 +78,8 @@ class BeetleTrader(QMainWindow):
         # ダークモードの設定
         plt.style.use("dark_background")
 
+        # Figure オブジェクト
         self.figure = Figure()
-
         # Figure オブジェクトの余白設定
         self.figure.subplots_adjust(
             left=0.075,
