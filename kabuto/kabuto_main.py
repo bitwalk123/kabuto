@@ -26,7 +26,7 @@ from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
 from widgets.layouts import VBoxLayout
-from kabuto.kabuto_toolbar import ToolBar
+from kabuto.kabuto_toolbar import KabutoToolBar
 
 if sys.platform == "win32":
     debug = False
@@ -147,7 +147,7 @@ class Kabuto(QMainWindow):
         self.setWindowTitle(title_window)
 
         # ツールバー
-        self.toolbar = toolbar = ToolBar(res)
+        self.toolbar = toolbar = KabutoToolBar(res)
         toolbar.aboutClicked.connect(self.on_about)
         toolbar.excelSelected.connect(self.on_create_review_thread)
         toolbar.playClicked.connect(self.on_review_play)

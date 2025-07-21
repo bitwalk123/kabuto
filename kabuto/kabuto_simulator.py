@@ -2,7 +2,7 @@ import pandas as pd
 
 from funcs.conv import min_max_scale
 from modules.position_mannager import PositionManager
-from modules.psar import RealtimePSAR
+from kabuto.kabuto_psar import RealtimePSAR
 from structs.posman import PositionType
 
 

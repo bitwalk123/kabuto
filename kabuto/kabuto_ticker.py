@@ -15,7 +15,7 @@ from PySide6.QtCore import (
     Slot,
 )
 
-from modules.psar import RealtimePSAR
+from kabuto.kabuto_psar import RealtimePSAR
 
 
 class TickerWorker(QObject):

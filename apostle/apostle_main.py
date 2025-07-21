@@ -6,7 +6,7 @@ import pandas as pd
 from funcs.common import get_date_str_from_collections, get_sources_for_collection
 from funcs.plot import plot_mpl_chart
 from funcs.tse import get_ticker_name_list
-from modules.simulator import TradeSimulator
+from kabuto.kabuto_simulator import TradeSimulator
 from structs.res import AppRes
 
 

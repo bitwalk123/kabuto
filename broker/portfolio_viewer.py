@@ -1,17 +1,12 @@
-import datetime
 import json
 
-import mplfinance as mpf
-import yfinance as yf
 from PySide6.QtCore import Qt
 from PySide6.QtNetwork import QTcpSocket
 from PySide6.QtWidgets import QMainWindow, QStatusBar
 
 from broker.dock import DockPortfolio
-from broker.statusbar import StatusBarBrokerClient
 from broker.technical import TechnicalDrawer
 from broker.toolbar import ToolBarBrokerClient
-from modules.psar_conventional import ParabolicSAR
 from structs.res import AppRes
 from widgets.chart import MplChart, ChartNavigation
 

@@ -3,7 +3,7 @@ import datetime
 import mplfinance as mpf
 import yfinance as yf
 
-from modules.psar_conventional import ParabolicSAR
+from kabuto.psar_conventional import ParabolicSAR
 from widgets.chart import MplChart
 
 
