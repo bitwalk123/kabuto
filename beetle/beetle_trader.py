@@ -105,7 +105,7 @@ class BeetleTrader(QMainWindow):
             [], [],
             marker='x',
             markersize=7,
-            color='#ff8'
+            color='#fc8'
         )
 
         # トレンドライン（株価）
@@ -119,7 +119,7 @@ class BeetleTrader(QMainWindow):
         self.trend_bull, = self.ax.plot(
             [], [],
             marker='o',
-            markersize=2,
+            markersize=1,
             linewidth=0,
             color='magenta'
         )
@@ -128,7 +128,7 @@ class BeetleTrader(QMainWindow):
         self.trend_bear, = self.ax.plot(
             [], [],
             marker='o',
-            markersize=2,
+            markersize=1,
             linewidth=0,
             color='cyan'
         )
