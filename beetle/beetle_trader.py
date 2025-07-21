@@ -210,7 +210,7 @@ class BeetleTrader(QMainWindow):
         # ---------------------------------------------------------------------
         # トレンド情報をドックに設定
         # ---------------------------------------------------------------------
-        self.dock.setTrend(ret.trend, ret.epupd)
+        self.dock.setTrend(ret)
 
     def setTimeAxisRange(self, ts_start, ts_end):
         """
