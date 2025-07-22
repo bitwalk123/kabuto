@@ -1,66 +1,10 @@
 # MarketSPEED 2 RSS 用いた信用取引テスト
-import logging
-import os
 import sys
 
-from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication, QMainWindow
+from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from structs.res import AppRes
-from widgets.containers import PanelTrading, Widget
-from widgets.layouts import VBoxLayout
-
-
-class Matisse(QMainWindow):
-    """
-    MarketSPEED 2 RSS 用いた信用取引テスト
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-        self.res = res = AppRes()
-
-        # 信用取引テスト用 Excel ファイル
-        self.excel_path = 'target_test.xlsm'
-
-        # GUI
-        icon = QIcon(os.path.join(res.dir_image, "matisse.png"))
-        self.setWindowIcon(icon)
-        self.setWindowTitle("信用取引テスト")
-
-        base = Widget()
-        self.setCentralWidget(base)
-        layout = VBoxLayout()
-        base.setLayout(layout)
-
-        panel = PanelTrading()
-        panel.clickedBuy.connect(self.on_buy)
-        panel.clickedRepay.connect(self.on_repay)
-        panel.clickedSell.connect(self.on_sell)
-        layout.addWidget(panel)
-
-    def on_buy(self):
-        """
-        建玉の買建
-        :return:
-        """
-        self.logger.info("「買建」ボタンがクリックされました。")
-
-    def on_repay(self):
-        """
-        建玉の返済
-        :return:
-        """
-        self.logger.info("「返済」ボタンがクリックされました。")
-
-    def on_sell(self):
-        """
-        建玉の売建
-        :return:
-        """
-        self.logger.info("「売建」ボタンがクリックされました。")
+from matisse.matisse_main import Matisse
 
 
 def main():
