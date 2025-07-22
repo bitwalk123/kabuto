@@ -23,10 +23,10 @@ class Matisse(Widget):
         self.res = res = AppRes()
 
         # 信用取引テスト用 Excel ファイル
-        self.excel_path = 'margin_transaction_test.xlsm'
+        self.excel_path = 'target_test.xlsm'
 
         # GUI
-        icon = QIcon(os.path.join(res.dir_image, "mattise.png"))
+        icon = QIcon(os.path.join(res.dir_image, "matisse.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("信用取引テスト")
 
