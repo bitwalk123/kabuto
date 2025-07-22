@@ -4,7 +4,7 @@ import os
 import sys
 
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QMainWindow
 
 from funcs.logs import setup_logging
 from structs.res import AppRes
@@ -12,7 +12,7 @@ from widgets.containers import PanelTrading, Widget
 from widgets.layouts import VBoxLayout
 
 
-class Matisse(Widget):
+class Matisse(QMainWindow):
     """
     MarketSPEED 2 RSS 用いた信用取引テスト
     """
@@ -30,8 +30,11 @@ class Matisse(Widget):
         self.setWindowIcon(icon)
         self.setWindowTitle("信用取引テスト")
 
+        base = Widget()
+        self.setCentralWidget(base)
         layout = VBoxLayout()
-        self.setLayout(layout)
+        base.setLayout(layout)
+
         panel = PanelTrading()
         panel.clickedBuy.connect(self.on_buy)
         panel.clickedRepay.connect(self.on_repay)
