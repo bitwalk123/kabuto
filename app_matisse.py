@@ -1,10 +1,13 @@
 # MarketSPEED 2 RSS 用いた信用取引テスト
 import logging
+import os
 import sys
 
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
+from structs.res import AppRes
 from widgets.containers import PanelTrading, Widget
 from widgets.layouts import VBoxLayout
 
@@ -17,11 +20,16 @@ class Matisse(Widget):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.res = res = AppRes()
 
         # 信用取引テスト用 Excel ファイル
         self.excel_path = 'margin_transaction_test.xlsm'
 
         # GUI
+        icon = QIcon(os.path.join(res.dir_image, "mattise.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle("信用取引テスト")
+
         layout = VBoxLayout()
         self.setLayout(layout)
         panel = PanelTrading()
