@@ -18,11 +18,13 @@ from PySide6.QtCore import QObject, QThread, Signal
 from structs.res import AppRes
 
 
-class RssConnectorWorker(QObject):
+class RssConnectWorker(QObject):
     # 銘柄名（リスト）の通知
     notifyTickerList = Signal(list, dict)
-    # 保存の終了を通知
-    saveCompleted = Signal(bool)
+
+    # ティックデータを通知
+    notifyCurrentPrice = Signal(dict)
+
     # スレッドの終了を通知
     threadFinished = Signal()
 
@@ -89,12 +91,6 @@ class RssConnectorWorker(QObject):
                 # 銘柄名
                 self.dict_name[ticker] = self.sheet[row, self.col_name].value
 
-                # 銘柄別に空のデータフレームを準備
-                self.dict_df[ticker] = pd.DataFrame({
-                    "Time": list(),
-                    "Price": list()
-                })
-
                 # 行番号のインクリメント
                 row += 1
 
@@ -104,10 +100,11 @@ class RssConnectorWorker(QObject):
         # --------------------------------------------------------------
 
     def readCurrentPrice(self):
+        dict_data = dict()
         for ticker in self.list_ticker:
             row_excel = self.dict_row[ticker]
-            df = self.dict_df[ticker]
-            row = len(df)
+            # df = self.dict_df[ticker]
+            # row = len(df)
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
                 ###############################################################
@@ -119,10 +116,12 @@ class RssConnectorWorker(QObject):
                     # Excelシートから株価データを取得
                     price = self.sheet[row_excel, self.col_price].value
                     if price > 0:
-                        # ここでもタイムスタンプを時刻に採用する
+                        """
+                        # ここではタイムスタンプを時刻に採用する
                         df.at[row, "Time"] = ts
                         df.at[row, "Price"] = price
-                        # print(ticker, ts, price)
+                        """
+                        dict_data[ticker] = [ts, price]
                     break
                 except com_error as e:
                     # ---------------------------------------------------------
@@ -144,36 +143,10 @@ class RssConnectorWorker(QObject):
                 #
                 ###############################################################
 
-    def saveDataFrame(self):
-        # 保存するファイル名
-        date_str = get_date_str_today()
-        name_excel = os.path.join(
-            self.res.dir_collection,
-            f"ticks_{date_str}.xlsx"
-        )
-        # 念のため、空のデータでないか確認して空でなければ保存
-        r = 0
-        for ticker in self.list_ticker:
-            df = self.dict_df[ticker]
-            r += len(df)
-        if r == 0:
-            # すべてのデータフレームの行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
-            flag = False
-        else:
-            # ティックデータの保存処理
-            try:
-                save_dataframe_to_excel(name_excel, self.dict_df)
-                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
-                flag = True
-            except ValueError as e:
-                self.logger.error(f"{__name__} error occurred!: {e}")
-                flag = False
-
-        # ----------------------------
-        # 🧿 保存の終了を通知
-        self.saveCompleted.emit(flag)
-        # ----------------------------
+        # --------------------------------------
+        # 🧿 現在時刻と株価を通知
+        self.notifyCurrentPrice.emit(dict_data)
+        # --------------------------------------
 
     def stopProcess(self):
         """
@@ -183,20 +156,6 @@ class RssConnectorWorker(QObject):
         self.logger.info("Worker: stopProcess called.")
 
         if self.wb:
-            """
-            try:
-                self.wb.close()  # ブックを閉じる
-                self.logger.info("Worker: Excel book closed.")
-            except Exception as e:
-                self.logger.error(f"Worker: Error closing book: {e}")
-            # ブックを閉じた後、その親アプリケーションも終了させる
-            if self.wb.app:
-                try:
-                    self.wb.app.quit()
-                    self.logger.info("Worker: Excel app quit.")
-                except Exception as e:
-                    self.logger.error(f"Worker: Error quitting app: {e}")
-            """
             self.wb = None  # オブジェクト参照をクリア
 
         # -------------------------------
@@ -205,10 +164,9 @@ class RssConnectorWorker(QObject):
         # -------------------------------
 
 
-class RssConnector(QThread):
+class RssConnect(QThread):
     requestWorkerInit = Signal()
     requestCurrentPrice = Signal()
-    requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
@@ -220,7 +178,7 @@ class RssConnector(QThread):
         self.res = res
 
         # excel_path = res.excel_collector
-        self.worker = worker = RssConnectorWorker(res, excel_path)
+        self.worker = worker = RssConnectWorker(res, excel_path)
         self.worker.moveToThread(self)  # ThreadStockCollectorWorkerをこのQThreadに移動
 
         # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
@@ -238,14 +196,10 @@ class RssConnector(QThread):
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
 
-        # データフレームを保存するメソッドへキューイング
-        self.requestSaveDataFrame.connect(worker.saveDataFrame)
-
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
 
         # スレッド終了関連
-        # worker.threadFinished.connect(self.on_thread_finished)
         worker.threadFinished.connect(self.quit)  # スレッド終了時
         self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
 
