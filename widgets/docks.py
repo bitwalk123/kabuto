@@ -16,7 +16,8 @@ class DockWidget(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
-        self.setTitleBarWidget(LabelRightMedium(title))
+        self.lab_title = LabelRightMedium(title)
+        self.setTitleBarWidget(self.lab_title)
 
         base = Widget()
         self.setWidget(base)
@@ -35,4 +36,5 @@ class DockWidget(QDockWidget):
         """
         return self.title
 
-
+    def setTitle(self, title: str):
+        self.lab_title.setText(title)
