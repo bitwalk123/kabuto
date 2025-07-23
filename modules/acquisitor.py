@@ -70,9 +70,6 @@ class AcquireWorker(QObject):
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
 
-        # Parabolic SAR の辞書
-        # self.dict_psar = dict()
-
     def getTransactionResult(self):
         """
         取引結果を取得
