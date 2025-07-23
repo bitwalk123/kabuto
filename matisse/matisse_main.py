@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from matisse.matisse_dock import DockMatisse
-from matisse.matisse_rss import RssConnector
+from matisse.matisse_rss import RssConnect
 from structs.res import AppRes
 
 
@@ -24,10 +24,9 @@ class Matisse(QMainWindow):
         # 信用取引テスト用 Excel ファイル
         excel_path = 'target_test.xlsm'
         # Excel RSS と接続するスレッド・インスタンス
-        self.rss_connector = rss_connector = RssConnector(res, excel_path)
+        self.rss_connector = rss_connector = RssConnect(res, excel_path)
         rss_connector.threadReady.connect(self.on_rss_connector_ready)
         rss_connector.worker.notifyTickerList.connect(self.on_ticker_list)
-        rss_connector.worker.saveCompleted.connect(self.on_save_completed)
         rss_connector.start()
 
         # GUI
@@ -70,12 +69,6 @@ class Matisse(QMainWindow):
 
     def on_rss_connector_ready(self):
         self.logger.info(f"StockCollector is ready.")
-
-    def on_save_completed(self, state: bool):
-        if state:
-            self.logger.info("データを正常に保存しました。")
-        else:
-            self.logger.info("データを正常に保存できませんでした。")
 
     def on_ticker_list(self, list_ticker: list, dict_name: dict):
         """
