@@ -1,9 +1,7 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDockWidget
 
-from widgets.containers import (
-    Widget,
-)
+from widgets.containers import Widget
 from widgets.labels import LabelRightMedium
 from widgets.layouts import VBoxLayout
 

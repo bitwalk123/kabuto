@@ -19,7 +19,7 @@ class Matisse(QMainWindow):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
-        self.ticker = ""
+        self.code = ""
 
         # 信用取引テスト用 Excel ファイル
         excel_path = 'target_test.xlsm'
@@ -27,6 +27,7 @@ class Matisse(QMainWindow):
         self.rss_connector = rss_connector = RssConnect(res, excel_path)
         rss_connector.threadReady.connect(self.on_rss_connector_ready)
         rss_connector.worker.notifyTickerList.connect(self.on_ticker_list)
+        rss_connector.worker.notifyExcelFuncResult.connect(self.on_excel_func_result)
         rss_connector.start()
 
         # GUI
@@ -34,7 +35,8 @@ class Matisse(QMainWindow):
         self.setWindowIcon(icon)
         self.setWindowTitle("信用取引テスト")
 
-        self.dock = dock = DockMatisse(res, self.ticker)
+        self.dock = dock = DockMatisse(res)
+        dock.clickedBuy.connect(self.on_request_buy)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def closeEvent(self, event: QCloseEvent):
@@ -50,7 +52,7 @@ class Matisse(QMainWindow):
         # ---------------------------------------------------------------------
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
+            self.logger.info(f"{__name__} タイマーを停止しました。")
         """
 
         # ---------------------------------------------------------------------
@@ -58,17 +60,23 @@ class Matisse(QMainWindow):
         # ---------------------------------------------------------------------
         if self.rss_connector.isRunning():
             self.rss_connector.requestStopProcess.emit()
-            self.logger.info("Stopping StockCollector...")
+            self.logger.info(f"{self.rss_connector.__class__}: stopping...")
             self.rss_connector.quit()  # スレッドのイベントループに終了を指示
             self.rss_connector.wait()  # スレッドが完全に終了するまで待機
-            self.logger.info("StockCollector safely terminated.")
+            self.logger.info(f"{self.rss_connector.__class__}: safely terminated.")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
+    def on_excel_func_result(self, result: bool):
+        print("売買・返却ボタンをクリックした結果 :", result)
+
+    def on_request_buy(self, code):
+        self.rss_connector.requestBuy.emit(code)
+
     def on_rss_connector_ready(self):
-        self.logger.info(f"StockCollector is ready.")
+        self.logger.info(f"Thread for RSS is ready!")
 
     def on_ticker_list(self, list_ticker: list, dict_name: dict):
         """
@@ -76,6 +84,6 @@ class Matisse(QMainWindow):
             print(ticker, dict_name[ticker])
         """
         # 現在のところ、ひとつのみに限定
-        self.ticker = list_ticker[0]
-        self.dock.setTitle(self.ticker)
-        print(self.ticker, dict_name[self.ticker])
+        self.code = list_ticker[0]
+        self.dock.setCode(self.code)
+        print(self.code, dict_name[self.code])

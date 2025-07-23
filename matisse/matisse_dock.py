@@ -1,14 +1,20 @@
 import logging
 
+from PySide6.QtCore import Signal
+
 from structs.res import AppRes
 from widgets.containers import PanelTrading
 from widgets.docks import DockWidget
 
 
 class DockMatisse(DockWidget):
-    def __init__(self, res: AppRes, ticker: str):
-        super().__init__(ticker)
+    clickedBuy = Signal(str)
+
+    def __init__(self, res: AppRes, code: str = ""):
+        super().__init__(code)
         self.logger = logging.getLogger(__name__)
+        self.res = res
+        self.code = code
 
         # 取引用パネル
         self.trading = trading = PanelTrading()
@@ -22,6 +28,7 @@ class DockMatisse(DockWidget):
         建玉の買建
         :return:
         """
+        self.clickedBuy.emit(self.code)
         self.logger.info("「買建」ボタンがクリックされました。")
 
     def on_repay(self):
@@ -37,3 +44,7 @@ class DockMatisse(DockWidget):
         :return:
         """
         self.logger.info("「売建」ボタンがクリックされました。")
+
+    def setCode(self, code: str):
+        self.setTitle(code)
+        self.code = code
