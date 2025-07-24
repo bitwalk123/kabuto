@@ -80,7 +80,6 @@ class RssConnectWorker(QObject):
         self.wb = wb = xw.Book(self.excel_path)
         name_sheet = "Cover"
         self.sheet = wb.sheets[name_sheet]
-
         self.exec_buy = wb.macro("ExecBuy")
 
         #
@@ -192,6 +191,14 @@ class RssConnectWorker(QObject):
         self.logger.info(f"{self.__class__}: stopProcess called.")
 
         if self.wb:
+            """
+            try:
+                #self.wb.app.quit()
+                self.wb.close()
+            except Exception as e:
+                self.logger.exception(f"{self.__class__} an unexpected error occurred: {e}")
+            """
+
             self.wb = None  # オブジェクト参照をクリア
 
         # ---------------------------------------------------------------------
