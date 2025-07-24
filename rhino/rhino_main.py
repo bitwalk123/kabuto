@@ -2,10 +2,15 @@ import logging
 import os
 import sys
 
+from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
+from rhino.rhino_funcs import get_intraday_timestamp
+from rhino.rhino_toolbar import RhinoToolBar
 from structs.res import AppRes
+from widgets.containers import Widget
+from widgets.layouts import VBoxLayout
 
 if sys.platform == "win32":
     debug = False
@@ -25,7 +30,7 @@ class Rhino(QMainWindow):
         self.res = res = AppRes()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
 
-        # コンソールから起動した際のオプション・チェック
+        # コンソールから起動した際のオプションをチェック
         if len(options) > 0:
             for option in options:
                 if option == "debug":
@@ -33,15 +38,10 @@ class Rhino(QMainWindow):
         # デバッグ・モードを保持
         res.debug = debug
 
-        # ウィンドウ・タイトル文字列
-        title_win = f"{self.__app_name__} - {self.__version__}"
-
         #######################################################################
-        # NORMAL / DBUG モード固有の設定
+        # NORMAL / DEBUG モード固有の設定
         if debug:
             self.logger.info(f"{__name__} executed as DEBUG mode!")
-            # ウィンドウ・タイトル（デバッグモード）文字列
-            title_win = f"{title_win} [debug mode]"
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
         else:
             self.logger.info(f"{__name__} executed as NORMAL mode!")
@@ -49,7 +49,29 @@ class Rhino(QMainWindow):
         #
         #######################################################################
 
+        # ザラ場の開始時間などのタイムスタンプ取得（本日分）
+        self.dict_ts = get_intraday_timestamp()
+
+        # ---------------------------------------------------------------------
+        #  UI
+        # ---------------------------------------------------------------------
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "rhino.png"))
         self.setWindowIcon(icon)
-        self.setWindowTitle(title_win)
+        self.setWindowTitle(f"{self.__app_name__} - {self.__version__}")
+
+        # ツールバー
+        self.toolbar = toolbar = RhinoToolBar(res)
+        self.addToolBar(toolbar)
+
+        # メインウィジェット
+        base = Widget()
+        self.setCentralWidget(base)
+        self.layout = layout = VBoxLayout()
+        base.setLayout(layout)
+
+        # ---------------------------------------------------------------------
+        # タイマー
+        # ---------------------------------------------------------------------
+        self.timer = timer = QTimer()
+        timer.setInterval(self.timer_interval)
