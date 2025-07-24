@@ -41,9 +41,11 @@ class Rhino(QMainWindow):
         #######################################################################
         # NORMAL / DEBUG モード固有の設定
         if debug:
+            # DEBUG モード
             self.logger.info(f"{__name__} executed as DEBUG mode!")
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
         else:
+            # NORMAL モード
             self.logger.info(f"{__name__} executed as NORMAL mode!")
             self.timer_interval = 1000  # タイマー間隔（ミリ秒）
         #
