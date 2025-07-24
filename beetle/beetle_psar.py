@@ -29,6 +29,7 @@ class RealtimePSAR:
 
         self.lam = 10 ** 7
 
+        self.overdrive = False
         self.factor_d = 20  # 許容される ys と PSAR の最大差異
 
         # PSARObject のインスタンス
@@ -106,11 +107,12 @@ class RealtimePSAR:
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             # 許容される ys と PSAR の最大差異チェック
-            if self.factor_d < abs(self.obj.psar - self.obj.ys):
-                if 0 < self.obj.trend:
-                    self.obj.psar = self.obj.ys - self.factor_d
-                elif self.obj.trend < 0:
-                    self.obj.psar = self.obj.ys + self.factor_d
+            if self.overdrive:
+                if self.factor_d < abs(self.obj.psar - self.obj.ys):
+                    if 0 < self.obj.trend:
+                        self.obj.psar = self.obj.ys - self.factor_d
+                    elif self.obj.trend < 0:
+                        self.obj.psar = self.obj.ys + self.factor_d
 
             self.obj.duration += 1
 
