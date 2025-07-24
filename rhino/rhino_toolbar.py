@@ -5,6 +5,8 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QToolBar, QFileDialog
 
 from structs.res import AppRes
+from widgets.containers import PadH
+from widgets.labels import Label, LCDTime
 
 
 class RhinoToolBar(QToolBar):
@@ -44,7 +46,6 @@ class RhinoToolBar(QToolBar):
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
-
         self.action_transaction = action_transaction = QAction(
             QIcon(os.path.join(res.dir_image, 'transaction.png')),
             "取引履歴",
@@ -53,6 +54,15 @@ class RhinoToolBar(QToolBar):
         action_transaction.setEnabled(False)
         action_transaction.triggered.connect(self.on_transaction)
         self.addAction(action_transaction)
+
+        hpad = PadH()
+        self.addWidget(hpad)
+
+        lab_time = Label("システム時刻 ")
+        self.addWidget(lab_time)
+
+        self.lcd_time = lcd_time = LCDTime()
+        self.addWidget(lcd_time)
 
     def on_play(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
