@@ -115,8 +115,8 @@ class LabelSmall(QLabel):
 class LCDInt(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(160)
-        self.setFixedHeight(24)
+        #self.setFixedWidth(140)
+        #self.setFixedHeight(22)
         self.setDigitCount(12)
         self.display('0')
 
@@ -124,8 +124,8 @@ class LCDInt(QLCDNumber):
 class LCDNumber(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(160)
-        self.setFixedHeight(24)
+        #self.setFixedWidth(140)
+        #self.setFixedHeight(22)
         self.setDigitCount(12)
         self.display('0.0')
 
