@@ -51,6 +51,7 @@ class LabelRight(QLabel):
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
+
 class LabelRightMedium(LabelRight):
     def __init__(self, *args):
         super().__init__(*args)
@@ -58,6 +59,7 @@ class LabelRightMedium(LabelRight):
         font.setStyleHint(QFont.StyleHint.Monospace)
         font.setPointSize(9)
         self.setFont(font)
+
 
 class LabelRightSmall(LabelRight):
     def __init__(self, *args):
@@ -115,8 +117,7 @@ class LabelSmall(QLabel):
 class LCDInt(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(160)
-        self.setFixedHeight(24)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(12)
         self.display('0')
 
@@ -124,8 +125,7 @@ class LCDInt(QLCDNumber):
 class LCDNumber(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(160)
-        self.setFixedHeight(24)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(12)
         self.display('0.0')
 
@@ -133,7 +133,7 @@ class LCDNumber(QLCDNumber):
 class LCDTime(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(100)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(8)
         self.display('00:00:00')
 
