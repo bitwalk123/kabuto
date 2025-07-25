@@ -17,13 +17,13 @@ class RhinoReviewWorker(QObject):
     """
     Excel 形式の過去データを読み込むスレッドワーカー
     """
-    # 銘柄名（リスト）の通知
+    # 銘柄名（リスト）通知シグナル
     notifyTickerN = Signal(list, dict, dict)
 
-    # ティックデータを通知
+    # ティックデータ通知シグナル
     notifyCurrentPrice = Signal(dict, dict, dict)
 
-    # 取引結果のデータフレームを通知
+    # 取引結果のデータフレーム通知シグナル
     notifyTransactionResult = Signal(pd.DataFrame)
 
     # スレッド終了シグナル（成否の論理値）
@@ -58,7 +58,7 @@ class RhinoReviewWorker(QObject):
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
             msg = "encountered error in reading Excel file:"
-            self.logger.critical(f"{msg} {e}")
+            self.logger.critical(f"{__name__}: {msg} {e}")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 スレッドの異常終了を通知
             self.threadFinished.emit(False)
@@ -67,12 +67,15 @@ class RhinoReviewWorker(QObject):
 
         # 取得した Excel のシート名を銘柄コード (ticker) として扱う
         self.list_ticker = list(self.dict_sheet.keys())
+
         # 銘柄コードから銘柄名を取得
         dict_name = get_ticker_name_list(self.list_ticker)
+
         # デバッグ・モードでは、現在のところは前日終値を 0 とする
         dict_lastclose = dict()
         for ticker in self.list_ticker:
             dict_lastclose[ticker] = 0
+
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
@@ -102,7 +105,7 @@ class RhinoReviewWorker(QObject):
                 continue
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 現在時刻と株価を通知
+        # 🧿 現在時刻と株価、含み損、総収益を通知
         self.notifyCurrentPrice.emit(
             dict_data, dict_profit, dict_total
         )
@@ -118,7 +121,7 @@ class RhinoReviewWorker(QObject):
 class RhinoReview(QThread):
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
-    # 現在価格取得リクエスト
+    # 現在価格取得リクエスト・シグナル
     requestCurrentPrice = Signal(float)
 
     # 売買シグナル
