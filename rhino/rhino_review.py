@@ -116,10 +116,12 @@ class RhinoReviewWorker(QObject):
 
 
 class RhinoReview(QThread):
-    requestReviewInit = Signal()
-    requestCurrentPriceReview = Signal(float)
+    # ワーカーの初期化シグナル
+    requestWorkerInit = Signal()
+    # 現在価格取得リクエスト
+    requestCurrentPrice = Signal(float)
 
-    # 売買
+    # 売買シグナル
     requestPositionOpen = Signal(str, float, float, PositionType, str)
     requestPositionClose = Signal(str, float, float, str)
     requestTransactionResult = Signal()
@@ -132,10 +134,10 @@ class RhinoReview(QThread):
 
         # ---------------------------------------------------------------------
         # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
-        self.started.connect(self.requestReviewInit.emit)
+        self.started.connect(self.requestWorkerInit.emit)
         # ---------------------------------------------------------------------
         # 初期化処理は指定された Excel ファイルの読み込み
-        self.requestReviewInit.connect(worker.loadExcel)
+        self.requestWorkerInit.connect(worker.loadExcel)
         # ---------------------------------------------------------------------
         # 売買ポジション処理用のメソッドへキューイング
         self.requestPositionOpen.connect(worker.posman.openPosition)
@@ -145,7 +147,7 @@ class RhinoReview(QThread):
         self.requestTransactionResult.connect(worker.getTransactionResult)
         # ---------------------------------------------------------------------
         # 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPriceReview.connect(worker.readCurrentPrice)
+        self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
         # スレッド終了関連
         worker.threadFinished.connect(self.quit)  # スレッド終了時

@@ -97,7 +97,7 @@ class Rhino(QMainWindow):
         toolbar.excelSelected.connect(self.on_create_review_thread)
         self.addToolBar(toolbar)
 
-        # メインウィジェット
+        # メイン・ウィジェット
         base = Widget()
         self.setCentralWidget(base)
         self.layout = layout = VBoxLayout()
@@ -184,6 +184,7 @@ class Rhino(QMainWindow):
         for ticker in list_ticker:
             # Trader インスタンスの生成
             trader = RhinoTrader(self.res, ticker)
+
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if debug:
                 # レビュー用の売買処理
