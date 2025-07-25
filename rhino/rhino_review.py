@@ -133,6 +133,7 @@ class RhinoReviewWorker(QObject):
 class RhinoReview(QThread):
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
+
     # 現在価格取得リクエスト・シグナル
     requestCurrentPrice = Signal(float)
 

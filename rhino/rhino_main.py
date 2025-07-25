@@ -338,6 +338,9 @@ class Rhino(QMainWindow):
     # デバッグ用メソッド
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_create_review_thread(self, excel_path: str):
+        # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
+        self.dict_ts = get_intraday_timestamp(excel_path)
+        # デバッグ用インスタンス (self.review) の作成
         self.review = RhinoReview(excel_path)
         # 初期化後の銘柄情報を通知
         self.review.worker.notifyTickerN.connect(self.on_create_trader_review)
