@@ -119,6 +119,7 @@ class LCDInt(QLCDNumber):
         super().__init__(*args)
         # self.setFixedWidth(160)
         # self.setFixedHeight(24)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(12)
         self.display('0')
 
@@ -128,6 +129,7 @@ class LCDNumber(QLCDNumber):
         super().__init__(*args)
         # self.setFixedWidth(160)
         # self.setFixedHeight(24)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(12)
         self.display('0.0')
 
@@ -136,6 +138,7 @@ class LCDTime(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
         # self.setFixedWidth(100)
+        self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(8)
         self.display('00:00:00')
 
