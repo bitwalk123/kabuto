@@ -96,3 +96,11 @@ class RhinoToolBar(QToolBar):
         # 🧿 「取引履歴」ボタンがクリックされたことを通知
         self.transactionClicked.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def set_transaction(self):
+        """
+        取引履歴の表示ボタンを Enable にする
+        :param df:
+        :return:
+        """
+        self.action_transaction.setEnabled(True)
