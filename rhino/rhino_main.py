@@ -1,10 +1,11 @@
 import logging
 import os
 import sys
+import time
 
 import pandas as pd
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.uis import clear_boxlayout
@@ -50,11 +51,11 @@ class Rhino(QMainWindow):
         # NORMAL / DEBUG モード固有の設定
         if debug:
             # DEBUG モード
-            self.logger.info(f"{__name__} executed as DEBUG mode!")
+            self.logger.info(f"{__name__}: executed as DEBUG mode!")
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
         else:
             # NORMAL モード
-            self.logger.info(f"{__name__} executed as NORMAL mode!")
+            self.logger.info(f"{__name__}: executed as NORMAL mode!")
             self.timer_interval = 1000  # タイマー間隔（ミリ秒）
         #
         #######################################################################
@@ -107,6 +108,61 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
+
+    def closeEvent(self, event: QCloseEvent):
+        """
+        アプリ終了イベント
+        :param event:
+        :return:
+        """
+        # ---------------------------------------------------------------------
+        # タイマーの停止
+        # ---------------------------------------------------------------------
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info(f"{__name__}: timer stopped.")
+
+        # ---------------------------------------------------------------------
+        # self.acquire スレッドの削除
+        # ---------------------------------------------------------------------
+        """
+        if self.acquire is not None:
+            try:
+                if self.acquire.isRunning():
+                    self.requestStopProcess.emit()
+                    time.sleep(1)
+                    self.acquire.quit()
+                    self.acquire.deleteLater()
+                    self.logger.info(f"{__name__}: deleted acquire thread.")
+            except RuntimeError as e:
+                self.logger.info(f"{__name__}: error at termination: {e}")
+        """
+
+        # ---------------------------------------------------------------------
+        # self.review スレッドの削除
+        # ---------------------------------------------------------------------
+        if self.review is not None:
+            try:
+                if self.review.isRunning():
+                    self.review.quit()
+                    self.review.deleteLater()
+                    self.logger.info(f"{__name__}: deleted review thread.")
+            except RuntimeError as e:
+                self.logger.info(f"{__name__}: error at termination: {e}")
+
+        # ---------------------------------------------------------------------
+        # Thread Ticker の削除
+        # ---------------------------------------------------------------------
+        for ticker, thread in self.dict_thread_ticker.items():
+            if thread.isRunning():
+                self.logger.info(f"{__name__}: stopping ThreadTicker for {ticker}...")
+                thread.quit()  # スレッドのイベントループに終了を指示
+                thread.wait()  # スレッドが完全に終了するまで待機
+                self.logger.info(f"{__name__}: ThreadTicker for {ticker} safely terminated.")
+
+        # ---------------------------------------------------------------------
+        self.logger.info(f"{__name__} stopped and closed.")
+        event.accept()
 
     def create_trader(self, list_ticker, dict_name, dict_lastclose):
         """
@@ -170,16 +226,16 @@ class Rhino(QMainWindow):
         :return:
         """
         if result:
-            self.logger.info("スレッドが正常終了しました。")
+            self.logger.info(f"{__name__}: thread stopped normally.")
         else:
-            self.logger.error("スレッドが異常終了しました。")
+            self.logger.error(f"{__name__}: thread stopped abnormally.")
 
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
+            self.logger.info(f"{__name__}: timer stopped")
 
     def on_thread_ticker_ready(self, ticker: str):
-        self.logger.info(f"Thread for {ticker} is ready.")
+        self.logger.info(f"{__name__}: thread for {ticker} is ready.")
 
     def on_transaction_result(self, df: pd.DataFrame):
         """
@@ -268,6 +324,9 @@ class Rhino(QMainWindow):
         # スレッド終了関連
         self.review.worker.threadFinished.connect(self.on_thread_finished)
 
+        # スレッドを開始
+        self.review.start()
+
     def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（デバッグ用）
@@ -281,4 +340,4 @@ class Rhino(QMainWindow):
 
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         # self.data_ready = True
-        self.logger.info("レビューの準備完了です。")
+        self.logger.info(f"{__name__}: ready to review!")

@@ -1,13 +1,16 @@
 import logging
 
 import pandas as pd
-from PySide6.QtCore import QThread, QObject, Signal
+from PySide6.QtCore import (
+    QObject,
+    Signal,
+    QThread,
+)
 
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
 from modules.position_mannager import PositionManager
 from structs.posman import PositionType
-from structs.res import AppRes
 
 
 class RhinoReviewWorker(QObject):
@@ -54,12 +57,12 @@ class RhinoReviewWorker(QObject):
         try:
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
-            msg = "Excelファイルの読み込み中にエラーが発生しました:"
+            msg = "encountered error in reading Excel file:"
             self.logger.critical(f"{msg} {e}")
-            # ------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 スレッドの異常終了を通知
             self.threadFinished.emit(False)
-            # ------------------------------
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             return
 
         # 取得した Excel のシート名を銘柄コード (ticker) として扱う
@@ -70,12 +73,12 @@ class RhinoReviewWorker(QObject):
         dict_lastclose = dict()
         for ticker in self.list_ticker:
             dict_lastclose[ticker] = 0
-        # -----------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
             self.list_ticker, dict_name, dict_lastclose
         )
-        # -----------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_ticker)
@@ -96,24 +99,20 @@ class RhinoReviewWorker(QObject):
                 dict_profit[ticker] = self.posman.getProfit(ticker, price)
                 dict_total[ticker] = self.posman.getTotal(ticker)
             else:
-                # 存在しなければ、指定時刻と株価 = 0 を設定
-                # price = 0
-                # dict_data[ticker] = [ts, price]
-                # 存在しなければ処理しない
                 continue
 
-        # -------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価を通知
         self.notifyCurrentPrice.emit(
             dict_data, dict_profit, dict_total
         )
-        # -------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def stopProcess(self):
-        # -----------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 スレッドの正常終了を通知
         self.threadFinished.emit(True)
-        # -----------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
 class RhinoReview(QThread):
@@ -131,19 +130,23 @@ class RhinoReview(QThread):
         self.worker = worker = RhinoReviewWorker(excel_path)
         worker.moveToThread(self)
 
-        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        # ---------------------------------------------------------------------
+        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.started.connect(self.requestReviewInit.emit)
-
-        # 売買ポジション
+        # ---------------------------------------------------------------------
+        # 初期化処理は指定された Excel ファイルの読み込み
+        self.requestReviewInit.connect(worker.loadExcel)
+        # ---------------------------------------------------------------------
+        # 売買ポジション処理用のメソッドへキューイング
         self.requestPositionOpen.connect(worker.posman.openPosition)
         self.requestPositionClose.connect(worker.posman.closePosition)
-
+        # ---------------------------------------------------------------------
         # 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
-
+        # ---------------------------------------------------------------------
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPriceReview.connect(worker.readCurrentPrice)
-
+        # ---------------------------------------------------------------------
         # スレッド終了関連
         worker.threadFinished.connect(self.quit)  # スレッド終了時
         self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
