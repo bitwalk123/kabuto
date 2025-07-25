@@ -88,7 +88,7 @@ class RhinoReviewWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_ticker)
 
-    @Slot(str)
+    @Slot(float)
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
         dict_profit = dict()
