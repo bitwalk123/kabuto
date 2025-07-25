@@ -4,7 +4,7 @@ import pandas as pd
 from PySide6.QtCore import (
     QObject,
     Signal,
-    QThread,
+    QThread, Slot,
 )
 
 from funcs.ios import load_excel
@@ -41,6 +41,7 @@ class RhinoReviewWorker(QObject):
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
 
+    @Slot()
     def getTransactionResult(self):
         """
         取引結果を取得
@@ -49,6 +50,7 @@ class RhinoReviewWorker(QObject):
         df = self.posman.getTransactionResult()
         self.notifyTransactionResult.emit(df)
 
+    @Slot()
     def loadExcel(self):
         """
         ティックデータを保存した Excel ファイルの読み込み
@@ -86,6 +88,7 @@ class RhinoReviewWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_ticker)
 
+    @Slot(str)
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
         dict_profit = dict()
@@ -111,6 +114,7 @@ class RhinoReviewWorker(QObject):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @Slot()
     def stopProcess(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 スレッドの正常終了を通知
