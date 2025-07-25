@@ -86,7 +86,10 @@ class Rhino(QMainWindow):
         # ウィンドウアイコンとタイトルを設定
         icon = QIcon(os.path.join(res.dir_image, "rhino.png"))
         self.setWindowIcon(icon)
-        self.setWindowTitle(f"{self.__app_name__} - {self.__version__}")
+        title_win = f"{self.__app_name__} - {self.__version__}"
+        if debug:
+            title_win = f"{title_win} [debug mode]"
+        self.setWindowTitle(title_win)
 
         # ツールバー
         self.toolbar = toolbar = RhinoToolBar(res)
@@ -127,9 +130,13 @@ class Rhino(QMainWindow):
             trader = RhinoTrader(self.res, ticker)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if debug:
+                # レビュー用の売買処理
                 trader.dock.clickedBuy.connect(self.on_buy_review)
                 trader.dock.clickedRepay.connect(self.on_repay_review)
                 trader.dock.clickedSell.connect(self.on_sell_review)
+            else:
+                # リアルタイム用の売買処理
+                pass
 
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
