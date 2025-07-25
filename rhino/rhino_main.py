@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from funcs.uis import clear_boxlayout
 from modules.trans import WinTransaction
+from rhino.rhino_dock import DockRhinoTrader
 from rhino.rhino_funcs import get_intraday_timestamp
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_review import RhinoReview
@@ -69,6 +70,9 @@ class Rhino(QMainWindow):
         # ザラ場の開始時間などのタイムスタンプ取得（本日分）
         self.dict_ts = get_intraday_timestamp()
 
+        # 取引が終了したかどうかのフラグ
+        self.finished_trading = False
+
         # trader インスタンスを保持する辞書
         self.dict_trader = dict()
 
@@ -95,6 +99,8 @@ class Rhino(QMainWindow):
         # ツールバー
         self.toolbar = toolbar = RhinoToolBar(res)
         toolbar.excelSelected.connect(self.on_create_review_thread)
+        toolbar.playClicked.connect(self.on_review_play)
+        toolbar.stopClicked.connect(self.on_review_stop)
         self.addToolBar(toolbar)
 
         # メイン・ウィジェット
@@ -108,6 +114,17 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
+
+        if debug:
+            # デバッグモードではファイルを読み込んでからスレッドを起動
+            timer.timeout.connect(self.on_request_data_review)
+        else:
+            pass
+            """
+            # リアルタイムモードでは、直ちにスレッドを起動
+            timer.timeout.connect(self.on_request_data)
+            self.on_create_acquire_thread("targets.xlsx")
+            """
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -219,6 +236,12 @@ class Rhino(QMainWindow):
             thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
             thread_ticker.start()
             self.dict_thread_ticker[ticker] = thread_ticker
+
+    def force_closing_position(self):
+        for ticker in self.dict_trader.keys():
+            trader: RhinoTrader = self.dict_trader[ticker]
+            dock: DockRhinoTrader = trader.dock
+            dock.forceStopAutoPilot()
 
     def on_thread_finished(self, result: bool):
         """
@@ -342,3 +365,53 @@ class Rhino(QMainWindow):
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         # self.data_ready = True
         self.logger.info(f"{__name__}: ready to review!")
+
+    def on_request_data_review(self):
+        """
+        タイマー処理（デバッグ）
+        """
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 現在価格の取得要求をワーカースレッドに通知
+        self.review.requestCurrentPrice.emit(self.ts_system)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        # システム時間のインクリメント（１秒）
+        self.ts_system += 1
+
+        # 取引時間を過ぎたかをチェック
+        if self.dict_ts["end_2h"] < self.ts_system <= self.dict_ts["ca"]:
+            if not self.finished_trading:
+                # ポジションがあればクローズする
+                self.force_closing_position()
+                # このフラグにより、何回もポジションがあるかどうかの確認を繰り返さない。
+                self.finished_trading = True
+        elif self.dict_ts["end"] < self.ts_system:
+            self.timer.stop()
+            self.logger.info(f"Timer stopped!")
+            # 取引結果を取得
+            self.review.requestTransactionResult.emit()
+
+        # ツールバーの時刻を更新（現在時刻を表示するだけ）
+        self.toolbar.updateTime(self.ts_system)
+
+    def on_review_play(self):
+        """
+        読み込んだデータ・レビュー開始（デバッグ用）
+        :return:
+        """
+        if self.review.isDataReady():
+            self.ts_system = self.dict_ts["start"]
+            # タイマー開始
+            self.timer.start()
+            self.logger.info("タイマーを開始しました。")
+
+    def on_review_stop(self):
+        """
+        読み込んだデータ・レビュー停止（デバッグ用）
+        :return:
+        """
+        if self.timer.isActive():
+            self.timer.stop()
+            self.logger.info(f"{__name__}: timer stopped!")
+            # 取引結果を取得
+            self.review.requestTransactionResult.emit()

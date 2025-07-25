@@ -20,6 +20,9 @@ class RhinoReviewWorker(QObject):
     # 銘柄名（リスト）通知シグナル
     notifyTickerN = Signal(list, dict, dict)
 
+    # データ読み込み済み
+    notifyDataReady = Signal(bool)
+
     # ティックデータ通知シグナル
     notifyCurrentPrice = Signal(dict, dict, dict)
 
@@ -88,6 +91,11 @@ class RhinoReviewWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_ticker)
 
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 データ読み込み済み（現時点では常に True を通知）
+        self.notifyDataReady.emit(True)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     @Slot(float)
     def readCurrentPrice(self, ts: float):
         dict_data = dict()
@@ -136,7 +144,14 @@ class RhinoReview(QThread):
     def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+
+        # データ (Excel) 読み込み済みかどうかのフラグ
+        self.flag_data_ready = False
+
+        # ワーカースレッド・インスタンスの生成およびスレッドへの移動
         self.worker = worker = RhinoReviewWorker(excel_path)
+        worker.notifyDataReady.connect(self.set_data_ready_status)
+        worker.threadFinished.connect(self.quit)  # スレッド終了時
         worker.moveToThread(self)
 
         # ---------------------------------------------------------------------
@@ -157,8 +172,10 @@ class RhinoReview(QThread):
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
         # スレッド終了関連
-        worker.threadFinished.connect(self.quit)  # スレッド終了時
         self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
+
+    def isDataReady(self) -> bool:
+        return self.flag_data_ready
 
     def run(self):
         """
@@ -171,4 +188,10 @@ class RhinoReview(QThread):
         self.exec()  # イベントループを開始
         self.logger.info(
             f"{__name__}: run() method finished. Event loop exited."
+        )
+
+    def set_data_ready_status(self, state: bool):
+        self.flag_data_ready = state
+        self.logger.info(
+            f"{__name__}: now, data ready flag becomes {state}!"
         )
