@@ -1,3 +1,4 @@
+import datetime
 import os
 
 from PySide6.QtCore import Signal
@@ -104,3 +105,7 @@ class RhinoToolBar(QToolBar):
         :return:
         """
         self.action_transaction.setEnabled(True)
+
+    def updateTime(self, ts: float):
+        dt = datetime.datetime.fromtimestamp(ts)
+        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
