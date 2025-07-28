@@ -213,7 +213,9 @@ class Rhino(QMainWindow):
                 trader.dock.clickedSell.connect(self.on_sell_review)
             else:
                 # リアルタイム用の売買処理
-                pass
+                trader.dock.clickedBuy.connect(self.on_buy)
+                trader.dock.clickedRepay.connect(self.on_repay)
+                trader.dock.clickedSell.connect(self.on_sell)
 
             # Trader 辞書に保持
             self.dict_trader[ticker] = trader
@@ -258,18 +260,23 @@ class Rhino(QMainWindow):
         return dict_df
 
     def on_create_acquire_thread(self, excel_path: str):
-        self.acquire = acquire_thread = RhinoAcquire(excel_path)
+        """
+        リアルタイム用ティックデータ取得スレッドの生成
+        :param excel_path:
+        :return:
+        """
+        # リアルタイム用データ取得インスタンス (self.acquire) の生成
+        self.acquire = acquire = RhinoAcquire(excel_path)
         # 初期化後の銘柄情報を通知
-        self.acquire.worker.notifyTickerN.connect(self.on_create_trader)
+        acquire.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
-        self.acquire.worker.notifyCurrentPrice.connect(self.on_update_data)
+        acquire.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
-        self.acquire.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        acquire.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
-        self.acquire.worker.threadFinished.connect(self.on_thread_finished)
-
+        acquire.worker.threadFinished.connect(self.on_thread_finished)
         # スレッドを開始
-        self.acquire.start()
+        acquire.start()
 
     def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
@@ -385,28 +392,28 @@ class Rhino(QMainWindow):
         trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理（レビュー用）
+    # 取引ボタンがクリックされた時の処理（Acquire 用）
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy_review(self, ticker: str, price: float, note: str):
+    def on_buy(self, ticker: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建で建玉取得をワーカースレッドに通知
-        self.review.requestPositionOpen.emit(
+        # 🧿 買建で建玉取得リクエストのシグナル
+        self.acquire.requestPositionOpen.emit(
             ticker, self.ts_system, price, PositionType.BUY, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell_review(self, ticker: str, price: float, note: str):
+    def on_sell(self, ticker: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建で建玉取得をワーカースレッドに通知
-        self.review.requestPositionOpen.emit(
+        # 🧿 売建で建玉取得リクエストのシグナル
+        self.acquire.requestPositionOpen.emit(
             ticker, self.ts_system, price, PositionType.SELL, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay_review(self, ticker: str, price: float, note: str):
+    def on_repay(self, ticker: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 建玉返済をワーカースレッドに通知
-        self.review.requestPositionClose.emit(
+        # 🧿 建玉返済リクエストのシグナル
+        self.acquire.requestPositionClose.emit(
             ticker, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -422,7 +429,7 @@ class Rhino(QMainWindow):
         # リアルタイムのタイマー終了後に呼び出される通常保存ファイル名
         name_excel = os.path.join(
             self.res.dir_excel,
-            f"tick_{self.dict_ts["date_str"]}.xlsx"
+            f"tick_{self.dict_ts["date_str"]}_rhino.xlsx"
         )
         # Trader インスタンスからティックデータのデータフレームを辞書で取得
         dict_df = self.get_current_tick_data()
@@ -434,7 +441,7 @@ class Rhino(QMainWindow):
             r += len(df)
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            self.logger.info(f"{__name__} cancel saving {name_excel}, since no data exists.")
             return False
         else:
             # ティックデータの保存処理
@@ -450,33 +457,39 @@ class Rhino(QMainWindow):
         """
         try:
             save_dataframe_to_excel(name_excel, dict_df)
-            self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+            self.logger.info(f"{__name__} tick date is saved to {name_excel}.")
         except ValueError as e:
             self.logger.error(f"{__name__} error occurred!: {e}")
 
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # デバッグ用メソッド
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    ###########################################################################
+    #
+    # デバッグ（レビュー）用メソッド
+    #
+    ###########################################################################
     def on_create_review_thread(self, excel_path: str):
+        """
+        レビュー用ティックデータ取得スレッドの生成
+        :param excel_path:
+        :return:
+        """
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
-        # デバッグ用インスタンス (self.review) の作成
-        self.review = RhinoReview(excel_path)
+        # デバッグ/レビュー用データ取得インスタンス (self.review) の生成
+        self.review = review = RhinoReview(excel_path)
         # 初期化後の銘柄情報を通知
-        self.review.worker.notifyTickerN.connect(self.on_create_trader_review)
+        review.worker.notifyTickerN.connect(self.on_create_trader_review)
         # タイマーで現在時刻と株価を通知
-        self.review.worker.notifyCurrentPrice.connect(self.on_update_data)
+        review.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
-        self.review.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        review.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
-        self.review.worker.threadFinished.connect(self.on_thread_finished)
-
+        review.worker.threadFinished.connect(self.on_thread_finished)
         # スレッドを開始
-        self.review.start()
+        review.start()
 
     def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
         """
-        Trader インスタンスの生成（デバッグ用）
+        Trader インスタンスの生成（デバッグ/レビュー用）
         :param list_ticker:
         :param dict_name:
         :param dict_lastclose:
@@ -491,7 +504,7 @@ class Rhino(QMainWindow):
 
     def on_request_data_review(self):
         """
-        タイマー処理（デバッグ）
+        タイマー処理（デバッグ/レビュー用）
         """
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在価格の取得要求をワーカースレッドに通知
@@ -519,7 +532,7 @@ class Rhino(QMainWindow):
 
     def on_review_play(self):
         """
-        読み込んだデータ・レビュー開始（デバッグ用）
+        読み込んだデータ・レビュー開始（デバッグ/レビュー用）
         :return:
         """
         if self.review.isDataReady():
@@ -530,7 +543,7 @@ class Rhino(QMainWindow):
 
     def on_review_stop(self):
         """
-        読み込んだデータ・レビュー停止（デバッグ用）
+        読み込んだデータ・レビュー停止（デバッグ/レビュー用）
         :return:
         """
         if self.timer.isActive():
@@ -538,3 +551,30 @@ class Rhino(QMainWindow):
             self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
             self.review.requestTransactionResult.emit()
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理（Review 用）
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def on_buy_review(self, ticker: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 買建で建玉取得リクエストのシグナル
+        self.review.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.BUY, note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_sell_review(self, ticker: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 売建で建玉取得リクエストのシグナル
+        self.review.requestPositionOpen.emit(
+            ticker, self.ts_system, price, PositionType.SELL, note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_repay_review(self, ticker: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 建玉返済リクエストのシグナル
+        self.review.requestPositionClose.emit(
+            ticker, self.ts_system, price, note
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
