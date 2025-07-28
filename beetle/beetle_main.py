@@ -16,9 +16,9 @@ from PySide6.QtWidgets import QMainWindow, QFileDialog
 from beetle.beetle_psar import PSARObject
 from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
-from modules.acquisitor import AcquireWorker
+from beetle.beetle_acquisitor import AcquireWorker
 from beetle.beetle_dialog import DlgAboutBeetle
-from modules.reviewer import ReviewWorker
+from beetle.beetle_reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
 from beetle.beetle_ticker import ThreadTicker
 from beetle.beetle_toolbar import BeetleToolBar

@@ -15,8 +15,8 @@ from PySide6.QtWidgets import QMainWindow, QFileDialog
 
 from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
-from modules.acquisitor import AcquireWorker
-from modules.reviewer import ReviewWorker
+from beetle.beetle_acquisitor import AcquireWorker
+from beetle.beetle_reviewer import ReviewWorker
 from modules.spottrade import SpotTrade
 from kabuto.kabuto_ticker import ThreadTicker
 from kabuto.kabuto_trader import Trader
