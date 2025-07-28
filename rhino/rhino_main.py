@@ -63,7 +63,7 @@ class Rhino(QMainWindow):
         #
         #######################################################################
 
-        # スレッド用インスタンス
+        # 株価取得スレッド用インスタンス
         self.acquire: RhinoAcquire | None = None
         self.review: RhinoReview | None = None
 
@@ -255,7 +255,7 @@ class Rhino(QMainWindow):
     def on_create_acquire_thread(self, excel_path: str):
         self.acquire = acquire_thread = RhinoAcquire(excel_path)
         # 初期化後の銘柄情報を通知
-        self.acquire.worker.notifyTickerN.connect(self.on_create_trader_review)
+        self.acquire.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
         self.acquire.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
@@ -265,6 +265,21 @@ class Rhino(QMainWindow):
 
         # スレッドを開始
         self.acquire.start()
+
+    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+        """
+        Trader インスタンスの生成（リアルタイム）
+        :param list_ticker:
+        :param dict_name:
+        :param dict_lastclose:
+        :return:
+        """
+        # 銘柄数分の Trader インスタンスの生成
+        self.create_trader(list_ticker, dict_name, dict_lastclose)
+
+        # リアルタイムの場合はここでタイマーを開始
+        self.timer.start()
+        self.logger.info(f"{__name__}: timer started!")
 
     def on_request_data(self):
         """
@@ -289,7 +304,7 @@ class Rhino(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["ca"] < self.ts_system:
             self.timer.stop()
-            self.logger.info("タイマーを停止しました。")
+            self.logger.info(f"{__name__}: timer stopped!")
             # ティックデータの保存
             self.save_regular_tick_data()
             # 取引結果を取得
@@ -490,7 +505,7 @@ class Rhino(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["end"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"Timer stopped!")
+            self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
             self.review.requestTransactionResult.emit()
 
@@ -506,7 +521,7 @@ class Rhino(QMainWindow):
             self.ts_system = self.dict_ts["start"]
             # タイマー開始
             self.timer.start()
-            self.logger.info("タイマーを開始しました。")
+            self.logger.info(f"{__name__}: timer started!")
 
     def on_review_stop(self):
         """
