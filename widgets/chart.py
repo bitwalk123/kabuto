@@ -75,6 +75,10 @@ class ChartNavigation(NavigationToolbar):
 
 
 class TrendChart(FigureCanvas):
+    """
+    リアルタイム用トレンドチャート
+    """
+
     def __init__(self, res: AppRes):
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
@@ -97,3 +101,14 @@ class TrendChart(FigureCanvas):
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)
+
+    def reDraw(self):
+        # データ範囲を再計算
+        self.ax.relim()
+        # y軸のみオートスケール
+        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
+        # 再描画
+        self.draw()
+
+    def setTitle(self, title: str):
+        self.ax.set_title(title)

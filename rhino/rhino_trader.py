@@ -2,13 +2,6 @@ import logging
 
 import numpy as np
 import pandas as pd
-import matplotlib.font_manager as fm
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import (
-    FigureCanvasQTAgg as FigureCanvas
-)
-from matplotlib import dates as mdates
-from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
@@ -71,43 +64,11 @@ class RhinoTrader(QMainWindow):
         self.dock = dock = DockRhinoTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-        """
-        # Matplotlib 用設定
-        FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
-        fm.fontManager.addfont(FONT_PATH)
-        # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=FONT_PATH)
-        font_prop.get_name()
-        # フォント設定
-        plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 12
-        # ダークモードの設定
-        plt.style.use("dark_background")
-
-        # Figure オブジェクト
-        self.figure = Figure()
-        # Figure オブジェクトの余白設定
-        self.figure.subplots_adjust(
-            left=0.075,
-            right=0.99,
-            top=0.9,
-            bottom=0.08,
-        )
-        """
-
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        #self.chart = chart = FigureCanvas(self.figure)
         self.chart = chart = TrendChart(res)
         self.setCentralWidget(chart)
-
-        """
-        # 描画用インスタンス (ax）
-        self.ax = self.figure.add_subplot(111)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-        self.ax.grid(True, lw=0.5)
-        """
 
         # 最新の株価
         self.latest_point, = self.chart.ax.plot(
@@ -209,12 +170,8 @@ class RhinoTrader(QMainWindow):
             # ret.trend == 0 の時
             pass
 
-        # データ範囲を再計算
-        self.chart.ax.relim()
-        # y軸のみオートスケール
-        self.chart.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
         # 再描画
-        self.chart.draw()
+        self.chart.reDraw()
 
         # ---------------------------------------------------------------------
         # トレンド情報をドックに設定
@@ -241,5 +198,4 @@ class RhinoTrader(QMainWindow):
         :param title:
         :return:
         """
-        # self.chart.setTitle(title)
-        self.chart.ax.set_title(title)
+        self.chart.setTitle(title)
