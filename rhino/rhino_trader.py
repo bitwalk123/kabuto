@@ -15,6 +15,7 @@ from PySide6.QtWidgets import QMainWindow
 from beetle.beetle_psar import PSARObject
 from rhino.rhino_dock import DockRhinoTrader
 from structs.res import AppRes
+from widgets.chart import TrendChart
 
 
 class RhinoTrader(QMainWindow):
@@ -57,26 +58,29 @@ class RhinoTrader(QMainWindow):
         #
         #######################################################################
 
-        #self.setFixedSize(1200, 300)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        #  UI
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # ウィンドウのサイズ制約
         self.setMinimumWidth(1200)
         self.setFixedHeight(300)
+
         # ---------------------------------------------------------------------
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockRhinoTrader(res, ticker)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
+        """
         # Matplotlib 用設定
         FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
         fm.fontManager.addfont(FONT_PATH)
         # FontPropertiesオブジェクト生成（名前の取得のため）
         font_prop = fm.FontProperties(fname=FONT_PATH)
         font_prop.get_name()
-
         # フォント設定
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 12
-
         # ダークモードの設定
         plt.style.use("dark_background")
 
@@ -89,20 +93,24 @@ class RhinoTrader(QMainWindow):
             top=0.9,
             bottom=0.08,
         )
+        """
 
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        self.chart = chart = FigureCanvas(self.figure)
+        #self.chart = chart = FigureCanvas(self.figure)
+        self.chart = chart = TrendChart(res)
         self.setCentralWidget(chart)
 
+        """
         # 描画用インスタンス (ax）
         self.ax = self.figure.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)
+        """
 
         # 最新の株価
-        self.latest_point, = self.ax.plot(
+        self.latest_point, = self.chart.ax.plot(
             [], [],
             marker='x',
             markersize=7,
@@ -110,14 +118,14 @@ class RhinoTrader(QMainWindow):
         )
 
         # トレンドライン（株価）
-        self.trend_line, = self.ax.plot(
+        self.trend_line, = self.chart.ax.plot(
             [], [],
             color='lightgray',
             linewidth=1
         )
 
         # bull（Parabolic SAR 上昇トレンド）
-        self.trend_bull, = self.ax.plot(
+        self.trend_bull, = self.chart.ax.plot(
             [], [],
             marker='o',
             markersize=1,
@@ -126,7 +134,7 @@ class RhinoTrader(QMainWindow):
         )
 
         # bear（Parabolic SAR 下降トレンド）
-        self.trend_bear, = self.ax.plot(
+        self.trend_bear, = self.chart.ax.plot(
             [], [],
             marker='o',
             markersize=1,
@@ -151,7 +159,7 @@ class RhinoTrader(QMainWindow):
         :param price_close:
         :return:
         """
-        self.ax.axhline(y=price_close, color="red", linewidth=0.75)
+        self.chart.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
     def setPlotData(self, ts: float, ret: PSARObject):
         """
@@ -202,9 +210,9 @@ class RhinoTrader(QMainWindow):
             pass
 
         # データ範囲を再計算
-        self.ax.relim()
+        self.chart.ax.relim()
         # y軸のみオートスケール
-        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
+        self.chart.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
         # 再描画
         self.chart.draw()
 
@@ -225,7 +233,7 @@ class RhinoTrader(QMainWindow):
         pad_left = 5. * 60  # チャート左側の余白（５分）
         dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
         dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
-        self.ax.set_xlim(dt_start, dt_end)
+        self.chart.ax.set_xlim(dt_start, dt_end)
 
     def setChartTitle(self, title: str):
         """
@@ -234,4 +242,4 @@ class RhinoTrader(QMainWindow):
         :return:
         """
         # self.chart.setTitle(title)
-        self.ax.set_title(title)
+        self.chart.ax.set_title(title)

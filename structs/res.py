@@ -22,6 +22,8 @@ class AppRes:
 
     tse = 'https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls'
 
+    path_monospace = "fonts/RictyDiminished-Regular.ttf"
+
     def __init__(self):
         if not os.path.exists(self.dir_collection):
             os.mkdir(self.dir_collection)

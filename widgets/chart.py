@@ -1,12 +1,13 @@
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
+from matplotlib import dates as mdates
 from matplotlib.backends.backend_qtagg import (
     NavigationToolbar2QT as NavigationToolbar,
     FigureCanvasQTAgg as FigureCanvas,
 )
 from matplotlib.figure import Figure
 
-FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
+from structs.res import AppRes
 
 
 class MplChart(FigureCanvas):
@@ -15,6 +16,7 @@ class MplChart(FigureCanvas):
         super().__init__(self.fig)
 
         # Font setting
+        FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
         fm.fontManager.addfont(FONT_PATH)
         font_prop = fm.FontProperties(fname=FONT_PATH)
         plt.rcParams['font.family'] = font_prop.get_name()
@@ -70,3 +72,28 @@ class MplChart(FigureCanvas):
 class ChartNavigation(NavigationToolbar):
     def __init__(self, chart: FigureCanvas):
         super().__init__(chart)
+
+
+class TrendChart(FigureCanvas):
+    def __init__(self, res: AppRes):
+        # フォント設定
+        fm.fontManager.addfont(res.path_monospace)
+        font_prop = fm.FontProperties(fname=res.path_monospace)
+        plt.rcParams["font.family"] = font_prop.get_name()
+        plt.rcParams["font.size"] = 12
+        # ダークモードの設定
+        plt.style.use("dark_background")
+        # Figure オブジェクト
+        self.figure = Figure()
+        # 余白設定
+        self.figure.subplots_adjust(
+            left=0.075,
+            right=0.99,
+            top=0.9,
+            bottom=0.08,
+        )
+        super().__init__(self.figure)
+
+        self.ax = self.figure.add_subplot(111)
+        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        self.ax.grid(True, lw=0.5)
