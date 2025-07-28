@@ -208,40 +208,35 @@ class RhinoAcquire(QThread):
         super().__init__()
         self.logger = logging.getLogger(__name__)
 
+        # ワーカースレッド・インスタンスの生成およびスレッドへの移動
         self.worker = worker = RhinoAcquireWorker(excel_path)
-        self.worker.moveToThread(self)  # ThreadStockCollectorWorkerをこのQThreadに移動
+        worker.threadFinished.connect(self.quit)  # スレッド終了時
+        self.worker.moveToThread(self)
 
-        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        # ---------------------------------------------------------------------
+        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.started.connect(self.requestWorkerInit.emit)
-
-        # スレッド開始時にworkerの準備完了を通知 (必要であれば)
-        self.started.connect(self.thread_ready)
-
         # _____________________________________________________________________
-        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
-        # 初期化処理は指定された Excel ファイルを読み込むこと
-        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
+        # xlwings インスタンスを生成、Excel の銘柄情報を読込む初期化メソッドへキューイング。
         self.requestWorkerInit.connect(worker.initWorker)
-
-        # 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPrice.connect(worker.readCurrentPrice)
-
-        # データフレームを保存するメソッドへキューイング
-        # self.requestSaveDataFrame.connect(worker.saveDataFrame)
-
-        # 売買ポジション
+        # ---------------------------------------------------------------------
+        # 売買ポジション処理用のメソッドへキューイング
         self.requestPositionOpen.connect(worker.posman.openPosition)
         self.requestPositionClose.connect(worker.posman.closePosition)
-
+        # ---------------------------------------------------------------------
         # 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
-
+        # ---------------------------------------------------------------------
+        # 現在株価を取得するメソッドへキューイング。
+        self.requestCurrentPrice.connect(worker.readCurrentPrice)
+        # ---------------------------------------------------------------------
+        # スレッド開始時にworkerの準備完了を通知 (必要であれば)
+        self.started.connect(self.thread_ready)
+        # ---------------------------------------------------------------------
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
-
+        # ---------------------------------------------------------------------
         # スレッド終了関連
-        # worker.threadFinished.connect(self.on_thread_finished)
-        worker.threadFinished.connect(self.quit)  # スレッド終了時
         self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
 
     def thread_ready(self):
