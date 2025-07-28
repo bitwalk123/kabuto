@@ -16,6 +16,7 @@ from rhino.rhino_dock import DockRhinoTrader
 from rhino.rhino_funcs import get_intraday_timestamp
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_review import RhinoReview
+from rhino.rhino_statusbar import RhinoStatusBar
 from rhino.rhino_ticker import ThreadTicker
 from rhino.rhino_toolbar import RhinoToolBar
 from rhino.rhino_trader import RhinoTrader
@@ -105,6 +106,10 @@ class Rhino(QMainWindow):
         toolbar.playClicked.connect(self.on_review_play)
         toolbar.stopClicked.connect(self.on_review_stop)
         self.addToolBar(toolbar)
+
+        # ステータスバー
+        self.statusbar = statusbar = RhinoStatusBar(res)
+        self.setStatusBar(statusbar)
 
         # メイン・ウィジェット
         base = Widget()
