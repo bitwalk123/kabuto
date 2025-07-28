@@ -8,12 +8,15 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.trans import WinTransaction
+from rhino.rhino_acquire import RhinoAcquire
 from rhino.rhino_dock import DockRhinoTrader
 from rhino.rhino_funcs import get_intraday_timestamp
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_review import RhinoReview
+from rhino.rhino_statusbar import RhinoStatusBar
 from rhino.rhino_ticker import ThreadTicker
 from rhino.rhino_toolbar import RhinoToolBar
 from rhino.rhino_trader import RhinoTrader
@@ -61,7 +64,8 @@ class Rhino(QMainWindow):
         #
         #######################################################################
 
-        # スレッド用インスタンス
+        # 株価取得スレッド用インスタンス
+        self.acquire: RhinoAcquire | None = None
         self.review: RhinoReview | None = None
 
         # システム時刻（タイムスタンプ）
@@ -103,6 +107,10 @@ class Rhino(QMainWindow):
         toolbar.stopClicked.connect(self.on_review_stop)
         self.addToolBar(toolbar)
 
+        # ステータスバー
+        self.statusbar = statusbar = RhinoStatusBar(res)
+        self.setStatusBar(statusbar)
+
         # メイン・ウィジェット
         base = Widget()
         self.setCentralWidget(base)
@@ -119,12 +127,9 @@ class Rhino(QMainWindow):
             # デバッグモードではファイルを読み込んでからスレッドを起動
             timer.timeout.connect(self.on_request_data_review)
         else:
-            pass
-            """
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
-            self.on_create_acquire_thread("targets.xlsx")
-            """
+            self.on_create_acquire_thread("target_test.xlsm")
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -142,18 +147,16 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # self.acquire スレッドの削除
         # ---------------------------------------------------------------------
-        """
         if self.acquire is not None:
             try:
                 if self.acquire.isRunning():
-                    self.requestStopProcess.emit()
+                    self.acquire.requestStopProcess.emit()
                     time.sleep(1)
                     self.acquire.quit()
                     self.acquire.deleteLater()
                     self.logger.info(f"{__name__}: deleted acquire thread.")
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
-        """
 
         # ---------------------------------------------------------------------
         # self.review スレッドの削除
@@ -242,6 +245,80 @@ class Rhino(QMainWindow):
             trader: RhinoTrader = self.dict_trader[ticker]
             dock: DockRhinoTrader = trader.dock
             dock.forceStopAutoPilot()
+
+    def get_current_tick_data(self) -> dict:
+        """
+        チャートが保持しているティックデータをデータフレームで取得
+        :return:
+        """
+        dict_df = dict()
+        for ticker in self.dict_trader.keys():
+            trader = self.dict_trader[ticker]
+            dict_df[ticker] = trader.getTimePrice()
+        return dict_df
+
+    def on_create_acquire_thread(self, excel_path: str):
+        self.acquire = acquire_thread = RhinoAcquire(excel_path)
+        # 初期化後の銘柄情報を通知
+        self.acquire.worker.notifyTickerN.connect(self.on_create_trader)
+        # タイマーで現在時刻と株価を通知
+        self.acquire.worker.notifyCurrentPrice.connect(self.on_update_data)
+        # 取引結果を通知
+        self.acquire.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        # スレッド終了関連
+        self.acquire.worker.threadFinished.connect(self.on_thread_finished)
+
+        # スレッドを開始
+        self.acquire.start()
+
+    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+        """
+        Trader インスタンスの生成（リアルタイム）
+        :param list_ticker:
+        :param dict_name:
+        :param dict_lastclose:
+        :return:
+        """
+        # 銘柄数分の Trader インスタンスの生成
+        self.create_trader(list_ticker, dict_name, dict_lastclose)
+
+        # リアルタイムの場合はここでタイマーを開始
+        self.timer.start()
+        self.logger.info(f"{__name__}: timer started!")
+
+    def on_request_data(self):
+        """
+        タイマー処理（リアルタイム）
+        """
+        # システム時刻
+        self.ts_system = time.time()
+        if self.dict_ts["start"] <= self.ts_system <= self.dict_ts["end_1h"]:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
+            self.acquire.requestCurrentPrice.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        elif self.dict_ts["start_2h"] <= self.ts_system <= self.dict_ts["end_2h"]:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 現在価格の取得要求をワーカースレッドに通知
+            self.acquire.requestCurrentPrice.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        elif self.dict_ts["end_2h"] < self.ts_system <= self.dict_ts["ca"]:
+            if not self.finished_trading:
+                # ポジションがあればクローズする
+                self.force_closing_position()
+                self.finished_trading = True
+        elif self.dict_ts["ca"] < self.ts_system:
+            self.timer.stop()
+            self.logger.info(f"{__name__}: timer stopped!")
+            # ティックデータの保存
+            self.save_regular_tick_data()
+            # 取引結果を取得
+            self.acquire.requestTransactionResult.emit()
+        else:
+            pass
+
+        # ツールバーの時刻を更新
+        self.toolbar.updateTime(self.ts_system)
 
     def on_thread_finished(self, result: bool):
         """
@@ -335,6 +412,49 @@ class Rhino(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # ティックデータの保存処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def save_regular_tick_data(self):
+        """
+        通常データの保存処理（当日日付のついた定型ファイル名）
+        :return:
+        """
+        # リアルタイムのタイマー終了後に呼び出される通常保存ファイル名
+        name_excel = os.path.join(
+            self.res.dir_excel,
+            f"tick_{self.dict_ts["date_str"]}.xlsx"
+        )
+        # Trader インスタンスからティックデータのデータフレームを辞書で取得
+        dict_df = self.get_current_tick_data()
+
+        # 念のため、空のデータでないか確認して空でなければ保存
+        r = 0
+        for ticker in dict_df.keys():
+            df = dict_df[ticker]
+            r += len(df)
+        if r == 0:
+            # すべてのデータフレームの行数が 0 の場合は保存しない。
+            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            return False
+        else:
+            # ティックデータの保存処理
+            self.save_tick_data(name_excel, dict_df)
+            return True
+
+    def save_tick_data(self, name_excel: str, dict_df: dict):
+        """
+        指定されたファイル名で辞書に格納されたデータフレームExcelシートにしてブックで保存
+        :param name_excel:
+        :param dict_df:
+        :return:
+        """
+        try:
+            save_dataframe_to_excel(name_excel, dict_df)
+            self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+        except ValueError as e:
+            self.logger.error(f"{__name__} error occurred!: {e}")
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # デバッグ用メソッド
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_create_review_thread(self, excel_path: str):
@@ -390,7 +510,7 @@ class Rhino(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["end"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"Timer stopped!")
+            self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
             self.review.requestTransactionResult.emit()
 
@@ -406,7 +526,7 @@ class Rhino(QMainWindow):
             self.ts_system = self.dict_ts["start"]
             # タイマー開始
             self.timer.start()
-            self.logger.info("タイマーを開始しました。")
+            self.logger.info(f"{__name__}: timer started!")
 
     def on_review_stop(self):
         """

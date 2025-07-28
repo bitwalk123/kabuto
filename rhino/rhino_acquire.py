@@ -1,42 +1,39 @@
 import logging
-import os
 import sys
 import time
 
 import pandas as pd
 import xlwings as xw
 
-from funcs.ios import save_dataframe_to_excel
-from funcs.tide import get_date_str_today
+from structs.posman import PositionType
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
     from pywintypes import com_error
 
-from PySide6.QtCore import QObject, QThread, Signal
+from modules.position_mannager import PositionManager
 
-from structs.res import AppRes
+from PySide6.QtCore import QObject, Signal, QThread
 
 
-class RssConnectWorker(QObject):
+class RhinoAcquireWorker(QObject):
+    """
+    【Windows 専用】
+    楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
+    """
     # 銘柄名（リスト）の通知
-    notifyTickerList = Signal(list, dict)
-
+    notifyTickerN = Signal(list, dict, dict)
     # ティックデータを通知
-    notifyCurrentPrice = Signal(dict)
+    notifyCurrentPrice = Signal(dict, dict, dict)
+    # 取引結果のデータフレームを通知
+    notifyTransactionResult = Signal(pd.DataFrame)
+    # スレッド終了シグナル（成否の論理値）
+    threadFinished = Signal(bool)
 
-    # Excel 関数の実行結果を通知
-    notifyExcelFuncResult = Signal(bool)
-
-    # スレッドの終了を通知
-    threadFinished = Signal()
-
-    def __init__(self, res: AppRes, excel_path: str):
+    def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.res = res
         self.excel_path = excel_path
-        self.order_no = 1
 
         # ---------------------------------------------------------------------
         # xlwings のインスタンス
@@ -46,10 +43,6 @@ class RssConnectWorker(QObject):
         # ---------------------------------------------------------------------
         self.wb = None  # Excel のワークブックインスタンス
         self.sheet = None  # Excel のワークシートインスタンス
-        # Excel 側の関数
-        self.exec_buy = None
-        self.exec_sell = None
-        self.exec_repay = None
 
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
@@ -62,8 +55,6 @@ class RssConnectWorker(QObject):
         self.cell_bottom = "------"
         self.list_ticker = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
-        self.dict_name = dict()  # 銘柄名
-        self.dict_df = dict()  # 銘柄別データフレーム
 
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
@@ -73,17 +64,32 @@ class RssConnectWorker(QObject):
         self.col_price = 4  # 現在詳細株価
         self.col_lastclose = 5  # 前日終値
 
+        # ポジション・マネージャのインスタンス
+        self.posman = PositionManager()
+
+    def getTransactionResult(self):
+        """
+        取引結果を取得
+        :return:
+        """
+        df = self.posman.getTransactionResult()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 取引結果のデータフレームを通知
+        self.notifyTransactionResult.emit(df)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def initWorker(self):
-        self.logger.info(f"{self.__class__}: in init process.")
+        self.logger.info("Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
         self.wb = wb = xw.Book(self.excel_path)
         name_sheet = "Cover"
         self.sheet = wb.sheets[name_sheet]
-        self.exec_buy = wb.macro("ExecBuy")
-
         #
         #######################################################################
+
+        dict_name = dict()  # 銘柄名
+        dict_lastclose = dict()  # 銘柄別前日終値
 
         row = 1
         flag_loop = True
@@ -99,51 +105,34 @@ class RssConnectWorker(QObject):
                 self.dict_row[ticker] = row
 
                 # 銘柄名
-                self.dict_name[ticker] = self.sheet[row, self.col_name].value
+                dict_name[ticker] = self.sheet[row, self.col_name].value
+
+                # 前日の終値の横線
+                dict_lastclose[ticker] = self.sheet[row, self.col_lastclose].value
 
                 # 行番号のインクリメント
                 row += 1
 
-        # ---------------------------------------------------------------------
-        # 🧿 銘柄名などの情報を通知
-        self.notifyTickerList.emit(self.list_ticker, self.dict_name)
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 銘柄名（リスト）などの情報を通知
+        self.notifyTickerN.emit(
+            self.list_ticker, dict_name, dict_lastclose
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def executeBuy(self, code: str):
-        result = False
-        for attempt in range(self.max_retries):
-            try:
-                # Excel の関数 ExecBuy の実行
-                result = self.exec_buy(self.order_no, code)
-                self.order_no += 1
-                break
-            except com_error as e:
-                # ---------------------------------------------------------
-                # com_error は Windows 固有
-                # ---------------------------------------------------------
-                if attempt < self.max_retries - 1:
-                    self.logger.warning(
-                        f"{self.__class__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
-                    )
-                    time.sleep(self.retry_delay)
-                else:
-                    self.logger.error(
-                        f"{self.__class__} COM error occurred after {self.max_retries} attempts. Giving up."
-                    )
-                    raise  # 最終的に失敗したら例外を再発生させる
-            except Exception as e:
-                self.logger.exception(f"{self.__class__} an unexpected error occurred: {e}")
-                raise  # その他の例外はそのまま発生させる
-
-        # ---------------------------------------------------------------------
-        # 🧿 銘柄名などの情報を通知
-        self.notifyExcelFuncResult.emit(result)
-        # ---------------------------------------------------------------------
+        # ポジション・マネージャの初期化
+        self.posman.initPosition(self.list_ticker)
 
     def readCurrentPrice(self):
+        """
+        現在株価の読み取り
+        :return:
+        """
         dict_data = dict()
-        for ticker in self.list_ticker:
-            row_excel = self.dict_row[ticker]
+        dict_profit = dict()
+        dict_total = dict()
+        for i, ticker in enumerate(self.list_ticker):
+            row = i + 1
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
                 ###############################################################
@@ -153,10 +142,12 @@ class RssConnectWorker(QObject):
                 try:
                     ts = time.time()
                     # Excelシートから株価データを取得
-                    price = self.sheet[row_excel, self.col_price].value
+                    price = self.sheet[row, self.col_price].value
                     if price > 0:
-                        # ここではタイムスタンプを時刻に採用する
+                        # ここでもタイムスタンプを時刻に採用する
                         dict_data[ticker] = [ts, price]
+                        dict_profit[ticker] = self.posman.getProfit(ticker, price)
+                        dict_total[ticker] = self.posman.getTotal(ticker)
                     break
                 except com_error as e:
                     # ---------------------------------------------------------
@@ -164,95 +155,95 @@ class RssConnectWorker(QObject):
                     # ---------------------------------------------------------
                     if attempt < self.max_retries - 1:
                         self.logger.warning(
-                            f"{self.__class__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                            f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
                         )
                         time.sleep(self.retry_delay)
                     else:
                         self.logger.error(
-                            f"{self.__class__} COM error occurred after {self.max_retries} attempts. Giving up."
+                            f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
                         )
                         raise  # 最終的に失敗したら例外を再発生させる
                 except Exception as e:
-                    self.logger.exception(f"{self.__class__} an unexpected error occurred: {e}")
+                    self.logger.exception(f"{__name__} an unexpected error occurred: {e}")
                     raise  # その他の例外はそのまま発生させる
                 #
                 ###############################################################
 
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data)
-        # ---------------------------------------------------------------------
+        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
         :return:
         """
-        self.logger.info(f"{self.__class__}: stopProcess called.")
+        self.logger.info("Worker: stopProcess called.")
 
         if self.wb:
-            """
-            try:
-                #self.wb.app.quit()
-                self.wb.close()
-            except Exception as e:
-                self.logger.exception(f"{self.__class__} an unexpected error occurred: {e}")
-            """
-
             self.wb = None  # オブジェクト参照をクリア
 
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 スレッド終了シグナルの通知
-        self.threadFinished.emit()
-        # ---------------------------------------------------------------------
+        self.threadFinished.emit(True)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-class RssConnect(QThread):
+class RhinoAcquire(QThread):
     requestWorkerInit = Signal()
     requestCurrentPrice = Signal()
+    requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
-    requestBuy = Signal(str)
+    # 売買
+    requestPositionOpen = Signal(str, float, float, PositionType, str)
+    requestPositionClose = Signal(str, float, float, str)
+    requestTransactionResult = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal()
 
-    def __init__(self, res: AppRes, excel_path: str):
+    def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.res = res
 
-        # excel_path = res.excel_collector
-        self.worker = worker = RssConnectWorker(res, excel_path)
-        self.worker.moveToThread(self)  # ThreadStockCollectorWorkerをこのQThreadに移動
+        # ワーカースレッド・インスタンスの生成およびスレッドへの移動
+        self.worker = worker = RhinoAcquireWorker(excel_path)
+        worker.threadFinished.connect(self.quit)  # スレッド終了時
+        self.worker.moveToThread(self)
 
-        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
+        # ---------------------------------------------------------------------
+        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.started.connect(self.requestWorkerInit.emit)
-
-        # スレッド開始時にworkerの準備完了を通知 (必要であれば)
-        self.started.connect(self.thread_ready)
-
         # _____________________________________________________________________
-        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
-        # 初期化処理は指定された Excel ファイルを読み込むこと
-        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
+        # xlwings インスタンスを生成、Excel の銘柄情報を読込む初期化メソッドへキューイング。
         self.requestWorkerInit.connect(worker.initWorker)
-
+        # ---------------------------------------------------------------------
+        # 売買ポジション処理用のメソッドへキューイング
+        self.requestPositionOpen.connect(worker.posman.openPosition)
+        self.requestPositionClose.connect(worker.posman.closePosition)
+        # ---------------------------------------------------------------------
+        # 取引結果を取得するメソッドへキューイング
+        self.requestTransactionResult.connect(worker.getTransactionResult)
+        # ---------------------------------------------------------------------
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
-
+        # ---------------------------------------------------------------------
+        # スレッド開始時にworkerの準備完了を通知 (必要であれば)
+        self.started.connect(self.thread_ready)
+        # ---------------------------------------------------------------------
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
-
-        # Excel の関数 ExecBuy の実行
-        self.requestBuy.connect(worker.executeBuy)
-
+        # ---------------------------------------------------------------------
         # スレッド終了関連
-        worker.threadFinished.connect(self.quit)  # スレッド終了時
         self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
 
     def thread_ready(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 スレッド準備完了通知
         self.threadReady.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def run(self):
         """
@@ -260,9 +251,9 @@ class RssConnect(QThread):
         これがなければ、スレッドはすぐに終了してしまう。
         """
         self.logger.info(
-            f"{self.__class__}: run() method started. Entering event loop..."
+            f"{__name__} StockCollector: run() method started. Entering event loop..."
         )
         self.exec()  # イベントループを開始
         self.logger.info(
-            f"{self.__class__}: run() method finished. Event loop exited."
+            f"{__name__} StockCollector: run() method finished. Event loop exited."
         )
