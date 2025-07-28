@@ -1,3 +1,4 @@
+# 複数銘柄シミュレーション用アプリ
 from funcs.logs import setup_logging
 from apostle.apostle_main import Apostle
 
