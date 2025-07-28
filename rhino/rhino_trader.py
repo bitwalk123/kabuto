@@ -5,8 +5,8 @@ import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
-from beetle.beetle_psar import PSARObject
 from rhino.rhino_dock import DockRhinoTrader
+from rhino.rhino_psar import PSARObject
 from structs.res import AppRes
 from widgets.chart import TrendChart
 
