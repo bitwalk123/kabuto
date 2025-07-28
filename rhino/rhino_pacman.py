@@ -1,4 +1,4 @@
-from beetle.beetle_psar import PSARObject
+from rhino.rhino_psar import PSARObject
 from structs.posman import PositionType
 
 

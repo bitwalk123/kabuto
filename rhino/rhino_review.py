@@ -3,8 +3,9 @@ import logging
 import pandas as pd
 from PySide6.QtCore import (
     QObject,
+    QThread,
     Signal,
-    QThread, Slot,
+    Slot,
 )
 
 from funcs.ios import load_excel
