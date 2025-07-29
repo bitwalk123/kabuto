@@ -5,6 +5,7 @@ from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QPushButton
 
 from structs.res import AppRes
+from widgets.entries import Entry
 from widgets.labels import (
     Label,
     LabelLeft,
@@ -101,14 +102,20 @@ class DlgTradeConfig(QDialog):
         r += 1
         lab_af_init = LabelRaisedLeft("AF (init)")
         layout.addWidget(lab_af_init, r, 0)
+        ent_af_init = Entry()
+        layout.addWidget(ent_af_init, r, 1)
 
         r += 1
         lab_af_step = LabelRaisedLeft("AF (step)")
         layout.addWidget(lab_af_step, r, 0)
+        ent_af_step = Entry()
+        layout.addWidget(ent_af_step, r, 1)
 
         r += 1
         lab_af_max = LabelRaisedLeft("AF (max)")
         layout.addWidget(lab_af_max, r, 0)
+        ent_af_max = Entry()
+        layout.addWidget(ent_af_max, r, 1)
 
         r += 1
         bbox = QDialogButtonBox(Qt.Orientation.Horizontal)
