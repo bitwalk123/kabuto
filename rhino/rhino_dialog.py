@@ -39,8 +39,10 @@ class DlgAboutThis(QDialog):
         r = 0
         lab_name_0 = LabelRight("アプリ名")
         layout.addWidget(lab_name_0, r, 0)
+
         lab_name_1 = LabelLeft(progname)
         layout.addWidget(lab_name_1, r, 1)
+
         lab_name_2 = Label()
         pixmap = QPixmap(os.path.join(res.dir_image, "rhino.png")).scaledToWidth(64)
         lab_name_2.setPixmap(pixmap)
@@ -51,18 +53,21 @@ class DlgAboutThis(QDialog):
         r += 1
         lab_ver_0 = LabelRight("バージョン")
         layout.addWidget(lab_ver_0, r, 0)
+
         lab_ver_1 = LabelLeft(progver)
         layout.addWidget(lab_ver_1, r, 1)
 
         r += 1
         lab_author_0 = LabelRight("作　　者")
         layout.addWidget(lab_author_0, r, 0)
+
         lab_author_1 = LabelLeft(author)
         layout.addWidget(lab_author_1, r, 1)
 
         r += 1
         lab_license_0 = LabelRight("ライセンス")
         layout.addWidget(lab_license_0, r, 0)
+
         lab_license_1 = LabelLeft(license)
         layout.addWidget(lab_license_1, r, 1)
 
@@ -102,18 +107,21 @@ class DlgTradeConfig(QDialog):
         r += 1
         lab_af_init = LabelRaisedLeft("AF (init) ")
         layout.addWidget(lab_af_init, r, 0)
+
         ent_af_init = Entry()
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
         lab_af_step = LabelRaisedLeft("AF (step) ")
         layout.addWidget(lab_af_step, r, 0)
+
         ent_af_step = Entry()
         layout.addWidget(ent_af_step, r, 1)
 
         r += 1
         lab_af_max = LabelRaisedLeft("AF (max)")
         layout.addWidget(lab_af_max, r, 0)
+
         ent_af_max = Entry()
         layout.addWidget(ent_af_max, r, 1)
 
