@@ -1,6 +1,7 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame
 
+from rhino.rhino_dialog import DlgTradeConfig
 from structs.res import AppRes
 from widgets.buttons import (
     ButtonSave,
@@ -133,4 +134,9 @@ class PanelOption(QFrame):
         self.autopilot.setChecked(state)
 
     def trade_config(self):
-        print(self.code)
+        dlg = DlgTradeConfig(self.res,self.code)
+        if dlg.exec():
+            print("Accepted")
+        else:
+            print("Cenceled")
+

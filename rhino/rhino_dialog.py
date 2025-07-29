@@ -2,12 +2,14 @@ import os
 
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QDialog, QDialogButtonBox
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QPushButton
 
 from structs.res import AppRes
 from widgets.labels import (
     Label,
     LabelLeft,
+    LabelRaised,
+    LabelRaisedLeft,
     LabelRight,
     PlainTextEdit,
 )
@@ -76,5 +78,47 @@ class DlgAboutThis(QDialog):
         bbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
         bbox.accepted.connect(self.accept)
         layout.addWidget(bbox, r, 0, 1, 3)
+
+        layout.setColumnStretch(1, 1)
+
+
+class DlgTradeConfig(QDialog):
+    def __init__(self, res: AppRes, code: str):
+        super().__init__()
+
+        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle(f"Setting for {code}")
+        self.setStyleSheet("QDialog {font-family: monospace;}")
+
+        layout = GridLayout()
+        self.setLayout(layout)
+
+        r = 0
+        lab_psar = LabelRaised("Parabolic SAR")
+        layout.addWidget(lab_psar, r, 0, 1, 2)
+
+        r += 1
+        lab_af_init = LabelRaisedLeft("AF (init)")
+        layout.addWidget(lab_af_init, r, 0)
+
+        r += 1
+        lab_af_step = LabelRaisedLeft("AF (step)")
+        layout.addWidget(lab_af_step, r, 0)
+
+        r += 1
+        lab_af_max = LabelRaisedLeft("AF (max)")
+        layout.addWidget(lab_af_max, r, 0)
+
+        r += 1
+        bbox = QDialogButtonBox(Qt.Orientation.Horizontal)
+        but_cancel = QPushButton("Cancel")
+        bbox.addButton(but_cancel, QDialogButtonBox.ButtonRole.RejectRole)
+        bbox.rejected.connect(self.reject)
+        but_ok = QPushButton("OK")
+        bbox.addButton(but_ok, QDialogButtonBox.ButtonRole.AcceptRole)
+        bbox.accepted.connect(self.accept)
+
+        layout.addWidget(bbox, r, 0, 1, 2)
 
         layout.setColumnStretch(1, 1)
