@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QMainWindow
 from rhino.rhino_dock import DockRhinoTrader
 from rhino.rhino_psar import PSARObject
 from structs.res import AppRes
-from widgets.chart import TrendChart
+from rhino.rhino_chart import TrendChart
 
 
 class RhinoTrader(QMainWindow):
