@@ -14,6 +14,7 @@ from PySide6.QtCore import (
     Slot,
 )
 
+from rhino.rhino_funcs import get_default_psar_params
 from rhino.rhino_psar import PSARObject, RealtimePSAR
 from structs.res import AppRes
 
@@ -21,6 +22,8 @@ from structs.res import AppRes
 class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
     notifyPSAR = Signal(str, float, PSARObject)
+    # Parabolic SAR 関連パラメータを通知
+    notifyPSARParams = Signal(dict)
 
     def __init__(self, res: AppRes, code: str, parent=None):
         super().__init__(parent)
@@ -43,7 +46,7 @@ class TickerWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def get_psar_params(self) -> dict:
-        # 銘柄コード固有の設定ファイル
+        # 銘柄コード固有の設定ファイル名
         file_json = os.path.join(
             self.res.dir_conf,
             f"{self.code}.json"
@@ -54,28 +57,30 @@ class TickerWorker(QObject):
             with open(file_json) as f:
                 dict_psar = json.load(f)
         else:
-            dict_psar = dict()
-            # for Parabolic SAR
-            dict_psar["af_init"]: float = 0.000005
-            dict_psar["af_step"]: float = 0.000005
-            dict_psar["af_max"]: float = 0.005
-            dict_psar["factor_d"] = 20  # 許容される ys と PSAR の最大差異
-            # for smoothing
-            dict_psar["power_lam"]: int = 7
-            dict_psar["n_smooth_min"] = 60
-            dict_psar["n_smooth_max"] = 600
+            # デフォルトのパラメータ設定を取得
+            dict_psar = get_default_psar_params()
             # 銘柄コード固有のファイルとして保存
             with open(file_json, "w") as f:
                 json.dump(dict_psar, f)
 
         return dict_psar
 
+    def getPSARParams(self):
+        dict_psar = self.get_psar_params()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連のパラメータを通知
+        self.notifyPSARParams.emit(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
 class Ticker(QThread):
     """
     各銘柄専用のスレッド
     """
+    # 新たな株価情報をスレッドへ通知
     notifyNewPrice = Signal(float, float)
+    # Parabolic SAR 関連のパラメータをリクエスト
+    requestPSARParams = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal(str)
@@ -90,8 +95,11 @@ class Ticker(QThread):
         # スレッド開始時にworkerの準備完了を通知 (必要であれば)
         self.started.connect(self.thread_ready)
 
-        # メインスレッドからワーカースレッドへ新たな株価情報を通知
-        self.notifyNewPrice.connect(self.worker.addPrice)
+        # 新たな株価情報を追加するメソッドへキューイング
+        self.notifyNewPrice.connect(worker.addPrice)
+
+        # Parabolic SAR 関連のパラメータを取得するメソッドへキューイング
+        self.requestPSARParams.connect(worker.getPSARParams)
 
     def thread_ready(self):
         self.threadReady.emit(self.code)
