@@ -6,8 +6,6 @@ from matplotlib.backends.backend_qtagg import (
 )
 from matplotlib.figure import Figure
 
-FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
-
 
 class MplChart(FigureCanvas):
     def __init__(self):
@@ -15,6 +13,7 @@ class MplChart(FigureCanvas):
         super().__init__(self.fig)
 
         # Font setting
+        FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
         fm.fontManager.addfont(FONT_PATH)
         font_prop = fm.FontProperties(fname=FONT_PATH)
         plt.rcParams['font.family'] = font_prop.get_name()
@@ -70,3 +69,5 @@ class MplChart(FigureCanvas):
 class ChartNavigation(NavigationToolbar):
     def __init__(self, chart: FigureCanvas):
         super().__init__(chart)
+
+

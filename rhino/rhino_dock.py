@@ -3,10 +3,10 @@ import logging
 from PySide6.QtCore import Signal
 
 from rhino.rhino_pacman import PacMan
+from rhino.rhino_panel import PanelOption, PanelTrading
 from rhino.rhino_psar import PSARObject
 from structs.posman import PositionType
 from structs.res import AppRes
-from widgets.containers import PanelTrading, PanelOption
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
 
@@ -16,10 +16,10 @@ class DockRhinoTrader(DockWidget):
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
 
-    def __init__(self, res: AppRes, ticker: str):
-        super().__init__(ticker)
+    def __init__(self, res: AppRes, code: str):
+        super().__init__(code)
         self.logger = logging.getLogger(__name__)
-        self.ticker = ticker
+        self.code = code
         self.pacman = PacMan()
 
         # 現在株価
@@ -44,7 +44,7 @@ class DockRhinoTrader(DockWidget):
         self.layout.addWidget(epupd)
 
         # オプションパネル
-        self.option = option = PanelOption(res)
+        self.option = option = PanelOption(res, code)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -82,17 +82,17 @@ class DockRhinoTrader(DockWidget):
 
     def forceStopAutoPilot(self):
         if self.doRepay():
-            self.logger.info(f"{__name__}: '{self.ticker}'の強制返済をしました。")
+            self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
         if self.option.isAutoPilotEnabled():
             self.option.setAutoPilotEnabled(False)
-            self.logger.info(f"{__name__}: '{self.ticker}'の Autopilot をオフにしました。")
+            self.logger.info(f"{__name__}: '{self.code}'の Autopilot をオフにしました。")
 
     def on_buy(self):
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit(
-            self.ticker, self.price.getValue(), note
+            self.code, self.price.getValue(), note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -101,7 +101,7 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
         self.clickedRepay.emit(
-            self.ticker, self.price.getValue(), note
+            self.code, self.price.getValue(), note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -110,7 +110,7 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit(
-            self.ticker, self.price.getValue(), note
+            self.code, self.price.getValue(), note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
