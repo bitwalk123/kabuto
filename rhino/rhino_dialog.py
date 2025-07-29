@@ -40,7 +40,7 @@ class DlgAboutThis(QDialog):
         lab_name_1 = LabelLeft(progname)
         layout.addWidget(lab_name_1, r, 1)
         lab_name_2 = Label()
-        pixmap = QPixmap(os.path.join(res.dir_image, "kabuto.png")).scaledToWidth(64)
+        pixmap = QPixmap(os.path.join(res.dir_image, "rhino.png")).scaledToWidth(64)
         lab_name_2.setPixmap(pixmap)
         lab_name_2.setContentsMargins(QMargins(5, 0, 5, 0))
         lab_name_2.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignVCenter)

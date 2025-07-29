@@ -13,7 +13,11 @@ if sys.platform == "win32":
 
 from modules.position_mannager import PositionManager
 
-from PySide6.QtCore import QObject, Signal, QThread
+from PySide6.QtCore import (
+    QObject,
+    QThread,
+    Signal,
+)
 
 
 class RhinoAcquireWorker(QObject):
@@ -251,9 +255,9 @@ class RhinoAcquire(QThread):
         これがなければ、スレッドはすぐに終了してしまう。
         """
         self.logger.info(
-            f"{__name__} StockCollector: run() method started. Entering event loop..."
+            f"{__name__}: run() method started. ### Entering event loop..."
         )
         self.exec()  # イベントループを開始
         self.logger.info(
-            f"{__name__} StockCollector: run() method finished. Event loop exited."
+            f"{__name__}: run() method finished. ### Event loop exited."
         )
