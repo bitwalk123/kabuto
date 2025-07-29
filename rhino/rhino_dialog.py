@@ -112,13 +112,12 @@ class DlgTradeConfig(QDialog):
 
         r += 1
         bbox = QDialogButtonBox(Qt.Orientation.Horizontal)
-        but_cancel = QPushButton("Cancel")
-        bbox.addButton(but_cancel, QDialogButtonBox.ButtonRole.RejectRole)
+        # 「Cancel」ボタン
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
         bbox.rejected.connect(self.reject)
-        but_ok = QPushButton("OK")
-        bbox.addButton(but_ok, QDialogButtonBox.ButtonRole.AcceptRole)
+        # 「Ok」ボタン
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
         bbox.accepted.connect(self.accept)
-
         layout.addWidget(bbox, r, 0, 1, 2)
 
         layout.setColumnStretch(1, 1)
