@@ -12,11 +12,11 @@ from structs.res import AppRes
 
 
 class RhinoTrader(QMainWindow):
-    def __init__(self, res: AppRes, ticker: str):
+    def __init__(self, res: AppRes, code: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
-        self.ticker = ticker
+        self.code = code
 
         # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
@@ -61,7 +61,7 @@ class RhinoTrader(QMainWindow):
         # ---------------------------------------------------------------------
         # 右側のドック
         # ---------------------------------------------------------------------
-        self.dock = dock = DockRhinoTrader(res, ticker)
+        self.dock = dock = DockRhinoTrader(res, code)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------

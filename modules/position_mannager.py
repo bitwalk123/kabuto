@@ -30,31 +30,31 @@ class PositionManager:
         df = pd.DataFrame.from_dict(dict_columns)
         self.df_order = df.astype(object)
 
-    def initPosition(self, list_ticker: list):
-        for ticker in list_ticker:
-            self.dict_price[ticker] = 0.  # 建玉取得時の株価
-            self.dict_total[ticker] = 0.  # 銘柄毎の収益
-            self.dict_position[ticker] = PositionType.NONE
+    def initPosition(self, list_code: list):
+        for code in list_code:
+            self.dict_price[code] = 0.  # 建玉取得時の株価
+            self.dict_total[code] = 0.  # 銘柄毎の収益
+            self.dict_position[code] = PositionType.NONE
 
-    def openPosition(self, ticker: str, ts: float, price: float, position: PositionType, note: str = ""):
+    def openPosition(self, code: str, ts: float, price: float, position: PositionType, note: str = ""):
         """
         ポジションをオープン（建玉取得）
-        :param ticker:
+        :param code:
         :param ts:
         :param price:
         :param position:
         :param note:
         :return:
         """
-        self.dict_price[ticker] = price
-        self.dict_position[ticker] = position
+        self.dict_price[code] = price
+        self.dict_position[code] = position
 
         # 取引履歴
         self.order += 1
         r = len(self.df_order)
         self.df_order.at[r, "注文番号"] = self.order
         self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
-        self.df_order.at[r, "銘柄コード"] = ticker
+        self.df_order.at[r, "銘柄コード"] = code
         if position == PositionType.BUY:
             self.df_order.at[r, "売買"] = "買建"
         elif position == PositionType.SELL:
@@ -63,23 +63,23 @@ class PositionManager:
         self.df_order.at[r, "約定数量"] = self.unit
         self.df_order.at[r, "備考"] = note
 
-    def closePosition(self, ticker: str, ts: float, price: float, note: str = ""):
+    def closePosition(self, code: str, ts: float, price: float, note: str = ""):
         """
         ポジションをクローズ（建玉返済）
-        :param ticker:
+        :param code:
         :param ts:
         :param price:
         :param note:
         :return:
         """
-        position = self.dict_position[ticker]
+        position = self.dict_position[code]
         profit = 0
         if position == PositionType.BUY:
-            profit = (price - self.dict_price[ticker]) * self.unit
-            self.dict_total[ticker] += profit
+            profit = (price - self.dict_price[code]) * self.unit
+            self.dict_total[code] += profit
         elif position == PositionType.SELL:
-            profit = (self.dict_price[ticker] - price) * self.unit
-            self.dict_total[ticker] += profit
+            profit = (self.dict_price[code] - price) * self.unit
+            self.dict_total[code] += profit
         else:
             return
 
@@ -88,7 +88,7 @@ class PositionManager:
         r = len(self.df_order)
         self.df_order.at[r, "注文番号"] = self.order
         self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
-        self.df_order.at[r, "銘柄コード"] = ticker
+        self.df_order.at[r, "銘柄コード"] = code
         if position == PositionType.BUY:
             self.df_order.at[r, "売買"] = "売埋"
         elif position == PositionType.SELL:
@@ -99,21 +99,21 @@ class PositionManager:
         self.df_order.at[r, "備考"] = note
 
         # 売買状態のリセット
-        self.dict_price[ticker] = 0
-        self.dict_position[ticker] = PositionType.NONE
+        self.dict_price[code] = 0
+        self.dict_position[code] = PositionType.NONE
 
-    def getProfit(self, ticker: str, price: float) -> float:
+    def getProfit(self, code: str, price: float) -> float:
         if price == 0:
             return 0.
-        if self.dict_position[ticker] == PositionType.BUY:
-            return (price - self.dict_price[ticker]) * self.unit
-        elif self.dict_position[ticker] == PositionType.SELL:
-            return (self.dict_price[ticker] - price) * self.unit
+        if self.dict_position[code] == PositionType.BUY:
+            return (price - self.dict_price[code]) * self.unit
+        elif self.dict_position[code] == PositionType.SELL:
+            return (self.dict_price[code] - price) * self.unit
         else:
             return 0.
 
-    def getTotal(self, ticker: str) -> float:
-        return self.dict_total[ticker]
+    def getTotal(self, code: str) -> float:
+        return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
         return self.df_order

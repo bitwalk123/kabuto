@@ -40,7 +40,7 @@ class RhinoReviewWorker(QObject):
         self.dict_sheet = dict()
 
         # 銘柄リスト
-        self.list_ticker = list()
+        self.list_code = list()
 
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
@@ -71,26 +71,26 @@ class RhinoReviewWorker(QObject):
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             return
 
-        # 取得した Excel のシート名を銘柄コード (ticker) として扱う
-        self.list_ticker = list(self.dict_sheet.keys())
+        # 取得した Excel のシート名を銘柄コード (code) として扱う
+        self.list_code = list(self.dict_sheet.keys())
 
         # 銘柄コードから銘柄名を取得
-        dict_name = get_ticker_name_list(self.list_ticker)
+        dict_name = get_ticker_name_list(self.list_code)
 
         # デバッグ・モードでは、現在のところは前日終値を 0 とする
         dict_lastclose = dict()
-        for ticker in self.list_ticker:
-            dict_lastclose[ticker] = 0
+        for code in self.list_code:
+            dict_lastclose[code] = 0
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
-            self.list_ticker, dict_name, dict_lastclose
+            self.list_code, dict_name, dict_lastclose
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ポジション・マネージャの初期化
-        self.posman.initPosition(self.list_ticker)
+        self.posman.initPosition(self.list_code)
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 データ読み込み済み（現時点では常に True を通知）
@@ -102,17 +102,17 @@ class RhinoReviewWorker(QObject):
         dict_data = dict()
         dict_profit = dict()
         dict_total = dict()
-        for ticker in self.list_ticker:
-            df = self.dict_sheet[ticker]
+        for code in self.list_code:
+            df = self.dict_sheet[code]
             # 指定された時刻から +1 秒未満で株価が存在するか確認
             df_tick = df[(ts <= df['Time']) & (df['Time'] < ts + 1)]
             if len(df_tick) > 0:
                 # 時刻が存在していれば、データにある時刻と株価を返値に設定
                 ts = df_tick.iloc[0, 0]
                 price = df_tick.iloc[0, 1]
-                dict_data[ticker] = [ts, price]
-                dict_profit[ticker] = self.posman.getProfit(ticker, price)
-                dict_total[ticker] = self.posman.getTotal(ticker)
+                dict_data[code] = [ts, price]
+                dict_profit[code] = self.posman.getProfit(code, price)
+                dict_total[code] = self.posman.getTotal(code)
             else:
                 continue
 

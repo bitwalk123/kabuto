@@ -18,7 +18,7 @@ from rhino.rhino_funcs import get_intraday_timestamp
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_review import RhinoReview
 from rhino.rhino_statusbar import RhinoStatusBar
-from rhino.rhino_ticker import ThreadTicker
+from rhino.rhino_ticker import Ticker
 from rhino.rhino_toolbar import RhinoToolBar
 from rhino.rhino_trader import RhinoTrader
 from structs.posman import PositionType
@@ -82,9 +82,9 @@ class Rhino(QMainWindow):
         self.dict_trader = dict()
 
         # ThreadTicker 用インスタンス
-        self.thread_ticker: ThreadTicker | None = None
+        self.ticker: Ticker | None = None
         # ThreadTicker インスタンスを保持する辞書
-        self.dict_thread_ticker = dict()
+        self.dict_ticker = dict()
 
         # 取引履歴
         self.df_transaction: pd.DataFrame | None = None
@@ -175,22 +175,22 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # Thread Ticker の削除
         # ---------------------------------------------------------------------
-        for ticker, thread in self.dict_thread_ticker.items():
+        for code, thread in self.dict_ticker.items():
             if thread.isRunning():
-                self.logger.info(f"{__name__}: stopping ThreadTicker for {ticker}...")
+                self.logger.info(f"{__name__}: stopping ThreadTicker for {code}...")
                 thread.quit()  # スレッドのイベントループに終了を指示
                 thread.wait()  # スレッドが完全に終了するまで待機
-                self.logger.info(f"{__name__}: ThreadTicker for {ticker} safely terminated.")
+                self.logger.info(f"{__name__}: ThreadTicker for {code} safely terminated.")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def create_trader(self, list_ticker, dict_name, dict_lastclose):
+    def create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
         """
         銘柄数分の Trader インスタンスの生成
         （リアルタイム・モード、デバッグ・モード共通）
-        :param list_ticker:
+        :param list_code:
         :param dict_name:
         :param dict_lastclose:
         :return:
@@ -199,14 +199,13 @@ class Rhino(QMainWindow):
         clear_boxlayout(self.layout)
         # Trader 辞書のクリア
         self.dict_trader = dict()
-        # Thread ticker インスタンスをクリア
-        self.dict_thread_ticker = dict()
+        # Ticker インスタンスをクリア
+        self.dict_ticker = dict()
 
         # 銘柄数分の Trader インスタンスの生成
-        for ticker in list_ticker:
+        for code in list_code:
             # Trader インスタンスの生成
-            trader = RhinoTrader(self.res, ticker)
-
+            trader = RhinoTrader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if debug:
                 # レビュー用の売買処理
@@ -220,17 +219,17 @@ class Rhino(QMainWindow):
                 trader.dock.clickedSell.connect(self.on_sell)
 
             # Trader 辞書に保持
-            self.dict_trader[ticker] = trader
+            self.dict_trader[code] = trader
 
-            # 「銘柄名　(ticker)」をタイトルにして設定し直し
-            trader.setChartTitle(f"{dict_name[ticker]} ({ticker})")
+            # 「銘柄名　(code)」をタイトルにして設定し直し
+            trader.setChartTitle(f"{dict_name[code]} ({code})")
 
             # 当日ザラ場時間
             trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
 
             # 前日終値
-            if dict_lastclose[ticker] > 0:
-                trader.setLastCloseLine(dict_lastclose[ticker])
+            if dict_lastclose[code] > 0:
+                trader.setLastCloseLine(dict_lastclose[code])
 
             # 配置
             self.layout.addWidget(trader)
@@ -238,15 +237,15 @@ class Rhino(QMainWindow):
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Thread Ticker
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.thread_ticker = thread_ticker = ThreadTicker(ticker)
-            thread_ticker.threadReady.connect(self.on_thread_ticker_ready)
-            thread_ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            thread_ticker.start()
-            self.dict_thread_ticker[ticker] = thread_ticker
+            self.ticker = ticker = Ticker(code)
+            ticker.threadReady.connect(self.on_ticker_ready)
+            ticker.worker.notifyPSAR.connect(self.on_update_psar)
+            ticker.start()
+            self.dict_ticker[code] = ticker
 
     def force_closing_position(self):
-        for ticker in self.dict_trader.keys():
-            trader: RhinoTrader = self.dict_trader[ticker]
+        for code in self.dict_trader.keys():
+            trader: RhinoTrader = self.dict_trader[code]
             dock: DockRhinoTrader = trader.dock
             dock.forceStopAutoPilot()
 
@@ -256,9 +255,9 @@ class Rhino(QMainWindow):
         :return:
         """
         dict_df = dict()
-        for ticker in self.dict_trader.keys():
-            trader = self.dict_trader[ticker]
-            dict_df[ticker] = trader.getTimePrice()
+        for code in self.dict_trader.keys():
+            trader = self.dict_trader[code]
+            dict_df[code] = trader.getTimePrice()
         return dict_df
 
     def on_about(self):
@@ -293,16 +292,16 @@ class Rhino(QMainWindow):
         # スレッドを開始
         acquire.start()
 
-    def on_create_trader(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（リアルタイム）
-        :param list_ticker:
+        :param list_code:
         :param dict_name:
         :param dict_lastclose:
         :return:
         """
         # 銘柄数分の Trader インスタンスの生成
-        self.create_trader(list_ticker, dict_name, dict_lastclose)
+        self.create_trader(list_code, dict_name, dict_lastclose)
 
         # リアルタイムの場合はここでタイマーを開始
         self.timer.start()
@@ -357,8 +356,8 @@ class Rhino(QMainWindow):
             self.timer.stop()
             self.logger.info(f"{__name__}: timer stopped")
 
-    def on_thread_ticker_ready(self, ticker: str):
-        self.logger.info(f"{__name__}: thread for {ticker} is ready.")
+    def on_ticker_ready(self, code: str):
+        self.logger.info(f"{__name__}: thread for {code} is ready.")
 
     def on_transaction_result(self, df: pd.DataFrame):
         """
@@ -383,53 +382,53 @@ class Rhino(QMainWindow):
         :param dict_total:
         :return:
         """
-        for ticker in dict_data.keys():
-            x, y = dict_data[ticker]
-            trader = self.dict_trader[ticker]
+        for code in dict_data.keys():
+            x, y = dict_data[code]
+            trader = self.dict_trader[code]
             trader.dock.setPrice(y)
             # 銘柄単位の含み益と収益を更新
-            trader.dock.setProfit(dict_profit[ticker])
-            trader.dock.setTotal(dict_total[ticker])
+            trader.dock.setProfit(dict_profit[code])
+            trader.dock.setTotal(dict_total[code])
             # Parabolic SAR
-            thread_ticker: ThreadTicker = self.dict_thread_ticker[ticker]
+            ticker: Ticker = self.dict_ticker[code]
             # ここで PSAR を算出する処理が呼び出される
-            thread_ticker.notifyNewPrice.emit(x, y)
+            ticker.notifyNewPrice.emit(x, y)
 
-    def on_update_psar(self, ticker: str, x: float, ret: PSARObject):
+    def on_update_psar(self, code: str, x: float, ret: PSARObject):
         """
         Parabolic SAR のトレンド点を追加
-        :param ticker:
+        :param code:
         :param x:
         :param ret:
         :return:
         """
-        trader: RhinoTrader = self.dict_trader[ticker]
+        trader: RhinoTrader = self.dict_trader[code]
         trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, ticker: str, price: float, note: str):
+    def on_buy(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建で建玉取得リクエストのシグナル
         self.acquire.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.BUY, note
+            code, self.ts_system, price, PositionType.BUY, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, ticker: str, price: float, note: str):
+    def on_sell(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建で建玉取得リクエストのシグナル
         self.acquire.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.SELL, note
+            code, self.ts_system, price, PositionType.SELL, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay(self, ticker: str, price: float, note: str):
+    def on_repay(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済リクエストのシグナル
         self.acquire.requestPositionClose.emit(
-            ticker, self.ts_system, price, note
+            code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -451,8 +450,8 @@ class Rhino(QMainWindow):
 
         # 念のため、空のデータでないか確認して空でなければ保存
         r = 0
-        for ticker in dict_df.keys():
-            df = dict_df[ticker]
+        for code in dict_df.keys():
+            df = dict_df[code]
             r += len(df)
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
@@ -502,16 +501,16 @@ class Rhino(QMainWindow):
         # スレッドを開始
         review.start()
 
-    def on_create_trader_review(self, list_ticker: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader_review(self, list_code: list, dict_name: dict, dict_lastclose: dict):
         """
         Trader インスタンスの生成（デバッグ/レビュー用）
-        :param list_ticker:
+        :param list_code:
         :param dict_name:
         :param dict_lastclose:
         :return:
         """
         # 銘柄数分の Trader インスタンスの生成
-        self.create_trader(list_ticker, dict_name, dict_lastclose)
+        self.create_trader(list_code, dict_name, dict_lastclose)
 
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         # self.data_ready = True
@@ -570,26 +569,26 @@ class Rhino(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Review 用）
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy_review(self, ticker: str, price: float, note: str):
+    def on_buy_review(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建で建玉取得リクエストのシグナル
         self.review.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.BUY, note
+            code, self.ts_system, price, PositionType.BUY, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell_review(self, ticker: str, price: float, note: str):
+    def on_sell_review(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建で建玉取得リクエストのシグナル
         self.review.requestPositionOpen.emit(
-            ticker, self.ts_system, price, PositionType.SELL, note
+            code, self.ts_system, price, PositionType.SELL, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay_review(self, ticker: str, price: float, note: str):
+    def on_repay_review(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済リクエストのシグナル
         self.review.requestPositionClose.emit(
-            ticker, self.ts_system, price, note
+            code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -17,20 +17,16 @@ class PSARObject:
 
 
 class RealtimePSAR:
-    def __init__(
-            self,
-            af_init: float = 0.000005,
-            af_step: float = 0.000005,
-            af_max: float = 0.005,
-    ):
-        self.af_init = af_init
-        self.af_step = af_step
-        self.af_max = af_max
+    def __init__(self, code: str):
+        self.code = code
 
-        self.lam = 10 ** 7
+        self.af_init: float = 0.000005
+        self.af_step: float = 0.000005
+        self.af_max: float = 0.005
+        self.lam: float = 10. ** 7
 
-        self.overdrive = False
         self.factor_d = 20  # 許容される ys と PSAR の最大差異
+        self.overdrive = False
 
         # PSARObject のインスタンス
         self.obj = PSARObject()

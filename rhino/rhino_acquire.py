@@ -57,7 +57,7 @@ class RhinoAcquireWorker(QObject):
 
         # Excel ワークシート情報
         self.cell_bottom = "------"
-        self.list_ticker = list()  # 銘柄リスト
+        self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
 
         # Excel の列情報
@@ -98,21 +98,21 @@ class RhinoAcquireWorker(QObject):
         row = 1
         flag_loop = True
         while flag_loop:
-            ticker = self.sheet[row, self.col_code].value
-            if ticker == self.cell_bottom:
+            code = self.sheet[row, self.col_code].value
+            if code == self.cell_bottom:
                 flag_loop = False
             else:
                 # 銘柄コード
-                self.list_ticker.append(ticker)
+                self.list_code.append(code)
 
                 # 行位置
-                self.dict_row[ticker] = row
+                self.dict_row[code] = row
 
                 # 銘柄名
-                dict_name[ticker] = self.sheet[row, self.col_name].value
+                dict_name[code] = self.sheet[row, self.col_name].value
 
                 # 前日の終値の横線
-                dict_lastclose[ticker] = self.sheet[row, self.col_lastclose].value
+                dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
 
                 # 行番号のインクリメント
                 row += 1
@@ -120,12 +120,12 @@ class RhinoAcquireWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
-            self.list_ticker, dict_name, dict_lastclose
+            self.list_code, dict_name, dict_lastclose
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ポジション・マネージャの初期化
-        self.posman.initPosition(self.list_ticker)
+        self.posman.initPosition(self.list_code)
 
     def readCurrentPrice(self):
         """
@@ -135,7 +135,7 @@ class RhinoAcquireWorker(QObject):
         dict_data = dict()
         dict_profit = dict()
         dict_total = dict()
-        for i, ticker in enumerate(self.list_ticker):
+        for i, code in enumerate(self.list_code):
             row = i + 1
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
@@ -149,9 +149,9 @@ class RhinoAcquireWorker(QObject):
                     price = self.sheet[row, self.col_price].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
-                        dict_data[ticker] = [ts, price]
-                        dict_profit[ticker] = self.posman.getProfit(ticker, price)
-                        dict_total[ticker] = self.posman.getTotal(ticker)
+                        dict_data[code] = [ts, price]
+                        dict_profit[code] = self.posman.getProfit(code, price)
+                        dict_total[code] = self.posman.getTotal(code)
                     break
                 except com_error as e:
                     # ---------------------------------------------------------

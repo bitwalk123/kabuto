@@ -4,7 +4,6 @@ Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 1. Realtime PSAR
 """
 import logging
-from collections import deque
 
 from PySide6.QtCore import (
     QObject,
@@ -20,15 +19,11 @@ class TickerWorker(QObject):
     # Parabolic SAR の情報を通知
     notifyPSAR = Signal(str, float, PSARObject)
 
-    def __init__(self, ticker, parent=None):
+    def __init__(self, code: str, parent=None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
-        self.ticker = ticker
-        self.psar = RealtimePSAR()
-        self.factor_median = 3  # メディアン値を算出するデータ点数
-        self.deque_median = deque(maxlen=self.factor_median)
-        self.period = 60
-        self.deque_mr = deque(maxlen=self.period)
+        self.code = code
+        self.psar = RealtimePSAR(code)
 
     @Slot(float, float)
     def addPrice(self, x, y):
@@ -38,27 +33,25 @@ class TickerWorker(QObject):
         ret: PSARObject = self.psar.add(y)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR の情報を通知
-        self.notifyPSAR.emit(self.ticker, x, ret)
+        self.notifyPSAR.emit(self.code, x, ret)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-# QThreadを継承した銘柄スレッドクラス
-class ThreadTicker(QThread):
+class Ticker(QThread):
     """
-    各銘柄専用のスレッド。
-    TickerWorkerオブジェクトをこのスレッドに移動させる。
+    各銘柄専用のスレッド
     """
     notifyNewPrice = Signal(float, float)
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal(str)
 
-    def __init__(self, ticker, parent=None):
+    def __init__(self, code: str, parent=None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
-        self.ticker = ticker
-        self.worker = TickerWorker(ticker)
-        self.worker.moveToThread(self)  # TickerWorkerをこのQThreadに移動
+        self.code = code
+        self.worker = worker = TickerWorker(code)
+        worker.moveToThread(self)  # TickerWorkerをこのQThreadに移動
 
         # スレッド開始時にworkerの準備完了を通知 (必要であれば)
         self.started.connect(self.thread_ready)
@@ -67,7 +60,7 @@ class ThreadTicker(QThread):
         self.notifyNewPrice.connect(self.worker.addPrice)
 
     def thread_ready(self):
-        self.threadReady.emit(self.ticker)
+        self.threadReady.emit(self.code)
 
     def run(self):
         """
@@ -75,9 +68,9 @@ class ThreadTicker(QThread):
         これがなければ、スレッドはすぐに終了してしまう。
         """
         self.logger.info(
-            f"{__name__} ThreadTicker for {self.ticker}: run() method started. Entering event loop..."
+            f"{__name__} ThreadTicker for {self.code}: run() method started. Entering event loop..."
         )
         self.exec()  # イベントループを開始
         self.logger.info(
-            f"{__name__} ThreadTicker for {self.ticker}: run() method finished. Event loop exited."
+            f"{__name__} ThreadTicker for {self.code}: run() method finished. Event loop exited."
         )
