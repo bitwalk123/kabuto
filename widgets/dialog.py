@@ -5,7 +5,12 @@ from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
-from widgets.labels import LabelRight, LabelLeft, Label, PlainTextEdit
+from widgets.labels import (
+    Label,
+    LabelLeft,
+    LabelRight,
+    PlainTextEdit,
+)
 from widgets.layouts import GridLayout
 
 

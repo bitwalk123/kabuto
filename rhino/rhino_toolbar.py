@@ -3,7 +3,7 @@ import os
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QToolBar, QFileDialog
+from PySide6.QtWidgets import QFileDialog, QToolBar
 
 from structs.res import AppRes
 from widgets.containers import PadH
@@ -11,16 +11,19 @@ from widgets.labels import Label, LCDTime
 
 
 class RhinoToolBar(QToolBar):
-    excelSelected = Signal(str)
-    playClicked = Signal()
-    stopClicked = Signal()
-    transactionClicked = Signal()
+    clickedAbout = Signal()
+    clickedPlay = Signal()
+    clickedStop = Signal()
+    clickedTransaction = Signal()
+    selectedExcelFile = Signal(str)
 
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
 
+        # デバッグ（レビュー）モード時のみ
         if res.debug:
+            # Excel ファイルを開く
             action_open = QAction(
                 QIcon(os.path.join(res.dir_image, 'excel.png')),
                 "Excel ファイルを開く",
@@ -31,6 +34,7 @@ class RhinoToolBar(QToolBar):
 
             self.addSeparator()
 
+            # タイマー開始
             action_play = QAction(
                 QIcon(os.path.join(res.dir_image, 'play.png')),
                 "タイマー開始",
@@ -39,6 +43,7 @@ class RhinoToolBar(QToolBar):
             action_play.triggered.connect(self.on_play)
             self.addAction(action_play)
 
+            # タイマー停止
             action_stop = QAction(
                 QIcon(os.path.join(res.dir_image, 'stop.png')),
                 "タイマー停止",
@@ -47,6 +52,7 @@ class RhinoToolBar(QToolBar):
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
+        # 取引履歴
         self.action_transaction = action_transaction = QAction(
             QIcon(os.path.join(res.dir_image, 'transaction.png')),
             "取引履歴",
@@ -56,8 +62,17 @@ class RhinoToolBar(QToolBar):
         action_transaction.triggered.connect(self.on_transaction)
         self.addAction(action_transaction)
 
-        hpad = PadH()
-        self.addWidget(hpad)
+        # このアプリについて
+        self.action_about = action_about = QAction(
+            QIcon(os.path.join(res.dir_image, "about.png")),
+            "このアプリについて",
+            self
+        )
+        action_about.triggered.connect(self.on_about)
+        self.addAction(action_about)
+
+        pad = PadH()
+        self.addWidget(pad)
 
         lab_time = Label("システム時刻 ")
         self.addWidget(lab_time)
@@ -65,10 +80,16 @@ class RhinoToolBar(QToolBar):
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
 
+    def on_about(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 「このアプリについて」ボタンがクリックされたことを通知
+        self.clickedAbout.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def on_play(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 「タイマー開始」ボタンがクリックされたことを通知
-        self.playClicked.emit()
+        self.clickedPlay.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_select_excel(self):
@@ -83,19 +104,19 @@ class RhinoToolBar(QToolBar):
         else:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 Excel ファイルが選択されたことの通知
-            self.excelSelected.emit(excel_path)
+            self.selectedExcelFile.emit(excel_path)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_stop(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 「タイマー停止」ボタンがクリックされたことを通知
-        self.stopClicked.emit()
+        self.clickedStop.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_transaction(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 「取引履歴」ボタンがクリックされたことを通知
-        self.transactionClicked.emit()
+        self.clickedTransaction.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def set_transaction(self):
