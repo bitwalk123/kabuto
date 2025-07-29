@@ -100,13 +100,13 @@ class DlgTradeConfig(QDialog):
         layout.addWidget(lab_psar, r, 0, 1, 2)
 
         r += 1
-        lab_af_init = LabelRaisedLeft("AF (init)")
+        lab_af_init = LabelRaisedLeft("AF (init) ")
         layout.addWidget(lab_af_init, r, 0)
         ent_af_init = Entry()
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
-        lab_af_step = LabelRaisedLeft("AF (step)")
+        lab_af_step = LabelRaisedLeft("AF (step) ")
         layout.addWidget(lab_af_step, r, 0)
         ent_af_step = Entry()
         layout.addWidget(ent_af_step, r, 1)
