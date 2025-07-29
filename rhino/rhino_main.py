@@ -246,6 +246,8 @@ class Rhino(QMainWindow):
             ticker.worker.notifyPSAR.connect(self.on_update_psar)
             ticker.start()
             self.dict_ticker[code] = ticker
+            # パラメータ情報をやりとりするために Trader クラスのドックにインスタンスを登録
+            trader.dock.setTicker(ticker)
 
     def force_closing_position(self):
         for code in self.dict_trader.keys():
