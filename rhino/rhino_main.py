@@ -202,9 +202,12 @@ class Rhino(QMainWindow):
         # Ticker インスタンスをクリア
         self.dict_ticker = dict()
 
-        # 銘柄数分の Trader インスタンスの生成
+        # 銘柄数分の Trader および Ticker インスタンスの生成
         for code in list_code:
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Trader インスタンスの生成
+            # 主にチャート表示用
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             trader = RhinoTrader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if debug:
@@ -235,9 +238,10 @@ class Rhino(QMainWindow):
             self.layout.addWidget(trader)
 
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            # Thread Ticker
+            # Ticker インスタンスの生成
+            # 主に Parabolic SAR の算出用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.ticker = ticker = Ticker(code)
+            self.ticker = ticker = Ticker(self.res, code)
             ticker.threadReady.connect(self.on_ticker_ready)
             ticker.worker.notifyPSAR.connect(self.on_update_psar)
             ticker.start()

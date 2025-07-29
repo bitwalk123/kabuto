@@ -17,22 +17,29 @@ class PSARObject:
 
 
 class RealtimePSAR:
-    def __init__(self, code: str):
-        self.code = code
+    def __init__(self, dict_psar: dict):
+        """
+        リアルタイム用 Parabolic SAR
+        :param dict_psar:
+        """
 
-        self.af_init: float = 0.000005
-        self.af_step: float = 0.000005
-        self.af_max: float = 0.005
-        self.lam: float = 10. ** 7
-
-        self.factor_d = 20  # 許容される ys と PSAR の最大差異
+        # オーバードライブ（トレンド過追従）
         self.overdrive = False
 
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
-        self.n_smooth_min = 60
-        self.n_smooth_max = 600
+        # for Parabolic SAR
+        self.af_init = dict_psar["af_init"]
+        self.af_step = dict_psar["af_step"]
+        self.af_max = dict_psar["af_max"]
+        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異
+        # for smoothing
+        self.lam = 10. ** dict_psar["power_lam"]
+        self.n_smooth_min = dict_psar["n_smooth_min"]
+        self.n_smooth_max = dict_psar["n_smooth_max"]
+
+        # スムージングの為に保持するデータ列
         # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
         # 【利点】ランチタイムのブランクを無視できる。
         self.t = 0.0
