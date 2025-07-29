@@ -34,19 +34,19 @@ class RhinoTrader(QMainWindow):
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
         self.ys_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
-        self.counter_data = 0
+        self.count_data = 0
 
         # bull（上昇トレンド）
         self.x_bull = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bull = np.empty(self.max_data_points, dtype=np.float64)
         # bull 用のカウンター
-        self.counter_bull = 0
+        self.count_bull = 0
 
         # bear（下降トレンド）
         self.x_bear = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bear = np.empty(self.max_data_points, dtype=np.float64)
         # bear 用のカウンター
-        self.counter_bear = 0
+        self.count_bear = 0
 
         #
         #######################################################################
@@ -110,8 +110,8 @@ class RhinoTrader(QMainWindow):
         """
         # タイムスタンプ の Time 列は self.tz を考慮
         return pd.DataFrame({
-            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.counter_data]],
-            "Price": self.y_data[0: self.counter_data]
+            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.count_data]],
+            "Price": self.y_data[0: self.count_data]
         })
 
     def setLastCloseLine(self, price_close: float):
@@ -144,28 +144,28 @@ class RhinoTrader(QMainWindow):
         # ---------------------------------------------------------------------
         # 現在価格（スムージングした線に変更予定）
         # ---------------------------------------------------------------------
-        self.x_data[self.counter_data] = x
-        self.y_data[self.counter_data] = ret.price
-        self.ys_data[self.counter_data] = ret.ys
-        self.counter_data += 1
-        self.trend_line.set_xdata(self.x_data[0:self.counter_data])
-        self.trend_line.set_ydata(self.ys_data[0:self.counter_data])
+        self.x_data[self.count_data] = x
+        self.y_data[self.count_data] = ret.price
+        self.ys_data[self.count_data] = ret.ys
+        self.count_data += 1
+        self.trend_line.set_xdata(self.x_data[0:self.count_data])
+        self.trend_line.set_ydata(self.ys_data[0:self.count_data])
 
         # ---------------------------------------------------------------------
         # Parabolic SAR のトレンド点
         # ---------------------------------------------------------------------
         if 0 < ret.trend:
-            self.x_bull[self.counter_bull] = x
-            self.y_bull[self.counter_bull] = ret.psar
-            self.counter_bull += 1
-            self.trend_bull.set_xdata(self.x_bull[0:self.counter_data])
-            self.trend_bull.set_ydata(self.y_bull[0:self.counter_data])
+            self.x_bull[self.count_bull] = x
+            self.y_bull[self.count_bull] = ret.psar
+            self.count_bull += 1
+            self.trend_bull.set_xdata(self.x_bull[0:self.count_data])
+            self.trend_bull.set_ydata(self.y_bull[0:self.count_data])
         elif ret.trend < 0:
-            self.x_bear[self.counter_bear] = x
-            self.y_bear[self.counter_bear] = ret.psar
-            self.counter_bear += 1
-            self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
-            self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
+            self.x_bear[self.count_bear] = x
+            self.y_bear[self.count_bear] = ret.psar
+            self.count_bear += 1
+            self.trend_bear.set_xdata(self.x_bear[0:self.count_data])
+            self.trend_bear.set_ydata(self.y_bear[0:self.count_data])
         else:
             # ret.trend == 0 の時
             pass
