@@ -12,6 +12,7 @@ from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.trans import WinTransaction
 from rhino.rhino_acquire import RhinoAcquire
+from rhino.rhino_dialog import DlgAboutThis
 from rhino.rhino_dock import DockRhinoTrader
 from rhino.rhino_funcs import get_intraday_timestamp
 from rhino.rhino_psar import PSARObject
@@ -102,9 +103,10 @@ class Rhino(QMainWindow):
 
         # ツールバー
         self.toolbar = toolbar = RhinoToolBar(res)
-        toolbar.excelSelected.connect(self.on_create_review_thread)
-        toolbar.playClicked.connect(self.on_review_play)
-        toolbar.stopClicked.connect(self.on_review_stop)
+        toolbar.clickedAbout.connect(self.on_about)
+        toolbar.clickedPlay.connect(self.on_review_play)
+        toolbar.clickedStop.connect(self.on_review_stop)
+        toolbar.selectedExcelFile.connect(self.on_create_review_thread)
         self.addToolBar(toolbar)
 
         # ステータスバー
@@ -258,6 +260,19 @@ class Rhino(QMainWindow):
             trader = self.dict_trader[ticker]
             dict_df[ticker] = trader.getTimePrice()
         return dict_df
+
+    def on_about(self):
+        """
+        このアプリについて（ダイアログ表示）
+        :return:
+        """
+        DlgAboutThis(
+            self.res,
+            self.__app_name__,
+            self.__version__,
+            self.__author__,
+            self.__license__
+        ).exec()
 
     def on_create_acquire_thread(self, excel_path: str):
         """

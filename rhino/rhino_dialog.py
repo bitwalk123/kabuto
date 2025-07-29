@@ -1,7 +1,7 @@
 import os
 
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
@@ -24,12 +24,11 @@ class DlgAboutThis(QDialog):
             license: str
     ):
         super().__init__()
+
+        icon = QIcon(os.path.join(res.dir_image, "about.png"))
+        self.setWindowIcon(icon)
         self.setWindowTitle("このアプリについて")
-        self.setStyleSheet("""
-            QDialog {
-                font-family: monospace;
-            }
-        """)
+        self.setStyleSheet("QDialog {font-family: monospace;}")
 
         layout = GridLayout()
         self.setLayout(layout)
@@ -65,17 +64,13 @@ class DlgAboutThis(QDialog):
         layout.addWidget(lab_license_1, r, 1)
 
         r += 1
-        lab_desc_0 = LabelRight("説　　明")
-        layout.addWidget(lab_desc_0, r, 0)
-        lab_desc_1 = PlainTextEdit()
+        lab_desc = PlainTextEdit()
         msg = "これはデイトレード用アプリです。\n" \
-              "楽天証券の取引ツールである「マーケットスピード２」の情報を" \
-              "RSS により Excel ワークシート上に読み込み、" \
-              "さらに python の xlwings のパッケージを利用して" \
-              "ワークシート上を読み書きして処理しています。"
-        lab_desc_1.setPlainText(msg)
-        lab_desc_1.setReadOnly(True)
-        layout.addWidget(lab_desc_1, r, 1, 1, 2)
+              "楽天証券が提供している取引ツール MARKET SPEED II RSS に対して、" \
+              "Python の xlwings のパッケージを利用してやりとりをします。"
+        lab_desc.setPlainText(msg)
+        lab_desc.setReadOnly(True)
+        layout.addWidget(lab_desc, r, 0, 1, 3)
 
         r += 1
         bbox = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
@@ -83,4 +78,3 @@ class DlgAboutThis(QDialog):
         layout.addWidget(bbox, r, 0, 1, 3)
 
         layout.setColumnStretch(1, 1)
-        layout.setColumnStretch(2, 1)
