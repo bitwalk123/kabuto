@@ -14,7 +14,6 @@ from PySide6.QtCore import (
     Slot,
 )
 
-from rhino.rhino_funcs import get_default_psar_params
 from rhino.rhino_psar import PSARObject, RealtimePSAR
 from structs.res import AppRes
 
@@ -47,6 +46,27 @@ class TickerWorker(QObject):
         self.notifyPSAR.emit(self.code, x, ret)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @staticmethod
+    def get_default_psar_params() -> dict:
+        """
+        デフォルトの Parabolic SAR 関連のパラメータを返す関数
+        :return:
+        """
+        dict_psar = dict()
+
+        # for Parabolic SAR
+        dict_psar["af_init"]: float = 0.000005
+        dict_psar["af_step"]: float = 0.000005
+        dict_psar["af_max"]: float = 0.005
+        dict_psar["factor_d"] = 20  # 許容される ys と PSAR の最大差異
+
+        # for smoothing
+        dict_psar["power_lam"]: int = 7
+        dict_psar["n_smooth_min"] = 60
+        dict_psar["n_smooth_max"] = 600
+
+        return dict_psar
+
     def get_psar_params(self) -> dict:
         # 銘柄コード固有の設定ファイル名
         file_json = os.path.join(
@@ -60,7 +80,7 @@ class TickerWorker(QObject):
                 dict_psar = json.load(f)
         else:
             # デフォルトのパラメータ設定を取得
-            dict_psar = get_default_psar_params()
+            dict_psar = self.get_default_psar_params()
             # 銘柄コード固有のファイルとして保存
             with open(file_json, "w") as f:
                 json.dump(dict_psar, f)
@@ -69,7 +89,7 @@ class TickerWorker(QObject):
 
     def getDefaultPSARParams(self):
         # デフォルトのパラメータ設定を取得
-        dict_psar = get_default_psar_params()
+        dict_psar = self.get_default_psar_params()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連のパラメータを通知
         self.notifyDefaultPSARParams.emit(dict_psar)
