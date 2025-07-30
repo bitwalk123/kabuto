@@ -110,21 +110,21 @@ class DlgTradeConfig(QDialog):
         lab_af_init = LabelRaisedLeft("AF (init) ")
         layout.addWidget(lab_af_init, r, 0)
 
-        ent_af_init = Entry()
+        ent_af_init = Entry(f"{dict_psar['af_init']:f}")
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
         lab_af_step = LabelRaisedLeft("AF (step) ")
         layout.addWidget(lab_af_step, r, 0)
 
-        ent_af_step = Entry()
+        ent_af_step = Entry(f"{dict_psar['af_step']:f}")
         layout.addWidget(ent_af_step, r, 1)
 
         r += 1
         lab_af_max = LabelRaisedLeft("AF (max)")
         layout.addWidget(lab_af_max, r, 0)
 
-        ent_af_max = Entry()
+        ent_af_max = Entry(f"{dict_psar['af_max']:f}")
         layout.addWidget(ent_af_max, r, 1)
 
         r += 1
