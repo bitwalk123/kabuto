@@ -55,6 +55,7 @@ class DockRhinoTrader(DockWidget):
         # ---------------------------------------------------------------------
         self.option = option = PanelOption(res, code)
         option.requestPSARParams.connect(self.request_psar_params)
+        option.requestDefaultPSARParams.connect(self.request_default_psar_params)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -125,7 +126,7 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def receive_default_psar_params(self, dict_default_psar: dict):
-        self.option.get_default_trade_config(dict_default_psar)
+        self.option.set_default_psar_params(dict_default_psar)
 
     def receive_psar_params(self, dict_psar: dict):
         self.option.show_trade_config(dict_psar)
@@ -166,3 +167,4 @@ class DockRhinoTrader(DockWidget):
     def setTicker(self, ticker: Ticker):
         self.ticker = ticker
         ticker.worker.notifyPSARParams.connect(self.receive_psar_params)
+        ticker.worker.notifyDefaultPSARParams.connect(self.receive_default_psar_params)

@@ -107,6 +107,7 @@ class PanelOption(QFrame):
         super().__init__()
         self.res = res
         self.code = code
+        self.dlg: DlgTradeConfig | None = None
 
         self.setFrameStyle(
             QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
@@ -129,11 +130,18 @@ class PanelOption(QFrame):
         but_setting.clicked.connect(self.trade_config)
         layout.addWidget(but_setting)
 
-    def get_default_trade_config(self, dict_default_psar: dict):
-        pass
-
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
+
+    def request_default_psar_params(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連のデフォルトのパラメータを要求
+        self.requestDefaultPSARParams.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def set_default_psar_params(self, dict_default_psar: dict):
+        if self.dlg is not None:
+            self.dlg.set_default_psar_params(dict_default_psar)
 
     def setAutoPilotEnabled(self, state: bool = True):
         self.autopilot.setChecked(state)
@@ -142,7 +150,8 @@ class PanelOption(QFrame):
         self.requestPSARParams.emit()
 
     def show_trade_config(self, dict_psar: dict):
-        dlg = DlgTradeConfig(self.res, self.code, dict_psar)
+        self.dlg = dlg = DlgTradeConfig(self.res, self.code, dict_psar)
+        dlg.requestDefaultPSARParams.connect(self.request_default_psar_params)
         if dlg.exec():
             print("Accepted")
         else:

@@ -112,6 +112,7 @@ class DlgTradeConfig(QDialog):
         pad = PadH()
         layout_row.addWidget(pad)
         but_default = ButtonSmall("default")
+        but_default.clicked.connect(self.requestDefaultPSARParams.emit)
         layout_row.addWidget(but_default)
         layout.addWidget(frame, r, 0, 1, 2)
 
@@ -192,3 +193,6 @@ class DlgTradeConfig(QDialog):
         layout.addWidget(bbox, r, 0, 1, 2)
 
         layout.setColumnStretch(1, 1)
+
+    def set_default_psar_params(self, dict_default_psar):
+        print(dict_default_psar)
