@@ -100,6 +100,7 @@ class PanelOption(QFrame):
     """
     トレーディング用オプションパネル
     """
+    requestPSARParams = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -134,9 +135,11 @@ class PanelOption(QFrame):
         self.autopilot.setChecked(state)
 
     def trade_config(self):
-        dlg = DlgTradeConfig(self.res,self.code)
+        self.requestPSARParams.emit()
+
+    def show_trade_config(self):
+        dlg = DlgTradeConfig(self.res, self.code)
         if dlg.exec():
             print("Accepted")
         else:
             print("Cenceled")
-
