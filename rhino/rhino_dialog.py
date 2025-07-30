@@ -127,28 +127,28 @@ class DlgTradeConfig(QDialog):
         lab_af_init = LabelRaisedRight("AF (init)")
         layout.addWidget(lab_af_init, r, 0)
 
-        ent_af_init = EntryRight(f"{dict_psar['af_init']:f}")
+        self.ent_af_init = ent_af_init = EntryRight(f"{dict_psar['af_init']:f}")
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
         lab_af_step = LabelRaisedRight("AF (step)")
         layout.addWidget(lab_af_step, r, 0)
 
-        ent_af_step = EntryRight(f"{dict_psar['af_step']:f}")
+        self.ent_af_step = ent_af_step = EntryRight(f"{dict_psar['af_step']:f}")
         layout.addWidget(ent_af_step, r, 1)
 
         r += 1
         lab_af_max = LabelRaisedRight("AF (max) ")
         layout.addWidget(lab_af_max, r, 0)
 
-        ent_af_max = EntryRight(f"{dict_psar['af_max']:f}")
+        self.ent_af_max = ent_af_max = EntryRight(f"{dict_psar['af_max']:f}")
         layout.addWidget(ent_af_max, r, 1)
 
         r += 1
         lab_factor_d = LabelRaisedRight("Factor D ")
         layout.addWidget(lab_factor_d, r, 0)
 
-        ent_factor_d = EntryRight(f"{dict_psar['factor_d']:f}")
+        self.ent_factor_d = ent_factor_d = EntryRight(f"{dict_psar['factor_d']:f}")
         layout.addWidget(ent_factor_d, r, 1)
 
         # ---------------------------------------------------------------------
@@ -162,21 +162,21 @@ class DlgTradeConfig(QDialog):
         lab_power_lam = LabelRaisedRight("power of lam")
         layout.addWidget(lab_power_lam, r, 0)
 
-        ent_power_lam = EntryRight(f"{dict_psar['power_lam']:d}")
+        self.ent_power_lam = ent_power_lam = EntryRight(f"{dict_psar['power_lam']:d}")
         layout.addWidget(ent_power_lam, r, 1)
 
         r += 1
         lab_n_smooth_min = LabelRaisedRight("N smooth min")
         layout.addWidget(lab_n_smooth_min, r, 0)
 
-        ent_n_smooth_min = EntryRight(f"{dict_psar['n_smooth_min']:d}")
+        self.ent_n_smooth_min = ent_n_smooth_min = EntryRight(f"{dict_psar['n_smooth_min']:d}")
         layout.addWidget(ent_n_smooth_min, r, 1)
 
         r += 1
         lab_n_smooth_max = LabelRaisedRight("N smooth max")
         layout.addWidget(lab_n_smooth_max, r, 0)
 
-        ent_n_smooth_max = EntryRight(f"{dict_psar['n_smooth_max']:d}")
+        self.ent_n_smooth_max = ent_n_smooth_max = EntryRight(f"{dict_psar['n_smooth_max']:d}")
         layout.addWidget(ent_n_smooth_max, r, 1)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
