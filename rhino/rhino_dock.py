@@ -124,8 +124,15 @@ class DockRhinoTrader(DockWidget):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def receive_default_psar_params(self, dict_default_psar: dict):
+        self.option.get_default_trade_config(dict_default_psar)
+
     def receive_psar_params(self, dict_psar: dict):
         self.option.show_trade_config(dict_psar)
+
+    def request_default_psar_params(self):
+        if self.ticker is not None:
+            self.ticker.requestDefaultPSARParams.emit()
 
     def request_psar_params(self):
         if self.ticker is not None:

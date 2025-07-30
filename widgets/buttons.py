@@ -141,6 +141,12 @@ class ButtonSell(QPushButton):
         self.setText("売　建")
 
 
+class ButtonSmall(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setStyleSheet("QPushButton {font-size: 7pt;}")
+
+
 class ButtonTicker(QPushButton):
     def __init__(self, code: str, name: str):
         super().__init__()

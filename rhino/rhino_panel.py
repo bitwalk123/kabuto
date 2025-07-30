@@ -100,6 +100,7 @@ class PanelOption(QFrame):
     """
     トレーディング用オプションパネル
     """
+    requestDefaultPSARParams = Signal()
     requestPSARParams = Signal()
 
     def __init__(self, res: AppRes, code: str):
@@ -127,6 +128,9 @@ class PanelOption(QFrame):
         self.setting = but_setting = ButtonSetting(res)
         but_setting.clicked.connect(self.trade_config)
         layout.addWidget(but_setting)
+
+    def get_default_trade_config(self, dict_default_psar: dict):
+        pass
 
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()

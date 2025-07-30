@@ -20,6 +20,8 @@ from structs.res import AppRes
 
 
 class TickerWorker(QObject):
+    # Parabolic SAR 関連のデフォルトのパラメータを通知
+    notifyDefaultPSARParams = Signal(dict)
     # Parabolic SAR の情報を通知
     notifyPSAR = Signal(str, float, PSARObject)
     # Parabolic SAR 関連パラメータを通知
@@ -65,6 +67,14 @@ class TickerWorker(QObject):
 
         return dict_psar
 
+    def getDefaultPSARParams(self):
+        # デフォルトのパラメータ設定を取得
+        dict_psar = get_default_psar_params()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連のパラメータを通知
+        self.notifyDefaultPSARParams.emit(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def getPSARParams(self):
         dict_psar = self.get_psar_params()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -79,6 +89,8 @@ class Ticker(QThread):
     """
     # 新たな株価情報をスレッドへ通知
     notifyNewPrice = Signal(float, float)
+    # Parabolic SAR 関連のデフォルトのパラメータをリクエスト
+    requestDefaultPSARParams = Signal()
     # Parabolic SAR 関連のパラメータをリクエスト
     requestPSARParams = Signal()
 
@@ -97,6 +109,9 @@ class Ticker(QThread):
 
         # 新たな株価情報を追加するメソッドへキューイング
         self.notifyNewPrice.connect(worker.addPrice)
+
+        # Parabolic SAR 関連のパラメータを取得するメソッドへキューイング
+        self.requestDefaultPSARParams.connect(worker.getDefaultPSARParams)
 
         # Parabolic SAR 関連のパラメータを取得するメソッドへキューイング
         self.requestPSARParams.connect(worker.getPSARParams)

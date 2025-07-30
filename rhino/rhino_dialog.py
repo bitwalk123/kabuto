@@ -1,10 +1,12 @@
 import os
 
-from PySide6.QtCore import QMargins, Qt
+from PySide6.QtCore import QMargins, Qt, Signal
 from PySide6.QtGui import QPixmap, QIcon
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QPushButton
+from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
+from widgets.buttons import ButtonSmall
+from widgets.containers import Widget, PadH
 from widgets.entries import Entry
 from widgets.labels import (
     Label,
@@ -14,7 +16,7 @@ from widgets.labels import (
     LabelRight,
     PlainTextEdit,
 )
-from widgets.layouts import GridLayout
+from widgets.layouts import GridLayout, HBoxLayout
 
 
 class DlgAboutThis(QDialog):
@@ -89,6 +91,8 @@ class DlgAboutThis(QDialog):
 
 
 class DlgTradeConfig(QDialog):
+    requestDefaultPSARParams = Signal()
+
     def __init__(self, res: AppRes, code: str, dict_psar: dict):
         super().__init__()
         self.dict_psar = dict_psar
@@ -105,6 +109,16 @@ class DlgTradeConfig(QDialog):
         r = 0
         lab_psar = LabelRaised("Parabolic SAR")
         layout.addWidget(lab_psar, r, 0, 1, 2)
+
+        r += 1
+        frame = Widget()
+        layout_row = HBoxLayout()
+        frame.setLayout(layout_row)
+        pad = PadH()
+        layout_row.addWidget(pad)
+        but_default = ButtonSmall("default")
+        layout_row.addWidget(but_default)
+        layout.addWidget(frame, r, 0, 1, 2)
 
         r += 1
         lab_af_init = LabelRaisedLeft("AF (init) ")
