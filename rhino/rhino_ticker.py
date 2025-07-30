@@ -46,7 +46,6 @@ class TickerWorker(QObject):
         self.notifyPSAR.emit(self.code, x, ret)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
     @staticmethod
     def get_default_psar_params() -> dict:
         """
@@ -59,12 +58,12 @@ class TickerWorker(QObject):
         dict_psar["af_init"]: float = 0.000005
         dict_psar["af_step"]: float = 0.000005
         dict_psar["af_max"]: float = 0.005
-        dict_psar["factor_d"] = 20  # 許容される ys と PSAR の最大差異
+        dict_psar["factor_d"]: float = 20  # 許容される ys と PSAR の最大差異
 
         # for smoothing
         dict_psar["power_lam"]: int = 7
-        dict_psar["n_smooth_min"] = 60
-        dict_psar["n_smooth_max"] = 600
+        dict_psar["n_smooth_min"]: int = 60
+        dict_psar["n_smooth_max"]: int = 600
 
         return dict_psar
 
@@ -120,7 +119,6 @@ class TickerWorker(QObject):
     def save_contents_to_json(file_json: str, dict_psar: dict):
         with open(file_json, "w") as f:
             json.dump(dict_psar, f)
-
 
 
 class Ticker(QThread):

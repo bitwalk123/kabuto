@@ -7,12 +7,12 @@ from PySide6.QtWidgets import QDialog, QDialogButtonBox
 from structs.res import AppRes
 from widgets.buttons import ButtonSmall
 from widgets.containers import Widget, PadH
-from widgets.entries import Entry
+from widgets.entries import EntryRight
 from widgets.labels import (
     Label,
     LabelLeft,
     LabelRaised,
-    LabelRaisedLeft,
+    LabelRaisedRight,
     LabelRight,
     PlainTextEdit,
 )
@@ -96,7 +96,6 @@ class DlgTradeConfig(QDialog):
     def __init__(self, res: AppRes, code: str, dict_psar: dict):
         super().__init__()
         self.dict_psar = dict_psar
-        print(dict_psar)
 
         icon = QIcon(os.path.join(res.dir_image, "setting.png"))
         self.setWindowIcon(icon)
@@ -107,10 +106,6 @@ class DlgTradeConfig(QDialog):
         self.setLayout(layout)
 
         r = 0
-        lab_psar = LabelRaised("Parabolic SAR")
-        layout.addWidget(lab_psar, r, 0, 1, 2)
-
-        r += 1
         frame = Widget()
         layout_row = HBoxLayout()
         frame.setLayout(layout_row)
@@ -120,27 +115,72 @@ class DlgTradeConfig(QDialog):
         layout_row.addWidget(but_default)
         layout.addWidget(frame, r, 0, 1, 2)
 
+        # ---------------------------------------------------------------------
+        # Parabolic SAR
+        # ---------------------------------------------------------------------
         r += 1
-        lab_af_init = LabelRaisedLeft("AF (init) ")
+        lab_psar = LabelRaised("Parabolic SAR")
+        layout.addWidget(lab_psar, r, 0, 1, 2)
+
+        r += 1
+        lab_af_init = LabelRaisedRight("AF (init)")
         layout.addWidget(lab_af_init, r, 0)
 
-        ent_af_init = Entry(f"{dict_psar['af_init']:f}")
+        ent_af_init = EntryRight(f"{dict_psar['af_init']:f}")
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
-        lab_af_step = LabelRaisedLeft("AF (step) ")
+        lab_af_step = LabelRaisedRight("AF (step)")
         layout.addWidget(lab_af_step, r, 0)
 
-        ent_af_step = Entry(f"{dict_psar['af_step']:f}")
+        ent_af_step = EntryRight(f"{dict_psar['af_step']:f}")
         layout.addWidget(ent_af_step, r, 1)
 
         r += 1
-        lab_af_max = LabelRaisedLeft("AF (max)")
+        lab_af_max = LabelRaisedRight("AF (max) ")
         layout.addWidget(lab_af_max, r, 0)
 
-        ent_af_max = Entry(f"{dict_psar['af_max']:f}")
+        ent_af_max = EntryRight(f"{dict_psar['af_max']:f}")
         layout.addWidget(ent_af_max, r, 1)
 
+        r += 1
+        lab_factor_d = LabelRaisedRight("Factor D ")
+        layout.addWidget(lab_factor_d, r, 0)
+
+        ent_factor_d = EntryRight(f"{dict_psar['factor_d']:f}")
+        layout.addWidget(ent_factor_d, r, 1)
+
+        # ---------------------------------------------------------------------
+        # Smoothing
+        # ---------------------------------------------------------------------
+        r += 1
+        lab_psar = LabelRaised("Smoothing")
+        layout.addWidget(lab_psar, r, 0, 1, 2)
+
+        r += 1
+        lab_power_lam = LabelRaisedRight("power of lam")
+        layout.addWidget(lab_power_lam, r, 0)
+
+        ent_power_lam = EntryRight(f"{dict_psar['power_lam']:d}")
+        layout.addWidget(ent_power_lam, r, 1)
+
+        r += 1
+        lab_n_smooth_min = LabelRaisedRight("N smooth min")
+        layout.addWidget(lab_n_smooth_min, r, 0)
+
+        ent_n_smooth_min = EntryRight(f"{dict_psar['n_smooth_min']:d}")
+        layout.addWidget(ent_n_smooth_min, r, 1)
+
+        r += 1
+        lab_n_smooth_max = LabelRaisedRight("N smooth max")
+        layout.addWidget(lab_n_smooth_max, r, 0)
+
+        ent_n_smooth_max = EntryRight(f"{dict_psar['n_smooth_max']:d}")
+        layout.addWidget(ent_n_smooth_max, r, 1)
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # ダイアログ・ボタン
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         r += 1
         bbox = QDialogButtonBox(Qt.Orientation.Horizontal)
         # 「Cancel」ボタン
