@@ -5,6 +5,7 @@ from PySide6.QtCore import Signal
 from rhino.rhino_pacman import PacMan
 from rhino.rhino_panel import PanelOption, PanelTrading
 from rhino.rhino_psar import PSARObject
+from rhino.rhino_ticker import Ticker
 from structs.posman import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget
@@ -21,7 +22,11 @@ class DockRhinoTrader(DockWidget):
         self.logger = logging.getLogger(__name__)
         self.code = code
         self.pacman = PacMan()
+        self.ticker: Ticker | None = None
 
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        #  UI
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 現在株価
         self.price = price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
@@ -32,7 +37,9 @@ class DockRhinoTrader(DockWidget):
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
 
+        # ---------------------------------------------------------------------
         # 取引用パネル
+        # ---------------------------------------------------------------------
         self.trading = trading = PanelTrading()
         trading.clickedBuy.connect(self.on_buy)
         trading.clickedSell.connect(self.on_sell)
@@ -43,8 +50,12 @@ class DockRhinoTrader(DockWidget):
         self.epupd = epupd = LCDIntWithTitle("EP 更新回数")
         self.layout.addWidget(epupd)
 
+        # ---------------------------------------------------------------------
         # オプションパネル
+        # ---------------------------------------------------------------------
         self.option = option = PanelOption(res, code)
+        option.requestPSARParams.connect(self.request_psar_params)
+        option.requestDefaultPSARParams.connect(self.request_default_psar_params)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -114,6 +125,20 @@ class DockRhinoTrader(DockWidget):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def receive_default_psar_params(self, dict_default_psar: dict):
+        self.option.set_default_psar_params(dict_default_psar)
+
+    def receive_psar_params(self, dict_psar: dict):
+        self.option.show_trade_config(dict_psar)
+
+    def request_default_psar_params(self):
+        if self.ticker is not None:
+            self.ticker.requestDefaultPSARParams.emit()
+
+    def request_psar_params(self):
+        if self.ticker is not None:
+            self.ticker.requestPSARParams.emit()
+
     def setEPUpd(self, epupd: int):
         self.epupd.setValue(epupd)
 
@@ -138,3 +163,8 @@ class DockRhinoTrader(DockWidget):
                 self.doRepay()
             else:
                 pass
+
+    def setTicker(self, ticker: Ticker):
+        self.ticker = ticker
+        ticker.worker.notifyPSARParams.connect(self.receive_psar_params)
+        ticker.worker.notifyDefaultPSARParams.connect(self.receive_default_psar_params)

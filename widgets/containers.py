@@ -19,6 +19,14 @@ class Frame(QFrame):
         )
         self.setLineWidth(1)
 
+class FrameSunken(QFrame):
+    def __init__(self):
+        super().__init__()
+        self.setFrameStyle(
+            QFrame.Shape.WinPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(2)
+
 
 class IndicatorBuySell(QFrame):
     def __init__(self):

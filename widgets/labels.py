@@ -51,6 +51,15 @@ class LabelRaisedLeft(Label):
         self.setLineWidth(2)
 
 
+class LabelRaisedRight(Label):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.setFrameStyle(QFrame.Shape.Panel | QFrame.Shadow.Raised)
+        self.setLineWidth(2)
+
+
 class LabelRight(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
