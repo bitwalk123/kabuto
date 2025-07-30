@@ -137,8 +137,8 @@ class PanelOption(QFrame):
     def trade_config(self):
         self.requestPSARParams.emit()
 
-    def show_trade_config(self):
-        dlg = DlgTradeConfig(self.res, self.code)
+    def show_trade_config(self, dict_psar: dict):
+        dlg = DlgTradeConfig(self.res, self.code, dict_psar)
         if dlg.exec():
             print("Accepted")
         else:

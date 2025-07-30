@@ -89,8 +89,10 @@ class DlgAboutThis(QDialog):
 
 
 class DlgTradeConfig(QDialog):
-    def __init__(self, res: AppRes, code: str):
+    def __init__(self, res: AppRes, code: str, dict_psar: dict):
         super().__init__()
+        self.dict_psar = dict_psar
+        print(dict_psar)
 
         icon = QIcon(os.path.join(res.dir_image, "setting.png"))
         self.setWindowIcon(icon)
