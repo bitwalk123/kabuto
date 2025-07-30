@@ -46,6 +46,7 @@ class TickerWorker(QObject):
         self.notifyPSAR.emit(self.code, x, ret)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
     @staticmethod
     def get_default_psar_params() -> dict:
         """
@@ -67,23 +68,26 @@ class TickerWorker(QObject):
 
         return dict_psar
 
+    def get_json_path(self) -> str:
+        """
+        銘柄コードに対応した JSON ファイルのパスを取得
+        :return:
+        """
+        file_json = os.path.join(self.res.dir_conf, f"{self.code}.json")
+        return file_json
+
     def get_psar_params(self) -> dict:
         # 銘柄コード固有の設定ファイル名
-        file_json = os.path.join(
-            self.res.dir_conf,
-            f"{self.code}.json"
-        )
+        file_json = self.get_json_path()
 
         if os.path.isfile(file_json):
             # 銘柄コード固有のファイルが存在すれば読み込む
-            with open(file_json) as f:
-                dict_psar = json.load(f)
+            dict_psar = self.read_contents_from_json(file_json)
         else:
             # デフォルトのパラメータ設定を取得
             dict_psar = self.get_default_psar_params()
             # 銘柄コード固有のファイルとして保存
-            with open(file_json, "w") as f:
-                json.dump(dict_psar, f)
+            self.save_contents_to_json(file_json, dict_psar)
 
         return dict_psar
 
@@ -101,6 +105,22 @@ class TickerWorker(QObject):
         # 🧿 Parabolic SAR 関連のパラメータを通知
         self.notifyPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    #  JSON 入出力関連
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    @staticmethod
+    def read_contents_from_json(file_json) -> dict:
+        with open(file_json) as f:
+            dict_psar = json.load(f)
+
+        return dict_psar
+
+    @staticmethod
+    def save_contents_to_json(file_json: str, dict_psar: dict):
+        with open(file_json, "w") as f:
+            json.dump(dict_psar, f)
+
 
 
 class Ticker(QThread):
