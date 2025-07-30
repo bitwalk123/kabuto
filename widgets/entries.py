@@ -48,3 +48,10 @@ class EntryPort(Entry):
 
     def setClear(self):
         self.setText("")
+
+
+class EntryRight(Entry):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setMinimumWidth(100)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
