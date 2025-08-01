@@ -97,6 +97,7 @@ class DlgTradeConfig(QDialog):
     def __init__(self, res: AppRes, code: str, dict_psar: dict):
         super().__init__()
         self.dict_psar = dict_psar
+        self.dict_entry = dict()
 
         icon = QIcon(os.path.join(res.dir_image, "setting.png"))
         self.setWindowIcon(icon)
@@ -128,28 +129,28 @@ class DlgTradeConfig(QDialog):
         lab_af_init = LabelRaisedRight("AF (init)")
         layout.addWidget(lab_af_init, r, 0)
 
-        self.ent_af_init = ent_af_init = EntryRight()
+        self.dict_entry["af_init"] = ent_af_init = EntryRight()
         layout.addWidget(ent_af_init, r, 1)
 
         r += 1
         lab_af_step = LabelRaisedRight("AF (step)")
         layout.addWidget(lab_af_step, r, 0)
 
-        self.ent_af_step = ent_af_step = EntryRight()
+        self.dict_entry["af_step"] = ent_af_step = EntryRight()
         layout.addWidget(ent_af_step, r, 1)
 
         r += 1
         lab_af_max = LabelRaisedRight("AF (max) ")
         layout.addWidget(lab_af_max, r, 0)
 
-        self.ent_af_max = ent_af_max = EntryRight()
+        self.dict_entry["af_max"] = ent_af_max = EntryRight()
         layout.addWidget(ent_af_max, r, 1)
 
         r += 1
         lab_factor_d = LabelRaisedRight("Factor D ")
         layout.addWidget(lab_factor_d, r, 0)
 
-        self.ent_factor_d = ent_factor_d = EntryRight()
+        self.dict_entry["factor_d"] = ent_factor_d = EntryRight()
         layout.addWidget(ent_factor_d, r, 1)
 
         # ---------------------------------------------------------------------
@@ -163,21 +164,21 @@ class DlgTradeConfig(QDialog):
         lab_power_lam = LabelRaisedRight("power of lam")
         layout.addWidget(lab_power_lam, r, 0)
 
-        self.ent_power_lam = ent_power_lam = EntryRight()
+        self.dict_entry["power_lam"] = ent_power_lam = EntryRight()
         layout.addWidget(ent_power_lam, r, 1)
 
         r += 1
         lab_n_smooth_min = LabelRaisedRight("N smooth min")
         layout.addWidget(lab_n_smooth_min, r, 0)
 
-        self.ent_n_smooth_min = ent_n_smooth_min = EntryRight()
+        self.dict_entry["n_smooth_min"] = ent_n_smooth_min = EntryRight()
         layout.addWidget(ent_n_smooth_min, r, 1)
 
         r += 1
         lab_n_smooth_max = LabelRaisedRight("N smooth max")
         layout.addWidget(lab_n_smooth_max, r, 0)
 
-        self.ent_n_smooth_max = ent_n_smooth_max = EntryRight()
+        self.dict_entry["n_smooth_max"] = ent_n_smooth_max = EntryRight()
         layout.addWidget(ent_n_smooth_max, r, 1)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -215,16 +216,13 @@ class DlgTradeConfig(QDialog):
         # ---------------------------------------------------------------------
         # Parabolic SAR
         # ---------------------------------------------------------------------
-        dict_psar['af_init'] = float(self.ent_af_init.text())
-        dict_psar['af_step'] = float(self.ent_af_step.text())
-        dict_psar['af_max'] = float(self.ent_af_max.text())
-        dict_psar['factor_d'] = float(self.ent_factor_d.text())
+        for key in ["af_init", "af_step", "af_max", "factor_d"]:
+            dict_psar[key] = float(self.dict_entry[key].text())
         # ---------------------------------------------------------------------
         # Smoothing
         # ---------------------------------------------------------------------
-        dict_psar['power_lam'] = int(self.ent_power_lam.text())
-        dict_psar['n_smooth_min'] = int(self.ent_n_smooth_min.text())
-        dict_psar['n_smooth_max'] = int(self.ent_n_smooth_max.text())
+        for key in ["power_lam", "n_smooth_min", "n_smooth_max"]:
+            dict_psar[key] = int(self.dict_entry[key].text())
 
         return dict_psar
 
@@ -237,13 +235,10 @@ class DlgTradeConfig(QDialog):
         # ---------------------------------------------------------------------
         # Parabolic SAR
         # ---------------------------------------------------------------------
-        self.ent_af_init.setText(f"{dict_psar['af_init']:f}")
-        self.ent_af_step.setText(f"{dict_psar['af_step']:f}")
-        self.ent_af_max.setText(f"{dict_psar['af_max']:f}")
-        self.ent_factor_d.setText(f"{dict_psar['factor_d']:f}")
+        for key in ["af_init", "af_step", "af_max", "factor_d"]:
+            self.dict_entry[key].setText(f"{dict_psar[key]:f}")
         # ---------------------------------------------------------------------
         # Smoothing
         # ---------------------------------------------------------------------
-        self.ent_power_lam.setText(f"{dict_psar['power_lam']:d}")
-        self.ent_n_smooth_min.setText(f"{dict_psar['n_smooth_min']:d}")
-        self.ent_n_smooth_max.setText(f"{dict_psar['n_smooth_max']:d}")
+        for key in ["power_lam", "n_smooth_min", "n_smooth_max"]:
+            self.dict_entry[key].setText(f"{dict_psar[key]:d}")
