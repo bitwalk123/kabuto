@@ -56,6 +56,7 @@ class DockRhinoTrader(DockWidget):
         self.option = option = PanelOption(res, code)
         option.requestPSARParams.connect(self.request_psar_params)
         option.requestDefaultPSARParams.connect(self.request_default_psar_params)
+        option.notifyNewPSARParams.connect(self.notify_new_psar_params)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -124,6 +125,9 @@ class DockRhinoTrader(DockWidget):
             self.code, self.price.getValue(), note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def notify_new_psar_params(self, dict_psar: dict):
+        print(dict_psar)
 
     def receive_default_psar_params(self, dict_default_psar: dict):
         self.option.set_default_psar_params(dict_default_psar)

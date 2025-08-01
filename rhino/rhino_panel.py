@@ -102,6 +102,7 @@ class PanelOption(QFrame):
     """
     requestDefaultPSARParams = Signal()
     requestPSARParams = Signal()
+    notifyNewPSARParams = Signal(dict)
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -133,6 +134,12 @@ class PanelOption(QFrame):
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
 
+    def notify_new_psar_params(self, dict_psar: dict):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連の新しいパラメータを通知
+        self.notifyNewPSARParams.emit(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def request_default_psar_params(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連のデフォルトのパラメータを要求
@@ -152,6 +159,7 @@ class PanelOption(QFrame):
     def show_trade_config(self, dict_psar: dict):
         self.dlg = dlg = DlgTradeConfig(self.res, self.code, dict_psar)
         dlg.requestDefaultPSARParams.connect(self.request_default_psar_params)
+        dlg.notifyNewPSARParams.connect(self.notify_new_psar_params)
         if dlg.exec():
             print("Accepted")
         else:
