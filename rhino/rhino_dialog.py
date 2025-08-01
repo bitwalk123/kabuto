@@ -112,7 +112,7 @@ class DlgTradeConfig(QDialog):
         layout_row = HBoxLayout()
         frame.setLayout(layout_row)
         but_default = ButtonSmall("default")
-        but_default.clicked.connect(self.requestDefaultPSARParams.emit)
+        but_default.clicked.connect(self.request_default_psar_params)
         layout_row.addWidget(but_default)
         pad = PadH()
         layout_row.addWidget(pad)
@@ -204,11 +204,11 @@ class DlgTradeConfig(QDialog):
 
     def button_ok_clicked(self):
         dict_psar = self.get_entries()
-        print(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連の新しいパラメータを通知
+        self.notifyNewPSARParams.emit(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.accept()
-
-    def set_default_psar_params(self, dict_default_psar: dict):
-        self.set_psar_params(dict_default_psar)
 
     def get_entries(self) -> dict:
         dict_psar = dict()
@@ -225,6 +225,15 @@ class DlgTradeConfig(QDialog):
             dict_psar[key] = int(self.dict_entry[key].text())
 
         return dict_psar
+
+    def request_default_psar_params(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連のパラメータを要求
+        self.requestDefaultPSARParams.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def set_default_psar_params(self, dict_default_psar: dict):
+        self.set_psar_params(dict_default_psar)
 
     def set_psar_params(self, dict_psar: dict):
         """
