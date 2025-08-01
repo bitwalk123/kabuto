@@ -1,5 +1,6 @@
 from collections import deque  # deque をインポート
 
+from scipy.differentiate import derivative
 from scipy.interpolate import make_smoothing_spline
 
 
@@ -14,6 +15,7 @@ class PSARObject:
         self.psar: float = 0.
         self.trend: int = 0
         self.ys: float = 0
+        self.dys: float = 0
 
 
 class RealtimePSAR:
@@ -59,9 +61,14 @@ class RealtimePSAR:
                 self.y_deque,
                 lam=self.lam
             )
+            # スムージング値
             self.obj.ys = spl(self.t)
+            # 微係数の絶対値を算出
+            deriv = derivative(spl, self.t)
+            self.obj.dys = abs(deriv.df)
         else:
             self.obj.ys = price
+            self.obj.dys = 0
 
         # Parabolic SAR
         if len(self.t_deque) < self.n_smooth_min:
