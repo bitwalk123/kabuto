@@ -102,6 +102,7 @@ class PanelOption(QFrame):
     """
     requestDefaultPSARParams = Signal()
     requestPSARParams = Signal()
+    notifyNewPSARParams = Signal(dict)
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -134,7 +135,10 @@ class PanelOption(QFrame):
         return self.autopilot.isChecked()
 
     def notify_new_psar_params(self, dict_psar: dict):
-        print(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Parabolic SAR 関連の新しいパラメータを通知
+        self.notifyNewPSARParams.emit(dict_psar)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def request_default_psar_params(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
