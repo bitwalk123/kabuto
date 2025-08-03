@@ -14,6 +14,7 @@ class PSARObject:
         self.price: float = 0.
         self.psar: float = 0.
         self.trend: int = 0
+        self.y_sar: float = 0 # トレンド反転した時の価格
         self.ys: float = 0
         self.dys: float = 0
 
@@ -26,7 +27,7 @@ class RealtimePSAR:
         """
 
         # オーバードライブ（トレンド過追従）
-        self.overdrive = False
+        #self.overdrive = True
 
         # PSARObject のインスタンス
         self.obj = PSARObject()
@@ -82,7 +83,6 @@ class RealtimePSAR:
             # トレンドが 0 の時は寄り付き後で、ひとたび trend が +1 あるいは -1 になれば、
             # 以後はトレンド反転するので 0 になることは無い
             # -----------------------------------------------------------------
-            # self.decide_first_trend(self.obj.ys)
             if self.y_deque[-2] < self.obj.ys:
                 self.obj.trend = +1
                 self.init_first_param(self.obj.ys)  # トレンド決定後の最初のパラメータ処理
@@ -102,6 +102,7 @@ class RealtimePSAR:
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
+            self.obj.y_sar = price # トレンド反転時の株価を保持
             # トレンド反転後の ys と psar の差異
             # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
@@ -117,7 +118,13 @@ class RealtimePSAR:
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             # 許容される ys と PSAR の最大差異チェック
-            if self.overdrive:
+            if self.obj.y_sar == 0: # トレンド反転前の最初のトレンド時
+                if self.factor_d < abs(self.obj.psar - self.obj.ys):
+                    if 0 < self.obj.trend:
+                        self.obj.psar = self.obj.ys - self.factor_d
+                    elif self.obj.trend < 0:
+                        self.obj.psar = self.obj.ys + self.factor_d
+            else: # 1 回でもトレンド反転した後
                 if self.factor_d < abs(self.obj.psar - self.obj.ys):
                     if 0 < self.obj.trend:
                         self.obj.psar = self.obj.ys - self.factor_d
