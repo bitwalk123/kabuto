@@ -107,6 +107,7 @@ class Rhino(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.selectedExcelFile.connect(self.on_create_review_thread)
+        toolbar.clickedTransaction.connect(self.on_show_transaction)
         self.addToolBar(toolbar)
 
         # ステータスバー
@@ -346,6 +347,10 @@ class Rhino(QMainWindow):
 
         # ツールバーの時刻を更新
         self.toolbar.updateTime(self.ts_system)
+
+    def on_show_transaction(self):
+        self.win_transaction = WinTransaction(self.res, self.df_transaction)
+        self.win_transaction.show()
 
     def on_thread_finished(self, result: bool):
         """

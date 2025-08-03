@@ -1,6 +1,6 @@
 from collections import deque  # deque をインポート
 
-from scipy.differentiate import derivative
+# from scipy.differentiate import derivative
 from scipy.interpolate import make_smoothing_spline
 
 
@@ -14,9 +14,9 @@ class PSARObject:
         self.price: float = 0.
         self.psar: float = 0.
         self.trend: int = 0
-        self.y_sar: float = 0 # トレンド反転した時の価格
+        self.y_sar: float = 0  # トレンド反転した時の価格
         self.ys: float = 0
-        self.dys: float = 0
+        # self.dys: float = 0 # 微係数
 
 
 class RealtimePSAR:
@@ -27,7 +27,7 @@ class RealtimePSAR:
         """
 
         # オーバードライブ（トレンド過追従）
-        #self.overdrive = True
+        # self.overdrive = True
 
         # PSARObject のインスタンス
         self.obj = PSARObject()
@@ -65,11 +65,11 @@ class RealtimePSAR:
             # スムージング値
             self.obj.ys = spl(self.t)
             # 微係数の絶対値を算出
-            deriv = derivative(spl, self.t)
-            self.obj.dys = abs(deriv.df)
+            # deriv = derivative(spl, self.t)
+            # self.obj.dys = abs(deriv.df)
         else:
             self.obj.ys = price
-            self.obj.dys = 0
+            # self.obj.dys = 0
 
         # Parabolic SAR
         if len(self.t_deque) < self.n_smooth_min:
@@ -102,7 +102,7 @@ class RealtimePSAR:
             self.obj.af = self.af_init
             self.obj.epupd = 0
             self.obj.duration = 0
-            self.obj.y_sar = price # トレンド反転時の株価を保持
+            self.obj.y_sar = price  # トレンド反転時の株価を保持
             # トレンド反転後の ys と psar の差異
             # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
