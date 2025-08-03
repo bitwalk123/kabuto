@@ -118,18 +118,11 @@ class RealtimePSAR:
             self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             # 許容される ys と PSAR の最大差異チェック
-            if self.obj.y_sar == 0: # トレンド反転前の最初のトレンド時
-                if self.factor_d < abs(self.obj.psar - self.obj.ys):
-                    if 0 < self.obj.trend:
-                        self.obj.psar = self.obj.ys - self.factor_d
-                    elif self.obj.trend < 0:
-                        self.obj.psar = self.obj.ys + self.factor_d
-            else: # 1 回でもトレンド反転した後
-                if self.factor_d < abs(self.obj.psar - self.obj.ys):
-                    if 0 < self.obj.trend:
-                        self.obj.psar = self.obj.ys - self.factor_d
-                    elif self.obj.trend < 0:
-                        self.obj.psar = self.obj.ys + self.factor_d
+            if self.factor_d < abs(self.obj.psar - self.obj.ys):
+                if 0 < self.obj.trend:
+                    self.obj.psar = self.obj.ys - self.factor_d
+                elif self.obj.trend < 0:
+                    self.obj.psar = self.obj.ys + self.factor_d
 
             self.obj.duration += 1
 
