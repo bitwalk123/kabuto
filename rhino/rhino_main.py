@@ -222,6 +222,8 @@ class Rhino(QMainWindow):
                 trader.dock.clickedBuy.connect(self.on_buy)
                 trader.dock.clickedRepay.connect(self.on_repay)
                 trader.dock.clickedSell.connect(self.on_sell)
+            # レビュー/リアルタイム用共通処理
+            trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader
@@ -444,6 +446,12 @@ class Rhino(QMainWindow):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def notify_new_psar_params(self, code: str, dict_psar: dict):
+        # 銘柄コード別 Parabolic SAR 等の算出用インスタンス
+        ticker: Ticker = self.dict_ticker[code]
+        # ここで PSAR を算出する処理が呼び出される
+        ticker.requestUpdatePSARParams.emit(dict_psar)
+
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -467,7 +475,7 @@ class Rhino(QMainWindow):
             r += len(df)
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} cancel saving {name_excel}, since no data exists.")
+            self.logger.info(f"{__name__}: cancel saving {name_excel}, since no data exists.")
             return False
         else:
             # ティックデータの保存処理

@@ -16,6 +16,7 @@ class DockRhinoTrader(DockWidget):
     clickedBuy = Signal(str, float, str)
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
+    notifyNewPSARParams = Signal(str, dict)
 
     def __init__(self, res: AppRes, code: str):
         super().__init__(code)
@@ -127,7 +128,7 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def notify_new_psar_params(self, dict_psar: dict):
-        print(dict_psar)
+        self.notifyNewPSARParams.emit(self.code, dict_psar)
 
     def receive_default_psar_params(self, dict_default_psar: dict):
         self.option.set_default_psar_params(dict_default_psar)

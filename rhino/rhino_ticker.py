@@ -105,6 +105,11 @@ class TickerWorker(QObject):
         self.notifyPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def updatePSARParams(self, dict_psar):
+        file_json = self.get_json_path()
+        self.save_contents_to_json(file_json, dict_psar)
+        self.logger.info(f"{__name__}: updated {file_json}.")
+
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     #  JSON 入出力関連
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -131,6 +136,8 @@ class Ticker(QThread):
     requestDefaultPSARParams = Signal()
     # Parabolic SAR 関連のパラメータをリクエスト
     requestPSARParams = Signal()
+    # Parabolic SAR 関連のパラメータを更新
+    requestUpdatePSARParams = Signal(dict)
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal(str)
@@ -153,6 +160,9 @@ class Ticker(QThread):
 
         # Parabolic SAR 関連のパラメータを取得するメソッドへキューイング
         self.requestPSARParams.connect(worker.getPSARParams)
+
+        # Parabolic SAR 関連のパラメータを更新するメソッドへキューイング
+        self.requestUpdatePSARParams.connect(worker.updatePSARParams)
 
     def thread_ready(self):
         self.threadReady.emit(self.code)

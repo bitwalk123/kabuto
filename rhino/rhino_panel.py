@@ -160,7 +160,4 @@ class PanelOption(QFrame):
         self.dlg = dlg = DlgTradeConfig(self.res, self.code, dict_psar)
         dlg.requestDefaultPSARParams.connect(self.request_default_psar_params)
         dlg.notifyNewPSARParams.connect(self.notify_new_psar_params)
-        if dlg.exec():
-            print("Accepted")
-        else:
-            print("Cenceled")
+        dlg.exec()
