@@ -132,7 +132,8 @@ class Rhino(QMainWindow):
         else:
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
-            self.on_create_acquire_thread("target_test.xlsm")
+            excel_path = "targets.xlsm"
+            self.on_create_acquire_thread(excel_path)
 
     def closeEvent(self, event: QCloseEvent):
         """
