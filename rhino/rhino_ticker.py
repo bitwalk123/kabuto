@@ -99,6 +99,10 @@ class TickerWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def getPSARParams(self):
+        """
+        パラメータ設定の取得要求に対する応答
+        :return:
+        """
         dict_psar = self.get_psar_params()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連のパラメータを通知
@@ -106,6 +110,11 @@ class TickerWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def updatePSARParams(self, dict_psar):
+        """
+        パラメータ設定の更新要求に対する応答（付与された辞書を保存）
+        :param dict_psar:
+        :return:
+        """
         file_json = self.get_json_path()
         self.save_contents_to_json(file_json, dict_psar)
         self.logger.info(f"{__name__}: updated {file_json}.")
