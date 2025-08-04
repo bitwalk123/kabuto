@@ -8,18 +8,20 @@ from rhino.rhino_main import Rhino
 
 
 def main():
-    parser = argparse.ArgumentParser(description='アプリケーションの起動')
+    # コンソールから起動した際のコマンドライン・オプション
+    parser = argparse.ArgumentParser(description="アプリケーションの起動")
+    # 使用するRSS用Excelファイル（デフォルト: targets.xlsm）
     parser.add_argument(
-        '-xl', '--excel',
-        dest='excel_path',
+        "-xl", "--excel",
+        dest="excel_path",
         type=str,
-        default='targets.xlsm',
-        help='使用するRSS用Excelファイル（デフォルト: targets.xlsm）'
+        default="targets.xlsm",
+        help="使用するRSS用Excelファイル（デフォルト: targets.xlsm）"
     )
     parser.add_argument(
-        '--debug',
-        action='store_true',
-        help='デバッグモードを有効にする'
+        "--debug",
+        action="store_true",
+        help="デバッグモードを有効にする"
     )
     args = parser.parse_args()
 
@@ -28,7 +30,7 @@ def main():
     elif sys.platform == "win32":
         debug = False
     else:
-        debug = True  # Windows 以外はデバッグ・モード
+        debug = True  # Windows以外はデバッグ・モード
 
     app = QApplication(sys.argv)
     win = Rhino(args.excel_path, debug)

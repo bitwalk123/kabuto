@@ -1,6 +1,5 @@
 import logging
 import os
-import sys
 import time
 
 import pandas as pd
@@ -119,7 +118,7 @@ class Rhino(QMainWindow):
         else:
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
-            #excel_path = "targets.xlsm"
+            # RSS用Excelファイルを指定してxlwingsを利用するスレッド
             self.on_create_acquire_thread(excel_path)
 
     def closeEvent(self, event: QCloseEvent):
@@ -298,10 +297,14 @@ class Rhino(QMainWindow):
         :param dict_lastclose:
         :return:
         """
+        # ---------------------------------------------------------------------
         # 銘柄数分の Trader インスタンスの生成
+        # ---------------------------------------------------------------------
         self.create_trader(list_code, dict_name, dict_lastclose)
 
+        # ---------------------------------------------------------------------
         # リアルタイムの場合はここでタイマーを開始
+        # ---------------------------------------------------------------------
         self.timer.start()
         self.logger.info(f"{__name__}: timer started!")
 
@@ -517,11 +520,14 @@ class Rhino(QMainWindow):
         :param dict_lastclose:
         :return:
         """
+        # ---------------------------------------------------------------------
         # 銘柄数分の Trader インスタンスの生成
+        # ---------------------------------------------------------------------
         self.create_trader(list_code, dict_name, dict_lastclose)
 
+        # ---------------------------------------------------------------------
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
-        # self.data_ready = True
+        # ---------------------------------------------------------------------
         self.logger.info(f"{__name__}: ready to review!")
 
     def on_request_data_review(self):
