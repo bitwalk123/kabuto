@@ -209,6 +209,7 @@ class Rhino(QMainWindow):
                 trader.dock.clickedBuy.connect(self.on_buy)
                 trader.dock.clickedRepay.connect(self.on_repay)
                 trader.dock.clickedSell.connect(self.on_sell)
+
             # レビュー/リアルタイム用共通処理
             trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
 
@@ -222,8 +223,8 @@ class Rhino(QMainWindow):
             trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
 
             # 前日終値
-            if dict_lastclose[code] > 0:
-                trader.setLastCloseLine(dict_lastclose[code])
+            # if dict_lastclose[code] > 0:
+            #    trader.setLastCloseLine(dict_lastclose[code])
 
             # 配置
             self.layout.addWidget(trader)
