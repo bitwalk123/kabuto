@@ -73,7 +73,7 @@ class Rhino(QMainWindow):
         self.dict_ticker = dict()
 
         # 取引履歴
-        self.df_transaction: pd.DataFrame | None = None
+        self.df_transaction = None
         self.win_transaction: WinTransaction | None = None
 
         # ---------------------------------------------------------------------

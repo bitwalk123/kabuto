@@ -1,5 +1,34 @@
+import argparse
 import datetime
 import re
+
+
+def gen_parser_for_cmdline() -> argparse.ArgumentParser:
+    """
+    コンソールから起動した際のコマンドライン・オプションを処理するパーサーの生成
+    :return:
+    """
+    # パーサーを作成
+    parser = argparse.ArgumentParser(description="アプリケーションの起動")
+
+    # 使用するRSS用Excelファイル（デフォルト: targets.xlsm）
+    # RSS = Realtime Spread Sheet
+    parser.add_argument(
+        "-xl", "--excel",
+        dest="excel_path",
+        type=str,
+        default="targets.xlsm",
+        help="使用するRSS用Excelファイル（デフォルト: targets.xlsm）"
+    )
+
+    # デバッグモード用フラグ
+    parser.add_argument(
+        "-d", "--debug",
+        action="store_true",
+        help="デバッグモードを有効にする"
+    )
+
+    return parser
 
 
 def get_intraday_timestamp(excel_path: str = "") -> dict:

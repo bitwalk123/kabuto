@@ -11,6 +11,7 @@ jsonpointer
 jupyterlab-code-formatter
 mplfinance
 openpyxl
+pandas-stubs
 pip-chill
 pip-review
 pyqtgraph
