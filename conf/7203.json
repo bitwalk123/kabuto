@@ -1,1 +1,1 @@
-{"af_init": 5e-06, "af_max": 0.005, "af_step": 5e-06, "factor_d": 10.0, "n_smooth_max": 600, "n_smooth_min": 180, "power_lam": 6}
+{"af_init": 5e-06, "af_max": 0.005, "af_step": 5e-06, "factor_d": 7.5, "n_smooth_max": 600, "n_smooth_min": 150, "power_lam": 6}
