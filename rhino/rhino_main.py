@@ -26,31 +26,18 @@ from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
 
-if sys.platform == "win32":
-    debug = False
-else:
-    debug = True  # Windows 以外はデバッグ・モード
-
 
 class Rhino(QMainWindow):
     __app_name__ = "Rhino"
-    __version__ = "0.9.0"
+    __version__ = "0.9.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
-    def __init__(self, options: list = None):
+    def __init__(self, debug: bool = True):
         super().__init__()
-        global debug  # グローバル変数であることを明示
-        self.res = res = AppRes()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
-
-        # コンソールから起動した際のオプションをチェック
-        if len(options) > 0:
-            for option in options:
-                if option == "debug":
-                    debug = True  # Windows 上でデバッグ・モードを使用する場合
-        # デバッグ・モードを保持
-        res.debug = debug
+        self.res = res = AppRes()
+        res.debug = debug  # デバッグ・モードを保持
 
         #######################################################################
         # NORMAL / DEBUG モード固有の設定
@@ -212,7 +199,7 @@ class Rhino(QMainWindow):
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             trader = RhinoTrader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
-            if debug:
+            if self.res.debug:
                 # レビュー用の売買処理
                 trader.dock.clickedBuy.connect(self.on_buy_review)
                 trader.dock.clickedRepay.connect(self.on_repay_review)

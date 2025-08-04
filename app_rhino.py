@@ -1,3 +1,4 @@
+import argparse
 import sys
 
 from PySide6.QtWidgets import QApplication
@@ -7,9 +8,23 @@ from rhino.rhino_main import Rhino
 
 
 def main():
+    parser = argparse.ArgumentParser(description='アプリケーションの起動')
+    parser.add_argument(
+        '--debug',
+        action='store_true',
+        help='デバッグモードを有効にする'
+    )
+    args = parser.parse_args()
+
+    if args.debug:
+        debug = True
+    elif sys.platform == "win32":
+        debug = False
+    else:
+        debug = True  # Windows 以外はデバッグ・モード
+
     app = QApplication(sys.argv)
-    options = sys.argv[1:]
-    win = Rhino(options)
+    win = Rhino(debug)
     win.show()
     sys.exit(app.exec())
 
