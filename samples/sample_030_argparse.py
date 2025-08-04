@@ -7,7 +7,8 @@ def main():
 
     # 2. 位置引数を追加
     # 'file_path' は必須の引数で、コマンドライン上で位置によって指定されます。
-    parser.add_argument('file_path', type=str, help='処理するファイルのパス')
+    # parser.add_argument('file_path', type=str, help='処理するファイルのパス')
+    parser.add_argument("debug", type=str, help="デバッグモードで起動")
 
     # 3. オプション引数を追加
     # '-o' または '--output' で指定するオプション引数。
@@ -25,7 +26,7 @@ def main():
     args = parser.parse_args()
 
     # 6. パースした引数を使用
-    print(f'処理対象ファイル: {args.file_path}')
+    # print(f'処理対象ファイル: {args.file_path}')
     print(f'出力ディレクトリ: {args.output_dir}')
     if args.verbose:
         print('詳細モードが有効です。')
