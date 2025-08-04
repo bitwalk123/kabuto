@@ -18,6 +18,7 @@ def main():
         default="targets.xlsm",
         help="使用するRSS用Excelファイル（デフォルト: targets.xlsm）"
     )
+    # デバッグモード用フラグ
     parser.add_argument(
         "--debug",
         action="store_true",
