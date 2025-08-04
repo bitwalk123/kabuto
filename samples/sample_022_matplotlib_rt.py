@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 class TrendChart(FigureCanvas):
     def __init__(self):
+        plt.style.use('dark_background')
         self.figure = Figure()
         super().__init__(self.figure)
 
@@ -97,9 +98,12 @@ class Example(QMainWindow):
             self.timer.stop()
 
 
-if __name__ == '__main__':
-    plt.style.use('dark_background')
+def main():
     app = QApplication(sys.argv)
     win = Example()
     win.show()
     sys.exit(app.exec())
+
+
+if __name__ == '__main__':
+    main()
