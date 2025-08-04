@@ -33,7 +33,7 @@ class Rhino(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
-    def __init__(self, debug: bool = True):
+    def __init__(self, excel_path: str, debug: bool = True):
         super().__init__()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res = AppRes()
@@ -119,7 +119,7 @@ class Rhino(QMainWindow):
         else:
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
-            excel_path = "targets.xlsm"
+            #excel_path = "targets.xlsm"
             self.on_create_acquire_thread(excel_path)
 
     def closeEvent(self, event: QCloseEvent):

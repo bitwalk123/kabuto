@@ -10,6 +10,13 @@ from rhino.rhino_main import Rhino
 def main():
     parser = argparse.ArgumentParser(description='アプリケーションの起動')
     parser.add_argument(
+        '-xl', '--excel',
+        dest='excel_path',
+        type=str,
+        default='targets.xlsm',
+        help='使用するRSS用Excelファイル（デフォルト: targets.xlsm）'
+    )
+    parser.add_argument(
         '--debug',
         action='store_true',
         help='デバッグモードを有効にする'
@@ -24,7 +31,7 @@ def main():
         debug = True  # Windows 以外はデバッグ・モード
 
     app = QApplication(sys.argv)
-    win = Rhino(debug)
+    win = Rhino(args.excel_path, debug)
     win.show()
     sys.exit(app.exec())
 
