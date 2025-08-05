@@ -109,7 +109,7 @@ class RealtimePSAR:
             # トレンド反転後の ys と psar の差異
             # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
-            self.obj.follow = FollowType.PARABOLIC # デフォルトのフォロータイプ
+            self.obj.follow = FollowType.PARABOLIC  # デフォルトのフォロータイプ
         else:
             # -----------------------------------------------------------------
             # トレンド維持
@@ -118,15 +118,25 @@ class RealtimePSAR:
             if self.cmp_ep(self.obj.ys):
                 # EP と AF の更新
                 self.update_ep_af(self.obj.ys)
-            # PSAR の更新
-            self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             # 許容される ys と PSAR の最大差異チェック
-            if self.factor_d < abs(self.obj.psar - self.obj.ys):
+            d_psar = abs(self.obj.psar - self.obj.ys)
+            factor_chase = 0.95
+            if self.factor_d < d_psar:
+                self.obj.follow = FollowType.CHASE
                 if 0 < self.obj.trend:
                     self.obj.psar = self.obj.ys - self.factor_d
                 elif self.obj.trend < 0:
                     self.obj.psar = self.obj.ys + self.factor_d
+            elif self.obj.follow == FollowType.CHASE:
+                if 0 < self.obj.trend:
+                    self.obj.psar = self.obj.ys - d_psar * factor_chase
+                elif self.obj.trend < 0:
+                    self.obj.psar = self.obj.ys + d_psar * factor_chase
+            else:
+                # Parabolic SAR の更新
+                self.obj.follow = FollowType.PARABOLIC
+                self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             self.obj.duration += 1
 
