@@ -3,6 +3,8 @@ from collections import deque  # deque をインポート
 # from scipy.differentiate import derivative
 from scipy.interpolate import make_smoothing_spline
 
+from structs.app_enum import FollowType
+
 
 class PSARObject:
     def __init__(self):
@@ -16,6 +18,7 @@ class PSARObject:
         self.trend: int = 0
         self.y_sar: float = 0  # トレンド反転した時の価格
         self.ys: float = 0
+        self.follow: FollowType = FollowType.PARABOLIC  # フォロータイプ
         # self.dys: float = 0 # 微係数
 
 
@@ -25,10 +28,6 @@ class RealtimePSAR:
         リアルタイム用 Parabolic SAR
         :param dict_psar:
         """
-
-        # オーバードライブ（トレンド過追従）
-        # self.overdrive = True
-
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
@@ -36,7 +35,9 @@ class RealtimePSAR:
         self.af_init = dict_psar["af_init"]
         self.af_step = dict_psar["af_step"]
         self.af_max = dict_psar["af_max"]
-        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異
+        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異 (delta)
+        self.factor_c = 0.95  # トレンド追跡 (chase) ファクター
+
         # for smoothing
         self.lam = 10. ** dict_psar["power_lam"]
         self.n_smooth_min = dict_psar["n_smooth_min"]
@@ -106,6 +107,7 @@ class RealtimePSAR:
             # トレンド反転後の ys と psar の差異
             # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
+            self.obj.follow = FollowType.PARABOLIC  # デフォルトのフォロータイプ
         else:
             # -----------------------------------------------------------------
             # トレンド維持
@@ -114,15 +116,26 @@ class RealtimePSAR:
             if self.cmp_ep(self.obj.ys):
                 # EP と AF の更新
                 self.update_ep_af(self.obj.ys)
-            # PSAR の更新
-            self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             # 許容される ys と PSAR の最大差異チェック
-            if self.factor_d < abs(self.obj.psar - self.obj.ys):
+            d_psar = abs(self.obj.psar - self.obj.ys)
+            if self.factor_d < d_psar:
+                # ひとたび CHASE モードになれば
+                # トレンド反転するまでこのモードを続ける
+                self.obj.follow = FollowType.CHASE
                 if 0 < self.obj.trend:
                     self.obj.psar = self.obj.ys - self.factor_d
                 elif self.obj.trend < 0:
                     self.obj.psar = self.obj.ys + self.factor_d
+            elif self.obj.follow == FollowType.CHASE:
+                if 0 < self.obj.trend:
+                    self.obj.psar = self.obj.ys - d_psar * self.factor_c
+                elif self.obj.trend < 0:
+                    self.obj.psar = self.obj.ys + d_psar * self.factor_c
+            else:
+                # Parabolic SAR の更新
+                # self.obj.follow = FollowType.PARABOLIC
+                self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             self.obj.duration += 1
 

@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import xlwings as xw
 
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":

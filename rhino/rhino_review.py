@@ -11,7 +11,7 @@ from PySide6.QtCore import (
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
 from modules.position_mannager import PositionManager
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 
 
 class RhinoReviewWorker(QObject):

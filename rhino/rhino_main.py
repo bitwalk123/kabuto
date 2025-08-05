@@ -20,7 +20,7 @@ from rhino.rhino_statusbar import RhinoStatusBar
 from rhino.rhino_ticker import Ticker
 from rhino.rhino_toolbar import RhinoToolBar
 from rhino.rhino_trader import RhinoTrader
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
