@@ -28,27 +28,25 @@ class RealtimePSAR:
         リアルタイム用 Parabolic SAR
         :param dict_psar:
         """
+        self.af_init: float | None = None
+        self.af_step: float | None = None
+        self.af_max: float | None = None
+        self.factor_d: float | None = None
+        self.factor_c: float | None = None
+        self.lam: float | None = None
+        self.n_smooth_min: int | None = None
+        self.n_smooth_max: int | None = None
+        self.t_deque: deque | None = None
+        self.y_deque: deque | None = None
+
+        # パラメータの設定
+        self.setPSARParams(dict_psar)
+
+        # 時刻用カウンター（実際の時刻を使わずに連続した数列を時刻代わりに利用）
+        self.t: float = 0.0
+
         # PSARObject のインスタンス
         self.obj = PSARObject()
-
-        # for Parabolic SAR
-        self.af_init = dict_psar["af_init"]
-        self.af_step = dict_psar["af_step"]
-        self.af_max = dict_psar["af_max"]
-        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異 (delta)
-        self.factor_c = dict_psar["factor_c"]  # トレンド追跡 (chase) ファクター
-
-        # for smoothing
-        self.lam = 10. ** dict_psar["power_lam"]
-        self.n_smooth_min = dict_psar["n_smooth_min"]
-        self.n_smooth_max = dict_psar["n_smooth_max"]
-
-        # スムージングの為に保持するデータ列
-        # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
-        # 【利点】ランチタイムのブランクを無視できる。
-        self.t = 0.0
-        self.t_deque = deque(maxlen=self.n_smooth_max)
-        self.y_deque = deque(maxlen=self.n_smooth_max)
 
     def add(self, price: float) -> PSARObject:
         self.obj.price = price
@@ -184,6 +182,28 @@ class RealtimePSAR:
         self.obj.ep = y
         self.obj.af = self.af_init
         self.obj.psar = self.y_deque[-2]
+
+    def setPSARParams(self, dict_psar):
+        """
+        パラメータの設定
+        :param dict_psar:
+        :return:
+        """
+        # for Parabolic SAR
+        self.af_init = dict_psar["af_init"]
+        self.af_step = dict_psar["af_step"]
+        self.af_max = dict_psar["af_max"]
+        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異 (delta)
+        self.factor_c = dict_psar["factor_c"]  # トレンド追跡 (chase) ファクター
+        # for smoothing
+        self.lam = 10. ** dict_psar["power_lam"]
+        self.n_smooth_min = dict_psar["n_smooth_min"]
+        self.n_smooth_max = dict_psar["n_smooth_max"]
+        # スムージングの為に保持するデータ列
+        # 価格のみしか取得しないので、等間隔と仮定してカウンタとして使用する。
+        # 【利点】ランチタイムのブランクを無視できる。
+        self.t_deque = deque(maxlen=self.n_smooth_max)
+        self.y_deque = deque(maxlen=self.n_smooth_max)
 
     def update_ep_af(self, y: float):
         """

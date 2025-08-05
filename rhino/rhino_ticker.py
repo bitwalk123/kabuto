@@ -119,9 +119,13 @@ class TickerWorker(QObject):
         :param dict_psar:
         :return:
         """
+        # 新しいパラメータを該当する銘柄コードの JSON へ保存
         file_json = self.get_json_path()
         self.save_contents_to_json(file_json, dict_psar)
-        self.logger.info(f"{__name__}: updated {file_json}.")
+        self.logger.info(f"{__name__}: {file_json}'s been updated.")
+        # 新しいパラメータを現 PSAR オブジェクトへ反映
+        self.psar.setPSARParams(dict_psar)
+        self.logger.info(f"{__name__}: new params's been set to the PSAR object.")
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     #  JSON 入出力関連

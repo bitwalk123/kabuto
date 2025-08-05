@@ -28,7 +28,7 @@ from widgets.layouts import VBoxLayout
 
 class Rhino(QMainWindow):
     __app_name__ = "Rhino"
-    __version__ = "0.9.1"
+    __version__ = "0.9.2"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
