@@ -2,6 +2,8 @@
 Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 機能スコープ
 1. Realtime PSAR
+2. Trend Chaser
+3. Smoothing Spline
 """
 import json
 import logging
@@ -58,13 +60,14 @@ class TickerWorker(QObject):
         dict_psar["af_init"]: float = 0.000005
         dict_psar["af_step"]: float = 0.000005
         dict_psar["af_max"]: float = 0.005
-        dict_psar["factor_d"]: float = 20  # 許容される ys と PSAR の最大差異
-        dict_psar["factor_c"]: float = 0.95
+        # for Trend Chaser
+        dict_psar["factor_d"]: float = 10  # 許容される ys と PSAR の最大差異
+        dict_psar["factor_c"]: float = 0.95 # ys と psar の間を縮める係数
 
-        # for smoothing
-        dict_psar["power_lam"]: int = 7
-        dict_psar["n_smooth_min"]: int = 60
-        dict_psar["n_smooth_max"]: int = 600
+        # for Smoothing Spline
+        dict_psar["power_lam"]: int = 6 # Lambda for smoothing spline
+        dict_psar["n_smooth_min"]: int = 150 # dead time (min) at start up
+        dict_psar["n_smooth_max"]: int = 600 # maximum data for smoothing
 
         return dict_psar
 
