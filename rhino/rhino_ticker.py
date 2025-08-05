@@ -59,6 +59,7 @@ class TickerWorker(QObject):
         dict_psar["af_step"]: float = 0.000005
         dict_psar["af_max"]: float = 0.005
         dict_psar["factor_d"]: float = 20  # 許容される ys と PSAR の最大差異
+        dict_psar["factor_c"]: float = 0.95
 
         # for smoothing
         dict_psar["power_lam"]: int = 7

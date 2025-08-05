@@ -153,6 +153,13 @@ class DlgTradeConfig(QDialog):
         self.dict_entry["factor_d"] = ent_factor_d = EntryRight()
         layout.addWidget(ent_factor_d, r, 1)
 
+        r += 1
+        lab_factor_c = LabelRaisedRight("Factor C ")
+        layout.addWidget(lab_factor_c, r, 0)
+
+        self.dict_entry["factor_c"] = ent_factor_c = EntryRight()
+        layout.addWidget(ent_factor_c, r, 1)
+
         # ---------------------------------------------------------------------
         # Smoothing
         # ---------------------------------------------------------------------
@@ -216,7 +223,7 @@ class DlgTradeConfig(QDialog):
         # ---------------------------------------------------------------------
         # Parabolic SAR
         # ---------------------------------------------------------------------
-        for key in ["af_init", "af_step", "af_max", "factor_d"]:
+        for key in ["af_init", "af_step", "af_max", "factor_d", "factor_c"]:
             dict_psar[key] = float(self.dict_entry[key].text())
         # ---------------------------------------------------------------------
         # Smoothing
@@ -244,7 +251,7 @@ class DlgTradeConfig(QDialog):
         # ---------------------------------------------------------------------
         # Parabolic SAR
         # ---------------------------------------------------------------------
-        for key in ["af_init", "af_step", "af_max", "factor_d"]:
+        for key in ["af_init", "af_step", "af_max", "factor_d", "factor_c"]:
             self.dict_entry[key].setText(f"{dict_psar[key]:f}")
         # ---------------------------------------------------------------------
         # Smoothing
