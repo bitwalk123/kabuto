@@ -24,7 +24,7 @@ from beetle.beetle_ticker import ThreadTicker
 from beetle.beetle_toolbar import BeetleToolBar
 from beetle.beetle_trader import BeetleTrader
 from modules.trans import WinTransaction
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout

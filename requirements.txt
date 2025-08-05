@@ -17,6 +17,7 @@ pip-review
 pyqtgraph
 pyside6
 scipy
+scipy-stubs
 seaborn
 tinycss2
 tomli
