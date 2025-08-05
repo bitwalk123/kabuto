@@ -28,10 +28,6 @@ class RealtimePSAR:
         リアルタイム用 Parabolic SAR
         :param dict_psar:
         """
-
-        # オーバードライブ（トレンド過追従）
-        # self.overdrive = True
-
         # PSARObject のインスタンス
         self.obj = PSARObject()
 
@@ -39,7 +35,9 @@ class RealtimePSAR:
         self.af_init = dict_psar["af_init"]
         self.af_step = dict_psar["af_step"]
         self.af_max = dict_psar["af_max"]
-        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異
+        self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異 (delta)
+        self.factor_c = 0.98  # トレンド追跡 (chase) ファクター
+
         # for smoothing
         self.lam = 10. ** dict_psar["power_lam"]
         self.n_smooth_min = dict_psar["n_smooth_min"]
@@ -121,8 +119,9 @@ class RealtimePSAR:
 
             # 許容される ys と PSAR の最大差異チェック
             d_psar = abs(self.obj.psar - self.obj.ys)
-            factor_chase = 0.95
             if self.factor_d < d_psar:
+                # ひとたび CHASE モードになれば
+                # トレンド反転するまでこのモードを続ける
                 self.obj.follow = FollowType.CHASE
                 if 0 < self.obj.trend:
                     self.obj.psar = self.obj.ys - self.factor_d
@@ -130,12 +129,12 @@ class RealtimePSAR:
                     self.obj.psar = self.obj.ys + self.factor_d
             elif self.obj.follow == FollowType.CHASE:
                 if 0 < self.obj.trend:
-                    self.obj.psar = self.obj.ys - d_psar * factor_chase
+                    self.obj.psar = self.obj.ys - d_psar * self.factor_c
                 elif self.obj.trend < 0:
-                    self.obj.psar = self.obj.ys + d_psar * factor_chase
+                    self.obj.psar = self.obj.ys + d_psar * self.factor_c
             else:
                 # Parabolic SAR の更新
-                self.obj.follow = FollowType.PARABOLIC
+                # self.obj.follow = FollowType.PARABOLIC
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             self.obj.duration += 1
