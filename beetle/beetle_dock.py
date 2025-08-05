@@ -4,7 +4,7 @@ from PySide6.QtCore import Signal
 
 from beetle.beetle_pacman import PacMan
 from beetle.beetle_psar import PSARObject
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import PanelTrading, PanelOption
 from widgets.docks import DockWidget

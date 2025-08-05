@@ -6,7 +6,7 @@ from rhino.rhino_pacman import PacMan
 from rhino.rhino_panel import PanelOption, PanelTrading
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_ticker import Ticker
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle, LCDIntWithTitle

@@ -1,7 +1,14 @@
 from collections import deque  # deque をインポート
+from enum import Enum, auto
 
 # from scipy.differentiate import derivative
 from scipy.interpolate import make_smoothing_spline
+
+
+class FollowType(Enum):
+    PARABOLIC = auto()  # Parabolic SAR の設定によるトレンドフォロー
+    CHASE = auto()  # 価格と PSAR の値幅が大きくなったので追跡フォロー
+    DECELERATE = auto()  # CHASE 後の減速段階
 
 
 class PSARObject:

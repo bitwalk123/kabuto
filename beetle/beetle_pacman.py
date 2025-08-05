@@ -1,5 +1,5 @@
 from beetle.beetle_psar import PSARObject
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 
 
 class PacMan:

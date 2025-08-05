@@ -21,7 +21,7 @@ from modules.spottrade import SpotTrade
 from kabuto.kabuto_ticker import ThreadTicker
 from kabuto.kabuto_trader import Trader
 from modules.trans import WinTransaction
-from structs.posman import PositionType
+from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.dialog import DlgAboutThis
