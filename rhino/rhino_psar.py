@@ -109,6 +109,7 @@ class RealtimePSAR:
             # トレンド反転後の ys と psar の差異
             # これより差異が大きくなればトレンドをフォローするために使用（未実装）
             self.obj.distance = abs(self.obj.ys - self.obj.psar)
+            self.obj.follow = FollowType.PARABOLIC # デフォルトのフォロータイプ
         else:
             # -----------------------------------------------------------------
             # トレンド維持
