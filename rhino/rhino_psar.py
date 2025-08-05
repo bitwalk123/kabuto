@@ -36,7 +36,7 @@ class RealtimePSAR:
         self.af_step = dict_psar["af_step"]
         self.af_max = dict_psar["af_max"]
         self.factor_d = dict_psar["factor_d"]  # 許容される ys と PSAR の最大差異 (delta)
-        self.factor_c = 0.99  # トレンド追跡 (chase) ファクター
+        self.factor_c = 0.975  # トレンド追跡 (chase) ファクター
 
         # for smoothing
         self.lam = 10. ** dict_psar["power_lam"]
