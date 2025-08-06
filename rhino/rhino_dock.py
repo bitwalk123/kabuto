@@ -9,7 +9,7 @@ from rhino.rhino_ticker import Ticker
 from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
+from widgets.labels import LCDIntWithTitle, LCDValueWithTitle
 
 
 class DockRhinoTrader(DockWidget):
@@ -22,7 +22,7 @@ class DockRhinoTrader(DockWidget):
         super().__init__(code)
         self.logger = logging.getLogger(__name__)
         self.code = code
-        self.pacman = PacMan()
+        self.pacman = PacMan()  # 売買判定用インスタンス
         self.ticker: Ticker | None = None
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -200,21 +200,51 @@ class DockRhinoTrader(DockWidget):
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def setEPUpd(self, epupd: int):
+        """
+        EP更新回数を表示
+        :param epupd:
+        :return:
+        """
         self.epupd.setValue(epupd)
 
     def setPrice(self, price: float):
+        """
+        現在株価を表示
+        :param price:
+        :return:
+        """
         self.price.setValue(price)
 
     def setProfit(self, profit: float):
+        """
+        現在の含み益を表示
+        :param profit:
+        :return:
+        """
         self.profit.setValue(profit)
 
     def setTotal(self, total: float):
+        """
+        現在の損益合計を表示
+        :param total:
+        :return:
+        """
         self.total.setValue(total)
 
     def set_over_drive_enabled(self, state: bool):
+        """
+        Over Drive ボタンの状態を設定
+        :param state:
+        :return:
+        """
         self.option.setOverDriveEnabled(state)
 
     def setTrend(self, ret: PSARObject):
+        """
+        Parabolic SAR のトレンドに応じた売買処理
+        :param ret:
+        :return:
+        """
         self.setEPUpd(ret.epupd)
         if self.option.isAutoPilotEnabled():
             ptype: PositionType = self.pacman.setTrend(ret)
@@ -228,6 +258,11 @@ class DockRhinoTrader(DockWidget):
                 pass
 
     def setTicker(self, ticker: Ticker):
+        """
+        Ticker インスタンスの保持とスロットの設定
+        :param ticker:
+        :return:
+        """
         self.ticker = ticker
         ticker.worker.notifyPSARParams.connect(self.receive_psar_params)
         ticker.worker.notifyDefaultPSARParams.connect(self.receive_default_psar_params)
