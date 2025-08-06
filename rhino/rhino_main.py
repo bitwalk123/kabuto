@@ -400,7 +400,7 @@ class Rhino(QMainWindow):
         # ツールバーの「取引履歴」ボタンを Enabled にする
         self.toolbar.set_transaction()
 
-    def on_update_data(self, dict_data, dict_profit, dict_total):
+    def on_update_data(self, dict_data: dict, dict_profit: dict, dict_total: dict):
         """
         ティックデータ、含み益、損益の更新
         :param dict_data:
