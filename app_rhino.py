@@ -16,7 +16,7 @@ def gen_parser_for_cmdline() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="アプリケーションの起動")
 
     # 使用するRSS用Excelファイル（デフォルト: targets.xlsm）
-    # RSS = Realtime Spread Sheet
+    # † RSS = Realtime Spread Sheet
     parser.add_argument(
         "-xl", "--excel",
         dest="excel_path",
