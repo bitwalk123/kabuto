@@ -153,7 +153,7 @@ class PanelOption(QFrame):
         self.requestDefaultPSARParams.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def set_default_psar_params(self, dict_default_psar: dict):
+    def setDefaultPSARParams(self, dict_default_psar: dict):
         if self.dlg is not None:
             self.dlg.set_default_psar_params(dict_default_psar)
 
@@ -166,7 +166,7 @@ class PanelOption(QFrame):
     def trade_config(self):
         self.requestPSARParams.emit()
 
-    def show_trade_config(self, dict_psar: dict):
+    def showTradeConfig(self, dict_psar: dict):
         self.dlg = dlg = DlgTradeConfig(self.res, self.code, dict_psar)
         dlg.requestDefaultPSARParams.connect(self.request_default_psar_params)
         dlg.notifyNewPSARParams.connect(self.notify_new_psar_params)

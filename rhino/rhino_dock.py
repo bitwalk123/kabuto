@@ -103,6 +103,9 @@ class DockRhinoTrader(DockWidget):
     def isOverDriveEnabled(self) -> bool:
         return self.option.isOverDriveEnabled()
 
+    def notify_new_psar_params(self, dict_psar: dict):
+        self.notifyNewPSARParams.emit(self.code, dict_psar)
+
     def on_buy(self):
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -130,14 +133,11 @@ class DockRhinoTrader(DockWidget):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def notify_new_psar_params(self, dict_psar: dict):
-        self.notifyNewPSARParams.emit(self.code, dict_psar)
-
     def receive_default_psar_params(self, dict_default_psar: dict):
-        self.option.set_default_psar_params(dict_default_psar)
+        self.option.setDefaultPSARParams(dict_default_psar)
 
     def receive_psar_params(self, dict_psar: dict):
-        self.option.show_trade_config(dict_psar)
+        self.option.showTradeConfig(dict_psar)
 
     def request_default_psar_params(self):
         if self.ticker is not None:
@@ -159,7 +159,7 @@ class DockRhinoTrader(DockWidget):
     def setTotal(self, total: float):
         self.total.setValue(total)
 
-    def setOverDriveEnabled(self, state: bool):
+    def set_over_drive_enabled(self, state: bool):
         self.option.setOverDriveEnabled(state)
 
     def setTrend(self, ret: PSARObject):
@@ -179,3 +179,4 @@ class DockRhinoTrader(DockWidget):
         self.ticker = ticker
         ticker.worker.notifyPSARParams.connect(self.receive_psar_params)
         ticker.worker.notifyDefaultPSARParams.connect(self.receive_default_psar_params)
+        ticker.worker.notifyODStatusChanged.connect(self.set_over_drive_enabled)
