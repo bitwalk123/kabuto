@@ -176,6 +176,12 @@ class RealtimePSAR:
         self.obj.af = self.af_init
         self.obj.psar = self.y_deque[-2]
 
+    def setOverDriveStatus(self, state: bool):
+        if state:
+            self.obj.follow = FollowType.OVERDRIVE
+        else:
+            self.obj.follow = FollowType.PARABOLIC
+
     def setPSARParams(self, dict_psar):
         """
         パラメータの設定

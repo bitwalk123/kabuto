@@ -58,6 +58,7 @@ class DockRhinoTrader(DockWidget):
         option.requestPSARParams.connect(self.request_psar_params)
         option.requestDefaultPSARParams.connect(self.request_default_psar_params)
         option.notifyNewPSARParams.connect(self.notify_new_psar_params)
+        option.requestOEStatusChange.connect(self.request_Over_drive_status_change)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -142,6 +143,12 @@ class DockRhinoTrader(DockWidget):
     def request_default_psar_params(self):
         if self.ticker is not None:
             self.ticker.requestDefaultPSARParams.emit()
+
+    def request_Over_drive_status_change(self, state: bool):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Over Drive の状態変更の要求シグナル
+        self.ticker.requestOEStatusChange.emit(state)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def request_psar_params(self):
         if self.ticker is not None:

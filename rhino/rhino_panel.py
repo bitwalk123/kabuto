@@ -102,6 +102,7 @@ class PanelOption(QFrame):
     """
     requestDefaultPSARParams = Signal()
     requestPSARParams = Signal()
+    requestOEStatusChange = Signal(bool)
     notifyNewPSARParams = Signal(dict)
 
     def __init__(self, res: AppRes, code: str):
@@ -132,6 +133,8 @@ class PanelOption(QFrame):
         layout.addWidget(but_setting)
 
         self.overdrive = but_overdrive = ToggleButtonOverDrive(res)
+        # クリック操作を区別するために toggled を使わずに clicked シグナルを使う
+        but_overdrive.clicked.connect(self.over_drive_clicked)
         layout.addWidget(but_overdrive)
 
     def isAutoPilotEnabled(self) -> bool:
@@ -145,6 +148,13 @@ class PanelOption(QFrame):
         # 🧿 Parabolic SAR 関連の新しいパラメータを通知
         self.notifyNewPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def over_drive_clicked(self):
+        """
+        クリック操作を区別するために toggled シグナルを使わずに clicked を使う
+        :return:
+        """
+        self.requestOEStatusChange.emit(self.overdrive.isChecked())
 
 
     def request_default_psar_params(self):

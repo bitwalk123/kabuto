@@ -128,6 +128,14 @@ class TickerWorker(QObject):
         self.notifyPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def changeOverDriveStatus(self, state: bool):
+        """
+        Over Drive 状態の変更
+        :param state:
+        :return:
+        """
+        self.psar.setOverDriveStatus(state)
+
     def updatePSARParams(self, dict_psar):
         """
         パラメータ設定の更新要求に対する応答（付与された辞書を保存）
@@ -170,6 +178,8 @@ class Ticker(QThread):
     requestPSARParams = Signal()
     # Parabolic SAR 関連のパラメータを更新
     requestUpdatePSARParams = Signal(dict)
+    # Over Drive の状態変更の要求
+    requestOEStatusChange = Signal(bool)
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal(str)
@@ -195,6 +205,9 @@ class Ticker(QThread):
 
         # Parabolic SAR 関連のパラメータを更新するメソッドへキューイング
         self.requestUpdatePSARParams.connect(worker.updatePSARParams)
+
+        # Over Drive 状態の変更
+        self.requestOEStatusChange.connect(worker.changeOverDriveStatus)
 
     def thread_ready(self):
         self.threadReady.emit(self.code)
