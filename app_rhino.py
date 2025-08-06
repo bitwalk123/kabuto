@@ -1,20 +1,51 @@
+import argparse
 import sys
 
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from rhino.rhino_funcs import gen_parser_for_cmdline
 from rhino.rhino_main import Rhino
+
+
+def gen_parser_for_cmdline() -> argparse.ArgumentParser:
+    """
+    コンソールから起動した際のコマンドライン・オプションを処理するパーサーの生成
+    :return:
+    """
+    # パーサーを作成
+    parser = argparse.ArgumentParser(description="アプリケーションの起動")
+
+    # 使用するRSS用Excelファイル（デフォルト: targets.xlsm）
+    # RSS = Realtime Spread Sheet
+    parser.add_argument(
+        "-xl", "--excel",
+        dest="excel_path",
+        type=str,
+        default="targets.xlsm",
+        help="使用するRSS用Excelファイル（デフォルト: targets.xlsm）"
+    )
+
+    # デバッグモード用フラグ
+    parser.add_argument(
+        "-d", "--debug",
+        action="store_true",
+        help="デバッグモードを有効にする"
+    )
+
+    return parser
 
 
 def main():
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # コンソールから起動した際のコマンドライン・オプション
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
     # パーサーを作成
     parser = gen_parser_for_cmdline()
+
     # 引数をパース
     args = parser.parse_args()
+
     # デバッグ・モードの判定
     if args.debug:
         debug = True
@@ -26,6 +57,7 @@ def main():
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # QApplicationをインスタンス化
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
     # QApplication は sys.argv を処理するので、そのまま引数を渡すのが一般的。
     app = QApplication(sys.argv)
 
