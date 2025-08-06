@@ -28,13 +28,13 @@ class DockRhinoTrader(DockWidget):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 現在株価
+        # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
-        # 含み損益
+        # 含み損益（表示）
         self.profit = profit = LCDValueWithTitle("含み損益")
         self.layout.addWidget(profit)
-        # 合計収益
+        # 合計収益（表示）
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
 
@@ -47,7 +47,7 @@ class DockRhinoTrader(DockWidget):
         trading.clickedRepay.connect(self.on_repay)
         self.layout.addWidget(trading)
 
-        # EP 更新回数
+        # EP 更新回数（表示）
         self.epupd = epupd = LCDIntWithTitle("EP 更新回数")
         self.layout.addWidget(epupd)
 
@@ -95,6 +95,10 @@ class DockRhinoTrader(DockWidget):
             return False
 
     def forceStopAutoPilot(self):
+        """
+        強制返済
+        :return:
+        """
         if self.doRepay():
             self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
         if self.option.isAutoPilotEnabled():
@@ -102,12 +106,25 @@ class DockRhinoTrader(DockWidget):
             self.logger.info(f"{__name__}: '{self.code}'の Autopilot をオフにしました。")
 
     def isOverDriveEnabled(self) -> bool:
+        """
+        Over Drive ボタンの状態を返す
+        :return:
+        """
         return self.option.isOverDriveEnabled()
 
     def notify_new_psar_params(self, dict_psar: dict):
+        """
+        新しいパラメータを通知
+        :param dict_psar:
+        :return:
+        """
         self.notifyNewPSARParams.emit(self.code, dict_psar)
 
     def on_buy(self):
+        """
+        買建ボタンがクリックされた時の処理
+        :return:
+        """
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
@@ -117,6 +134,10 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_repay(self):
+        """
+        返済ボタンがクリックされた時の処理
+        :return:
+        """
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
@@ -126,6 +147,10 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_sell(self):
+        """
+        売建ボタンがクリックされた時の処理
+        :return:
+        """
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
@@ -135,14 +160,31 @@ class DockRhinoTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def receive_default_psar_params(self, dict_default_psar: dict):
+        """
+        デフォルトのパラメータ値を取得した時の処理
+        :param dict_default_psar:
+        :return:
+        """
         self.option.setDefaultPSARParams(dict_default_psar)
 
     def receive_psar_params(self, dict_psar: dict):
+        """
+        現在のパラメータ値を取得した時の処理
+        :param dict_psar:
+        :return:
+        """
         self.option.showTradeConfig(dict_psar)
 
     def request_default_psar_params(self):
+        """
+        デフォルトのパラメータ値の要求
+        :return:
+        """
         if self.ticker is not None:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 デフォルトのパラメータ値の要求シグナル
             self.ticker.requestDefaultPSARParams.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def request_Over_drive_status_change(self, state: bool):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -152,7 +194,10 @@ class DockRhinoTrader(DockWidget):
 
     def request_psar_params(self):
         if self.ticker is not None:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 現在のパラメータ値の要求シグナル
             self.ticker.requestPSARParams.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def setEPUpd(self, epupd: int):
         self.epupd.setValue(epupd)
