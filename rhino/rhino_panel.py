@@ -7,7 +7,7 @@ from widgets.buttons import (
     ButtonSave,
     ButtonSetting,
     ToggleButtonAutoPilot,
-    TradeButton,
+    TradeButton, ToggleButtonOverDrive,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -130,6 +130,9 @@ class PanelOption(QFrame):
         self.setting = but_setting = ButtonSetting(res)
         but_setting.clicked.connect(self.trade_config)
         layout.addWidget(but_setting)
+
+        self.overdrive = but_overdrive = ToggleButtonOverDrive(res)
+        layout.addWidget(but_overdrive)
 
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()

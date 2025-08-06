@@ -232,6 +232,17 @@ class ToggleButtonAutoPilot(QPushButton):
         self.setCheckable(True)
         imgname = os.path.join(res.dir_image, "autopilot.png")
         self.setIcon(QIcon(imgname))
+        self.setToolTip("Auto Pilot")
+
+
+class ToggleButtonOverDrive(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setCheckable(True)
+        imgname = os.path.join(res.dir_image, "overdrive.png")
+        self.setIcon(QIcon(imgname))
+        self.setToolTip("Over Drive")
 
 
 class TradeButton(QPushButton):
