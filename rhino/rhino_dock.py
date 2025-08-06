@@ -100,6 +100,9 @@ class DockRhinoTrader(DockWidget):
             self.option.setAutoPilotEnabled(False)
             self.logger.info(f"{__name__}: '{self.code}'の Autopilot をオフにしました。")
 
+    def isOverDriveEnabled(self) -> bool:
+        return self.option.isOverDriveEnabled()
+
     def on_buy(self):
         note = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -155,6 +158,9 @@ class DockRhinoTrader(DockWidget):
 
     def setTotal(self, total: float):
         self.total.setValue(total)
+
+    def setOverDriveEnabled(self, state: bool):
+        self.option.setOverDriveEnabled(state)
 
     def setTrend(self, ret: PSARObject):
         self.setEPUpd(ret.epupd)

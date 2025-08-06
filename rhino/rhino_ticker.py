@@ -17,6 +17,7 @@ from PySide6.QtCore import (
 )
 
 from rhino.rhino_psar import PSARObject, RealtimePSAR
+from structs.app_enum import FollowType
 from structs.res import AppRes
 
 
@@ -27,6 +28,8 @@ class TickerWorker(QObject):
     notifyPSAR = Signal(str, float, PSARObject)
     # Parabolic SAR 関連パラメータを通知
     notifyPSARParams = Signal(dict)
+    # Over Drive の状態変更の通知
+    notifyODStatusChanged = Signal(bool)
 
     def __init__(self, res: AppRes, code: str, parent=None):
         super().__init__(parent)
@@ -47,6 +50,18 @@ class TickerWorker(QObject):
         # 🧿 Parabolic SAR の情報を通知
         self.notifyPSAR.emit(self.code, x, ret)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        if ret.follow == FollowType.OVERDRIVE and ret.overdrive is False:
+            ret.overdrive = True
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 Over Drive の状態変更の通知
+            self.notifyODStatusChanged.emit(True)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        elif ret.follow == FollowType.PARABOLIC and ret.overdrive is True:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 Over Drive の状態変更の通知
+            ret.overdrive = False
+            self.notifyODStatusChanged.emit(False)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @staticmethod
     def get_default_psar_params() -> dict:
@@ -62,12 +77,12 @@ class TickerWorker(QObject):
         dict_psar["af_max"]: float = 0.005
         # for Trend Chaser
         dict_psar["factor_d"]: float = 10  # 許容される ys と PSAR の最大差異
-        dict_psar["factor_c"]: float = 0.95 # ys と psar の間を縮める係数
+        dict_psar["factor_c"]: float = 0.95  # ys と psar の間を縮める係数
 
         # for Smoothing Spline
-        dict_psar["power_lam"]: int = 6 # Lambda for smoothing spline
-        dict_psar["n_smooth_min"]: int = 150 # dead time (min) at start up
-        dict_psar["n_smooth_max"]: int = 600 # maximum data for smoothing
+        dict_psar["power_lam"]: int = 6  # Lambda for smoothing spline
+        dict_psar["n_smooth_min"]: int = 150  # dead time (min) at start up
+        dict_psar["n_smooth_max"]: int = 600  # maximum data for smoothing
 
         return dict_psar
 

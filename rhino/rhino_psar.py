@@ -13,6 +13,7 @@ class PSARObject:
         self.duration: int = 0
         self.ep: float = 0.
         self.epupd: int = 0
+        self.overdrive = False
         self.price: float = 0.
         self.psar: float = 0.
         self.trend: int = 0
@@ -112,27 +113,19 @@ class RealtimePSAR:
             # -----------------------------------------------------------------
             # EP更新かどうか判定
             if self.cmp_ep(self.obj.ys):
-                # EP と AF の更新
-                self.update_ep_af(self.obj.ys)
+                self.update_ep_af(self.obj.ys)  # EP と AF の更新
 
             # 許容される ys と PSAR の最大差異チェック
-            d_psar = abs(self.obj.psar - self.obj.ys)
-            if self.factor_d < d_psar:
-                # ひとたび CHASE モードになれば
-                # トレンド反転するまでこのモードを続ける
-                self.obj.follow = FollowType.CHASE
-                if 0 < self.obj.trend:
-                    self.obj.psar = self.obj.ys - self.factor_d
-                elif self.obj.trend < 0:
-                    self.obj.psar = self.obj.ys + self.factor_d
-            elif self.obj.follow == FollowType.CHASE:
-                if 0 < self.obj.trend:
-                    self.obj.psar = self.obj.ys - d_psar * self.factor_c
-                elif self.obj.trend < 0:
-                    self.obj.psar = self.obj.ys + d_psar * self.factor_c
+            delta_psar = abs(self.obj.psar - self.obj.ys)
+            if self.factor_d < delta_psar:
+                # ひとたび OVERDRIVE モードになれば
+                # 現在のところトレンド反転するまでこのモードを続ける
+                self.obj.follow = FollowType.OVERDRIVE
+                self.obj.psar = self.obj.ys - self.factor_d * self.obj.trend
+            elif self.obj.follow == FollowType.OVERDRIVE:
+                self.obj.psar = self.obj.ys - delta_psar * self.factor_c * self.obj.trend
             else:
                 # Parabolic SAR の更新
-                # self.obj.follow = FollowType.PARABOLIC
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             self.obj.duration += 1

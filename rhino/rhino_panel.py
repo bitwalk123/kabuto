@@ -137,11 +137,15 @@ class PanelOption(QFrame):
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
 
+    def isOverDriveEnabled(self) -> bool:
+        return self.overdrive.isChecked()
+
     def notify_new_psar_params(self, dict_psar: dict):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連の新しいパラメータを通知
         self.notifyNewPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
     def request_default_psar_params(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -155,6 +159,9 @@ class PanelOption(QFrame):
 
     def setAutoPilotEnabled(self, state: bool = True):
         self.autopilot.setChecked(state)
+
+    def setOverDriveEnabled(self, state: bool = True):
+        self.overdrive.setChecked(state)
 
     def trade_config(self):
         self.requestPSARParams.emit()
