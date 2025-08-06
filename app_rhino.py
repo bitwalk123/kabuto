@@ -7,9 +7,10 @@ from funcs.logs import setup_logging
 from rhino.rhino_main import Rhino
 
 
-def gen_parser_for_cmdline() -> argparse.ArgumentParser:
+def gen_parser_for_app_cmdline_options() -> argparse.ArgumentParser:
     """
-    コンソールから起動した際のコマンドライン・オプションを処理するパーサーの生成
+    アプリケーションをコンソールから起動した際の
+    コマンドライン・オプションを処理するパーサーの生成
     :return:
     """
     # パーサーを作成
@@ -41,7 +42,7 @@ def main():
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     # パーサーを作成
-    parser = gen_parser_for_cmdline()
+    parser = gen_parser_for_app_cmdline_options()
 
     # 引数をパース
     args = parser.parse_args()
