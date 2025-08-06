@@ -7,7 +7,7 @@ from widgets.buttons import (
     ButtonSave,
     ButtonSetting,
     ToggleButtonAutoPilot,
-    TradeButton,
+    TradeButton, ToggleButtonOverDrive,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -102,6 +102,7 @@ class PanelOption(QFrame):
     """
     requestDefaultPSARParams = Signal()
     requestPSARParams = Signal()
+    requestOEStatusChange = Signal(bool)
     notifyNewPSARParams = Signal(dict)
 
     def __init__(self, res: AppRes, code: str):
@@ -131,8 +132,16 @@ class PanelOption(QFrame):
         but_setting.clicked.connect(self.trade_config)
         layout.addWidget(but_setting)
 
+        self.overdrive = but_overdrive = ToggleButtonOverDrive(res)
+        # クリック操作を区別するために toggled を使わずに clicked シグナルを使う
+        but_overdrive.clicked.connect(self.over_drive_clicked)
+        layout.addWidget(but_overdrive)
+
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
+
+    def isOverDriveEnabled(self) -> bool:
+        return self.overdrive.isChecked()
 
     def notify_new_psar_params(self, dict_psar: dict):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -140,23 +149,34 @@ class PanelOption(QFrame):
         self.notifyNewPSARParams.emit(dict_psar)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def over_drive_clicked(self):
+        """
+        クリック操作を区別するために toggled シグナルを使わずに clicked を使う
+        :return:
+        """
+        self.requestOEStatusChange.emit(self.overdrive.isChecked())
+
+
     def request_default_psar_params(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連のデフォルトのパラメータを要求
         self.requestDefaultPSARParams.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def set_default_psar_params(self, dict_default_psar: dict):
+    def setDefaultPSARParams(self, dict_default_psar: dict):
         if self.dlg is not None:
             self.dlg.set_default_psar_params(dict_default_psar)
 
     def setAutoPilotEnabled(self, state: bool = True):
         self.autopilot.setChecked(state)
 
+    def setOverDriveEnabled(self, state: bool = True):
+        self.overdrive.setChecked(state)
+
     def trade_config(self):
         self.requestPSARParams.emit()
 
-    def show_trade_config(self, dict_psar: dict):
+    def showTradeConfig(self, dict_psar: dict):
         self.dlg = dlg = DlgTradeConfig(self.res, self.code, dict_psar)
         dlg.requestDefaultPSARParams.connect(self.request_default_psar_params)
         dlg.notifyNewPSARParams.connect(self.notify_new_psar_params)
