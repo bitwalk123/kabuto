@@ -28,7 +28,7 @@ from widgets.layouts import VBoxLayout
 
 class Rhino(QMainWindow):
     __app_name__ = "Rhino"
-    __version__ = "0.9.3"
+    __version__ = "0.9.4"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -51,11 +51,37 @@ class Rhino(QMainWindow):
         #
         #######################################################################
 
+        # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
-        self.acquire: RhinoAcquire | None = None
-        self.review: RhinoReview | None = None
+        # ---------------------------------------------------------------------
+        self.acquire: RhinoAcquire | None = None  # リアルタイム用
+        self.review: RhinoReview | None = None  # デバッグ・レビュー用
 
-        # システム時刻（タイムスタンプ）
+        # ---------------------------------------------------------------------
+        # Trader インスタンス
+        # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
+        # ---------------------------------------------------------------------
+        # インスタンスを保持する辞書
+        self.dict_trader = dict()
+
+        # ---------------------------------------------------------------------
+        # Ticker インスタンス
+        # 銘柄コード別に PSAR などを算出
+        # ---------------------------------------------------------------------
+        # インスタンスの定義（空）
+        # スレッドインスタンスであるため、念のため self に紐付けられるように
+        # ここでアプリのインスタンス変数として定義している。
+        self.ticker: Ticker | None = None
+        # Ticker インスタンスを保持する辞書
+        self.dict_ticker = dict()
+
+        # ---------------------------------------------------------------------
+        # 取引履歴
+        # ---------------------------------------------------------------------
+        self.df_transaction = None
+        self.win_transaction: WinTransaction | None = None
+
+        # システム時刻（タイムスタンプ形式）
         self.ts_system = 0
 
         # ザラ場の開始時間などのタイムスタンプ取得（本日分）
@@ -64,43 +90,38 @@ class Rhino(QMainWindow):
         # 取引が終了したかどうかのフラグ
         self.finished_trading = False
 
-        # trader インスタンスを保持する辞書
-        self.dict_trader = dict()
-
-        # ThreadTicker 用インスタンス
-        self.ticker: Ticker | None = None
-        # ThreadTicker インスタンスを保持する辞書
-        self.dict_ticker = dict()
-
-        # 取引履歴
-        self.df_transaction = None
-        self.win_transaction: WinTransaction | None = None
-
-        # ---------------------------------------------------------------------
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
-        # ---------------------------------------------------------------------
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
         # ウィンドウアイコンとタイトルを設定
-        icon = QIcon(os.path.join(res.dir_image, "rhino.png"))
-        self.setWindowIcon(icon)
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "rhino.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         if debug:
+            # デバッグモードを示す文字列を追加
             title_win = f"{title_win} [debug mode]"
         self.setWindowTitle(title_win)
 
+        # ---------------------------------------------------------------------
         # ツールバー
+        # ---------------------------------------------------------------------
         self.toolbar = toolbar = RhinoToolBar(res)
         toolbar.clickedAbout.connect(self.on_about)
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
-        toolbar.selectedExcelFile.connect(self.on_create_review_thread)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
+        toolbar.selectedExcelFile.connect(self.on_create_review_thread)
         self.addToolBar(toolbar)
 
+        # ---------------------------------------------------------------------
         # ステータスバー
+        # ---------------------------------------------------------------------
         self.statusbar = statusbar = RhinoStatusBar(res)
         self.setStatusBar(statusbar)
 
+        # ---------------------------------------------------------------------
         # メイン・ウィジェット
+        # ---------------------------------------------------------------------
         base = Widget()
         self.setCentralWidget(base)
         self.layout = layout = VBoxLayout()
@@ -161,14 +182,14 @@ class Rhino(QMainWindow):
                 self.logger.info(f"{__name__}: error at termination: {e}")
 
         # ---------------------------------------------------------------------
-        # Thread Ticker の削除
+        # Ticker スレッドの削除
         # ---------------------------------------------------------------------
         for code, thread in self.dict_ticker.items():
             if thread.isRunning():
-                self.logger.info(f"{__name__}: stopping ThreadTicker for {code}...")
+                self.logger.info(f"{__name__}: stopping Ticker for {code}...")
                 thread.quit()  # スレッドのイベントループに終了を指示
                 thread.wait()  # スレッドが完全に終了するまで待機
-                self.logger.info(f"{__name__}: ThreadTicker for {code} safely terminated.")
+                self.logger.info(f"{__name__}: Ticker for {code} safely terminated.")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
@@ -379,7 +400,7 @@ class Rhino(QMainWindow):
         # ツールバーの「取引履歴」ボタンを Enabled にする
         self.toolbar.set_transaction()
 
-    def on_update_data(self, dict_data, dict_profit, dict_total):
+    def on_update_data(self, dict_data: dict, dict_profit: dict, dict_total: dict):
         """
         ティックデータ、含み益、損益の更新
         :param dict_data:
