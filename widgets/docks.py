@@ -22,9 +22,16 @@ class DockTitle(Widget):
         self.switch = switch = Switch()
         switch.set(False)
         switch.setToolTip("RSS売買 ON/OFF")
+        switch.statusChanged.connect(self.changed_swicth_status)
         layout.addWidget(switch)
 
-    def setText(self, title: str):
+    def changed_swicth_status(self, state: bool):
+        print(state)
+
+    def isSwitchChecked(self):
+        self.switch.isChecked()
+
+    def setTitle(self, title: str):
         self.lab_title.setText(title)
 
 
@@ -57,4 +64,4 @@ class DockWidget(QDockWidget):
         return self.title
 
     def setTitle(self, title: str):
-        self.dock_title.setText(title)
+        self.dock_title.setTitle(title)
