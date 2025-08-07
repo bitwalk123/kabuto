@@ -11,7 +11,7 @@ class PacMan:
         self.counter: int = 0  # トータルカウンター
         self.sar: int = 0  # 反転カウンター
         self.trend: int = 0  # トレンドの向き
-        self.epupd_min: int = 10  # トレンド追従を開始するための EP 更新回数の最低回数
+        self.epupd_min: int = 3  # トレンド追従を開始するための EP 更新回数の最低回数
         self.has_position: bool = False  # ポジションを持っているか？
 
     def setTrend(self, ret: PSARObject) -> PositionType:
