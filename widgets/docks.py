@@ -16,11 +16,12 @@ class DockTitle(Widget):
         pad = PadH()
         layout.addWidget(pad)
 
-        self.lab_title = lab_title = LabelRightMedium(title)
-        layout.addWidget(lab_title)
+        self.lab_title = LabelRightMedium(title)
+        layout.addWidget(self.lab_title)
 
         self.switch = switch = Switch()
         switch.set(False)
+        switch.setToolTip("RSS売買 ON/OFF")
         layout.addWidget(switch)
 
     def setText(self, title: str):
