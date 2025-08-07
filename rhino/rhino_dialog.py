@@ -252,9 +252,11 @@ class DlgTradeConfig(QDialog):
         # Parabolic SAR
         # ---------------------------------------------------------------------
         for key in ["af_init", "af_step", "af_max", "factor_d", "factor_c"]:
-            self.dict_entry[key].setTitle(f"{dict_psar[key]:f}")
+            entry: EntryRight = self.dict_entry[key]
+            entry.setText(f"{dict_psar[key]:f}")
         # ---------------------------------------------------------------------
         # Smoothing
         # ---------------------------------------------------------------------
         for key in ["power_lam", "n_smooth_min", "n_smooth_max"]:
-            self.dict_entry[key].setTitle(f"{dict_psar[key]:d}")
+            entry: EntryRight = self.dict_entry[key]
+            entry.setText(f"{dict_psar[key]:d}")
