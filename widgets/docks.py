@@ -1,9 +1,30 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QDockWidget
 
-from widgets.containers import Widget
+from widgets.containers import Widget, PadH
 from widgets.labels import LabelRightMedium
-from widgets.layouts import VBoxLayout
+from widgets.layouts import VBoxLayout, HBoxLayout
+from widgets.switch import Switch
+
+
+class DockTitle(Widget):
+    def __init__(self, title: str):
+        super().__init__()
+        layout = HBoxLayout()
+        self.setLayout(layout)
+
+        pad = PadH()
+        layout.addWidget(pad)
+
+        self.lab_title = lab_title = LabelRightMedium(title)
+        layout.addWidget(lab_title)
+
+        self.switch = switch = Switch()
+        switch.set(False)
+        layout.addWidget(switch)
+
+    def setText(self, title: str):
+        self.lab_title.setText(title)
 
 
 class DockWidget(QDockWidget):
@@ -14,8 +35,8 @@ class DockWidget(QDockWidget):
         self.setFeatures(
             QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
         )
-        self.lab_title = LabelRightMedium(title)
-        self.setTitleBarWidget(self.lab_title)
+        self.dock_title = DockTitle(title)
+        self.setTitleBarWidget(self.dock_title)
 
         base = Widget()
         self.setWidget(base)
@@ -35,4 +56,4 @@ class DockWidget(QDockWidget):
         return self.title
 
     def setTitle(self, title: str):
-        self.lab_title.setText(title)
+        self.dock_title.setText(title)

@@ -28,6 +28,11 @@ class DockRhinoTrader(DockWidget):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+        # RSS で売買するかを切り替えるスイッチ
+        #row_swicth = SwitchRSS()
+        #self.layout.addWidget(row_swicth)
+
         # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
