@@ -53,7 +53,7 @@ class StockVein(QMainWindow):
 
         self.stock_collector = stock_collector = StockCollector(res)
         stock_collector.threadReady.connect(self.on_stock_collector_ready)
-        stock_collector.worker.notifyInitCompleted.connect(self.on_ticker_list)
+        stock_collector.worker.notifyTickerN.connect(self.on_ticker_list)
         stock_collector.worker.saveCompleted.connect(self.on_save_completed)
         stock_collector.start()
 
