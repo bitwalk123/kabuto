@@ -8,8 +8,10 @@ jaraco-collections
 jaraco-functools
 jaraco.collections
 jsonpointer
+jupyterlab
 jupyterlab-code-formatter
 mplfinance
+numpy-typing-compat
 openpyxl
 pandas-stubs
 pip-chill
