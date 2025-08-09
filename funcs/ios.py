@@ -1,3 +1,5 @@
+import json
+
 import openpyxl
 import pandas as pd
 
@@ -30,3 +32,14 @@ def save_dataframe_to_excel(name_excel: str, dict_df: dict):
         for name_sheet in dict_df.keys():
             df = dict_df[name_sheet]
             df.to_excel(writer, sheet_name=name_sheet, index=False)
+
+
+def read_contents_from_json(file_json) -> dict:
+    with open(file_json) as f:
+        dict_psar = json.load(f)
+    return dict_psar
+
+
+def save_contents_to_json(file_json: str, dict_psar: dict):
+    with open(file_json, "w") as f:
+        json.dump(dict_psar, f)

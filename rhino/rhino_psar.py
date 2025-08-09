@@ -122,10 +122,11 @@ class RealtimePSAR:
                 # 現在のところトレンド反転するまでこのモードを続ける
                 self.obj.follow = FollowType.OVERDRIVE
                 self.obj.psar = self.obj.ys - self.factor_d * self.obj.trend
-            elif self.obj.follow == FollowType.OVERDRIVE:
-                self.obj.psar = self.obj.ys - delta_psar * self.factor_c * self.obj.trend
+            # elif self.obj.follow == FollowType.OVERDRIVE:
+            #    self.obj.psar = self.obj.ys - delta_psar * self.factor_c * self.obj.trend
             else:
                 # Parabolic SAR の更新
+                self.obj.follow = FollowType.PARABOLIC
                 self.obj.psar = self.obj.psar + self.obj.af * (self.obj.ep - self.obj.psar)
 
             self.obj.duration += 1

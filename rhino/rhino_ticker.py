@@ -5,7 +5,6 @@ Ticker 毎のデータ処理クラス（銘柄スレッド・クラス）
 2. Trend Chaser
 3. Smoothing Spline
 """
-import json
 import logging
 import os
 
@@ -16,6 +15,8 @@ from PySide6.QtCore import (
     Slot,
 )
 
+from funcs.ios import read_contents_from_json, save_contents_to_json
+from funcs.params import get_default_psar_params
 from rhino.rhino_psar import PSARObject, RealtimePSAR
 from structs.app_enum import FollowType
 from structs.res import AppRes
@@ -63,29 +64,6 @@ class TickerWorker(QObject):
             self.notifyODStatusChanged.emit(False)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @staticmethod
-    def get_default_psar_params() -> dict:
-        """
-        デフォルトの Parabolic SAR 関連のパラメータを返す関数
-        :return:
-        """
-        dict_psar = dict()
-
-        # for Parabolic SAR
-        dict_psar["af_init"]: float = 0.000005
-        dict_psar["af_step"]: float = 0.000005
-        dict_psar["af_max"]: float = 0.005
-        # for Trend Chaser
-        dict_psar["factor_d"]: float = 10  # 許容される ys と PSAR の最大差異
-        dict_psar["factor_c"]: float = 0.95  # ys と psar の間を縮める係数
-
-        # for Smoothing Spline
-        dict_psar["power_lam"]: int = 6  # Lambda for smoothing spline
-        dict_psar["n_smooth_min"]: int = 150  # dead time (min) at start up
-        dict_psar["n_smooth_max"]: int = 600  # maximum data for smoothing
-
-        return dict_psar
-
     def get_json_path(self) -> str:
         """
         銘柄コードに対応した JSON ファイルのパスを取得
@@ -100,18 +78,18 @@ class TickerWorker(QObject):
 
         if os.path.isfile(file_json):
             # 銘柄コード固有のファイルが存在すれば読み込む
-            dict_psar = self.read_contents_from_json(file_json)
+            dict_psar = read_contents_from_json(file_json)
         else:
             # デフォルトのパラメータ設定を取得
-            dict_psar = self.get_default_psar_params()
+            dict_psar = get_default_psar_params()
             # 銘柄コード固有のファイルとして保存
-            self.save_contents_to_json(file_json, dict_psar)
+            save_contents_to_json(file_json, dict_psar)
 
         return dict_psar
 
     def getDefaultPSARParams(self):
         # デフォルトのパラメータ設定を取得
-        dict_psar = self.get_default_psar_params()
+        dict_psar = get_default_psar_params()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Parabolic SAR 関連のパラメータを通知
         self.notifyDefaultPSARParams.emit(dict_psar)
@@ -144,26 +122,11 @@ class TickerWorker(QObject):
         """
         # 新しいパラメータを該当する銘柄コードの JSON へ保存
         file_json = self.get_json_path()
-        self.save_contents_to_json(file_json, dict_psar)
+        save_contents_to_json(file_json, dict_psar)
         self.logger.info(f"{__name__}: {file_json}'s been updated.")
         # 新しいパラメータを現 PSAR オブジェクトへ反映
         self.psar.setPSARParams(dict_psar)
         self.logger.info(f"{__name__}: new params's been set to the PSAR object.")
-
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    #  JSON 入出力関連
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    @staticmethod
-    def read_contents_from_json(file_json) -> dict:
-        with open(file_json) as f:
-            dict_psar = json.load(f)
-
-        return dict_psar
-
-    @staticmethod
-    def save_contents_to_json(file_json: str, dict_psar: dict):
-        with open(file_json, "w") as f:
-            json.dump(dict_psar, f)
 
 
 class Ticker(QThread):
