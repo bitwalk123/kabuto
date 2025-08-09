@@ -35,6 +35,7 @@ class TickerWorker(QObject):
     def __init__(self, res: AppRes, code: str, parent=None):
         super().__init__(parent)
         self.logger = logging.getLogger(__name__)
+        self._running = True
         self.res = res
         self.code = code
 
@@ -114,6 +115,9 @@ class TickerWorker(QObject):
         """
         self.psar.setOverDriveStatus(state)
 
+    def stop(self):
+        self._running = False
+
     def updatePSARParams(self, dict_psar):
         """
         パラメータ設定の更新要求に対する応答（付与された辞書を保存）
@@ -171,6 +175,11 @@ class Ticker(QThread):
 
         # Over Drive 状態の変更
         self.requestOEStatusChange.connect(worker.changeOverDriveStatus)
+
+        # ---------------------------------------------------------------------
+        # スレッド終了時にワーカーとスレッドを破棄
+        self.finished.connect(worker.deleteLater)
+        self.finished.connect(self.deleteLater)
 
     def thread_ready(self):
         self.threadReady.emit(self.code)

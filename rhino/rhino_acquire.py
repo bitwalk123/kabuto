@@ -37,6 +37,7 @@ class RhinoAcquireWorker(QObject):
     def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self._running = True
         self.excel_path = excel_path
 
         # ---------------------------------------------------------------------
@@ -178,6 +179,9 @@ class RhinoAcquireWorker(QObject):
         self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def stop(self):
+        self._running = False
+
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
@@ -240,8 +244,9 @@ class RhinoAcquire(QThread):
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
         # ---------------------------------------------------------------------
-        # スレッド終了関連
-        self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
+        # スレッド終了時にワーカーとスレッドを破棄
+        self.finished.connect(worker.deleteLater)
+        self.finished.connect(self.deleteLater)
 
     def thread_ready(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -36,6 +36,7 @@ class RhinoReviewWorker(QObject):
     def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self._running = True
         self.excel_path = excel_path
         self.dict_sheet = dict()
 
@@ -123,6 +124,9 @@ class RhinoReviewWorker(QObject):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def stop(self):
+        self._running = False
+
     @Slot()
     def stopProcess(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -173,8 +177,9 @@ class RhinoReview(QThread):
         # 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
-        # スレッド終了関連
-        self.finished.connect(self.deleteLater)  # スレッドオブジェクトの削除
+        # スレッド終了時にワーカーとスレッドを破棄
+        self.finished.connect(worker.deleteLater)
+        self.finished.connect(self.deleteLater)
 
     def isDataReady(self) -> bool:
         return self.flag_data_ready

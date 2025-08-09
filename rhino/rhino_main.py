@@ -28,7 +28,7 @@ from widgets.layouts import VBoxLayout
 
 class Rhino(QMainWindow):
     __app_name__ = "Rhino"
-    __version__ = "0.9.4"
+    __version__ = "0.9.5"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -163,8 +163,11 @@ class Rhino(QMainWindow):
                 if self.acquire.isRunning():
                     self.acquire.requestStopProcess.emit()
                     time.sleep(1)
-                    self.acquire.quit()
-                    self.acquire.deleteLater()
+                    if self.acquire.worker:
+                        self.acquire.worker.stop()
+                    if self.acquire:
+                        self.acquire.quit()
+                        self.acquire.wait()
                     self.logger.info(f"{__name__}: deleted acquire thread.")
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
@@ -175,8 +178,11 @@ class Rhino(QMainWindow):
         if self.review is not None:
             try:
                 if self.review.isRunning():
-                    self.review.quit()
-                    self.review.deleteLater()
+                    if self.review.worker:
+                        self.review.worker.stop()
+                    if self.review:
+                        self.review.quit()
+                        self.review.wait()
                     self.logger.info(f"{__name__}: deleted review thread.")
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
@@ -184,11 +190,16 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # Ticker スレッドの削除
         # ---------------------------------------------------------------------
-        for code, thread in self.dict_ticker.items():
-            if thread.isRunning():
+        code: str
+        ticker: Ticker
+        for code, ticker in self.dict_ticker.items():
+            if ticker.isRunning():
                 self.logger.info(f"{__name__}: stopping Ticker for {code}...")
-                thread.quit()  # スレッドのイベントループに終了を指示
-                thread.wait()  # スレッドが完全に終了するまで待機
+                if ticker.worker:
+                    ticker.worker.stop()
+                if ticker:
+                    ticker.quit()
+                    ticker.wait()
                 self.logger.info(f"{__name__}: Ticker for {code} safely terminated.")
 
         # ---------------------------------------------------------------------
