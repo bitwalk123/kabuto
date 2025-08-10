@@ -4,7 +4,7 @@ import mplfinance as mpf
 import yfinance as yf
 
 from kabuto.psar_conventional import ParabolicSAR
-from widgets.chart import MplChart
+from widgets.charts import MplChart
 
 
 class TechnicalDrawer:

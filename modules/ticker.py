@@ -17,7 +17,7 @@ from PySide6.QtCore import (
 
 from funcs.ios import read_contents_from_json, save_contents_to_json
 from funcs.params import get_default_psar_params
-from rhino.rhino_psar import PSARObject, RealtimePSAR
+from modules.psar import PSARObject, RealtimePSAR
 from structs.app_enum import FollowType
 from structs.res import AppRes
 

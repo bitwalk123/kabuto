@@ -4,12 +4,12 @@ import os
 import time
 
 from PySide6.QtCore import QTimer
-from PySide6.QtGui import QIcon, QCloseEvent
+from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import QMainWindow
 
-from modules.stock_collector import StockCollector
+from modules.collector import StockCollector
 from structs.res import AppRes
-from widgets.toolbar import ToolBarVein
+from widgets.toolbars import ToolBarVein
 
 
 class StockVein(QMainWindow):

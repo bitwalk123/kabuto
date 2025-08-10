@@ -9,7 +9,7 @@ from structs.res import AppRes
 from widgets.labels import LabelRight, LabelPrice
 
 
-class StatusBar(QStatusBar):
+class AppStatusBar(QStatusBar):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res

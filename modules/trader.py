@@ -2,27 +2,21 @@ import logging
 
 import numpy as np
 import pandas as pd
-import matplotlib.font_manager as fm
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qtagg import (
-    FigureCanvasQTAgg as FigureCanvas
-)
-from matplotlib import dates as mdates
-from matplotlib.figure import Figure
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
-from beetle.beetle_dock import DockBeetleTrader
-from beetle.beetle_psar import PSARObject
+from modules.chart import TrendChart
+from modules.dock import DockTrader
+from modules.psar import PSARObject
 from structs.res import AppRes
 
 
-class BeetleTrader(QMainWindow):
-    def __init__(self, res: AppRes, ticker: str):
+class Trader(QMainWindow):
+    def __init__(self, res: AppRes, code: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
-        self.ticker = ticker
+        self.code = code
 
         # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
@@ -40,67 +34,44 @@ class BeetleTrader(QMainWindow):
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
         self.ys_data = np.empty(self.max_data_points, dtype=np.float64)
         # データ点用のカウンター
-        self.counter_data = 0
+        self.count_data = 0
 
         # bull（上昇トレンド）
         self.x_bull = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bull = np.empty(self.max_data_points, dtype=np.float64)
         # bull 用のカウンター
-        self.counter_bull = 0
+        self.count_bull = 0
 
         # bear（下降トレンド）
         self.x_bear = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_bear = np.empty(self.max_data_points, dtype=np.float64)
         # bear 用のカウンター
-        self.counter_bear = 0
+        self.count_bear = 0
 
         #
         #######################################################################
 
-        self.setFixedSize(1200, 300)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        #  UI
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # ウィンドウのサイズ制約
+        self.setMinimumWidth(1200)
+        self.setFixedHeight(300)
+
         # ---------------------------------------------------------------------
         # 右側のドック
         # ---------------------------------------------------------------------
-        self.dock = dock = DockBeetleTrader(res, ticker)
+        self.dock = dock = DockTrader(res, code)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
-
-        # Matplotlib 用設定
-        FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
-        fm.fontManager.addfont(FONT_PATH)
-        # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=FONT_PATH)
-        font_prop.get_name()
-
-        # フォント設定
-        plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 12
-
-        # ダークモードの設定
-        plt.style.use("dark_background")
-
-        # Figure オブジェクト
-        self.figure = Figure()
-        # Figure オブジェクトの余白設定
-        self.figure.subplots_adjust(
-            left=0.075,
-            right=0.99,
-            top=0.9,
-            bottom=0.08,
-        )
 
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        self.chart = chart = FigureCanvas(self.figure)
+        self.chart = chart = TrendChart(res)
         self.setCentralWidget(chart)
 
-        # 描画用インスタンス (ax）
-        self.ax = self.figure.add_subplot(111)
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-        self.ax.grid(True, lw=0.5)
-
         # 最新の株価
-        self.latest_point, = self.ax.plot(
+        self.latest_point, = self.chart.ax.plot(
             [], [],
             marker='x',
             markersize=7,
@@ -108,14 +79,14 @@ class BeetleTrader(QMainWindow):
         )
 
         # トレンドライン（株価）
-        self.trend_line, = self.ax.plot(
+        self.trend_line, = self.chart.ax.plot(
             [], [],
             color='lightgray',
             linewidth=1
         )
 
         # bull（Parabolic SAR 上昇トレンド）
-        self.trend_bull, = self.ax.plot(
+        self.trend_bull, = self.chart.ax.plot(
             [], [],
             marker='o',
             markersize=1,
@@ -124,7 +95,7 @@ class BeetleTrader(QMainWindow):
         )
 
         # bear（Parabolic SAR 下降トレンド）
-        self.trend_bear, = self.ax.plot(
+        self.trend_bear, = self.chart.ax.plot(
             [], [],
             marker='o',
             markersize=1,
@@ -139,8 +110,8 @@ class BeetleTrader(QMainWindow):
         """
         # タイムスタンプ の Time 列は self.tz を考慮
         return pd.DataFrame({
-            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.counter_data]],
-            "Price": self.y_data[0: self.counter_data]
+            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.count_data]],
+            "Price": self.y_data[0: self.count_data]
         })
 
     def setLastCloseLine(self, price_close: float):
@@ -149,7 +120,7 @@ class BeetleTrader(QMainWindow):
         :param price_close:
         :return:
         """
-        self.ax.axhline(y=price_close, color="red", linewidth=0.75)
+        self.chart.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
     def setPlotData(self, ts: float, ret: PSARObject):
         """
@@ -173,38 +144,34 @@ class BeetleTrader(QMainWindow):
         # ---------------------------------------------------------------------
         # 現在価格（スムージングした線に変更予定）
         # ---------------------------------------------------------------------
-        self.x_data[self.counter_data] = x
-        self.y_data[self.counter_data] = ret.price
-        self.ys_data[self.counter_data] = ret.ys
-        self.counter_data += 1
-        self.trend_line.set_xdata(self.x_data[0:self.counter_data])
-        self.trend_line.set_ydata(self.ys_data[0:self.counter_data])
+        self.x_data[self.count_data] = x
+        self.y_data[self.count_data] = ret.price
+        self.ys_data[self.count_data] = ret.ys
+        self.count_data += 1
+        self.trend_line.set_xdata(self.x_data[0:self.count_data])
+        self.trend_line.set_ydata(self.ys_data[0:self.count_data])
 
         # ---------------------------------------------------------------------
         # Parabolic SAR のトレンド点
         # ---------------------------------------------------------------------
         if 0 < ret.trend:
-            self.x_bull[self.counter_bull] = x
-            self.y_bull[self.counter_bull] = ret.psar
-            self.counter_bull += 1
-            self.trend_bull.set_xdata(self.x_bull[0:self.counter_data])
-            self.trend_bull.set_ydata(self.y_bull[0:self.counter_data])
+            self.x_bull[self.count_bull] = x
+            self.y_bull[self.count_bull] = ret.psar
+            self.count_bull += 1
+            self.trend_bull.set_xdata(self.x_bull[0:self.count_data])
+            self.trend_bull.set_ydata(self.y_bull[0:self.count_data])
         elif ret.trend < 0:
-            self.x_bear[self.counter_bear] = x
-            self.y_bear[self.counter_bear] = ret.psar
-            self.counter_bear += 1
-            self.trend_bear.set_xdata(self.x_bear[0:self.counter_data])
-            self.trend_bear.set_ydata(self.y_bear[0:self.counter_data])
+            self.x_bear[self.count_bear] = x
+            self.y_bear[self.count_bear] = ret.psar
+            self.count_bear += 1
+            self.trend_bear.set_xdata(self.x_bear[0:self.count_data])
+            self.trend_bear.set_ydata(self.y_bear[0:self.count_data])
         else:
             # ret.trend == 0 の時
             pass
 
-        # データ範囲を再計算
-        self.ax.relim()
-        # y軸のみオートスケール
-        self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
         # 再描画
-        self.chart.draw()
+        self.chart.reDraw()
 
         # ---------------------------------------------------------------------
         # トレンド情報をドックに設定
@@ -223,7 +190,7 @@ class BeetleTrader(QMainWindow):
         pad_left = 5. * 60  # チャート左側の余白（５分）
         dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
         dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
-        self.ax.set_xlim(dt_start, dt_end)
+        self.chart.ax.set_xlim(dt_start, dt_end)
 
     def setChartTitle(self, title: str):
         """
@@ -231,5 +198,4 @@ class BeetleTrader(QMainWindow):
         :param title:
         :return:
         """
-        # self.chart.setTitle(title)
-        self.ax.set_title(title)
+        self.chart.setTitle(title)

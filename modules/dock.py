@@ -2,17 +2,17 @@ import logging
 
 from PySide6.QtCore import Signal
 
-from rhino.rhino_pacman import PacMan
-from rhino.rhino_panel import PanelOption, PanelTrading
-from rhino.rhino_psar import PSARObject
-from rhino.rhino_ticker import Ticker
+from modules.pacman import PacMan
+from modules.panel import PanelOption, PanelTrading
+from modules.psar import PSARObject
+from modules.ticker import Ticker
 from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget
 from widgets.labels import LCDIntWithTitle, LCDValueWithTitle
 
 
-class DockRhinoTrader(DockWidget):
+class DockTrader(DockWidget):
     clickedBuy = Signal(str, float, str)
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)

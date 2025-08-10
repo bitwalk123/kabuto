@@ -10,11 +10,11 @@ from PySide6.QtCore import (
 
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
-from modules.position_mannager import PositionManager
+from modules.posman import PositionManager
 from structs.app_enum import PositionType
 
 
-class RhinoReviewWorker(QObject):
+class ReviewWorker(QObject):
     """
     Excel 形式の過去データを読み込むスレッドワーカー
     """
@@ -135,7 +135,7 @@ class RhinoReviewWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-class RhinoReview(QThread):
+class Review(QThread):
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
 
@@ -155,7 +155,7 @@ class RhinoReview(QThread):
         self.flag_data_ready = False
 
         # ワーカースレッド・インスタンスの生成およびスレッドへの移動
-        self.worker = worker = RhinoReviewWorker(excel_path)
+        self.worker = worker = ReviewWorker(excel_path)
         worker.notifyDataReady.connect(self.set_data_ready_status)
         worker.threadFinished.connect(self.quit)  # スレッド終了時
         worker.moveToThread(self)

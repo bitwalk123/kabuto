@@ -1,7 +1,7 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QFrame
 
-from rhino.rhino_dialog import DlgTradeConfig
+from modules.dialog import DlgTradeConfig
 from structs.res import AppRes
 from widgets.buttons import (
     ButtonSave,

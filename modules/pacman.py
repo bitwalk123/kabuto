@@ -1,17 +1,17 @@
-from beetle.beetle_psar import PSARObject
+from modules.psar import PSARObject
 from structs.app_enum import PositionType
 
 
 class PacMan:
     """
-    トレンド判定ロジック
+    👻 トレンド判定ロジック
     """
 
     def __init__(self):
         self.counter: int = 0  # トータルカウンター
         self.sar: int = 0  # 反転カウンター
         self.trend: int = 0  # トレンドの向き
-        self.epupd_min: int = 10  # トレンド追従を開始するための EP 更新回数の最低回数
+        self.epupd_min: int = 1  # トレンド追従を開始するための EP 更新回数の最低回数
         self.has_position: bool = False  # ポジションを持っているか？
 
     def setTrend(self, ret: PSARObject) -> PositionType:

@@ -1,43 +1,35 @@
 import logging
+import os
 import sys
 import time
 
 import pandas as pd
 import xlwings as xw
 
-from structs.app_enum import PositionType
+from funcs.ios import save_dataframe_to_excel
+from funcs.tide import get_date_str_today
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
     from pywintypes import com_error
 
-from modules.position_mannager import PositionManager
+from PySide6.QtCore import QObject, QThread, Signal
 
-from PySide6.QtCore import (
-    QObject,
-    QThread,
-    Signal,
-)
+from structs.res import AppRes
 
 
-class RhinoAcquireWorker(QObject):
-    """
-    【Windows 専用】
-    楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
-    """
+class StockCollectorWorker(QObject):
     # 銘柄名（リスト）の通知
-    notifyTickerN = Signal(list, dict, dict)
-    # ティックデータを通知
-    notifyCurrentPrice = Signal(dict, dict, dict)
-    # 取引結果のデータフレームを通知
-    notifyTransactionResult = Signal(pd.DataFrame)
-    # スレッド終了シグナル（成否の論理値）
-    threadFinished = Signal(bool)
+    notifyTickerN = Signal(list, dict)
+    # 保存の終了を通知
+    saveCompleted = Signal(bool)
+    # スレッドの終了を通知
+    threadFinished = Signal()
 
-    def __init__(self, excel_path: str):
+    def __init__(self, res: AppRes, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self._running = True
+        self.res = res
         self.excel_path = excel_path
 
         # ---------------------------------------------------------------------
@@ -58,8 +50,10 @@ class RhinoAcquireWorker(QObject):
 
         # Excel ワークシート情報
         self.cell_bottom = "------"
-        self.list_code = list()  # 銘柄リスト
+        self.list_ticker = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
+        self.dict_name = dict()  # 銘柄名
+        self.dict_df = dict()  # 銘柄別データフレーム
 
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
@@ -68,20 +62,6 @@ class RhinoAcquireWorker(QObject):
         self.col_time = 3  # 時刻
         self.col_price = 4  # 現在詳細株価
         self.col_lastclose = 5  # 前日終値
-
-        # ポジション・マネージャのインスタンス
-        self.posman = PositionManager()
-
-    def getTransactionResult(self):
-        """
-        取引結果を取得
-        :return:
-        """
-        df = self.posman.getTransactionResult()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 取引結果のデータフレームを通知
-        self.notifyTransactionResult.emit(df)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def initWorker(self):
         self.logger.info("Worker: in init process.")
@@ -93,51 +73,41 @@ class RhinoAcquireWorker(QObject):
         #
         #######################################################################
 
-        dict_name = dict()  # 銘柄名
-        dict_lastclose = dict()  # 銘柄別前日終値
-
         row = 1
         flag_loop = True
         while flag_loop:
-            code = self.sheet[row, self.col_code].value
-            if code == self.cell_bottom:
+            ticker = self.sheet[row, self.col_code].value
+            if ticker == self.cell_bottom:
                 flag_loop = False
             else:
                 # 銘柄コード
-                self.list_code.append(code)
+                self.list_ticker.append(ticker)
 
                 # 行位置
-                self.dict_row[code] = row
+                self.dict_row[ticker] = row
 
                 # 銘柄名
-                dict_name[code] = self.sheet[row, self.col_name].value
+                self.dict_name[ticker] = self.sheet[row, self.col_name].value
 
-                # 前日の終値の横線
-                dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
+                # 銘柄別に空のデータフレームを準備
+                self.dict_df[ticker] = pd.DataFrame({
+                    "Time": list(),
+                    "Price": list()
+                })
 
                 # 行番号のインクリメント
                 row += 1
 
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 銘柄名（リスト）などの情報を通知
-        self.notifyTickerN.emit(
-            self.list_code, dict_name, dict_lastclose
-        )
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-        # ポジション・マネージャの初期化
-        self.posman.initPosition(self.list_code)
+        # --------------------------------------------------------------
+        # 🧿 銘柄名などの情報を通知
+        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
+        # --------------------------------------------------------------
 
     def readCurrentPrice(self):
-        """
-        現在株価の読み取り
-        :return:
-        """
-        dict_data = dict()
-        dict_profit = dict()
-        dict_total = dict()
-        for i, code in enumerate(self.list_code):
-            row = i + 1
+        for ticker in self.list_ticker:
+            row_excel = self.dict_row[ticker]
+            df = self.dict_df[ticker]
+            row = len(df)
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
                 ###############################################################
@@ -147,12 +117,12 @@ class RhinoAcquireWorker(QObject):
                 try:
                     ts = time.time()
                     # Excelシートから株価データを取得
-                    price = self.sheet[row, self.col_price].value
+                    price = self.sheet[row_excel, self.col_price].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
-                        dict_data[code] = [ts, price]
-                        dict_profit[code] = self.posman.getProfit(code, price)
-                        dict_total[code] = self.posman.getTotal(code)
+                        df.at[row, "Time"] = ts
+                        df.at[row, "Price"] = price
+                        # print(ticker, ts, price)
                     break
                 except com_error as e:
                     # ---------------------------------------------------------
@@ -174,13 +144,36 @@ class RhinoAcquireWorker(QObject):
                 #
                 ###############################################################
 
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def saveDataFrame(self):
+        # 保存するファイル名
+        date_str = get_date_str_today()
+        name_excel = os.path.join(
+            self.res.dir_collection,
+            f"ticks_{date_str}.xlsx"
+        )
+        # 念のため、空のデータでないか確認して空でなければ保存
+        r = 0
+        for ticker in self.list_ticker:
+            df = self.dict_df[ticker]
+            r += len(df)
+        if r == 0:
+            # すべてのデータフレームの行数が 0 の場合は保存しない。
+            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            flag = False
+        else:
+            # ティックデータの保存処理
+            try:
+                save_dataframe_to_excel(name_excel, self.dict_df)
+                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+                flag = True
+            except ValueError as e:
+                self.logger.error(f"{__name__} error occurred!: {e}")
+                flag = False
 
-    def stop(self):
-        self._running = False
+        # ----------------------------
+        # 🧿 保存の終了を通知
+        self.saveCompleted.emit(flag)
+        # ----------------------------
 
     def stopProcess(self):
         """
@@ -190,69 +183,75 @@ class RhinoAcquireWorker(QObject):
         self.logger.info("Worker: stopProcess called.")
 
         if self.wb:
+            """
+            try:
+                self.wb.close()  # ブックを閉じる
+                self.logger.info("Worker: Excel book closed.")
+            except Exception as e:
+                self.logger.error(f"Worker: Error closing book: {e}")
+            # ブックを閉じた後、その親アプリケーションも終了させる
+            if self.wb.app:
+                try:
+                    self.wb.app.quit()
+                    self.logger.info("Worker: Excel app quit.")
+                except Exception as e:
+                    self.logger.error(f"Worker: Error quitting app: {e}")
+            """
             self.wb = None  # オブジェクト参照をクリア
 
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # -------------------------------
         # 🧿 スレッド終了シグナルの通知
-        self.threadFinished.emit(True)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.threadFinished.emit()
+        # -------------------------------
 
 
-class RhinoAcquire(QThread):
+class StockCollector(QThread):
     requestWorkerInit = Signal()
     requestCurrentPrice = Signal()
     requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
-    # 売買
-    requestPositionOpen = Signal(str, float, float, PositionType, str)
-    requestPositionClose = Signal(str, float, float, str)
-    requestTransactionResult = Signal()
-
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal()
 
-    def __init__(self, excel_path: str):
+    def __init__(self, res: AppRes):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.res = res
 
-        # ワーカースレッド・インスタンスの生成およびスレッドへの移動
-        self.worker = worker = RhinoAcquireWorker(excel_path)
-        worker.threadFinished.connect(self.quit)  # スレッド終了時
-        self.worker.moveToThread(self)
+        excel_path = res.excel_collector
+        self.worker = worker = StockCollectorWorker(res, excel_path)
+        self.worker.moveToThread(self)  # ThreadStockCollectorWorkerをこのQThreadに移動
 
-        # ---------------------------------------------------------------------
-        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
+        # QThread が開始されたら、ワーカースレッド内で初期化処理を開始するシグナルを発行
         self.started.connect(self.requestWorkerInit.emit)
-        # _____________________________________________________________________
-        # xlwings インスタンスを生成、Excel の銘柄情報を読込む初期化メソッドへキューイング。
-        self.requestWorkerInit.connect(worker.initWorker)
-        # ---------------------------------------------------------------------
-        # 売買ポジション処理用のメソッドへキューイング
-        self.requestPositionOpen.connect(worker.posman.openPosition)
-        self.requestPositionClose.connect(worker.posman.closePosition)
-        # ---------------------------------------------------------------------
-        # 取引結果を取得するメソッドへキューイング
-        self.requestTransactionResult.connect(worker.getTransactionResult)
-        # ---------------------------------------------------------------------
-        # 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPrice.connect(worker.readCurrentPrice)
-        # ---------------------------------------------------------------------
+
         # スレッド開始時にworkerの準備完了を通知 (必要であれば)
         self.started.connect(self.thread_ready)
-        # ---------------------------------------------------------------------
+
+        # _____________________________________________________________________
+        # メイン・スレッド側のシグナルとワーカー・スレッド側のスロット（メソッド）の接続
+        # 初期化処理は指定された Excel ファイルを読み込むこと
+        # xlwings インスタンスを生成、Excel の銘柄情報を読込むメソッドへキューイング。
+        self.requestWorkerInit.connect(worker.initWorker)
+
+        # 現在株価を取得するメソッドへキューイング。
+        self.requestCurrentPrice.connect(worker.readCurrentPrice)
+
+        # データフレームを保存するメソッドへキューイング
+        self.requestSaveDataFrame.connect(worker.saveDataFrame)
+
         # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
         self.requestStopProcess.connect(worker.stopProcess)
-        # ---------------------------------------------------------------------
-        # スレッド終了時にワーカーとスレッドを破棄
+
+        # スレッド終了関連
+        # worker.threadFinished.connect(self.on_thread_finished)
+        worker.threadFinished.connect(self.quit)
         self.finished.connect(worker.deleteLater)
         self.finished.connect(self.deleteLater)
 
     def thread_ready(self):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 スレッド準備完了通知
         self.threadReady.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def run(self):
         """
@@ -260,9 +259,9 @@ class RhinoAcquire(QThread):
         これがなければ、スレッドはすぐに終了してしまう。
         """
         self.logger.info(
-            f"{__name__}: run() method started. ### Entering event loop..."
+            f"{__name__} StockCollector: run() method started. Entering event loop..."
         )
         self.exec()  # イベントループを開始
         self.logger.info(
-            f"{__name__}: run() method finished. ### Event loop exited."
+            f"{__name__} StockCollector: run() method finished. Event loop exited."
         )

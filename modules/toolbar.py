@@ -10,7 +10,7 @@ from widgets.containers import PadH
 from widgets.labels import Label, LCDTime
 
 
-class RhinoToolBar(QToolBar):
+class ToolBar(QToolBar):
     clickedAbout = Signal()
     clickedPlay = Signal()
     clickedStop = Signal()

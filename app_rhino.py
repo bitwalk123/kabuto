@@ -4,7 +4,7 @@ import sys
 from PySide6.QtWidgets import QApplication
 
 from funcs.logs import setup_logging
-from rhino.rhino_main import Rhino
+from modules.rhino import Rhino
 
 
 def gen_parser_for_app_cmdline_options() -> argparse.ArgumentParser:

@@ -10,16 +10,16 @@ from PySide6.QtWidgets import QMainWindow
 from funcs.ios import save_dataframe_to_excel
 from funcs.uis import clear_boxlayout
 from modules.trans import WinTransaction
-from rhino.rhino_acquire import RhinoAcquire
-from rhino.rhino_dialog import DlgAboutThis
-from rhino.rhino_dock import DockRhinoTrader
-from rhino.rhino_funcs import get_intraday_timestamp
-from rhino.rhino_psar import PSARObject
-from rhino.rhino_review import RhinoReview
-from rhino.rhino_statusbar import RhinoStatusBar
-from rhino.rhino_ticker import Ticker
-from rhino.rhino_toolbar import RhinoToolBar
-from rhino.rhino_trader import RhinoTrader
+from modules.acquire import Acquire
+from modules.dialog import DlgAboutThis
+from modules.dock import DockTrader
+from funcs.tide import get_intraday_timestamp
+from modules.psar import PSARObject
+from modules.review import Review
+from modules.statusbar import StatusBar
+from modules.ticker import Ticker
+from modules.toolbar import ToolBar
+from modules.trader import Trader
 from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
@@ -29,6 +29,10 @@ from widgets.layouts import VBoxLayout
 class Rhino(QMainWindow):
     __app_name__ = "Rhino"
     __version__ = "0.9.5"
+    """
+    - スレッド Acquire / Review / Ticker のオーバーホール
+    - 本運用に向けたリファクタリング
+    """
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -54,8 +58,8 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
         # ---------------------------------------------------------------------
-        self.acquire: RhinoAcquire | None = None  # リアルタイム用
-        self.review: RhinoReview | None = None  # デバッグ・レビュー用
+        self.acquire: Acquire | None = None  # リアルタイム用
+        self.review: Review | None = None  # デバッグ・レビュー用
 
         # ---------------------------------------------------------------------
         # Trader インスタンス
@@ -105,7 +109,7 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # ツールバー
         # ---------------------------------------------------------------------
-        self.toolbar = toolbar = RhinoToolBar(res)
+        self.toolbar = toolbar = ToolBar(res)
         toolbar.clickedAbout.connect(self.on_about)
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
@@ -116,7 +120,7 @@ class Rhino(QMainWindow):
         # ---------------------------------------------------------------------
         # ステータスバー
         # ---------------------------------------------------------------------
-        self.statusbar = statusbar = RhinoStatusBar(res)
+        self.statusbar = statusbar = StatusBar(res)
         self.setStatusBar(statusbar)
 
         # ---------------------------------------------------------------------
@@ -228,7 +232,7 @@ class Rhino(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            trader = RhinoTrader(self.res, code)
+            trader = Trader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
@@ -274,8 +278,8 @@ class Rhino(QMainWindow):
 
     def force_closing_position(self):
         for code in self.dict_trader.keys():
-            trader: RhinoTrader = self.dict_trader[code]
-            dock: DockRhinoTrader = trader.dock
+            trader: Trader = self.dict_trader[code]
+            dock: DockTrader = trader.dock
             dock.forceStopAutoPilot()
 
     def get_current_tick_data(self) -> dict:
@@ -309,7 +313,7 @@ class Rhino(QMainWindow):
         :return:
         """
         # リアルタイム用データ取得インスタンス (self.acquire) の生成
-        self.acquire = acquire = RhinoAcquire(excel_path)
+        self.acquire = acquire = Acquire(excel_path)
         # 初期化後の銘柄情報を通知
         acquire.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
@@ -439,7 +443,7 @@ class Rhino(QMainWindow):
         :param ret:
         :return:
         """
-        trader: RhinoTrader = self.dict_trader[code]
+        trader: Trader = self.dict_trader[code]
         trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -486,7 +490,7 @@ class Rhino(QMainWindow):
         # リアルタイムのタイマー終了後に呼び出される通常保存ファイル名
         name_excel = os.path.join(
             self.res.dir_excel,
-            f"tick_{self.dict_ts["date_str"]}_rhino.xlsx"
+            f"tick_{self.dict_ts["date_str"]}.xlsx"
         )
         # Trader インスタンスからティックデータのデータフレームを辞書で取得
         dict_df = self.get_current_tick_data()
@@ -532,7 +536,7 @@ class Rhino(QMainWindow):
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
         # デバッグ/レビュー用データ取得インスタンス (self.review) の生成
-        self.review = review = RhinoReview(excel_path)
+        self.review = review = Review(excel_path)
         # 初期化後の銘柄情報を通知
         review.worker.notifyTickerN.connect(self.on_create_trader_review)
         # タイマーで現在時刻と株価を通知

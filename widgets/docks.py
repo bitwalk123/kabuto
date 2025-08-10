@@ -4,7 +4,7 @@ from PySide6.QtWidgets import QDockWidget
 from widgets.containers import Widget, PadH
 from widgets.labels import LabelRightMedium
 from widgets.layouts import VBoxLayout, HBoxLayout
-from widgets.switch import Switch
+from widgets.switches import Switch
 
 
 class DockTitle(Widget):

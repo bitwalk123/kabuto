@@ -10,10 +10,10 @@ from PySide6.QtWidgets import (
 
 from funcs.conv import conv_transaction_df2html
 from structs.res import AppRes
-from widgets.model import ModelTransaction
-from widgets.statusbar import TotalBar
-from widgets.table import TransactionView
-from widgets.toolbar import ToolBarTransaction
+from widgets.models import ModelTransaction
+from widgets.statusbars import TotalBar
+from widgets.tables import TransactionView
+from widgets.toolbars import ToolBarTransaction
 
 
 class Transaction(QMainWindow):
