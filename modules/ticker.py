@@ -190,9 +190,9 @@ class Ticker(QThread):
         これがなければ、スレッドはすぐに終了してしまう。
         """
         self.logger.info(
-            f"{__name__} ThreadTicker for {self.code}: run() method started. Entering event loop..."
+            f"{__name__} Ticker for {self.code}: run() method started. Entering event loop..."
         )
         self.exec()  # イベントループを開始
         self.logger.info(
-            f"{__name__} ThreadTicker for {self.code}: run() method finished. Event loop exited."
+            f"{__name__} Ticker for {self.code}: run() method finished. Event loop exited."
         )
