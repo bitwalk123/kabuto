@@ -7,32 +7,25 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
+from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
-from modules.trans import WinTransaction
 from modules.acquire import Acquire
 from modules.dialog import DlgAboutThis
-from rhino.rhino_dock import DockTrader
-from funcs.tide import get_intraday_timestamp
-from rhino.rhino_psar import PSARObject
 from modules.review import Review
 from modules.statusbar import StatusBar
-from rhino.rhino_ticker import Ticker
 from modules.toolbar import ToolBar
-from rhino.rhino_trader import Trader
+from modules.trans import WinTransaction
 from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
 
 
-class Rhino(QMainWindow):
-    __app_name__ = "Rhino"
-    __version__ = "0.9.5"
-    """
-    - スレッド Acquire / Review / Ticker のオーバーホール
-    - 本運用に向けたリファクタリング
-    """
+class Beetle(QMainWindow):
+    __app_name__ = "Beetle"
+    __version__ = "0.10.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -75,9 +68,9 @@ class Rhino(QMainWindow):
         # インスタンスの定義（空）
         # スレッドインスタンスであるため、念のため self に紐付けられるように
         # ここでアプリのインスタンス変数として定義している。
-        self.ticker: Ticker | None = None
+        # self.ticker: Ticker | None = None
         # Ticker インスタンスを保持する辞書
-        self.dict_ticker = dict()
+        # self.dict_ticker = dict()
 
         # ---------------------------------------------------------------------
         # 取引履歴
@@ -191,6 +184,7 @@ class Rhino(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
 
+        """
         # ---------------------------------------------------------------------
         # Ticker スレッドの削除
         # ---------------------------------------------------------------------
@@ -205,6 +199,7 @@ class Rhino(QMainWindow):
                     ticker.quit()
                     ticker.wait()
                 self.logger.info(f"{__name__}: Ticker for {code} safely terminated.")
+        """
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
@@ -224,7 +219,7 @@ class Rhino(QMainWindow):
         # Trader 辞書のクリア
         self.dict_trader = dict()
         # Ticker インスタンスをクリア
-        self.dict_ticker = dict()
+        # self.dict_ticker = dict()
 
         # 銘柄数分の Trader および Ticker インスタンスの生成
         for code in list_code:
@@ -233,6 +228,7 @@ class Rhino(QMainWindow):
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             trader = Trader(self.res, code)
+            """
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
@@ -247,6 +243,7 @@ class Rhino(QMainWindow):
 
             # レビュー/リアルタイム用共通処理
             trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
+            """
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader
@@ -264,6 +261,7 @@ class Rhino(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
+            """
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Ticker インスタンスの生成
             # 主に Parabolic SAR の算出用
@@ -275,12 +273,16 @@ class Rhino(QMainWindow):
             self.dict_ticker[code] = ticker
             # パラメータ情報をやりとりするために Trader クラスのドックにインスタンスを登録
             trader.dock.setTicker(ticker)
+            """
 
     def force_closing_position(self):
+        self.logger.info(f"{__name__} 未実装です。")
+        """
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
             dock.forceStopAutoPilot()
+        """
 
     def get_current_tick_data(self) -> dict:
         """
@@ -303,7 +305,8 @@ class Rhino(QMainWindow):
             self.__app_name__,
             self.__version__,
             self.__author__,
-            self.__license__
+            self.__license__,
+            "beetle.png",
         ).exec()
 
     def on_create_acquire_thread(self, excel_path: str):
@@ -426,25 +429,26 @@ class Rhino(QMainWindow):
         for code in dict_data.keys():
             x, y = dict_data[code]
             trader = self.dict_trader[code]
-            trader.dock.setPrice(y)
+            trader.setPlotData(x, y)
+            # trader.dock.setPrice(y)
             # 銘柄単位の含み益と収益を更新
-            trader.dock.setProfit(dict_profit[code])
-            trader.dock.setTotal(dict_total[code])
+            # trader.dock.setProfit(dict_profit[code])
+            # trader.dock.setTotal(dict_total[code])
             # Parabolic SAR
-            ticker: Ticker = self.dict_ticker[code]
+            # ticker: Ticker = self.dict_ticker[code]
             # ここで PSAR を算出する処理が呼び出される
-            ticker.notifyNewPrice.emit(x, y)
+            # ticker.notifyNewPrice.emit(x, y)
 
-    def on_update_psar(self, code: str, x: float, ret: PSARObject):
-        """
-        Parabolic SAR のトレンド点を追加
-        :param code:
-        :param x:
-        :param ret:
-        :return:
-        """
-        trader: Trader = self.dict_trader[code]
-        trader.setPlotData(x, ret)
+    # def on_update_psar(self, code: str, x: float, ret: PSARObject):
+    #    """
+    #    Parabolic SAR のトレンド点を追加
+    #    :param code:
+    #    :param x:
+    #    :param ret:
+    #    :return:
+    #    """
+    #    trader: Trader = self.dict_trader[code]
+    #    trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
@@ -473,11 +477,11 @@ class Rhino(QMainWindow):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def notify_new_psar_params(self, code: str, dict_psar: dict):
-        # 銘柄コード別 Parabolic SAR 等の算出用インスタンス
-        ticker: Ticker = self.dict_ticker[code]
-        # ここで PSAR を算出する処理が呼び出される
-        ticker.requestUpdatePSARParams.emit(dict_psar)
+    # def notify_new_psar_params(self, code: str, dict_psar: dict):
+    #    # 銘柄コード別 Parabolic SAR 等の算出用インスタンス
+    #    ticker: Ticker = self.dict_ticker[code]
+    #    # ここで PSAR を算出する処理が呼び出される
+    #    ticker.requestUpdatePSARParams.emit(dict_psar)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
