@@ -62,17 +62,6 @@ class Beetle(QMainWindow):
         self.dict_trader = dict()
 
         # ---------------------------------------------------------------------
-        # Ticker インスタンス
-        # 銘柄コード別に PSAR などを算出
-        # ---------------------------------------------------------------------
-        # インスタンスの定義（空）
-        # スレッドインスタンスであるため、念のため self に紐付けられるように
-        # ここでアプリのインスタンス変数として定義している。
-        # self.ticker: Ticker | None = None
-        # Ticker インスタンスを保持する辞書
-        # self.dict_ticker = dict()
-
-        # ---------------------------------------------------------------------
         # 取引履歴
         # ---------------------------------------------------------------------
         self.df_transaction = None
@@ -184,22 +173,6 @@ class Beetle(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
 
-        """
-        # ---------------------------------------------------------------------
-        # Ticker スレッドの削除
-        # ---------------------------------------------------------------------
-        code: str
-        ticker: Ticker
-        for code, ticker in self.dict_ticker.items():
-            if ticker.isRunning():
-                self.logger.info(f"{__name__}: stopping Ticker for {code}...")
-                if ticker.worker:
-                    ticker.worker.stop()
-                if ticker:
-                    ticker.quit()
-                    ticker.wait()
-                self.logger.info(f"{__name__}: Ticker for {code} safely terminated.")
-        """
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
@@ -218,8 +191,6 @@ class Beetle(QMainWindow):
         clear_boxlayout(self.layout)
         # Trader 辞書のクリア
         self.dict_trader = dict()
-        # Ticker インスタンスをクリア
-        # self.dict_ticker = dict()
 
         # 銘柄数分の Trader および Ticker インスタンスの生成
         for code in list_code:
@@ -260,20 +231,6 @@ class Beetle(QMainWindow):
 
             # 配置
             self.layout.addWidget(trader)
-
-            """
-            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            # Ticker インスタンスの生成
-            # 主に Parabolic SAR の算出用
-            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.ticker = ticker = Ticker(self.res, code)
-            ticker.threadReady.connect(self.on_ticker_ready)
-            ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            ticker.start()
-            self.dict_ticker[code] = ticker
-            # パラメータ情報をやりとりするために Trader クラスのドックにインスタンスを登録
-            trader.dock.setTicker(ticker)
-            """
 
     def force_closing_position(self):
         self.logger.info(f"{__name__} 未実装です。")
@@ -434,21 +391,7 @@ class Beetle(QMainWindow):
             # 銘柄単位の含み益と収益を更新
             # trader.dock.setProfit(dict_profit[code])
             # trader.dock.setTotal(dict_total[code])
-            # Parabolic SAR
-            # ticker: Ticker = self.dict_ticker[code]
-            # ここで PSAR を算出する処理が呼び出される
-            # ticker.notifyNewPrice.emit(x, y)
 
-    # def on_update_psar(self, code: str, x: float, ret: PSARObject):
-    #    """
-    #    Parabolic SAR のトレンド点を追加
-    #    :param code:
-    #    :param x:
-    #    :param ret:
-    #    :return:
-    #    """
-    #    trader: Trader = self.dict_trader[code]
-    #    trader.setPlotData(x, ret)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
@@ -476,12 +419,6 @@ class Beetle(QMainWindow):
             code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    # def notify_new_psar_params(self, code: str, dict_psar: dict):
-    #    # 銘柄コード別 Parabolic SAR 等の算出用インスタンス
-    #    ticker: Ticker = self.dict_ticker[code]
-    #    # ここで PSAR を算出する処理が呼び出される
-    #    ticker.requestUpdatePSARParams.emit(dict_psar)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
