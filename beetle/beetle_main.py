@@ -173,7 +173,6 @@ class Beetle(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
 
-
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
@@ -391,7 +390,6 @@ class Beetle(QMainWindow):
             # 銘柄単位の含み益と収益を更新
             # trader.dock.setProfit(dict_profit[code])
             # trader.dock.setTotal(dict_total[code])
-
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
