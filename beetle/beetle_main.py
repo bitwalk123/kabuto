@@ -96,7 +96,7 @@ class Beetle(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.selectedExcelFile.connect(self.on_create_review_thread)
+        toolbar.selectedExcelFile.connect(self.on_create_thread_for_review)
         self.addToolBar(toolbar)
 
         # ---------------------------------------------------------------------
@@ -126,7 +126,7 @@ class Beetle(QMainWindow):
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
             # RSS用Excelファイルを指定してxlwingsを利用するスレッド
-            self.on_create_acquire_thread(excel_path)
+            self.on_create_thread_for_acquire(excel_path)
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -265,7 +265,7 @@ class Beetle(QMainWindow):
             "beetle.png",
         ).exec()
 
-    def on_create_acquire_thread(self, excel_path: str):
+    def on_create_thread_for_acquire(self, excel_path: str):
         """
         リアルタイム用ティックデータ取得スレッドの生成
         :param excel_path:
@@ -466,7 +466,7 @@ class Beetle(QMainWindow):
     # デバッグ（レビュー）用メソッド
     #
     ###########################################################################
-    def on_create_review_thread(self, excel_path: str):
+    def on_create_thread_for_review(self, excel_path: str):
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
