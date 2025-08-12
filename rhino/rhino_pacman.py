@@ -1,4 +1,4 @@
-from modules.psar import PSARObject
+from rhino.rhino_psar import PSARObject
 from structs.app_enum import PositionType
 
 

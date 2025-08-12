@@ -2,10 +2,10 @@ import logging
 
 from PySide6.QtCore import Signal
 
-from modules.pacman import PacMan
-from modules.panel import PanelOption, PanelTrading
-from modules.psar import PSARObject
-from modules.ticker import Ticker
+from rhino.rhino_pacman import PacMan
+from rhino.rhino_panel import PanelOption, PanelTrading
+from rhino.rhino_psar import PSARObject
+from rhino.rhino_ticker import Ticker
 from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget

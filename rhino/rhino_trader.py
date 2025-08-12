@@ -6,8 +6,8 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
 from modules.chart import TrendChart
-from modules.dock import DockTrader
-from modules.psar import PSARObject
+from rhino.rhino_dock import DockTrader
+from rhino.rhino_psar import PSARObject
 from structs.res import AppRes
 
 
