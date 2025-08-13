@@ -3,7 +3,7 @@ import logging
 from PySide6.QtCore import Signal
 
 from rhino.rhino_pacman import PacMan
-from rhino.rhino_panel import PanelOption, PanelTrading
+from modules.panel import PanelOption, PanelTrading
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_ticker import Ticker
 from structs.app_enum import PositionType
