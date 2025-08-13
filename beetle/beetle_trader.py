@@ -5,13 +5,14 @@ import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_dock import DockTrader
 from modules.chart import TrendChart
 from structs.res import AppRes
 
 
 class Trader(QMainWindow):
-    def __init__(self, res: AppRes, code: str):
-        super().__init__()
+    def __init__(self, parent, res: AppRes, code: str):
+        super().__init__(parent)
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.code = code
@@ -46,8 +47,8 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # 右側のドック
         # ---------------------------------------------------------------------
-        # self.dock = dock = DockTrader(res, code)
-        # self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.dock = dock = DockTrader(res, code)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
@@ -67,7 +68,7 @@ class Trader(QMainWindow):
         self.trend_line, = self.chart.ax.plot(
             [], [],
             color='lightgray',
-            linewidth=1
+            linewidth=0.5
         )
 
     def getTimePrice(self) -> pd.DataFrame:
@@ -96,7 +97,6 @@ class Trader(QMainWindow):
         :param price:
         :return:
         """
-
         # ---------------------------------------------------------------------
         # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
         # ---------------------------------------------------------------------
@@ -109,7 +109,7 @@ class Trader(QMainWindow):
         self.latest_point.set_ydata([price])
 
         # ---------------------------------------------------------------------
-        # 現在価格（スムージングした線に変更予定）
+        # 株価トレンド線
         # ---------------------------------------------------------------------
         self.x_data[self.count_data] = x
         self.y_data[self.count_data] = price
@@ -119,11 +119,6 @@ class Trader(QMainWindow):
 
         # 再描画
         self.chart.reDraw()
-
-        # ---------------------------------------------------------------------
-        # トレンド情報をドックに設定
-        # ---------------------------------------------------------------------
-        # self.dock.setTrend(ret)
 
     def setTimeAxisRange(self, ts_start, ts_end):
         """

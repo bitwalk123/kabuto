@@ -7,6 +7,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_dock import DockTrader
 from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
@@ -58,19 +59,9 @@ class Beetle(QMainWindow):
         # Trader インスタンス
         # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
         # ---------------------------------------------------------------------
+        self.trader: Trader | None = None
         # インスタンスを保持する辞書
         self.dict_trader = dict()
-
-        # ---------------------------------------------------------------------
-        # Ticker インスタンス
-        # 銘柄コード別に PSAR などを算出
-        # ---------------------------------------------------------------------
-        # インスタンスの定義（空）
-        # スレッドインスタンスであるため、念のため self に紐付けられるように
-        # ここでアプリのインスタンス変数として定義している。
-        # self.ticker: Ticker | None = None
-        # Ticker インスタンスを保持する辞書
-        # self.dict_ticker = dict()
 
         # ---------------------------------------------------------------------
         # 取引履歴
@@ -107,7 +98,7 @@ class Beetle(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.selectedExcelFile.connect(self.on_create_review_thread)
+        toolbar.selectedExcelFile.connect(self.on_create_thread_for_review)
         self.addToolBar(toolbar)
 
         # ---------------------------------------------------------------------
@@ -137,7 +128,7 @@ class Beetle(QMainWindow):
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
             # RSS用Excelファイルを指定してxlwingsを利用するスレッド
-            self.on_create_acquire_thread(excel_path)
+            self.on_create_thread_for_acquire(excel_path)
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -184,23 +175,6 @@ class Beetle(QMainWindow):
             except RuntimeError as e:
                 self.logger.info(f"{__name__}: error at termination: {e}")
 
-        """
-        # ---------------------------------------------------------------------
-        # Ticker スレッドの削除
-        # ---------------------------------------------------------------------
-        code: str
-        ticker: Ticker
-        for code, ticker in self.dict_ticker.items():
-            if ticker.isRunning():
-                self.logger.info(f"{__name__}: stopping Ticker for {code}...")
-                if ticker.worker:
-                    ticker.worker.stop()
-                if ticker:
-                    ticker.quit()
-                    ticker.wait()
-                self.logger.info(f"{__name__}: Ticker for {code} safely terminated.")
-        """
-
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
@@ -218,8 +192,6 @@ class Beetle(QMainWindow):
         clear_boxlayout(self.layout)
         # Trader 辞書のクリア
         self.dict_trader = dict()
-        # Ticker インスタンスをクリア
-        # self.dict_ticker = dict()
 
         # 銘柄数分の Trader および Ticker インスタンスの生成
         for code in list_code:
@@ -227,8 +199,7 @@ class Beetle(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            trader = Trader(self.res, code)
-            """
+            self.trader = trader = Trader(self, self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
@@ -240,10 +211,6 @@ class Beetle(QMainWindow):
                 trader.dock.clickedBuy.connect(self.on_buy)
                 trader.dock.clickedRepay.connect(self.on_repay)
                 trader.dock.clickedSell.connect(self.on_sell)
-
-            # レビュー/リアルタイム用共通処理
-            trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
-            """
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader
@@ -261,28 +228,12 @@ class Beetle(QMainWindow):
             # 配置
             self.layout.addWidget(trader)
 
-            """
-            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            # Ticker インスタンスの生成
-            # 主に Parabolic SAR の算出用
-            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.ticker = ticker = Ticker(self.res, code)
-            ticker.threadReady.connect(self.on_ticker_ready)
-            ticker.worker.notifyPSAR.connect(self.on_update_psar)
-            ticker.start()
-            self.dict_ticker[code] = ticker
-            # パラメータ情報をやりとりするために Trader クラスのドックにインスタンスを登録
-            trader.dock.setTicker(ticker)
-            """
-
     def force_closing_position(self):
         self.logger.info(f"{__name__} 未実装です。")
-        """
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
             dock.forceStopAutoPilot()
-        """
 
     def get_current_tick_data(self) -> dict:
         """
@@ -309,7 +260,7 @@ class Beetle(QMainWindow):
             "beetle.png",
         ).exec()
 
-    def on_create_acquire_thread(self, excel_path: str):
+    def on_create_thread_for_acquire(self, excel_path: str):
         """
         リアルタイム用ティックデータ取得スレッドの生成
         :param excel_path:
@@ -430,25 +381,10 @@ class Beetle(QMainWindow):
             x, y = dict_data[code]
             trader = self.dict_trader[code]
             trader.setPlotData(x, y)
-            # trader.dock.setPrice(y)
-            # 銘柄単位の含み益と収益を更新
-            # trader.dock.setProfit(dict_profit[code])
-            # trader.dock.setTotal(dict_total[code])
-            # Parabolic SAR
-            # ticker: Ticker = self.dict_ticker[code]
-            # ここで PSAR を算出する処理が呼び出される
-            # ticker.notifyNewPrice.emit(x, y)
-
-    # def on_update_psar(self, code: str, x: float, ret: PSARObject):
-    #    """
-    #    Parabolic SAR のトレンド点を追加
-    #    :param code:
-    #    :param x:
-    #    :param ret:
-    #    :return:
-    #    """
-    #    trader: Trader = self.dict_trader[code]
-    #    trader.setPlotData(x, ret)
+            # 銘柄単位の現在株価および含み益と収益を更新
+            trader.dock.setPrice(y)
+            trader.dock.setProfit(dict_profit[code])
+            trader.dock.setTotal(dict_total[code])
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
@@ -476,12 +412,6 @@ class Beetle(QMainWindow):
             code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    # def notify_new_psar_params(self, code: str, dict_psar: dict):
-    #    # 銘柄コード別 Parabolic SAR 等の算出用インスタンス
-    #    ticker: Ticker = self.dict_ticker[code]
-    #    # ここで PSAR を算出する処理が呼び出される
-    #    ticker.requestUpdatePSARParams.emit(dict_psar)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
@@ -531,7 +461,7 @@ class Beetle(QMainWindow):
     # デバッグ（レビュー）用メソッド
     #
     ###########################################################################
-    def on_create_review_thread(self, excel_path: str):
+    def on_create_thread_for_review(self, excel_path: str):
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
