@@ -198,7 +198,6 @@ class Beetle(QMainWindow):
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             trader = Trader(self.res, code)
-            """
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
@@ -210,10 +209,6 @@ class Beetle(QMainWindow):
                 trader.dock.clickedBuy.connect(self.on_buy)
                 trader.dock.clickedRepay.connect(self.on_repay)
                 trader.dock.clickedSell.connect(self.on_sell)
-
-            # レビュー/リアルタイム用共通処理
-            trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
-            """
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader

@@ -12,7 +12,6 @@ class DockTrader(DockWidget):
     clickedBuy = Signal(str, float, str)
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
-    notifyNewPSARParams = Signal(str, dict)
 
     def __init__(self, res: AppRes, code: str):
         super().__init__(code)
