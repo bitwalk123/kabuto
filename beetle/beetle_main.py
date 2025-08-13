@@ -381,10 +381,10 @@ class Beetle(QMainWindow):
             x, y = dict_data[code]
             trader = self.dict_trader[code]
             trader.setPlotData(x, y)
-            # trader.dock.setPrice(y)
-            # 銘柄単位の含み益と収益を更新
-            # trader.dock.setProfit(dict_profit[code])
-            # trader.dock.setTotal(dict_total[code])
+            # 銘柄単位の現在株価および含み益と収益を更新
+            trader.dock.setPrice(y)
+            trader.dock.setProfit(dict_profit[code])
+            trader.dock.setTotal(dict_total[code])
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）

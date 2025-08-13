@@ -88,3 +88,19 @@ class DockTrader(DockWidget):
         :return:
         """
         self.price.setValue(price)
+
+    def setProfit(self, profit: float):
+        """
+        現在の含み益を表示
+        :param profit:
+        :return:
+        """
+        self.profit.setValue(profit)
+
+    def setTotal(self, total: float):
+        """
+        現在の損益合計を表示
+        :param total:
+        :return:
+        """
+        self.total.setValue(total)
