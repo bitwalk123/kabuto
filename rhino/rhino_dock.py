@@ -3,7 +3,8 @@ import logging
 from PySide6.QtCore import Signal
 
 from rhino.rhino_pacman import PacMan
-from modules.panel import PanelOption, PanelTrading
+from modules.panel import PanelTrading
+from rhino.rhino_panel import PanelOption4PSAR
 from rhino.rhino_psar import PSARObject
 from rhino.rhino_ticker import Ticker
 from structs.app_enum import PositionType
@@ -59,7 +60,7 @@ class DockTrader(DockWidget):
         # ---------------------------------------------------------------------
         # オプションパネル
         # ---------------------------------------------------------------------
-        self.option = option = PanelOption(res, code)
+        self.option = option = PanelOption4PSAR(res, code)
         option.requestPSARParams.connect(self.request_psar_params)
         option.requestDefaultPSARParams.connect(self.request_default_psar_params)
         option.notifyNewPSARParams.connect(self.notify_new_psar_params)
