@@ -59,6 +59,7 @@ class Beetle(QMainWindow):
         # Trader インスタンス
         # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
         # ---------------------------------------------------------------------
+        self.trader: Trader | None = None
         # インスタンスを保持する辞書
         self.dict_trader = dict()
 
@@ -198,7 +199,7 @@ class Beetle(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            trader = Trader(self.res, code)
+            self.trader = trader = Trader(self, self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
