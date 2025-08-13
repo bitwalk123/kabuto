@@ -7,6 +7,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_dock import DockTrader
 from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
@@ -58,6 +59,7 @@ class Beetle(QMainWindow):
         # Trader インスタンス
         # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
         # ---------------------------------------------------------------------
+        self.trader: Trader | None = None
         # インスタンスを保持する辞書
         self.dict_trader = dict()
 
@@ -197,8 +199,7 @@ class Beetle(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            trader = Trader(self.res, code)
-            """
+            self.trader = trader = Trader(self, self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             if self.res.debug:
                 # レビュー用の売買処理
@@ -210,10 +211,6 @@ class Beetle(QMainWindow):
                 trader.dock.clickedBuy.connect(self.on_buy)
                 trader.dock.clickedRepay.connect(self.on_repay)
                 trader.dock.clickedSell.connect(self.on_sell)
-
-            # レビュー/リアルタイム用共通処理
-            trader.dock.notifyNewPSARParams.connect(self.notify_new_psar_params)
-            """
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader
@@ -233,12 +230,10 @@ class Beetle(QMainWindow):
 
     def force_closing_position(self):
         self.logger.info(f"{__name__} 未実装です。")
-        """
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
             dock.forceStopAutoPilot()
-        """
 
     def get_current_tick_data(self) -> dict:
         """
@@ -386,10 +381,10 @@ class Beetle(QMainWindow):
             x, y = dict_data[code]
             trader = self.dict_trader[code]
             trader.setPlotData(x, y)
-            # trader.dock.setPrice(y)
-            # 銘柄単位の含み益と収益を更新
-            # trader.dock.setProfit(dict_profit[code])
-            # trader.dock.setTotal(dict_total[code])
+            # 銘柄単位の現在株価および含み益と収益を更新
+            trader.dock.setPrice(y)
+            trader.dock.setProfit(dict_profit[code])
+            trader.dock.setTotal(dict_total[code])
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）

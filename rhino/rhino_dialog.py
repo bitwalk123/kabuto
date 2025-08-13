@@ -15,7 +15,7 @@ from widgets.labels import (
 from widgets.layouts import GridLayout, HBoxLayout
 
 
-class DlgTradeConfig(QDialog):
+class DlgTradeConfigPSAR(QDialog):
     requestDefaultPSARParams = Signal()
     notifyNewPSARParams = Signal(dict)
 
