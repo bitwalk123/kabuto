@@ -7,6 +7,7 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from beetle.beetle_dock import DockTrader
 from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
@@ -228,12 +229,10 @@ class Beetle(QMainWindow):
 
     def force_closing_position(self):
         self.logger.info(f"{__name__} 未実装です。")
-        """
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
             dock.forceStopAutoPilot()
-        """
 
     def get_current_tick_data(self) -> dict:
         """

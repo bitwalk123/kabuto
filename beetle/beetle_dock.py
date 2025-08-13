@@ -42,6 +42,52 @@ class DockTrader(DockWidget):
         trading.clickedRepay.connect(self.on_repay)
         self.layout.addWidget(trading)
 
+    def doBuy(self) -> bool:
+        """
+        「買建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.buy.isEnabled():
+            self.trading.buy.animateClick()
+            return True
+        else:
+            return False
+
+    def doSell(self) -> bool:
+        """
+        「売建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.sell.isEnabled():
+            self.trading.sell.animateClick()
+            return True
+        else:
+            return False
+
+    def doRepay(self) -> bool:
+        """
+        「返済」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.repay.isEnabled():
+            self.trading.repay.animateClick()
+            return True
+        else:
+            return False
+
+    def forceStopAutoPilot(self):
+        """
+        強制返済
+        :return:
+        """
+        if self.doRepay():
+            self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
+        """
+        if self.option.isAutoPilotEnabled():
+            self.option.setAutoPilotEnabled(False)
+            self.logger.info(f"{__name__}: '{self.code}'の Autopilot をオフにしました。")
+        """
+
     def on_buy(self):
         """
         買建ボタンがクリックされた時の処理
