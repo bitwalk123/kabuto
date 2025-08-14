@@ -18,9 +18,7 @@ from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
-from modules.acquire import Acquire
 from modules.dialog import DlgAboutThis
-from modules.review import Review
 from modules.statusbar import StatusBar
 from modules.toolbar import ToolBar
 from modules.trans import WinTransaction
