@@ -121,9 +121,10 @@ class RSSReaderWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_code)
 
-    def readCurrentPrice(self):
+    def readCurrentPrice(self, ts: float):
         """
         現在株価の読み取り
+        :param ts:
         :return:
         """
         dict_data = dict()

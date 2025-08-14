@@ -36,8 +36,11 @@ class Beetle(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
+    # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
-    requestCurrentPrice = Signal()
+    #requestCurrentPrice = Signal()
+    # 現在価格取得リクエスト・シグナル
+    requestCurrentPrice = Signal(float)
     requestSaveDataFrame = Signal()
     requestStopProcess = Signal()
 
@@ -229,7 +232,7 @@ class Beetle(QMainWindow):
             self.layout.addWidget(trader)
 
     def force_closing_position(self):
-        self.logger.info(f"{__name__} 未実装です。")
+        self.logger.info(f"{__name__} 売買を強制終了します。")
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
@@ -329,12 +332,12 @@ class Beetle(QMainWindow):
         if self.dict_ts["start"] <= self.ts_system <= self.dict_ts["end_1h"]:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
-            self.requestCurrentPrice.emit()
+            self.requestCurrentPrice.emit(self.ts_system)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.dict_ts["start_2h"] <= self.ts_system <= self.dict_ts["end_2h"]:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
-            self.requestCurrentPrice.emit()
+            self.requestCurrentPrice.emit(self.ts_system)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.dict_ts["end_2h"] < self.ts_system <= self.dict_ts["ca"]:
             if not self.finished_trading:
