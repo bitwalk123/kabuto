@@ -11,8 +11,8 @@ from structs.res import AppRes
 
 
 class Trader(QMainWindow):
-    def __init__(self, parent, res: AppRes, code: str):
-        super().__init__(parent)
+    def __init__(self, res: AppRes, code: str):
+        super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.code = code

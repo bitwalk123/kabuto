@@ -209,7 +209,7 @@ class Beetle(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.trader = trader = Trader(self, self.res, code)
+            self.trader = trader = Trader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
