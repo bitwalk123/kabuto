@@ -108,7 +108,7 @@ class Beetle(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
         # ウィンドウアイコンとタイトルを設定
-        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "rhino.png")))
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "beetle.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         if debug:
             # デバッグモードを示す文字列を追加
