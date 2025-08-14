@@ -13,7 +13,7 @@ if sys.platform == "win32":
     from pywintypes import com_error
 
 
-class AcquireWorker(QObject):
+class RSSReaderWorker(QObject):
     """
     【Windows 専用】
     楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
