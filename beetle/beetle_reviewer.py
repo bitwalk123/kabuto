@@ -50,7 +50,7 @@ class ExcelReviewWorker(QObject):
         self.notifyTransactionResult.emit(df)
 
     @Slot()
-    def loadExcel(self):
+    def initWorker(self):
         """
         ティックデータを保存した Excel ファイルの読み込み
         :return:

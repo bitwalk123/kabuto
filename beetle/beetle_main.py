@@ -3,11 +3,17 @@ import os
 import time
 
 import pandas as pd
-from PySide6.QtCore import QTimer
+from PySide6.QtCore import (
+    QThread,
+    QTimer,
+    Signal,
+)
 from PySide6.QtGui import QIcon, QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from beetle.beetle_dock import DockTrader
+from beetle.beetle_reviewer import ExcelReviewWorker
+from beetle.beetle_rssreader import RSSReaderWorker
 from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
@@ -26,9 +32,22 @@ from widgets.layouts import VBoxLayout
 
 class Beetle(QMainWindow):
     __app_name__ = "Beetle"
-    __version__ = "0.10.0"
+    __version__ = "0.10.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
+
+    requestWorkerInit = Signal()
+    requestCurrentPrice = Signal()
+    requestSaveDataFrame = Signal()
+    requestStopProcess = Signal()
+
+    # 売買
+    requestPositionOpen = Signal(str, float, float, PositionType, str)
+    requestPositionClose = Signal(str, float, float, str)
+    requestTransactionResult = Signal()
+
+    # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
+    threadReady = Signal()
 
     def __init__(self, excel_path: str, debug: bool = True):
         super().__init__()
@@ -52,8 +71,10 @@ class Beetle(QMainWindow):
         # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
         # ---------------------------------------------------------------------
-        self.acquire: Acquire | None = None  # リアルタイム用
-        self.review: Review | None = None  # デバッグ・レビュー用
+        # self.acquire: Acquire | None = None  # リアルタイム用
+        # self.review: Review | None = None  # デバッグ・レビュー用
+        self.thread = QThread(self)
+        self.worker = None
 
         # ---------------------------------------------------------------------
         # Trader インスタンス
@@ -144,36 +165,21 @@ class Beetle(QMainWindow):
             self.logger.info(f"{__name__}: timer stopped.")
 
         # ---------------------------------------------------------------------
-        # self.acquire スレッドの削除
+        # self.thread スレッドの削除
         # ---------------------------------------------------------------------
-        if self.acquire is not None:
-            try:
-                if self.acquire.isRunning():
-                    self.acquire.requestStopProcess.emit()
-                    time.sleep(1)
-                    if self.acquire.worker:
-                        self.acquire.worker.stop()
-                    if self.acquire:
-                        self.acquire.quit()
-                        self.acquire.wait()
-                    self.logger.info(f"{__name__}: deleted acquire thread.")
-            except RuntimeError as e:
-                self.logger.info(f"{__name__}: error at termination: {e}")
-
-        # ---------------------------------------------------------------------
-        # self.review スレッドの削除
-        # ---------------------------------------------------------------------
-        if self.review is not None:
-            try:
-                if self.review.isRunning():
-                    if self.review.worker:
-                        self.review.worker.stop()
-                    if self.review:
-                        self.review.quit()
-                        self.review.wait()
-                    self.logger.info(f"{__name__}: deleted review thread.")
-            except RuntimeError as e:
-                self.logger.info(f"{__name__}: error at termination: {e}")
+        try:
+            if self.thread.isRunning():
+                self.requestStopProcess.emit()
+                time.sleep(1)
+                if self.worker:
+                    self.worker.stop()
+                    self.logger.info(f"{__name__}: deleted self.worker.")
+                if self.thread:
+                    self.thread.quit()
+                    self.thread.wait()
+                    self.logger.info(f"{__name__}: deleted self.thread.")
+        except RuntimeError as e:
+            self.logger.info(f"{__name__}: error at termination: {e}")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")
@@ -201,16 +207,9 @@ class Beetle(QMainWindow):
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             self.trader = trader = Trader(self, self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
-            if self.res.debug:
-                # レビュー用の売買処理
-                trader.dock.clickedBuy.connect(self.on_buy_review)
-                trader.dock.clickedRepay.connect(self.on_repay_review)
-                trader.dock.clickedSell.connect(self.on_sell_review)
-            else:
-                # リアルタイム用の売買処理
-                trader.dock.clickedBuy.connect(self.on_buy)
-                trader.dock.clickedRepay.connect(self.on_repay)
-                trader.dock.clickedSell.connect(self.on_sell)
+            trader.dock.clickedBuy.connect(self.on_buy)
+            trader.dock.clickedRepay.connect(self.on_repay)
+            trader.dock.clickedSell.connect(self.on_sell)
 
             # Trader 辞書に保持
             self.dict_trader[code] = trader
@@ -267,17 +266,20 @@ class Beetle(QMainWindow):
         :return:
         """
         # リアルタイム用データ取得インスタンス (self.acquire) の生成
-        self.acquire = acquire = Acquire(excel_path)
+        self.worker = RSSReaderWorker(excel_path)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.initWorker)
+
         # 初期化後の銘柄情報を通知
-        acquire.worker.notifyTickerN.connect(self.on_create_trader)
+        self.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
-        acquire.worker.notifyCurrentPrice.connect(self.on_update_data)
+        self.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
-        acquire.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        self.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
-        acquire.worker.threadFinished.connect(self.on_thread_finished)
+        self.worker.threadFinished.connect(self.on_thread_finished)
         # スレッドを開始
-        acquire.start()
+        self.thread.start()
 
     def on_create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
         """
@@ -307,12 +309,12 @@ class Beetle(QMainWindow):
         if self.dict_ts["start"] <= self.ts_system <= self.dict_ts["end_1h"]:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
-            self.acquire.requestCurrentPrice.emit()
+            self.requestCurrentPrice.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.dict_ts["start_2h"] <= self.ts_system <= self.dict_ts["end_2h"]:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 現在価格の取得要求をワーカースレッドに通知
-            self.acquire.requestCurrentPrice.emit()
+            self.requestCurrentPrice.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         elif self.dict_ts["end_2h"] < self.ts_system <= self.dict_ts["ca"]:
             if not self.finished_trading:
@@ -325,7 +327,7 @@ class Beetle(QMainWindow):
             # ティックデータの保存
             self.save_regular_tick_data()
             # 取引結果を取得
-            self.acquire.requestTransactionResult.emit()
+            self.requestTransactionResult.emit()
         else:
             pass
 
@@ -392,7 +394,7 @@ class Beetle(QMainWindow):
     def on_buy(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建で建玉取得リクエストのシグナル
-        self.acquire.requestPositionOpen.emit(
+        self.requestPositionOpen.emit(
             code, self.ts_system, price, PositionType.BUY, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -400,7 +402,7 @@ class Beetle(QMainWindow):
     def on_sell(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建で建玉取得リクエストのシグナル
-        self.acquire.requestPositionOpen.emit(
+        self.requestPositionOpen.emit(
             code, self.ts_system, price, PositionType.SELL, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -408,7 +410,7 @@ class Beetle(QMainWindow):
     def on_repay(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済リクエストのシグナル
-        self.acquire.requestPositionClose.emit(
+        self.requestPositionClose.emit(
             code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -469,18 +471,22 @@ class Beetle(QMainWindow):
         """
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
-        # デバッグ/レビュー用データ取得インスタンス (self.review) の生成
-        self.review = review = Review(excel_path)
+        # デバッグ/レビュー用データ取得インスタンスの生成
+        # self.review = review = Review(excel_path)
+        self.worker = ExcelReviewWorker(excel_path)
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.initWorker)
+
         # 初期化後の銘柄情報を通知
-        review.worker.notifyTickerN.connect(self.on_create_trader_review)
+        self.worker.notifyTickerN.connect(self.on_create_trader_review)
         # タイマーで現在時刻と株価を通知
-        review.worker.notifyCurrentPrice.connect(self.on_update_data)
+        self.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
-        review.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        self.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
-        review.worker.threadFinished.connect(self.on_thread_finished)
+        self.worker.threadFinished.connect(self.on_thread_finished)
         # スレッドを開始
-        review.start()
+        self.thread.start()
 
     def on_create_trader_review(self, list_code: list, dict_name: dict, dict_lastclose: dict):
         """
@@ -506,7 +512,7 @@ class Beetle(QMainWindow):
         """
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在価格の取得要求をワーカースレッドに通知
-        self.review.requestCurrentPrice.emit(self.ts_system)
+        self.requestCurrentPrice.emit(self.ts_system)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # システム時間のインクリメント（１秒）
@@ -523,7 +529,7 @@ class Beetle(QMainWindow):
             self.timer.stop()
             self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
-            self.review.requestTransactionResult.emit()
+            self.requestTransactionResult.emit()
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
@@ -548,31 +554,4 @@ class Beetle(QMainWindow):
             self.timer.stop()
             self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
-            self.review.requestTransactionResult.emit()
-
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理（Review 用）
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy_review(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建で建玉取得リクエストのシグナル
-        self.review.requestPositionOpen.emit(
-            code, self.ts_system, price, PositionType.BUY, note
-        )
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_sell_review(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建で建玉取得リクエストのシグナル
-        self.review.requestPositionOpen.emit(
-            code, self.ts_system, price, PositionType.SELL, note
-        )
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_repay_review(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 建玉返済リクエストのシグナル
-        self.review.requestPositionClose.emit(
-            code, self.ts_system, price, note
-        )
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            self.requestTransactionResult.emit()
