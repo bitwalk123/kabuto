@@ -61,6 +61,7 @@ class Beetle(QMainWindow):
             # DEBUG モード
             self.logger.info(f"{__name__}: executed as DEBUG mode!")
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
+            self.flag_data_ready = False
         else:
             # NORMAL モード
             self.logger.info(f"{__name__}: executed as NORMAL mode!")
@@ -268,8 +269,26 @@ class Beetle(QMainWindow):
         # リアルタイム用データ取得インスタンス (self.acquire) の生成
         self.worker = RSSReaderWorker(excel_path)
         self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.initWorker)
-
+        # ---------------------------------------------------------------------
+        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
+        self.thread.started.connect(self.requestWorkerInit.emit)
+        # ---------------------------------------------------------------------
+        # 初期化処理は主に xlwings 関連処理
+        self.requestWorkerInit.connect(self.worker.initWorker)
+        # ---------------------------------------------------------------------
+        # 売買ポジション処理用のメソッドへキューイング
+        self.requestPositionOpen.connect(self.worker.posman.openPosition)
+        self.requestPositionClose.connect(self.worker.posman.closePosition)
+        # ---------------------------------------------------------------------
+        # 取引結果を取得するメソッドへキューイング
+        self.requestTransactionResult.connect(self.worker.getTransactionResult)
+        # ---------------------------------------------------------------------
+        # 現在株価を取得するメソッドへキューイング。
+        self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
+        # ---------------------------------------------------------------------
+        # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
+        self.requestStopProcess.connect(self.worker.stopProcess)
+        # =====================================================================
         # 初期化後の銘柄情報を通知
         self.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
@@ -278,6 +297,7 @@ class Beetle(QMainWindow):
         self.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
         self.worker.threadFinished.connect(self.on_thread_finished)
+        # =====================================================================
         # スレッドを開始
         self.thread.start()
 
@@ -472,11 +492,27 @@ class Beetle(QMainWindow):
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
         # デバッグ/レビュー用データ取得インスタンスの生成
-        # self.review = review = Review(excel_path)
         self.worker = ExcelReviewWorker(excel_path)
         self.worker.moveToThread(self.thread)
-        self.thread.started.connect(self.worker.initWorker)
-
+        # ---------------------------------------------------------------------
+        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
+        self.thread.started.connect(self.requestWorkerInit.emit)
+        # ---------------------------------------------------------------------
+        # 初期化処理は指定された Excel ファイルの読み込み
+        self.requestWorkerInit.connect(self.worker.initWorker)
+        # ---------------------------------------------------------------------
+        # 売買ポジション処理用のメソッドへキューイング
+        self.requestPositionOpen.connect(self.worker.posman.openPosition)
+        self.requestPositionClose.connect(self.worker.posman.closePosition)
+        # ---------------------------------------------------------------------
+        # 取引結果を取得するメソッドへキューイング
+        self.requestTransactionResult.connect(self.worker.getTransactionResult)
+        # ---------------------------------------------------------------------
+        # 現在株価を取得するメソッドへキューイング。
+        self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
+        # =====================================================================
+        # レビュー用のデータ読み込み済みの通知
+        self.worker.notifyDataReady.connect(self.set_data_ready_status)
         # 初期化後の銘柄情報を通知
         self.worker.notifyTickerN.connect(self.on_create_trader_review)
         # タイマーで現在時刻と株価を通知
@@ -485,6 +521,7 @@ class Beetle(QMainWindow):
         self.worker.notifyTransactionResult.connect(self.on_transaction_result)
         # スレッド終了関連
         self.worker.threadFinished.connect(self.on_thread_finished)
+        # =====================================================================
         # スレッドを開始
         self.thread.start()
 
@@ -500,7 +537,6 @@ class Beetle(QMainWindow):
         # 銘柄数分の Trader インスタンスの生成
         # ---------------------------------------------------------------------
         self.create_trader(list_code, dict_name, dict_lastclose)
-
         # ---------------------------------------------------------------------
         # デバッグの場合はスタート・ボタンがクリックされるまでは待機
         # ---------------------------------------------------------------------
@@ -539,7 +575,7 @@ class Beetle(QMainWindow):
         読み込んだデータ・レビュー開始（デバッグ/レビュー用）
         :return:
         """
-        if self.review.isDataReady():
+        if self.flag_data_ready:
             self.ts_system = self.dict_ts["start"]
             # タイマー開始
             self.timer.start()
@@ -555,3 +591,9 @@ class Beetle(QMainWindow):
             self.logger.info(f"{__name__}: timer stopped!")
             # 取引結果を取得
             self.requestTransactionResult.emit()
+
+    def set_data_ready_status(self, state: bool):
+        self.flag_data_ready = state
+        self.logger.info(
+            f"{__name__}: now, data ready flag becomes {state}!"
+        )
