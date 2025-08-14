@@ -38,7 +38,7 @@ class Beetle(QMainWindow):
 
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
-    #requestCurrentPrice = Signal()
+    # requestCurrentPrice = Signal()
     # 現在価格取得リクエスト・シグナル
     requestCurrentPrice = Signal(float)
     requestSaveDataFrame = Signal()
@@ -123,7 +123,7 @@ class Beetle(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.selectedExcelFile.connect(self.on_create_thread_for_review)
+        toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
 
         # ---------------------------------------------------------------------
@@ -153,7 +153,7 @@ class Beetle(QMainWindow):
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
             # RSS用Excelファイルを指定してxlwingsを利用するスレッド
-            self.on_create_thread_for_acquire(excel_path)
+            self.on_create_thread(excel_path)
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -263,7 +263,7 @@ class Beetle(QMainWindow):
             "beetle.png",
         ).exec()
 
-    def on_create_thread_for_acquire(self, excel_path: str):
+    def on_create_thread(self, excel_path: str):
         """
         リアルタイム用ティックデータ取得スレッドの生成
         :param excel_path:
@@ -317,11 +317,17 @@ class Beetle(QMainWindow):
         # ---------------------------------------------------------------------
         self.create_trader(list_code, dict_name, dict_lastclose)
 
-        # ---------------------------------------------------------------------
-        # リアルタイムの場合はここでタイマーを開始
-        # ---------------------------------------------------------------------
-        self.timer.start()
-        self.logger.info(f"{__name__}: timer started!")
+        if self.res.debug:
+            # -----------------------------------------------------------------
+            # デバッグの場合はスタート・ボタンがクリックされるまでは待機
+            # -----------------------------------------------------------------
+            self.logger.info(f"{__name__}: ready to review!")
+        else:
+            # -----------------------------------------------------------------
+            # リアルタイムの場合はここでタイマーを開始
+            # -----------------------------------------------------------------
+            self.timer.start()
+            self.logger.info(f"{__name__}: timer started!")
 
     def on_request_data(self):
         """
@@ -486,7 +492,7 @@ class Beetle(QMainWindow):
     # デバッグ（レビュー）用メソッド
     #
     ###########################################################################
-    def on_create_thread_for_review(self, excel_path: str):
+    def on_create_thread_review(self, excel_path: str):
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
@@ -517,7 +523,7 @@ class Beetle(QMainWindow):
         # レビュー用のデータ読み込み済みの通知
         self.worker.notifyDataReady.connect(self.set_data_ready_status)
         # 初期化後の銘柄情報を通知
-        self.worker.notifyTickerN.connect(self.on_create_trader_review)
+        self.worker.notifyTickerN.connect(self.on_create_trader)
         # タイマーで現在時刻と株価を通知
         self.worker.notifyCurrentPrice.connect(self.on_update_data)
         # 取引結果を通知
@@ -527,23 +533,6 @@ class Beetle(QMainWindow):
         # =====================================================================
         # スレッドを開始
         self.thread.start()
-
-    def on_create_trader_review(self, list_code: list, dict_name: dict, dict_lastclose: dict):
-        """
-        Trader インスタンスの生成（デバッグ/レビュー用）
-        :param list_code:
-        :param dict_name:
-        :param dict_lastclose:
-        :return:
-        """
-        # ---------------------------------------------------------------------
-        # 銘柄数分の Trader インスタンスの生成
-        # ---------------------------------------------------------------------
-        self.create_trader(list_code, dict_name, dict_lastclose)
-        # ---------------------------------------------------------------------
-        # デバッグの場合はスタート・ボタンがクリックされるまでは待機
-        # ---------------------------------------------------------------------
-        self.logger.info(f"{__name__}: ready to review!")
 
     def on_request_data_review(self):
         """
