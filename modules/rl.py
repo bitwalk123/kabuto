@@ -201,9 +201,12 @@ def train_on_day(
     obs0 = env.reset()
     input_dim = len(obs0)
     policy = ActorCritic(input_dim=input_dim)
+
+    # load model
     if os.path.exists(model_path):
         print(f'Loading existing weights from {model_path}')
         policy.load_state_dict(torch.load(model_path, map_location=device))
+
     policy.to(device)
     optimizer = optim.Adam(policy.parameters(), lr=3e-4)
     daily_total_rewards = []
@@ -219,8 +222,11 @@ def train_on_day(
         print(f"Epoch {ep + 1}/{epochs}: Reward={total_reward:.0f} JPY, Trades={trades}")
 
     os.makedirs(os.path.dirname(model_path), exist_ok=True)
+
+    # save model
     torch.save(policy.state_dict(), model_path)
     print(f"Saved weights to {model_path}")
+
     total_pnl, n_trades, trades_detail = evaluate_policy(
         csv_path,
         model_path,
