@@ -30,7 +30,7 @@ from widgets.layouts import VBoxLayout
 
 class Beetle(QMainWindow):
     __app_name__ = "Beetle"
-    __version__ = "0.10.2"
+    __version__ = "0.10.3"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
