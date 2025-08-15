@@ -11,6 +11,7 @@ class AppRes:
     dir_excel = 'excel'
     dir_font = 'fonts'
     dir_image = 'images'
+    dir_model = 'models'
     dir_output = 'output'
     dir_report = 'report'
     dir_transaction = 'transaction'
