@@ -267,9 +267,13 @@ class Beetle(QMainWindow):
         :param excel_path:
         :return:
         """
+        # ---------------------------------------------------------------------
         # 00. リアルタイム用データ取得インスタンス (self.acquire) の生成
         self.worker = RSSReaderWorker(excel_path)
         self.worker.moveToThread(self.thread)
+        # ---------------------------------------------------------------------
+        # 01. データ読み込み済みの通知（レビュー用のみ）
+        # （なし）
         # =====================================================================
         # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
@@ -501,10 +505,12 @@ class Beetle(QMainWindow):
         """
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
+        # ---------------------------------------------------------------------
         # 00. デバッグ/レビュー用データ取得インスタンスの生成
         self.worker = ExcelReviewWorker(excel_path)
         self.worker.moveToThread(self.thread)
-        # 01. レビュー用のデータ読み込み済みの通知（レビュー用のみ）
+        # ---------------------------------------------------------------------
+        # 01. データ読み込み済みの通知（レビュー用のみ）
         self.worker.notifyDataReady.connect(self.set_data_ready_status)
         # =====================================================================
         # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
