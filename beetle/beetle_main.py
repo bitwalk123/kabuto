@@ -30,7 +30,7 @@ from widgets.layouts import VBoxLayout
 
 class Beetle(QMainWindow):
     __app_name__ = "Beetle"
-    __version__ = "0.10.2"
+    __version__ = "0.10.3"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -267,39 +267,46 @@ class Beetle(QMainWindow):
         :param excel_path:
         :return:
         """
-        # リアルタイム用データ取得インスタンス (self.acquire) の生成
+        # ---------------------------------------------------------------------
+        # 00. リアルタイム用データ取得インスタンス (self.acquire) の生成
         self.worker = RSSReaderWorker(excel_path)
         self.worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
-        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
+        # 01. データ読み込み済みの通知（レビュー用のみ）
+        # （なし）
+        # =====================================================================
+        # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
         # ---------------------------------------------------------------------
-        # 初期化処理は主に xlwings 関連処理
+        # 03. 初期化処理は主に xlwings 関連処理
         self.requestWorkerInit.connect(self.worker.initWorker)
         # ---------------------------------------------------------------------
-        # 売買ポジション処理用のメソッドへキューイング
+        # 04. 売買ポジション処理用のメソッドへキューイング
         self.requestPositionOpen.connect(self.worker.posman.openPosition)
         self.requestPositionClose.connect(self.worker.posman.closePosition)
         # ---------------------------------------------------------------------
-        # 取引結果を取得するメソッドへキューイング
+        # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(self.worker.getTransactionResult)
         # ---------------------------------------------------------------------
-        # 現在株価を取得するメソッドへキューイング。
+        # 06. 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
         # ---------------------------------------------------------------------
-        # xlwings インスタンスを破棄、スレッドを終了する下記のメソッドへキューイング。
+        # 07. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
         self.requestStopProcess.connect(self.worker.stopProcess)
         # =====================================================================
-        # 初期化後の銘柄情報を通知
+        # 08. 初期化後の銘柄情報を通知
         self.worker.notifyTickerN.connect(self.on_create_trader)
-        # タイマーで現在時刻と株価を通知
+        # ---------------------------------------------------------------------
+        # 09. タイマーで現在時刻と株価を通知
         self.worker.notifyCurrentPrice.connect(self.on_update_data)
-        # 取引結果を通知
+        # ---------------------------------------------------------------------
+        # 10. 取引結果を通知
         self.worker.notifyTransactionResult.connect(self.on_transaction_result)
-        # スレッド終了関連
+        # ---------------------------------------------------------------------
+        # 11. スレッド終了関連
         self.worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
-        # スレッドを開始
+        # 12. スレッドを開始
         self.thread.start()
 
     def on_create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
@@ -498,38 +505,46 @@ class Beetle(QMainWindow):
         """
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
-        # デバッグ/レビュー用データ取得インスタンスの生成
+        # ---------------------------------------------------------------------
+        # 00. デバッグ/レビュー用データ取得インスタンスの生成
         self.worker = ExcelReviewWorker(excel_path)
         self.worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
-        # スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
+        # 01. データ読み込み済みの通知（レビュー用のみ）
+        self.worker.notifyDataReady.connect(self.set_data_ready_status)
+        # =====================================================================
+        # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
         # ---------------------------------------------------------------------
-        # 初期化処理は指定された Excel ファイルの読み込み
+        # 03. 初期化処理は指定された Excel ファイルの読み込み
         self.requestWorkerInit.connect(self.worker.initWorker)
         # ---------------------------------------------------------------------
-        # 売買ポジション処理用のメソッドへキューイング
+        # 04. 売買ポジション処理用のメソッドへキューイング
         self.requestPositionOpen.connect(self.worker.posman.openPosition)
         self.requestPositionClose.connect(self.worker.posman.closePosition)
         # ---------------------------------------------------------------------
-        # 取引結果を取得するメソッドへキューイング
+        # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(self.worker.getTransactionResult)
         # ---------------------------------------------------------------------
-        # 現在株価を取得するメソッドへキューイング。
+        # 06. 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
+        # ---------------------------------------------------------------------
+        # 07. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
+        self.requestStopProcess.connect(self.worker.stopProcess)
         # =====================================================================
-        # レビュー用のデータ読み込み済みの通知
-        self.worker.notifyDataReady.connect(self.set_data_ready_status)
-        # 初期化後の銘柄情報を通知
+        # 08. 初期化後の銘柄情報を通知
         self.worker.notifyTickerN.connect(self.on_create_trader)
-        # タイマーで現在時刻と株価を通知
+        # ---------------------------------------------------------------------
+        # 09. タイマーで現在時刻と株価を通知
         self.worker.notifyCurrentPrice.connect(self.on_update_data)
-        # 取引結果を通知
+        # ---------------------------------------------------------------------
+        # 10. 取引結果を通知
         self.worker.notifyTransactionResult.connect(self.on_transaction_result)
-        # スレッド終了関連
+        # ---------------------------------------------------------------------
+        # 11. スレッド終了関連
         self.worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
-        # スレッドを開始
+        # 12. スレッドを開始
         self.thread.start()
 
     def on_request_data_review(self):
