@@ -232,7 +232,13 @@ def train_on_day(
     return daily_total_rewards, trade_counts, total_pnl, n_trades, trades_detail
 
 
-def evaluate_policy(csv_path, model_path, window=50, device='cpu', input_dim=None):
+def evaluate_policy(
+        csv_path,
+        model_path,
+        window=50,
+        device='cpu',
+        input_dim=None,
+):
     df = pd.read_csv(csv_path)
     prices = df['Price'].values
     env = TradingEnv(prices, window=window)
@@ -254,6 +260,7 @@ def evaluate_policy(csv_path, model_path, window=50, device='cpu', input_dim=Non
             total_pnl += reward
             trades += 1
             trades_detail.append({'index': env.t, 'pnl': reward, 'info': info})
+
     return total_pnl, trades, trades_detail
 
 
@@ -265,6 +272,7 @@ if __name__ == '__main__':
     parser.add_argument('--window', type=int, default=50)
     parser.add_argument('--device', default='cpu')
     args = parser.parse_args()
+
     rewards, trade_counts, pnl, ntrades, trades_detail = train_on_day(
         args.csv,
         model_path=args.model,
@@ -272,6 +280,7 @@ if __name__ == '__main__':
         window=args.window,
         device=args.device,
     )
+
     print('\n=== DAILY SUMMARY ===')
     print(f'Total P&L (evaluation): {pnl:.0f} JPY')
     print(f'Number of trades (evaluation): {ntrades}')
