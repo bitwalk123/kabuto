@@ -62,6 +62,8 @@ class StockCollectorWorker(QObject):
         self.col_time = 3  # 時刻
         self.col_price = 4  # 現在詳細株価
         self.col_lastclose = 5  # 前日終値
+        self.col_ratio = 6  # 前日比
+        self.col_volume = 7  # 出来高
 
     def initWorker(self):
         self.logger.info("Worker: in init process.")
@@ -92,7 +94,8 @@ class StockCollectorWorker(QObject):
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[ticker] = pd.DataFrame({
                     "Time": list(),
-                    "Price": list()
+                    "Price": list(),
+                    "Volume": list(),
                 })
 
                 # 行番号のインクリメント
@@ -118,10 +121,12 @@ class StockCollectorWorker(QObject):
                     ts = time.time()
                     # Excelシートから株価データを取得
                     price = self.sheet[row_excel, self.col_price].value
+                    volume = self.sheet[row_excel, self.col_volume].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
                         df.at[row, "Time"] = ts
                         df.at[row, "Price"] = price
+                        df.at[row, "Volume"] = volume
                         # print(ticker, ts, price)
                     break
                 except com_error as e:
