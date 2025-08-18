@@ -3,7 +3,7 @@ import re
 
 import pandas as pd
 
-from modules.rl import train_on_day
+from modules.rl_ppo_lite_v1 import train_on_day
 if __name__ == '__main__':
     out = "result.csv"
     if os.path.exists(out):
