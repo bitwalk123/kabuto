@@ -105,7 +105,8 @@ class ExcelReviewWorker(QObject):
                 # 時刻が存在していれば、データにある時刻と株価を返値に設定
                 ts = df_tick.iloc[0, 0]
                 price = df_tick.iloc[0, 1]
-                dict_data[code] = [ts, price]
+                volume = df_tick.iloc[0, 2]
+                dict_data[code] = [ts, price, volume]
                 dict_profit[code] = self.posman.getProfit(code, price)
                 dict_total[code] = self.posman.getTotal(code)
             else:

@@ -30,7 +30,7 @@ from widgets.layouts import VBoxLayout
 
 class Beetle(QMainWindow):
     __app_name__ = "Beetle"
-    __version__ = "0.10.3"
+    __version__ = "0.10.4"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -414,9 +414,10 @@ class Beetle(QMainWindow):
         :return:
         """
         for code in dict_data.keys():
-            x, y = dict_data[code]
-            trader = self.dict_trader[code]
-            trader.setPlotData(x, y)
+            x, y, vol = dict_data[code]
+            trader: Trader = self.dict_trader[code]
+            trader.setTradeData(x, y, vol)
+
             # 銘柄単位の現在株価および含み益と収益を更新
             trader.dock.setPrice(y)
             trader.dock.setProfit(dict_profit[code])

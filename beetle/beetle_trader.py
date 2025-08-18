@@ -31,6 +31,8 @@ class Trader(QMainWindow):
         # データ領域の確保
         self.x_data = np.empty(self.max_data_points, dtype=pd.Timestamp)
         self.y_data = np.empty(self.max_data_points, dtype=np.float64)
+        self.v_data = np.empty(self.max_data_points, dtype=np.float64)
+
         # データ点用のカウンター
         self.count_data = 0
 
@@ -79,7 +81,8 @@ class Trader(QMainWindow):
         # タイムスタンプ の Time 列は self.tz を考慮
         return pd.DataFrame({
             "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.count_data]],
-            "Price": self.y_data[0: self.count_data]
+            "Price": self.y_data[0: self.count_data],
+            "Volume": self.v_data[0: self.count_data],
         })
 
     def setLastCloseLine(self, price_close: float):
@@ -90,11 +93,12 @@ class Trader(QMainWindow):
         """
         self.chart.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
-    def setPlotData(self, ts: float, price: float):
+    def setTradeData(self, ts: float, price: float, volume: float):
         """
-        PSAR に関連するデータをプロット
+        ティックデータの取得
         :param ts:
         :param price:
+        :param volume:
         :return:
         """
         # ---------------------------------------------------------------------
@@ -109,11 +113,15 @@ class Trader(QMainWindow):
         self.latest_point.set_ydata([price])
 
         # ---------------------------------------------------------------------
-        # 株価トレンド線
+        # 配列に保持
         # ---------------------------------------------------------------------
         self.x_data[self.count_data] = x
         self.y_data[self.count_data] = price
+        self.v_data[self.count_data] = volume
         self.count_data += 1
+        # ---------------------------------------------------------------------
+        # 株価トレンド線
+        # ---------------------------------------------------------------------
         self.trend_line.set_xdata(self.x_data[0:self.count_data])
         self.trend_line.set_ydata(self.y_data[0:self.count_data])
 

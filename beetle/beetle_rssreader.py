@@ -61,6 +61,8 @@ class RSSReaderWorker(QObject):
         self.col_time = 3  # 時刻
         self.col_price = 4  # 現在詳細株価
         self.col_lastclose = 5  # 前日終値
+        self.col_ratio = 6  # 前日比
+        self.col_volume = 7  # 出来高
 
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
@@ -142,9 +144,10 @@ class RSSReaderWorker(QObject):
                     ts = time.time()
                     # Excelシートから株価データを取得
                     price = self.sheet[row, self.col_price].value
+                    volume = self.sheet[row, self.col_volume].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
-                        dict_data[code] = [ts, price]
+                        dict_data[code] = [ts, price, volume]
                         dict_profit[code] = self.posman.getProfit(code, price)
                         dict_total[code] = self.posman.getTotal(code)
                     break
