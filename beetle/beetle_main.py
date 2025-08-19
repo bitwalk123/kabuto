@@ -268,7 +268,7 @@ class Beetle(QMainWindow):
         :return:
         """
         # ---------------------------------------------------------------------
-        # 00. リアルタイム用データ取得インスタンス (self.acquire) の生成
+        # 00. リアルタイム用データ取得インスタンスの生成
         self.worker = RSSReaderWorker(excel_path)
         self.worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------

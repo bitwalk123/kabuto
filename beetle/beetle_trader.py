@@ -2,15 +2,19 @@ import logging
 
 import numpy as np
 import pandas as pd
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from beetle.beetle_dock import DockTrader
+from beetle.beetle_rl import RLModelWorker
 from modules.chart import TrendChart
 from structs.res import AppRes
 
 
 class Trader(QMainWindow):
+    sendTradeData = Signal(float, float, float)
+
     def __init__(self, res: AppRes, code: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -73,6 +77,23 @@ class Trader(QMainWindow):
             linewidth=0.5
         )
 
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 強化学習モデル用スレッド
+        self.thread = QThread(self)
+        self.worker = RLModelWorker()
+        self.worker.moveToThread(self.thread)
+        self.sendTradeData.connect(self.worker.addData)
+        self.worker.notifyAction.connect(self.on_action)
+        self.thread.start()
+        #
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def closeEvent(self, event: QCloseEvent):
+        self.worker.stop()
+        self.thread.quit()
+        self.thread.wait()
+        event.accept()
+
     def getTimePrice(self) -> pd.DataFrame:
         """
         保持している時刻、株価情報をデータフレームで返す。
@@ -84,6 +105,18 @@ class Trader(QMainWindow):
             "Price": self.y_data[0: self.count_data],
             "Volume": self.v_data[0: self.count_data],
         })
+
+    def on_action(self, action):
+        if action == "BUY":
+            self.dock.doBuy()
+        elif action == "SELL":
+            self.dock.doSell()
+        elif action == "BUY_CLOSE":
+            self.dock.doRepay()
+        elif action == "SELL_CLOSE":
+            self.dock.doRepay()
+        else:
+            pass
 
     def setLastCloseLine(self, price_close: float):
         """
@@ -101,6 +134,11 @@ class Trader(QMainWindow):
         :param volume:
         :return:
         """
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 ティックデータを送るシグナル
+        self.sendTradeData.emit(ts, price, volume)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
         # ---------------------------------------------------------------------
         # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
         # ---------------------------------------------------------------------
