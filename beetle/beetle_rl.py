@@ -2,13 +2,14 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from modules.rl_ppo_lite_20250819 import TradingSimulation
+from modules.rl_ppo_lite_20250821 import TradingSimulation
 
 
 class RLModelWorker(QObject):
     # 売買アクションを通知
     notifyAction = Signal(str)
     finished = Signal()
+
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ class RLModelWorker(QObject):
         self._stop_flag = False
 
         # シミュレータ・インスタンス
-        model_path = "models/ppo_7011_20250819.pt"
+        model_path = "models/ppo_7011_20250821.pt"
         self.sim = TradingSimulation(model_path)
 
     @Slot(float, float, float)

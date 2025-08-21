@@ -181,7 +181,7 @@ class Beetle(QMainWindow):
                     self.thread.wait()
                     self.logger.info(f"{__name__}: deleted self.thread.")
         except RuntimeError as e:
-            self.logger.info(f"{__name__}: error at termination: {e}")
+            self.logger.error(f"{__name__}: error at termination: {e}")
 
         # ---------------------------------------------------------------------
         self.logger.info(f"{__name__} stopped and closed.")

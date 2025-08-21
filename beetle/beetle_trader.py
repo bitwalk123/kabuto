@@ -107,13 +107,13 @@ class Trader(QMainWindow):
         })
 
     def on_action(self, action):
-        if action == "BUY":
+        if action == "新規買い":
             self.dock.doBuy()
-        elif action == "SELL":
+        elif action == "新規売り":
             self.dock.doSell()
-        elif action == "BUY_CLOSE":
+        elif action == "返済買い":
             self.dock.doRepay()
-        elif action == "SELL_CLOSE":
+        elif action == "返済売り":
             self.dock.doRepay()
         else:
             pass
