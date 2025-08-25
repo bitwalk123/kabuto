@@ -3,7 +3,6 @@ import logging
 from PySide6.QtCore import Signal
 
 from modules.panel import PanelTrading
-from structs.app_enum import PositionType
 from structs.res import AppRes
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle
