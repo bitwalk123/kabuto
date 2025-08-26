@@ -2,7 +2,7 @@ import logging
 
 from PySide6.QtCore import Signal
 
-from modules.panel import PanelTrading
+from modules.panel import PanelTrading, PanelOption
 from structs.res import AppRes
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle
@@ -40,6 +40,12 @@ class DockTrader(DockWidget):
         trading.clickedSell.connect(self.on_sell)
         trading.clickedRepay.connect(self.on_repay)
         self.layout.addWidget(trading)
+
+        # ---------------------------------------------------------------------
+        # オプションパネル
+        # ---------------------------------------------------------------------
+        self.option = option = PanelOption(res, code)
+        self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
         """

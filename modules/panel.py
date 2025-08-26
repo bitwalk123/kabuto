@@ -1,13 +1,19 @@
 from PySide6.QtCore import Signal
+from PySide6.QtWidgets import QFrame
 
+from structs.res import AppRes
 from widgets.buttons import (
     TradeButton,
+    ToggleButtonAutoPilot,
 )
 from widgets.containers import (
     IndicatorBuySell,
     Widget,
 )
-from widgets.layouts import GridLayout
+from widgets.layouts import (
+    GridLayout,
+    HBoxLayout,
+)
 
 
 class PanelTrading(Widget):
@@ -64,26 +70,59 @@ class PanelTrading(Widget):
         self.repay.setEnabled(True)
 
     def on_buy(self):
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit()
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.position_open()
         self.ind_buy.setBuy()
 
     def on_sell(self):
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit()
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.position_open()
         self.ind_sell.setSell()
 
     def on_repay(self):
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返却ボタンがクリックされたことを通知
         self.clickedRepay.emit()
-        # ---------------------------------------------------------------------
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.position_close()
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
+
+
+class PanelOption(QFrame):
+    changedAutoPilotStatus = Signal(bool)
+
+    def __init__(self, res: AppRes, code: str):
+        super().__init__()
+        self.res = res
+        self.code = code
+
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(1)
+        layout = HBoxLayout()
+        self.setLayout(layout)
+
+        self.autopilot = autopilot = ToggleButtonAutoPilot(res)
+        autopilot.setChecked(True)  # デフォルトで ON
+        autopilot.toggled.connect(self.toggledAutoPilot)
+        layout.addWidget(autopilot)
+
+    def isAutoPilotEnabled(self) -> bool:
+        return self.autopilot.isChecked()
+
+    def setAutoPilotEnabled(self, state: bool = True):
+        self.autopilot.setChecked(state)
+
+    def toggledAutoPilot(self, state: bool):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 AutoPilot 状態の変更を通知するシグナル
+        self.changedAutoPilotStatus.emit(state)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
