@@ -16,7 +16,7 @@ class AppRes:
     dir_report = 'report'
     dir_transaction = 'transaction'
 
-    excel_collector = "collector.xlsx"
+    excel_collector = "collector.xlsm"
     excel_portfolio = "portfolio.xlsm"
 
     debug = False
