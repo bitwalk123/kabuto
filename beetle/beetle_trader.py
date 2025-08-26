@@ -13,6 +13,7 @@ from structs.res import AppRes
 
 
 class Trader(QMainWindow):
+    notifyAutoPilotStatus = Signal(bool)
     sendTradeData = Signal(float, float, float)
 
     def __init__(self, res: AppRes, code: str):
@@ -54,6 +55,7 @@ class Trader(QMainWindow):
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
+        self.dock.option.changedAutoPilotStatus.connect(self.changedAutoPilotStatus)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -80,13 +82,17 @@ class Trader(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
         self.thread = QThread(self)
-        self.worker = RLModelWorker()
+        self.worker = RLModelWorker(self.dock.option.isAutoPilotEnabled())
         self.worker.moveToThread(self.thread)
+        self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
         self.sendTradeData.connect(self.worker.addData)
         self.worker.notifyAction.connect(self.on_action)
         self.thread.start()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def changedAutoPilotStatus(self, state: bool):
+        self.notifyAutoPilotStatus.emit(state)
 
     def closeEvent(self, event: QCloseEvent):
         self.worker.stop()
