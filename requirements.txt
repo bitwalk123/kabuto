@@ -1,6 +1,10 @@
+backports.tarfile
 black
 fqdn
+importlib-metadata
 isoduration
+isort
+jaraco.collections
 jsonpointer
 jupyterlab
 jupyterlab-code-formatter
@@ -17,6 +21,7 @@ scipy
 scipy-stubs
 seaborn
 tinycss2
+tomli
 torch
 uri-template
 webcolors

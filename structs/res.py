@@ -14,6 +14,7 @@ class AppRes:
     dir_model = 'models'
     dir_output = 'output'
     dir_report = 'report'
+    dir_training = 'training'
     dir_transaction = 'transaction'
 
     excel_collector = "collector.xlsm"
@@ -26,22 +27,25 @@ class AppRes:
     path_monospace = "fonts/RictyDiminished-Regular.ttf"
 
     def __init__(self):
-        if not os.path.exists(self.dir_collection):
-            os.mkdir(self.dir_collection)
+        # システムディレクトリのチェック
+        list_dir = [
+            self.dir_collection,
+            self.dir_excel,
+            self.dir_output,
+            self.dir_report,
+            self.dir_training,
+            self.dir_transaction,
+        ]
+        for dirname in list_dir:
+            self.check_system_dir(dirname)
 
-        if not os.path.exists(self.dir_excel):
-            os.mkdir(self.dir_excel)
+    @staticmethod
+    def check_system_dir(dirname: str):
+        if not os.path.exists(dirname):
+            os.mkdir(dirname)
 
-        if not os.path.exists(self.dir_output):
-            os.mkdir(self.dir_output)
-
-        if not os.path.exists(self.dir_report):
-            os.mkdir(self.dir_report)
-
-        if not os.path.exists(self.dir_transaction):
-            os.mkdir(self.dir_transaction)
-
-    def getBuiltinIcon(self, parent: QWidget, name: str) -> QIcon:
+    @staticmethod
+    def getBuiltinIcon(parent: QWidget, name: str) -> QIcon:
         pixmap_icon = getattr(QStyle.StandardPixmap, 'SP_%s' % name)
         return parent.style().standardIcon(pixmap_icon)
 
