@@ -22,6 +22,7 @@ if __name__ == "__main__":
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
         "Epoch": list(),
+        "Repeat": list(),
         "Data": list(),
         "Profit": list(),
     })
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
     repeats = 15
 
-    epoch = 1
+    epoch = 0
     # 繰り返し学習
     for repeat in range(repeats):
         for excel_file in list_excel:
@@ -60,9 +61,10 @@ if __name__ == "__main__":
             )
 
             # for plot of learning curve
-            df_lc.at[repeat, "Epoch"] = epoch
-            df_lc.at[repeat, "Data"] = excel_file
-            df_lc.at[repeat, "Profit"] = profit
+            df_lc.at[epoch, "Epoch"] = epoch
+            df_lc.at[epoch, "Repeat"] = repeat
+            df_lc.at[epoch, "Data"] = excel_file
+            df_lc.at[epoch, "Profit"] = profit
 
             epoch += 1
 
