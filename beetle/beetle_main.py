@@ -73,8 +73,6 @@ class Beetle(QMainWindow):
         # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
         # ---------------------------------------------------------------------
-        # self.acquire: Acquire | None = None  # リアルタイム用
-        # self.review: Review | None = None  # デバッグ・レビュー用
         self.thread = QThread(self)
         self.worker = None
 
