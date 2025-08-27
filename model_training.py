@@ -19,7 +19,7 @@ if __name__ == "__main__":
         "tick_20250826.xlsx",
         "tick_20250827.xlsx",
     ]
-    # for learning curve
+    # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
         "Epoch": list(),
         "Data": list(),
@@ -31,11 +31,12 @@ if __name__ == "__main__":
     model_path = os.path.join(res.dir_training, f"ppo_{code}_20250825.pth")
     sim = TradingSimulation(model_path)
 
-    # 繰り返し学習回数
-    epochs = 10
+    # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
+    repeats = 15
 
+    epoch = 1
     # 繰り返し学習
-    for epoch in range(epochs):
+    for repeat in range(repeats):
         for excel_file in list_excel:
             # ティックデータを読み込む
             path_excel = os.path.join(res.dir_excel, excel_file)
@@ -46,25 +47,26 @@ if __name__ == "__main__":
                 ts = row["Time"]
                 price = row["Price"]
                 volume = row["Volume"]
-
                 # 最後の行だけ強制返済フラグを立てる
                 force_close = (i == len(df) - 1)
                 action = sim.add(ts, price, volume, force_close=force_close)
-                # print(ts, price, action)
 
             # 結果（総収益）を保存
             df_result = sim.finalize()
             profit = df_result["Profit"].sum()
-            print("Epoch:", epoch, "データ:", excel_file, "総収益:", profit)
+            print(f"Epoch: {epoch}, Repeat: {repeat}, File: {excel_file}, Total: {profit}")
             df_result.to_csv(
-                os.path.join(res.dir_output, f"trade_results_{epoch:02}.csv")
+                os.path.join(res.dir_output, f"trade_results_{epoch:03}.csv")
             )
 
             # for plot of learning curve
-            df_lc.at[epoch, "Epoch"] = epoch
-            df_lc.at[epoch, "Data"] = excel_file
-            df_lc.at[epoch, "Profit"] = profit
+            df_lc.at[repeat, "Epoch"] = epoch
+            df_lc.at[repeat, "Data"] = excel_file
+            df_lc.at[repeat, "Profit"] = profit
 
+            epoch += 1
+
+    # 学習曲線用データフレームの保存
     df_lc.to_csv(
         os.path.join(res.dir_output, f"learning_curve.csv")
     )

@@ -239,11 +239,13 @@ class TradingSimulation:
     同方向への追撃指示はルール上不可のため HOLD に丸める。
     """
 
-    def __init__(self,
-                 model_path: str = "models/ppo_7011_20250825.pth",
-                 alpha_unrealized: float = 0.1,  # 含み益重み
-                 reward_scale: float = 1.0,  # 報酬スケール（100株分は自動で掛かる）
-                 seed: int = 42):
+    def __init__(
+            self,
+            model_path: str = "models/ppo_7011_20250825.pth",
+            alpha_unrealized: float = 0.1,  # 含み益重み
+            reward_scale: float = 1.0,  # 報酬スケール（100株分は自動で掛かる）
+            seed: int = 42
+    ):
         torch.manual_seed(seed)
         np.random.seed(seed)
 
@@ -280,14 +282,17 @@ class TradingSimulation:
         self.prices.append(price)
         if len(self.prices) >= 2:
             self.deltas.append(self.prices[-1] - self.prices[-2])
+
         # MA(10) & Volatility(10)
         ma10 = float(np.mean(list(self.prices)[-10:])) if len(self.prices) >= 10 else price
         vol10 = _safe_std(list(self.prices)[-10:]) if len(self.prices) >= 10 else 0.0
+
         # z-score of price vs MA/Volatility（分母0は回避）
         if vol10 <= 1e-6:
             ma10_z = 0.0
         else:
             ma10_z = (price - ma10) / (vol10 + 1e-6)
+
         # RSI(14)
         rsi = _compute_rsi_from_deltas(list(self.deltas))
         rsi_scaled = (rsi - 50.0) / 50.0  # おおよそ [-1, +1]
@@ -298,6 +303,7 @@ class TradingSimulation:
             delta_vol = max(volume - self.prev_volume, 0.0)
         self.prev_volume = volume
         lv = math.log1p(delta_vol)
+
         # 価格の正規化（相対変化）: 直近MAで割る
         norm_price = (price / (ma10 + 1e-6)) - 1.0  # おおよそ数%レンジ
 
