@@ -18,6 +18,7 @@ if __name__ == "__main__":
         "tick_20250825.xlsx",
         "tick_20250826.xlsx",
         "tick_20250827.xlsx",
+        "tick_20250828.xlsx",
     ]
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
@@ -33,7 +34,7 @@ if __name__ == "__main__":
     sim = TradingSimulation(model_path)
 
     # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
-    repeats = 15
+    repeats = 13
 
     epoch = 0
     # 繰り返し学習
