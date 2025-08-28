@@ -13,6 +13,9 @@ if __name__ == "__main__":
     list_excel = [
         "tick_20250828.xlsx",
     ]
+    # 繰り返し学習回数（ティックデータ・リスト全体に対して）
+    repeats = 100
+
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
         "Epoch": list(),
@@ -26,9 +29,7 @@ if __name__ == "__main__":
     model_path = os.path.join(res.dir_training, f"ppo_{code}_20250825.pth")
     sim = TradingSimulation(model_path)
 
-    # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
-    repeats = 100
-
+    # エポック
     epoch = 0
     # 繰り返し学習
     for repeat in range(repeats):
