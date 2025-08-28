@@ -11,17 +11,15 @@ if __name__ == "__main__":
     code = "7011"
     # 学習対象のティックデータファイル・リスト: Time, Price, Volume の 3 列
     list_excel = [
-        "tick_20250819.xlsx",
-        "tick_20250820.xlsx",
-        "tick_20250821.xlsx",
-        "tick_20250822.xlsx",
-        "tick_20250825.xlsx",
-        "tick_20250826.xlsx",
-        "tick_20250827.xlsx",
+        "tick_20250828.xlsx",
     ]
+    # 繰り返し学習回数（ティックデータ・リスト全体に対して）
+    repeats = 100
+
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
         "Epoch": list(),
+        "Repeat": list(),
         "Data": list(),
         "Profit": list(),
     })
@@ -31,10 +29,8 @@ if __name__ == "__main__":
     model_path = os.path.join(res.dir_training, f"ppo_{code}_20250825.pth")
     sim = TradingSimulation(model_path)
 
-    # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
-    repeats = 15
-
-    epoch = 1
+    # エポック
+    epoch = 0
     # 繰り返し学習
     for repeat in range(repeats):
         for excel_file in list_excel:
@@ -60,9 +56,10 @@ if __name__ == "__main__":
             )
 
             # for plot of learning curve
-            df_lc.at[repeat, "Epoch"] = epoch
-            df_lc.at[repeat, "Data"] = excel_file
-            df_lc.at[repeat, "Profit"] = profit
+            df_lc.at[epoch, "Epoch"] = epoch
+            df_lc.at[epoch, "Repeat"] = repeat
+            df_lc.at[epoch, "Data"] = excel_file
+            df_lc.at[epoch, "Profit"] = profit
 
             epoch += 1
 
