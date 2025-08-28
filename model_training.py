@@ -11,13 +11,6 @@ if __name__ == "__main__":
     code = "7011"
     # 学習対象のティックデータファイル・リスト: Time, Price, Volume の 3 列
     list_excel = [
-        "tick_20250819.xlsx",
-        "tick_20250820.xlsx",
-        "tick_20250821.xlsx",
-        "tick_20250822.xlsx",
-        "tick_20250825.xlsx",
-        "tick_20250826.xlsx",
-        "tick_20250827.xlsx",
         "tick_20250828.xlsx",
     ]
     # 学習曲線用データフレーム
@@ -34,7 +27,7 @@ if __name__ == "__main__":
     sim = TradingSimulation(model_path)
 
     # 繰り返し学習回数（ティックデータ・リスト全体に亙って）
-    repeats = 13
+    repeats = 100
 
     epoch = 0
     # 繰り返し学習
