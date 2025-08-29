@@ -39,11 +39,12 @@ def _safe_std(x: List[float]) -> float:
 
 
 def _compute_rsi_from_deltas(deltas: List[float]) -> float:
-    # 教示の単純移動平均版に合わせる（rolling mean）。ストリームでは直近14本を使用
-    if len(deltas) < 14:
+    # 教示の単純移動平均版に合わせる（rolling mean）。ストリームでは直近 n 本を使用
+    n = 60
+    if len(deltas) < n:
         return 50.0  # ウォームアップ中の中立値
-    gains = [max(d, 0.0) for d in deltas[-14:]]
-    losses = [-min(d, 0.0) for d in deltas[-14:]]
+    gains = [max(d, 0.0) for d in deltas[-n:]]
+    losses = [-min(d, 0.0) for d in deltas[-n:]]
     avg_gain = np.mean(gains)
     avg_loss = np.mean(losses)
     rs = avg_gain / (avg_loss + 1e-6)
@@ -250,8 +251,9 @@ class TradingSimulation:
         np.random.seed(seed)
 
         # 特徴量用バッファ
-        self.prices: deque = deque(maxlen=64)  # 余裕を持って確保
-        self.deltas: deque = deque(maxlen=64)
+        self.num = 128
+        self.prices: deque = deque(maxlen=128)  # 余裕を持って確保
+        self.deltas: deque = deque(maxlen=128)
         self.prev_volume: Optional[float] = None
 
         # 売買ルール関連
@@ -283,15 +285,15 @@ class TradingSimulation:
         if len(self.prices) >= 2:
             self.deltas.append(self.prices[-1] - self.prices[-2])
 
-        # MA(10) & Volatility(10)
-        ma10 = float(np.mean(list(self.prices)[-10:])) if len(self.prices) >= 10 else price
-        vol10 = _safe_std(list(self.prices)[-10:]) if len(self.prices) >= 10 else 0.0
+        # MA(n) & Volatility(n)
+        ma_n = float(np.mean(list(self.prices)[-self.num:])) if len(self.prices) >= self.num else price
+        vol_n = _safe_std(list(self.prices)[-self.num:]) if len(self.prices) >= self.num else 0.0
 
         # z-score of price vs MA/Volatility（分母0は回避）
-        if vol10 <= 1e-6:
-            ma10_z = 0.0
+        if vol_n <= 1e-6:
+            ma_n_z = 0.0
         else:
-            ma10_z = (price - ma10) / (vol10 + 1e-6)
+            ma_n_z = (price - ma_n) / (vol_n + 1e-6)
 
         # RSI(14)
         rsi = _compute_rsi_from_deltas(list(self.deltas))
@@ -305,9 +307,9 @@ class TradingSimulation:
         lv = math.log1p(delta_vol)
 
         # 価格の正規化（相対変化）: 直近MAで割る
-        norm_price = (price / (ma10 + 1e-6)) - 1.0  # おおよそ数%レンジ
+        norm_price = (price / (ma_n + 1e-6)) - 1.0  # おおよそ数%レンジ
 
-        obs = np.array([norm_price, ma10_z, vol10, rsi_scaled, lv], dtype=np.float32)
+        obs = np.array([norm_price, ma_n_z, vol_n, rsi_scaled, lv], dtype=np.float32)
         return obs
 
     # -------------------------
