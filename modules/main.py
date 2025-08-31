@@ -8,19 +8,22 @@ from PySide6.QtCore import (
     QTimer,
     Signal,
 )
-from PySide6.QtGui import QIcon, QCloseEvent
+from PySide6.QtGui import (
+    QCloseEvent,
+    QIcon,
+)
 from PySide6.QtWidgets import QMainWindow
 
-from beetle.beetle_dock import DockTrader
-from modules.reviewer import ExcelReviewWorker
-from modules.rssreader import RSSReaderWorker
-from beetle.beetle_trader import Trader
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
 from modules.dialog import DlgAboutThis
+from modules.dock import DockTrader
+from modules.reviewer import ExcelReviewWorker
+from modules.rssreader import RSSReaderWorker
 from modules.statusbar import StatusBar
 from modules.toolbar import ToolBar
+from modules.trader import Trader
 from modules.trans import WinTransaction
 from structs.app_enum import PositionType
 from structs.res import AppRes
@@ -28,15 +31,14 @@ from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
 
 
-class Beetle(QMainWindow):
-    __app_name__ = "Beetle"
-    __version__ = "0.10.5"
+class Kabuto(QMainWindow):
+    __app_name__ = "Kabuto"
+    __version__ = "0.11.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
-    # requestCurrentPrice = Signal()
     # 現在価格取得リクエスト・シグナル
     requestCurrentPrice = Signal(float)
     requestSaveDataFrame = Signal()
@@ -256,7 +258,7 @@ class Beetle(QMainWindow):
             self.__version__,
             self.__author__,
             self.__license__,
-            "beetle.png",
+            "kabuto.png",
         ).exec()
 
     def on_create_thread(self, excel_path: str):
