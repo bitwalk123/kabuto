@@ -10,15 +10,15 @@ if __name__ == "__main__":
     res = AppRes()
     code = "7011"
     list_excel = [
-        "excel/tick_20250819.xlsx",
-        "excel/tick_20250820.xlsx",
-        "excel/tick_20250821.xlsx",
-        "excel/tick_20250822.xlsx",
-        "excel/tick_20250825.xlsx",
-        "excel/tick_20250826.xlsx",
-        "excel/tick_20250827.xlsx",
-        "excel/tick_20250828.xlsx",
-        "excel/tick_20250829.xlsx",
+        "tick_20250819.xlsx",
+        "tick_20250820.xlsx",
+        "tick_20250821.xlsx",
+        "tick_20250822.xlsx",
+        "tick_20250825.xlsx",
+        "tick_20250826.xlsx",
+        "tick_20250827.xlsx",
+        "tick_20250828.xlsx",
+        "tick_20250829.xlsx",
     ]
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     epoch = 0
     for n in range(10):
         for file_excel in list_excel:
-            df = get_excel_sheet(file_excel, code)
+            df = get_excel_sheet(os.path.join(res.dir_excel, file_excel), code)
 
             trainer = Trainer()
             df_transaction = trainer.train(df)
