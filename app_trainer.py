@@ -1,5 +1,5 @@
 from funcs.ios import get_excel_sheet
-from modules.rl_ppo_lite_20250901 import Trainer
+from modules.rl_ppo_lite_20250901_1 import Trainer
 
 if __name__ == "__main__":
     code = "7011"
@@ -18,6 +18,6 @@ if __name__ == "__main__":
         for file_excel in list_excel:
             df = get_excel_sheet(file_excel, code)
 
-            trainer = Trainer("models/ppo_7011_20250901.pch")
+            trainer = Trainer()
             earnings = trainer.train(df)
             print(f"Epoch: {epoch}, {file_excel}, 収益：{earnings}")
