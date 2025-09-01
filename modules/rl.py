@@ -2,7 +2,7 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from modules.rl_ppo_lite_20250829 import TradingSimulation
+from modules.rl_ppo_lite_20250901 import TradingSimulation
 
 
 class RLModelWorker(QObject):

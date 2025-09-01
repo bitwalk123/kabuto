@@ -1,12 +1,53 @@
+import os
+
+import pandas as pd
+
 from funcs.ios import get_excel_sheet
-from modules.rl_ppo_lite_20250829 import Trainer
+from modules.rl_ppo_lite_20250901_3 import Trainer
+from structs.res import AppRes
 
 if __name__ == "__main__":
+    res = AppRes()
     code = "7011"
-    list_excel = ["excel/tick_20250826.xlsx", "excel/tick_20250828.xlsx"]
-    for epoch in range(10):
+    list_excel = [
+        "excel/tick_20250819.xlsx",
+        "excel/tick_20250820.xlsx",
+        "excel/tick_20250821.xlsx",
+        "excel/tick_20250822.xlsx",
+        "excel/tick_20250825.xlsx",
+        "excel/tick_20250826.xlsx",
+        "excel/tick_20250827.xlsx",
+        "excel/tick_20250828.xlsx",
+        "excel/tick_20250829.xlsx",
+    ]
+    # 学習曲線用データフレーム
+    df_lc = pd.DataFrame({
+        "Epoch": list(),
+        "Data": list(),
+        "Profit": list(),
+    })
+    df_lc = df_lc.astype(object)
+
+    epoch = 0
+    for n in range(10):
         for file_excel in list_excel:
             df = get_excel_sheet(file_excel, code)
 
-            trainer = Trainer(model_path="models/ppo_7011_20250829.pch", feature_n=60, device="cpu")
-            trainer.train(df)
+            trainer = Trainer()
+            df_transaction = trainer.train(df)
+            profit = df_transaction["Profit"].sum()
+            print(f"Epoch: {epoch}, {file_excel}, 総収益: {profit}")
+            df_transaction.to_csv(
+                os.path.join(res.dir_output, f"trade_results_{epoch:03}.csv")
+            )
+            # for plot of learning curve
+            df_lc.at[epoch, "Epoch"] = epoch
+            df_lc.at[epoch, "Data"] = file_excel
+            df_lc.at[epoch, "Profit"] = profit
+
+            epoch += 1
+
+    # 学習曲線用データフレームの保存
+    df_lc.to_csv(
+        os.path.join(res.dir_output, f"learning_curve.csv")
+    )

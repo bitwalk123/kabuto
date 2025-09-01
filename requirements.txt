@@ -1,9 +1,12 @@
 backports.tarfile
 black
 fqdn
+gymnasium
 importlib-metadata
 isoduration
 isort
+jaraco-collections
+jaraco-functools
 jaraco.collections
 jsonpointer
 jupyterlab
