@@ -3,7 +3,6 @@ import os
 import pandas as pd
 
 from funcs.ios import get_excel_sheet
-from modules.rl_ppo_lite_20250901_4 import Trainer
 from structs.res import AppRes
 
 if __name__ == "__main__":
@@ -19,6 +18,7 @@ if __name__ == "__main__":
         "tick_20250827.xlsx",
         "tick_20250828.xlsx",
         "tick_20250829.xlsx",
+        "tick_20250901.xlsx",
     ]
     # 学習曲線用データフレーム
     df_lc = pd.DataFrame({

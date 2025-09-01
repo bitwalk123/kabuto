@@ -2,7 +2,7 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from modules.rl_ppo_lite_20250901 import TradingSimulation
+from modules.rl_ppo_lite_20250901_5 import TradingSimulator
 
 
 class RLModelWorker(QObject):
@@ -18,12 +18,12 @@ class RLModelWorker(QObject):
         self._stop_flag = False
 
         # シミュレータ・インスタンス
-        model_path = "models/ppo_7011_20250829.pch"
-        self.sim = TradingSimulation(model_path)
+        model_path = "policy.pth"
+        self.sim = TradingSimulator(model_path)
 
     @Slot(float, float, float)
-    def addData(self, ts, price, volume, force_close=False):
-        action = self.sim.add(ts, price, volume, force_close=force_close)
+    def addData(self, ts, price, volume):
+        action = self.sim.add(ts, price, volume)
         if self.autopilot:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 売買アクションを通知するシグナル
