@@ -276,7 +276,7 @@ class Trainer:
     def _load_or_init_model(self) -> Tuple[nn.Module, bool]:
         if os.path.exists(self.policy_path):
             try:
-                print("[Trainer] Loading existing scripted policy ...")
+                # print("[Trainer] Loading existing scripted policy ...")
                 model = torch.jit.load(self.policy_path, map_location=self.device)
                 model.eval()
                 return model, False
@@ -291,7 +291,8 @@ class Trainer:
                 except Exception:
                     print("[Trainer] Existing model invalid. Creating a new one and overwriting.")
         else:
-            print("[Trainer] No existing model. Creating a new one.")
+            pass
+            # print("[Trainer] No existing model. Creating a new one.")
         model = PolicyNet(in_dim=7)
         model.to(self.device)
         return model, True
@@ -425,7 +426,7 @@ class Trainer:
         try:
             scripted = torch.jit.script(model)
             scripted.save(self.policy_path)
-            print(f"[Trainer] Saved scripted model to {self.policy_path}")
+            # print(f"[Trainer] Saved scripted model to {self.policy_path}")
         except Exception as e:
             print(f"[Trainer] TorchScript failed: {e}; saving state_dict fallback.")
             torch.save(model.state_dict(), self.policy_path)
