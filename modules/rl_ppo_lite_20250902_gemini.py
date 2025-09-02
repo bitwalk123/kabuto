@@ -159,43 +159,47 @@ class TradingEnv(gym.Env):
         self.action_space = spaces.Discrete(4)  # 0:HOLD, 1:BUY, 2:SELL, 3:REPAY
         self.observation_space = spaces.Box(low=-np.inf, high=np.inf, shape=(self.state_dim,), dtype=np.float32)
         self.current_tick = 0
-        self.position = None  # None: no position, "long": long position, "short": short position
+        self.position = None
         self.entry_price = 0
         self.total_profit = 0
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
-        self.current_tick = N_TICKS_WARMUP - 1
+        # current_tickを0に初期化
+        self.current_tick = 0
         self.position = None
         self.entry_price = 0
         self.total_profit = 0
+        # ウォームアップ期間後の最初の状態を取得
         initial_state = self._get_state()
         info = {}
         return initial_state, info
 
     def _get_state(self):
+        # 現在のティックがデータの範囲内にあることを確認
+        if self.current_tick >= len(self.df):
+            return np.zeros(self.state_dim)  # 範囲外ならダミーの状態を返す
+
         row = self.df.iloc[self.current_tick]
         return np.array([
             row['log_ΔVolume'],
             row['MA'],
             row['RSI'],
             row['Z_score'],
-            float(self.position is not None)  # 1 if position exists, 0 otherwise
+            float(self.position is not None)
         ])
 
     def step(self, action):
-        # Apply trading constraints and logic
-        if self.current_tick < N_TICKS_WARMUP - 1:
-            action = 0  # HOLD during warmup
+        # ウォームアップ期間中はアクションを強制的にHOLDにする
+        if self.current_tick < N_TICKS_WARMUP:
+            action = 0
 
         current_price = self.df.iloc[self.current_tick]['Price']
         reward = 0
 
         # Apply trading constraints
-        # Cannot BUY or SELL if a position is held
         if self.position is not None and (action == 1 or action == 2):
             action = 0
-            # Cannot REPAY if no position is held
         if self.position is None and action == 3:
             action = 0
 
@@ -218,7 +222,6 @@ class TradingEnv(gym.Env):
             self.total_profit += profit
             self.position = None
         else:  # HOLD
-            # Reward for holding a profitable position
             if self.position == 'long':
                 reward = 0.001 * (current_price - self.entry_price) * UNIT_SHARES
             elif self.position == 'short':
@@ -231,7 +234,6 @@ class TradingEnv(gym.Env):
             next_state = self._get_state()
             done = False
         else:
-            # Force close any open position at the end of the day
             if self.position == 'long':
                 exit_price = current_price - SLIPPAGE
                 profit = (exit_price - self.entry_price) * UNIT_SHARES
@@ -242,7 +244,6 @@ class TradingEnv(gym.Env):
                 self.total_profit += profit
             self.position = None
 
-            # For the final step, return a dummy state and set done to True
             next_state = np.zeros(self.state_dim)
             done = True
 
@@ -254,6 +255,7 @@ class TradingEnv(gym.Env):
         }
 
         return next_state, reward, done, False, info
+
 
 # ---
 # Trainer Class (for PC1)
