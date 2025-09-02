@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from funcs.ios import get_excel_sheet
-from modules.rl_ppo_lite_20250902_5 import Trainer
+from modules.rl_ppo_lite_20250902_6 import Trainer
 from structs.res import AppRes
 
 if __name__ == "__main__":
@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
             trainer = Trainer()
             df_transaction = trainer.train(df)
-            profit = df_transaction["Profit"].sum()
+            profit = df_transaction[df_transaction["Action"] == "REPAY"]["Profit"].sum()
             print(f"Epoch: {epoch}, {file_excel}, 総収益: {profit}")
             df_transaction.to_csv(
                 os.path.join(res.dir_output, f"trade_results_{epoch:03}.csv")
