@@ -3,7 +3,7 @@ import os
 import pandas as pd
 
 from funcs.ios import get_excel_sheet
-from modules.rl_ppo_lite_20250902_gemini import Trainer
+from modules.rl_ppo_lite_20250902_5 import Trainer
 from structs.res import AppRes
 
 if __name__ == "__main__":
