@@ -15,7 +15,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.distributions import Categorical
 
-
 # =========================================================
 # 仕様・定数
 # =========================================================
@@ -31,22 +30,22 @@ ACTION_MAP = {
     ACTION_REPAY: "REPAY",
 }
 
-WARMUP = 60             # 特徴量用ウォームアップ
-UNIT = 100              # 売買単位（株）
-SLIPPAGE = 1.0          # 常に 1 ティック
-EPSILON = 0.05          # ε-greedy（探索）
-FEATURE_DIM = 5         # LogΔVol, MA, STD, RSI, ZScore
+WARMUP = 60  # 特徴量用ウォームアップ
+UNIT = 100  # 売買単位（株）
+SLIPPAGE = 1.0  # 常に 1 ティック
+EPSILON = 0.05  # ε-greedy（探索）
+FEATURE_DIM = 5  # LogΔVol, MA, STD, RSI, ZScore
 
 # PPO ハイパラ（適宜調整可）
 GAMMA = 0.99
-LAMBDA = 0.95           # GAE
+LAMBDA = 0.95  # GAE
 CLIP_RANGE = 0.2
 ENTROPY_COEF = 0.005
 VALUE_COEF = 0.5
 LR_POLICY = 3e-4
 LR_VALUE = 1e-3
-EPOCHS = 8              # PPO 更新エポック
-MINIBATCH_SIZE = 2048   # ミニバッチサイズ（1日 19,500 ティック想定）
+EPOCHS = 8  # PPO 更新エポック
+MINIBATCH_SIZE = 2048  # ミニバッチサイズ（1日 19,500 ティック想定）
 
 
 # =========================================================
@@ -105,6 +104,7 @@ class PolicyNet(nn.Module):
             nn.ReLU(),
         )
         self.head = nn.Linear(128, output_dim)  # ロジット（Softmaxは後段で分布計算時に使用）
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         z = self.backbone(x)
         logits = self.head(z)
@@ -121,6 +121,7 @@ class ValueNet(nn.Module):
             nn.ReLU(),
             nn.Linear(128, 1),
         )
+
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x).squeeze(-1)
 
@@ -149,19 +150,22 @@ def action_mask(position: int) -> torch.Tensor:
     return mask
 
 
-def masked_categorical(logits: torch.Tensor, mask: torch.Tensor) -> Categorical:
-    """ 不可行動のロジットを -inf にして分布を作る """
-    very_neg = torch.finfo(logits.dtype).min
+def masked_categorical(logits, mask):
+    very_neg = torch.tensor(-1e9, dtype=logits.dtype, device=logits.device)
     masked_logits = logits.clone()
-    masked_logits[:, ~mask] = very_neg
-    return Categorical(logits=masked_logits)
+
+    # mask shape を [1, num_actions] にしてブロードキャスト
+    mask = mask.unsqueeze(0) if mask.dim() == 1 else mask
+    masked_logits = torch.where(mask, masked_logits, very_neg)
+
+    return torch.distributions.Categorical(logits=masked_logits)
 
 
 # =========================================================
 # 取引ロジック（損益・ルール）
 # =========================================================
 def realize_pnl(position: int, entry_price: float, current_price: float) -> float:
-    if position == 1:   # ロング解消
+    if position == 1:  # ロング解消
         return (current_price - SLIPPAGE - entry_price) * UNIT
     elif position == -1:  # ショート解消
         return (entry_price - (current_price + SLIPPAGE)) * UNIT
@@ -217,48 +221,90 @@ class Trainer:
         return feats_norm, scaler
 
     def _ppo_update(self, data: Dict[str, torch.Tensor]) -> None:
-        states = data["states"]
-        actions = data["actions"]
-        old_logprobs = data["logprobs"]
-        returns = data["returns"]
-        advantages = data["advantages"]
+        """
+        data expected keys:
+          - states: Tensor (N, feat_dim)
+          - actions: Tensor (N,)
+          - logprobs: Tensor (N,)  # old logprobs computed at sample time (masked)
+          - advantages: Tensor (N,)
+          - returns: Tensor (N,)
+          - masks: optional Tensor (N, num_actions) dtype=torch.bool  # 行動マスク（サンプリング時のマスク）
+        """
 
-        n = states.size(0)
-        idxs = np.arange(n)
+        states = data["states"].to(self.device)
+        actions = data["actions"].to(self.device)
+        old_logprobs = data["logprobs"].to(self.device)
+        advantages = data["advantages"].to(self.device)
+        returns = data["returns"].to(self.device)
 
-        for _ in range(EPOCHS):
-            np.random.shuffle(idxs)
-            for start in range(0, n, MINIBATCH_SIZE):
-                end = min(start + MINIBATCH_SIZE, n)
-                mb_idx = torch.tensor(idxs[start:end], dtype=torch.long)
+        # optional masks: (N, num_actions) bool
+        if "masks" in data and data["masks"] is not None:
+            masks = data["masks"].to(self.device)
+            # ensure bool
+            if masks.dtype != torch.bool:
+                masks = masks.bool()
+        else:
+            # 全許可マスク（フォールバック）
+            masks = torch.ones((states.size(0), 4), dtype=torch.bool, device=self.device)
 
-                s = states[mb_idx]
-                a = actions[mb_idx]
-                old_lp = old_logprobs[mb_idx]
-                adv = advantages[mb_idx]
-                ret = returns[mb_idx]
+        # 安全：NaN/Inf のチェック・クリップ（logits計算前にクランプはできないが、後でチェック）
+        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-9)
 
-                # 新ロジット（注意：ここでは行動マスクを入れにくいので、logprobはサンプル時の分布に依存）
-                logits = self.policy(s)
-                # 分布は「当時のマスク」を厳密に再現できないため、学習時は近似的に全行動分布を使用
-                # ※サンプル時の logprob を固定（old_logprobs）し、ratio の分子は現在の logprob
-                dist = Categorical(logits=logits)
-                new_logprob = dist.log_prob(a)
+        N = states.size(0)
+        indices = np.arange(N, dtype=np.int64)
 
-                ratio = (new_logprob - old_lp).exp()
-                surr1 = ratio * adv
-                surr2 = torch.clamp(ratio, 1.0 - CLIP_RANGE, 1.0 + CLIP_RANGE) * adv
+        for epoch in range(EPOCHS):
+            np.random.shuffle(indices)
+            start = 0
+            while start < N:
+                end = min(start + MINIBATCH_SIZE, N)
+                mb_idx = torch.tensor(indices[start:end], dtype=torch.long, device=self.device)
+
+                s_mb = states[mb_idx]
+                a_mb = actions[mb_idx]
+                old_lp_mb = old_logprobs[mb_idx]
+                adv_mb = advantages[mb_idx]
+                ret_mb = returns[mb_idx]
+                mask_mb = masks[mb_idx]  # (batch, num_actions)
+
+                # forward pass -> logits
+                logits = self.policy(s_mb)  # (batch, num_actions)
+
+                # NaN/Inf チェック
+                if torch.isnan(logits).any() or torch.isinf(logits).any():
+                    # 安全策: 極端な値をクリップして続行
+                    logits = torch.clamp(logits, -1e6, 1e6)
+                    # ログを出すとデバッグしやすい（必要なら有効化）
+                    # print("Warning: logits contained NaN/Inf -> clipped")
+
+                # マスクを適用して distribution を作る
+                # masked_logits: mask==False の箇所は非常に小さい値に置き換える
+                very_neg = torch.tensor(torch.finfo(logits.dtype).min / 2, device=logits.device, dtype=logits.dtype)
+                # mask_mb shape: (B, num_actions), logits: (B, num_actions)
+                # torch.where を使うとブロードキャストや形の不一致問題を避けられる
+                masked_logits = torch.where(mask_mb, logits, very_neg)
+
+                dist = Categorical(logits=masked_logits)
+                new_logprob = dist.log_prob(a_mb)
+
+                # probability ratio
+                ratio = torch.exp(new_logprob - old_lp_mb)
+
+                # surrogate losses
+                surr1 = ratio * adv_mb
+                surr2 = torch.clamp(ratio, 1.0 - CLIP_RANGE, 1.0 + CLIP_RANGE) * adv_mb
                 policy_loss = -torch.min(surr1, surr2).mean()
 
-                # 価値損失
-                v = self.value(s)
-                value_loss = nn.functional.mse_loss(v, ret)
+                # value loss
+                v_mb = self.value(s_mb).squeeze(-1)
+                value_loss = nn.functional.mse_loss(v_mb, ret_mb)
 
-                # エントロピー
+                # entropy (encourage exploration among allowed actions)
                 entropy = dist.entropy().mean()
 
                 loss = policy_loss + VALUE_COEF * value_loss - ENTROPY_COEF * entropy
 
+                # optimize both nets
                 self.optim_policy.zero_grad()
                 self.optim_value.zero_grad()
                 loss.backward()
@@ -267,7 +313,10 @@ class Trainer:
                 self.optim_policy.step()
                 self.optim_value.step()
 
-    def _compute_gae(self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+                start = end
+
+    def _compute_gae(self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor) -> Tuple[
+        torch.Tensor, torch.Tensor]:
         T = rewards.size(0)
         advantages = torch.zeros(T, dtype=torch.float32)
         last_adv = 0.0
@@ -364,14 +413,16 @@ class Trainer:
             values.append(float(value_t))
 
             # ログ
-            df_transaction.loc[t] = [df.loc[t, "Time"], price, ACTION_MAP[action], float(realized if realized != 0 else reward)]
+            df_transaction.loc[t] = [df.loc[t, "Time"], price, ACTION_MAP[action],
+                                     float(realized if realized != 0 else reward)]
 
         # 終了時に建玉があれば強制返済
         if position != 0:
             price = float(df.loc[len(df) - 1, "Price"])
             force_realized = realize_pnl(position, entry_price, price)
             rewards[-1] += force_realized  # 最終報酬に加算
-            df_transaction.loc[len(df_transaction)] = [df.loc[len(df)-1, "Time"], price, "REPAY", float(force_realized)]
+            df_transaction.loc[len(df_transaction)] = [df.loc[len(df) - 1, "Time"], price, "REPAY",
+                                                       float(force_realized)]
             position = 0
 
         # ターミナルの value（bootstrap用に1つ余分）
@@ -420,6 +471,7 @@ class Trainer:
 # =========================================================
 class RollingFeatures:
     """ ザラ場の逐次ティックから、必要特徴量をオンライン計算 """
+
     def __init__(self, window: int = WARMUP):
         self.window = window
         self.prices = deque(maxlen=window)
