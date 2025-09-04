@@ -15,9 +15,3 @@ class PositionType(Enum):
     HOLD = auto()
     NONE = auto()
 
-
-class TransactionType(Enum):
-    BUY = auto()
-    SELL = auto()
-    REPAY = auto()
-    HOLD = auto()
