@@ -23,6 +23,7 @@ rfc3987-syntax
 scipy
 scipy-stubs
 seaborn
+ta
 ta-lib
 tinycss2
 tomli
