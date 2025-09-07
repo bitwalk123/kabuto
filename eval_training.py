@@ -4,14 +4,15 @@ import torch
 import matplotlib.pyplot as plt
 
 from modules.ppo_agent_20250907 import PPOAgent, RolloutBuffer
-from modules.trading_env_20250907 import TradingEnv
+from modules.trading_env import TradingEnv
 
 # ===============================
 # 1. データ読み込み
 # ===============================
-df = pd.read_excel("excel/tick_20250828.xlsx")
+file_excel = "excel/tick_20250819.xlsx"
+df = pd.read_excel(file_excel)
 
-print(f"Loaded {len(df)} rows from tick_20250819.xlsx")
+print(f"Loaded {len(df)} rows from {file_excel}")
 
 # ===============================
 # 2. 環境と PPO 初期化
@@ -77,7 +78,7 @@ for epoch in range(max_epochs):
           f"steps={global_step} "
           f"episode_reward={ep_rewards:.2f} "
           f"pnl_total={last_info.get('pnl_total', 0.0):.2f}")
-
+    #input("Please type eny key...")
     buffer.clear()
 
 print("Training finished.")
