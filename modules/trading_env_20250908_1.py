@@ -1,9 +1,11 @@
+from enum import Enum
+
 import gymnasium as gym
 import numpy as np
 import pandas as pd
 import talib as ta
 
-from modules.transaction_manager import ActionType, TransactionManager
+from modules.transaction_manager import TransactionManager
 
 
 class TradingEnv(gym.Env):
@@ -83,3 +85,16 @@ class TradingEnv(gym.Env):
         )
         obs = np.concatenate([obs, pos_onehot])
         return obs
+
+
+class ActionType(Enum):
+    HOLD = 0
+    BUY = 1
+    SELL = 2
+    REPAY = 3
+
+
+class PositionType(Enum):
+    NONE = 0
+    LONG = 1
+    SHORT = 2

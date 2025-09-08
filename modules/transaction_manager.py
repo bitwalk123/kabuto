@@ -1,17 +1,4 @@
-from enum import Enum
-
-
-class ActionType(Enum):
-    HOLD = 0
-    BUY = 1
-    SELL = 2
-    REPAY = 3
-
-
-class PositionType(Enum):
-    NONE = 0
-    LONG = 1
-    SHORT = 2
+from modules.trading_env_20250908_1 import ActionType, PositionType
 
 
 class TransactionManager:
