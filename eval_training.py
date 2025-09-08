@@ -4,7 +4,7 @@ import torch
 import matplotlib.pyplot as plt
 
 from modules.ppo_agent_20250907 import PPOAgent, RolloutBuffer
-from modules.trading_env import TradingEnv
+from modules.trading_env_old import TradingEnv
 
 # ===============================
 # 1. データ読み込み
