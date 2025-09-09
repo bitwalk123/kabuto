@@ -8,7 +8,6 @@ from PySide6.QtWidgets import QMainWindow
 
 from modules.chart import TrendChart
 from modules.dock import DockTrader
-from modules.rl import RLModelWorker
 from structs.res import AppRes
 
 
@@ -81,13 +80,13 @@ class Trader(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
-        self.thread = QThread(self)
-        self.worker = RLModelWorker(self.dock.option.isAutoPilotEnabled())
-        self.worker.moveToThread(self.thread)
-        self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
-        self.sendTradeData.connect(self.worker.addData)
-        self.worker.notifyAction.connect(self.on_action)
-        self.thread.start()
+        # self.thread = QThread(self)
+        # self.worker = RLModelWorker(self.dock.option.isAutoPilotEnabled())
+        # self.worker.moveToThread(self.thread)
+        # self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
+        # self.sendTradeData.connect(self.worker.addData)
+        # self.worker.notifyAction.connect(self.on_action)
+        # self.thread.start()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
@@ -95,9 +94,9 @@ class Trader(QMainWindow):
         self.notifyAutoPilotStatus.emit(state)
 
     def closeEvent(self, event: QCloseEvent):
-        self.worker.stop()
-        self.thread.quit()
-        self.thread.wait()
+        # self.worker.stop()
+        # self.thread.quit()
+        # self.thread.wait()
         event.accept()
 
     def getTimePrice(self) -> pd.DataFrame:

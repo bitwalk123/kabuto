@@ -5,7 +5,7 @@ import time
 import pandas as pd
 import xlwings as xw
 
-from structs.app_enum import PositionType
+from structs.app_enum import ActionType
 
 # Windows 固有のライブラリ
 if sys.platform == "win32":
@@ -205,7 +205,7 @@ class Acquire(QThread):
     requestStopProcess = Signal()
 
     # 売買
-    requestPositionOpen = Signal(str, float, float, PositionType, str)
+    requestPositionOpen = Signal(str, float, float, ActionType, str)
     requestPositionClose = Signal(str, float, float, str)
     requestTransactionResult = Signal()
 

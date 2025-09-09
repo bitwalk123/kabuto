@@ -8,10 +8,9 @@ class FollowType(Enum):
     DECELERATE = auto()  # 追跡フォロー後の減速段階
 
 
-class PositionType(Enum):
-    BUY = auto()
-    SELL = auto()
-    REPAY = auto()
-    HOLD = auto()
-    NONE = auto()
+class ActionType(Enum):
+    HOLD = 0
+    BUY = 1
+    SELL = 2
+    REPAY = 3
 

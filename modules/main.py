@@ -25,7 +25,7 @@ from modules.statusbar import StatusBar
 from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction
-from structs.app_enum import PositionType
+from structs.app_enum import ActionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
@@ -45,7 +45,7 @@ class Kabuto(QMainWindow):
     requestStopProcess = Signal()
 
     # 売買
-    requestPositionOpen = Signal(str, float, float, PositionType, str)
+    requestPositionOpen = Signal(str, float, float, ActionType, str)
     requestPositionClose = Signal(str, float, float, str)
     requestTransactionResult = Signal()
 
@@ -430,7 +430,7 @@ class Kabuto(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建で建玉取得リクエストのシグナル
         self.requestPositionOpen.emit(
-            code, self.ts_system, price, PositionType.BUY, note
+            code, self.ts_system, price, ActionType.BUY, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -438,7 +438,7 @@ class Kabuto(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建で建玉取得リクエストのシグナル
         self.requestPositionOpen.emit(
-            code, self.ts_system, price, PositionType.SELL, note
+            code, self.ts_system, price, ActionType.SELL, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

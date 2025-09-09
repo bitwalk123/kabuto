@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from funcs.tide import conv_datetime_from_timestamp
-from structs.app_enum import PositionType
+from structs.app_enum import ActionType
 
 
 class PositionManager:
@@ -34,9 +34,9 @@ class PositionManager:
         for code in list_code:
             self.dict_price[code] = 0.  # 建玉取得時の株価
             self.dict_total[code] = 0.  # 銘柄毎の収益
-            self.dict_position[code] = PositionType.NONE
+            self.dict_position[code] = ActionType.HOLD
 
-    def openPosition(self, code: str, ts: float, price: float, position: PositionType, note: str = ""):
+    def openPosition(self, code: str, ts: float, price: float, position: ActionType, note: str = ""):
         """
         ポジションをオープン（建玉取得）
         :param code:
@@ -55,9 +55,9 @@ class PositionManager:
         self.df_order.at[r, "注文番号"] = self.order
         self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
         self.df_order.at[r, "銘柄コード"] = code
-        if position == PositionType.BUY:
+        if position == ActionType.BUY:
             self.df_order.at[r, "売買"] = "買建"
-        elif position == PositionType.SELL:
+        elif position == ActionType.SELL:
             self.df_order.at[r, "売買"] = "売建"
         self.df_order.at[r, "約定単価"] = price
         self.df_order.at[r, "約定数量"] = self.unit
@@ -74,10 +74,10 @@ class PositionManager:
         """
         position = self.dict_position[code]
         profit = 0
-        if position == PositionType.BUY:
+        if position == ActionType.BUY:
             profit = (price - self.dict_price[code]) * self.unit
             self.dict_total[code] += profit
-        elif position == PositionType.SELL:
+        elif position == ActionType.SELL:
             profit = (self.dict_price[code] - price) * self.unit
             self.dict_total[code] += profit
         else:
@@ -89,9 +89,9 @@ class PositionManager:
         self.df_order.at[r, "注文番号"] = self.order
         self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
         self.df_order.at[r, "銘柄コード"] = code
-        if position == PositionType.BUY:
+        if position == ActionType.BUY:
             self.df_order.at[r, "売買"] = "売埋"
-        elif position == PositionType.SELL:
+        elif position == ActionType.SELL:
             self.df_order.at[r, "売買"] = "買埋"
         self.df_order.at[r, "約定単価"] = price
         self.df_order.at[r, "約定数量"] = self.unit
@@ -100,14 +100,14 @@ class PositionManager:
 
         # 売買状態のリセット
         self.dict_price[code] = 0
-        self.dict_position[code] = PositionType.NONE
+        self.dict_position[code] = ActionType.HOLD
 
     def getProfit(self, code: str, price: float) -> float:
         if price == 0:
             return 0.
-        if self.dict_position[code] == PositionType.BUY:
+        if self.dict_position[code] == ActionType.BUY:
             return (price - self.dict_price[code]) * self.unit
-        elif self.dict_position[code] == PositionType.SELL:
+        elif self.dict_position[code] == ActionType.SELL:
             return (self.dict_price[code] - price) * self.unit
         else:
             return 0.
