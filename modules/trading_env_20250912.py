@@ -20,8 +20,10 @@ class PositionType(Enum):
 
 class TransactionManager:
     def __init__(self):
-        self.reward_contract = 0.1  # 約定報酬（買建、売建、返済）
-        self.reward_pnl_scale = 0.01  # 含み損益のスケール（比率に対する係数）
+        self.reward_contract = 1.0  # 約定報酬（買建、売建、返済）
+        self.reward_pnl_scale = 0.1  # 含み損益のスケール（比率に対する係数）
+        self.penalty_rule = -1.0  # 売買ルール違反
+        self.penalty_hold_small = -0.01  # 少しばかりの保持違反
 
         self.position = PositionType.NONE
         self.price_entry = 0.0
@@ -45,6 +47,7 @@ class TransactionManager:
                 self.price_entry = price
                 reward += self.reward_contract
             else:
+                reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
         elif action == ActionType.SELL:
             if self.position == PositionType.NONE:
@@ -52,10 +55,11 @@ class TransactionManager:
                 self.price_entry = price
                 reward += self.reward_contract
             else:
+                reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
         elif action == ActionType.REPAY:
             if self.position == PositionType.NONE:
-                pass
+                reward += self.penalty_rule
             else:
                 if self.position == PositionType.LONG:
                     profit = price - self.price_entry
@@ -78,7 +82,7 @@ class TransactionManager:
         elif self.position == PositionType.SHORT:
             return (self.price_entry - price) * self.reward_pnl_scale
         else:
-            return 0
+            return self.penalty_hold_small
 
 
 class TradingEnv(gym.Env):

@@ -8,9 +8,10 @@ from modules.trading_env_20250912 import TradingEnv
 n_ticks = 2000
 df = pd.DataFrame({
     "Time": np.arange(n_ticks),
-    "Price": np.cumsum(np.random.randn(n_ticks)) + 1000.0,
-    "Volume": np.random.randint(1, 100, size=n_ticks)
+    "Price": 3000 - np.cumsum(np.random.randn(n_ticks)) * 5,
+    "Volume": np.cumsum(np.random.randn(n_ticks)) * 100,
 })
+print(df)
 
 # ===== 環境初期化 =====
 env = TradingEnv(df)
@@ -29,7 +30,11 @@ while not done:
     pnls.append(info["pnl_total"])
     steps += 1
 
-print(f"Episode finished: steps={steps}, total_reward={np.sum(rewards):.2f}, final_pnl={pnls[-1]:.2f}")
+print(
+    f"Episode finished: steps={steps}, "
+    f"total_reward={np.sum(rewards):.2f}, "
+    f"final_pnl={pnls[-1]:.2f}"
+)
 
 # ===== 可視化 =====
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
