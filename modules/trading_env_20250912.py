@@ -20,6 +20,7 @@ class PositionType(Enum):
 
 class TransactionManager:
     def __init__(self):
+        self.reward_contract = 0.1  # 約定報酬（買建、売建、返済）
         self.reward_pnl_scale = 0.01  # 含み損益のスケール（比率に対する係数）
 
         self.position = PositionType.NONE
@@ -35,45 +36,49 @@ class TransactionManager:
         self.pnl_total = 0.0
 
     def setAction(self, action: ActionType, price: float) -> float:
-        reward = 0
+        reward = 0.0
         if action == ActionType.HOLD:
-            if self.position == PositionType.LONG:
-                reward += (price - self.price_entry) * self.reward_pnl_scale
-            elif self.position == PositionType.SHORT:
-                reward += (self.price_entry - price) * self.reward_pnl_scale
-            else:
-                reward += 0
+            reward += self.calc_reward_pnl(price)
         elif action == ActionType.BUY:
             if self.position == PositionType.NONE:
                 self.position = PositionType.LONG
                 self.price_entry = price
+                reward += self.reward_contract
             else:
-                pass
+                reward += self.calc_reward_pnl(price)
         elif action == ActionType.SELL:
             if self.position == PositionType.NONE:
                 self.position = PositionType.SHORT
                 self.price_entry = price
+                reward += self.reward_contract
             else:
-                pass
+                reward += self.calc_reward_pnl(price)
         elif action == ActionType.REPAY:
-            if self.position == PositionType.LONG:
-                profit = price - self.price_entry
-                self.price_entry = 0.0
-                self.position = PositionType.NONE
-                self.pnl_total += profit
-                reward += profit
-            elif self.position == PositionType.SHORT:
-                profit = self.price_entry - price
-                self.price_entry = 0.0
-                self.position = PositionType.NONE
-                self.pnl_total += profit
-                reward += profit
-            else:
+            if self.position == PositionType.NONE:
                 pass
+            else:
+                if self.position == PositionType.LONG:
+                    profit = price - self.price_entry
+                else:
+                    profit = self.price_entry - price
+
+                self.price_entry = 0.0
+                self.position = PositionType.NONE
+                self.pnl_total += profit
+                reward += profit
+                reward += self.reward_contract
         else:
             raise ValueError(f"{action} is not defined!")
 
         return reward
+
+    def calc_reward_pnl(self, price: float) -> float:
+        if self.position == PositionType.LONG:
+            return (price - self.price_entry) * self.reward_pnl_scale
+        elif self.position == PositionType.SHORT:
+            return (self.price_entry - price) * self.reward_pnl_scale
+        else:
+            return 0
 
 
 class TradingEnv(gym.Env):
