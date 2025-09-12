@@ -46,41 +46,52 @@ class TransactionManager:
             reward += self.calc_reward_pnl(price)
         elif action == ActionType.BUY:
             if self.position == PositionType.NONE:
+                # 買建 (LONG)
                 self.position = PositionType.LONG
                 self.price_entry = price
+                # 約定ボーナス付与（買建）
                 reward += self.reward_contract_bonus
             else:
+                # ポジションがあるのに買建しようとした場合はペナルティ
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
                 # 連続ルール違反のチェック
                 if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL:
+                    # カウンターの最初は 0（初回はペナルティを課さない）
+                    penalty = self.penalty_rule * self.penalty_count
                     self.penalty_count += 1
-                    reward += self.penalty_rule * self.penalty_count
                 else:
                     self.penalty_count = 0
 
         elif action == ActionType.SELL:
             if self.position == PositionType.NONE:
+                # 売建 (SHORT)
                 self.position = PositionType.SHORT
                 self.price_entry = price
+                # 約定ボーナス付与（売建）
                 reward += self.reward_contract_bonus
             else:
+                # ポジションがあるのに売建しようとした場合はペナルティ
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
                 # 連続ルール違反のチェック
                 if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL:
-                    self.penalty_count += 1
+                    # カウンターの最初は 0（初回はペナルティを課さない）
                     reward += self.penalty_rule * self.penalty_count
+                    self.penalty_count += 1
                 else:
                     self.penalty_count = 0
 
         elif action == ActionType.REPAY:
             if self.position == PositionType.NONE:
+                # ポジションが無いのに建玉を返済しようとした場合はペナルティ
                 reward += self.penalty_rule
                 # 連続ルール違反のチェック
-                if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL or self.action_pre == ActionType.REPAY:
-                    self.penalty_count += 1
+                # 前のアクションが BUY か SELL で建玉が無いということは、前回のアクションは違反だったとみなす
+                if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL:
+                    # カウンターの最初は 0（初回はペナルティを課さない）
                     reward += self.penalty_rule * self.penalty_count
+                    self.penalty_count += 1
                 else:
                     self.penalty_count = 0
             else:
@@ -91,10 +102,10 @@ class TransactionManager:
                     # 実現損益（売建）
                     profit = self.price_entry - price
 
-                self.price_entry = 0.0
-                self.position = PositionType.NONE
+                self.clearPosition()
                 self.pnl_total += profit
                 reward += profit
+                # 約定ボーナス付与（返済）
                 reward += self.reward_contract_bonus
         else:
             raise ValueError(f"{action} is not defined!")
@@ -103,14 +114,20 @@ class TransactionManager:
         return reward
 
     def calc_reward_pnl(self, price: float) -> float:
+        """
+        含み損益に self.reward_pnl_scale を乗じた報酬を算出
+        ポジションが無い場合は微小なペナルティを付与
+        :param price:
+        :return:
+        """
         if self.position == PositionType.LONG:
-            # 含み損益（買建）
+            # 含み損益（買建）× self.reward_pnl_scale
             return (price - self.price_entry) * self.reward_pnl_scale
         elif self.position == PositionType.SHORT:
-            # 含み損益（売建）
+            # 含み損益（売建）× self.reward_pnl_scale
             return (self.price_entry - price) * self.reward_pnl_scale
         else:
-            # 保持 (HOLD) を続けることに僅かなペナルティ
+            # 保持 (HOLD) を続けることに対して僅かなペナルティ
             return self.penalty_hold_small
 
 

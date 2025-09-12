@@ -37,11 +37,11 @@ fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
 # 報酬分布
 axes[0].hist(rewards, bins=50, alpha=0.7)
-#axes[0].hist(rewards, alpha=0.7)
+# axes[0].hist(rewards, alpha=0.7)
 axes[0].set_title("Reward distribution")
 axes[0].set_xlabel("Reward")
 axes[0].set_ylabel("Frequency")
-axes[0].set_yscale("log")
+# axes[0].set_yscale("log")
 axes[0].grid()
 
 # PnL 推移
