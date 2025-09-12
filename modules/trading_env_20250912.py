@@ -42,7 +42,7 @@ class TransactionManager:
             elif self.position == PositionType.SHORT:
                 reward += (self.price_entry - price) * self.reward_pnl_scale
             else:
-                pass
+                reward += 0
         elif action == ActionType.BUY:
             if self.position == PositionType.NONE:
                 self.position = PositionType.LONG

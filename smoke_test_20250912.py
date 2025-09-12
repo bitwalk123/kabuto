@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from modules.trading_env_20250912 import TradingEnv
 
 # ===== ダミーデータ作成 =====
-n_ticks = 200000
+n_ticks = 2000
 df = pd.DataFrame({
     "Time": np.arange(n_ticks),
     "Price": np.cumsum(np.random.randn(n_ticks)) + 1000.0,
@@ -39,12 +39,14 @@ axes[0].hist(rewards, bins=50, alpha=0.7)
 axes[0].set_title("Reward distribution")
 axes[0].set_xlabel("Reward")
 axes[0].set_ylabel("Frequency")
+axes[0].grid()
 
 # PnL 推移
 axes[1].plot(pnls)
 axes[1].set_title("PnL over steps")
 axes[1].set_xlabel("Step")
 axes[1].set_ylabel("Cumulative PnL")
+axes[1].grid()
 
 plt.tight_layout()
 plt.show()
