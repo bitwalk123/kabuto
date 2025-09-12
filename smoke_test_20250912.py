@@ -4,16 +4,8 @@ import matplotlib.pyplot as plt
 
 from modules.trading_env_20250912 import TradingEnv
 
-# ===== ダミーデータ作成 =====
-"""
-n_ticks = 2000
-df = pd.DataFrame({
-    "Time": np.arange(n_ticks),
-    "Price": 3000 - np.cumsum(np.random.randn(n_ticks)) * 5,
-    "Volume": np.cumsum(np.random.randn(n_ticks)) * 100,
-})
-"""
-file_excel = "excel/tick_20250819.xlsx"
+# ===== # 過去のティックデータ =====
+file_excel = "excel/tick_20250828.xlsx"
 df = pd.read_excel(file_excel)
 print(df)
 
@@ -44,8 +36,8 @@ print(
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 
 # 報酬分布
-#axes[0].hist(rewards, bins=50, alpha=0.7)
-axes[0].hist(rewards, alpha=0.7)
+axes[0].hist(rewards, bins=50, alpha=0.7)
+#axes[0].hist(rewards, alpha=0.7)
 axes[0].set_title("Reward distribution")
 axes[0].set_xlabel("Reward")
 axes[0].set_ylabel("Frequency")

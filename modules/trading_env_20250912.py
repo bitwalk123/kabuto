@@ -24,7 +24,9 @@ class TransactionManager:
         self.reward_pnl_scale = 0.1  # 含み損益のスケール（比率に対する係数）
         self.penalty_rule = -1.0  # 売買ルール違反
         self.penalty_hold_small = -0.001  # 少しばかりの保持違反
+        self.penalty_count = 0  # 連続ルール違反カウンター
 
+        self.action_pre = ActionType.HOLD
         self.position = PositionType.NONE
         self.price_entry = 0.0
         self.pnl_total = 0.0
@@ -35,6 +37,7 @@ class TransactionManager:
 
     def clearAll(self):
         self.clearPosition()
+        self.action_pre = ActionType.HOLD
         self.pnl_total = 0.0
 
     def setAction(self, action: ActionType, price: float) -> float:
@@ -49,6 +52,13 @@ class TransactionManager:
             else:
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
+                # 連続ルール違反のチェック
+                if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL:
+                    self.penalty_count += 1
+                    reward += self.penalty_rule * self.penalty_count
+                else:
+                    self.penalty_count = 0
+
         elif action == ActionType.SELL:
             if self.position == PositionType.NONE:
                 self.position = PositionType.SHORT
@@ -57,9 +67,22 @@ class TransactionManager:
             else:
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
+                # 連続ルール違反のチェック
+                if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL:
+                    self.penalty_count += 1
+                    reward += self.penalty_rule * self.penalty_count
+                else:
+                    self.penalty_count = 0
+
         elif action == ActionType.REPAY:
             if self.position == PositionType.NONE:
                 reward += self.penalty_rule
+                # 連続ルール違反のチェック
+                if self.action_pre == ActionType.BUY or self.action_pre == ActionType.SELL or self.action_pre == ActionType.REPAY:
+                    self.penalty_count += 1
+                    reward += self.penalty_rule * self.penalty_count
+                else:
+                    self.penalty_count = 0
             else:
                 if self.position == PositionType.LONG:
                     # 実現損益（買建）
@@ -76,6 +99,7 @@ class TransactionManager:
         else:
             raise ValueError(f"{action} is not defined!")
 
+        self.action_pre = action
         return reward
 
     def calc_reward_pnl(self, price: float) -> float:
