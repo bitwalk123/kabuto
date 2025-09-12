@@ -20,10 +20,10 @@ class PositionType(Enum):
 
 class TransactionManager:
     def __init__(self):
-        self.reward_contract = 1.0  # 約定報酬（買建、売建、返済）
+        self.reward_contract_bonus = 1.0  # 約定ボーナス（買建、売建、返済）
         self.reward_pnl_scale = 0.1  # 含み損益のスケール（比率に対する係数）
         self.penalty_rule = -1.0  # 売買ルール違反
-        self.penalty_hold_small = -0.01  # 少しばかりの保持違反
+        self.penalty_hold_small = -0.001  # 少しばかりの保持違反
 
         self.position = PositionType.NONE
         self.price_entry = 0.0
@@ -45,7 +45,7 @@ class TransactionManager:
             if self.position == PositionType.NONE:
                 self.position = PositionType.LONG
                 self.price_entry = price
-                reward += self.reward_contract
+                reward += self.reward_contract_bonus
             else:
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
@@ -53,7 +53,7 @@ class TransactionManager:
             if self.position == PositionType.NONE:
                 self.position = PositionType.SHORT
                 self.price_entry = price
-                reward += self.reward_contract
+                reward += self.reward_contract_bonus
             else:
                 reward += self.penalty_rule
                 reward += self.calc_reward_pnl(price)
@@ -62,15 +62,17 @@ class TransactionManager:
                 reward += self.penalty_rule
             else:
                 if self.position == PositionType.LONG:
+                    # 実現損益（買建）
                     profit = price - self.price_entry
                 else:
+                    # 実現損益（売建）
                     profit = self.price_entry - price
 
                 self.price_entry = 0.0
                 self.position = PositionType.NONE
                 self.pnl_total += profit
                 reward += profit
-                reward += self.reward_contract
+                reward += self.reward_contract_bonus
         else:
             raise ValueError(f"{action} is not defined!")
 
@@ -78,10 +80,13 @@ class TransactionManager:
 
     def calc_reward_pnl(self, price: float) -> float:
         if self.position == PositionType.LONG:
+            # 含み損益（買建）
             return (price - self.price_entry) * self.reward_pnl_scale
         elif self.position == PositionType.SHORT:
+            # 含み損益（売建）
             return (self.price_entry - price) * self.reward_pnl_scale
         else:
+            # 保持 (HOLD) を続けることに僅かなペナルティ
             return self.penalty_hold_small
 
 
