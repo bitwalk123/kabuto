@@ -19,25 +19,11 @@ class PositionType(Enum):
 
 
 class TransactionManager:
-    def __init__(
-            self,
-            reward_rule=1.0,
-            penalty_rule=-1.0,
-            reward_pnl_scale=0.01,  # 含み損益のスケール（比率に対する係数）
-            trade_cost_pct=0.0005,  # 約定ごとのコスト(0.05%)
-            use_pct=True,
-            clip_scale=5.0
-    ):  # tanh スケール
-        self.reward_rule = reward_rule
-        self.penalty_rule = penalty_rule
-        self.reward_pnl_scale = reward_pnl_scale
-        self.trade_cost_pct = trade_cost_pct
-        self.use_pct = use_pct
-        self.clip_scale = clip_scale
+    def __init__(self):
+        self.reward_pnl_scale = 0.01  # 含み損益のスケール（比率に対する係数）
 
         self.position = PositionType.NONE
         self.price_entry = 0.0
-        self.action_pre = ActionType.HOLD
         self.pnl_total = 0.0
 
     def clearPosition(self):
@@ -46,13 +32,17 @@ class TransactionManager:
 
     def clearAll(self):
         self.clearPosition()
-        self.action_pre = ActionType.HOLD
         self.pnl_total = 0.0
 
     def setAction(self, action: ActionType, price: float) -> float:
         reward = 0
         if action == ActionType.HOLD:
-            pass
+            if self.position == PositionType.LONG:
+                reward += (price - self.price_entry) * self.reward_pnl_scale
+            elif self.position == PositionType.SHORT:
+                reward += (self.price_entry - price) * self.reward_pnl_scale
+            else:
+                pass
         elif action == ActionType.BUY:
             if self.position == PositionType.NONE:
                 self.position = PositionType.LONG
@@ -84,6 +74,7 @@ class TransactionManager:
             raise ValueError(f"{action} is not defined!")
 
         return reward
+
 
 class TradingEnv(gym.Env):
     def __init__(self, df: pd.DataFrame):
