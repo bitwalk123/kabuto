@@ -214,7 +214,7 @@ class TradingEnv(gym.Env):
         if len(window) >= self.period:
             close = window["Price"].values.astype(np.float64)
             ma = ta.SMA(close, timeperiod=self.period)[-1]
-            rsi = ta.RSI(close, timeperiod=self.period)[-1]
+            rsi = ta.RSI(close, timeperiod=self.period - 1)[-1]
             sigma = window["Price"].rolling(self.period).std().iloc[-1]
             zscore = (price - ma) / sigma if sigma > 0 else 0.0
         else:
