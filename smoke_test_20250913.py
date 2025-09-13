@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from modules.trading_env_20250913 import TradingEnv
 
 # ===== # 過去のティックデータ =====
-file_excel = "excel/tick_20250828.xlsx"
+file_excel = "excel/tick_20250819.xlsx"
 df = pd.read_excel(file_excel)
 print(df)
 

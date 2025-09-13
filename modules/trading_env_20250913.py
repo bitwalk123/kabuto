@@ -19,7 +19,7 @@ class PositionType(Enum):
 
 
 class TransactionManager:
-    # 売買管理クラス
+    # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         self.reward_contract_bonus = 1.0  # 約定ボーナス（買建、売建、返済）
         self.reward_pnl_scale = 0.1  # 含み損益のスケール（比率に対する係数）
