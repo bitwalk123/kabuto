@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from modules.trading_env_20250913 import TradingEnv
 
 # ===== # 過去のティックデータ =====
-file_excel = "excel/tick_20250819.xlsx"
+file_excel = "excel/tick_20250828.xlsx"
 df = pd.read_excel(file_excel)
 print(df)
 
@@ -33,23 +33,22 @@ print(
 )
 
 # ===== 可視化 =====
-fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+fig, ax = plt.subplots(1, 2, figsize=(12, 4))
 
 # 報酬分布
-axes[0].hist(rewards, bins=50, alpha=0.7)
-# axes[0].hist(rewards, alpha=0.7)
-axes[0].set_title("Reward distribution")
-axes[0].set_xlabel("Reward")
-axes[0].set_ylabel("Frequency")
-# axes[0].set_yscale("log")
-axes[0].grid()
+ax[0].hist(rewards, bins=int(max(rewards) - min(rewards) + 0.5), alpha=0.7)
+ax[0].set_title("Reward distribution")
+ax[0].set_xlabel("Reward")
+ax[0].set_ylabel("Frequency")
+ax[0].set_yscale("log")
+ax[0].grid()
 
 # PnL 推移
-axes[1].plot(pnls)
-axes[1].set_title("PnL over steps")
-axes[1].set_xlabel("Step")
-axes[1].set_ylabel("Cumulative PnL")
-axes[1].grid()
+ax[1].plot(pnls)
+ax[1].set_title("PnL over steps")
+ax[1].set_xlabel("Step")
+ax[1].set_ylabel("Cumulative PnL")
+ax[1].grid()
 
 plt.tight_layout()
 plt.show()
