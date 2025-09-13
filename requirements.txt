@@ -3,6 +3,8 @@ black
 fqdn
 gymnasium
 importlib-metadata
+inflect
+ipython-pygments-lexers
 isoduration
 isort
 jaraco-collections
@@ -23,6 +25,7 @@ rfc3987-syntax
 scipy
 scipy-stubs
 seaborn
+spyder-kernels
 ta
 ta-lib
 tinycss2
