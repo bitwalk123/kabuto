@@ -1,27 +1,13 @@
 import pathlib
-import re
 
 import numpy as np
-import pandas as pd
 import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 
+from funcs.conv import conv_date_str
 from funcs.ios import get_excel_sheet
 from funcs.tse import get_ticker_name_list
 from modules.trading_env_20250914 import TradingEnv
-
-
-def conv_date_str(date_str: str) -> str:
-    pattern = re.compile(r'(\d{4})(\d{2})(\d{2})')
-    m = pattern.match(date_str)
-    if m:
-        year = m.group(1)
-        month = m.group(2)
-        day = m.group(3)
-        return f"{year}-{month}-{day}"
-    else:
-        return "1970-01-01"
-
 
 if __name__ == "__main__":
     # ===== # 過去のティックデータ =====
@@ -45,6 +31,7 @@ if __name__ == "__main__":
     steps = 0
 
     while not done:
+        # 定義されたアクション空間からランダムにアクションを選択
         action = env.action_space.sample()
         obs, reward, done, truncated, info = env.step(action)
         rewards.append(reward)
@@ -57,7 +44,9 @@ if __name__ == "__main__":
         f"final_pnl={pnls[-1]:.2f}"
     )
 
-    # ===== 可視化 =====
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 可視化
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
     fm.fontManager.addfont(FONT_PATH)
 

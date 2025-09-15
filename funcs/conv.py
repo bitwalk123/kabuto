@@ -1,5 +1,25 @@
+import re
+
 import numpy as np
 import pandas as pd
+
+
+def conv_date_str(date_str: str) -> str:
+    """
+    日付文字列 YYYYMMDD を YYYY-MM-DD に変換
+    :param date_str: 日付文字列 YYYYMMDD
+    :return: 日付文字列 YYYY-MM-DD
+    """
+    pattern = re.compile(r'(\d{4})(\d{2})(\d{2})')
+    m = pattern.match(date_str)
+    if m:
+        year = m.group(1)
+        month = m.group(2)
+        day = m.group(3)
+        return f"{year}-{month}-{day}"
+    else:
+        # 正規表現に合致しない場合はタイムスタンプの最初の年月日
+        return "1970-01-01"
 
 
 def conv_transaction_df2html(df: pd.DataFrame) -> list:
@@ -68,15 +88,24 @@ def conv_transaction_df2html(df: pd.DataFrame) -> list:
     return list_html
 
 
+def get_code_as_string(val) -> str:
+    """
+    東証の銘柄コードを文字列に
+    :param val:
+    :return:
+    """
+    if type(val) is str:
+        ticker = val
+    else:
+        ticker = f"{int(val)}"
+    return ticker
+
+
 def min_max_scale(data):
     """
     Min-Maxスケーリングを使ってデータを [0, 1] の範囲に規格化する関数。
-
-    Args:
-        data (array-like): 規格化したい数値データのリストまたはNumPy配列。
-
-    Returns:
-        numpy.ndarray: [0, 1] の範囲に規格化されたデータ。
+    :param data: 規格化したい数値データのリストまたはNumPy配列
+    :return: [0, 1] の範囲に規格化されたデータ (numpy.ndarray)
     """
     data_array = np.array(data)
 
@@ -86,17 +115,9 @@ def min_max_scale(data):
 
     # 最小値と最大値が同じ場合（データがすべて同じ値の場合）は、ゼロ除算を避ける
     if max_val == min_val:
-        return np.zeros_like(data_array)  # 全て0にするか、適切な値を返す
+        return np.zeros_like(data_array)  # 全て 0 にするか、適切な値を返す
 
     # Min-Maxスケーリングを適用
     scaled_data = (data_array - min_val) / (max_val - min_val)
 
     return scaled_data
-
-
-def get_code_as_string(val) -> str:
-    if type(val) is str:
-        ticker = val
-    else:
-        ticker = f"{int(val)}"
-    return ticker
