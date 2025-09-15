@@ -291,8 +291,8 @@ if __name__ == '__main__':
     """
 
     # Path to your tick data file
-    xlsx = '../excel/tick_20250819.xlsx'
+    xlsx = '../excel/tick_20250828.xlsx'
     if not os.path.exists(xlsx):
         raise FileNotFoundError(f"{xlsx} not found in working directory")
 
-    train_on_file(TradingEnv, xlsx, n_epochs=1000, seed=12345)
+    train_on_file(TradingEnv, xlsx, n_epochs=100, seed=12345)
