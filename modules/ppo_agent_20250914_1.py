@@ -295,4 +295,4 @@ if __name__ == '__main__':
     if not os.path.exists(xlsx):
         raise FileNotFoundError(f"{xlsx} not found in working directory")
 
-    train_on_file(TradingEnv, xlsx, n_epochs=100, seed=12345)
+    train_on_file(TradingEnv, xlsx, n_epochs=200, seed=12345)
