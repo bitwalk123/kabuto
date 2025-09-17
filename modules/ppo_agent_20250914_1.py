@@ -30,7 +30,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
-from modules.trading_env_20250914 import TradingEnv
+#from modules.trading_env_20250914 import TradingEnv
+from modules.trading_env_20250917 import TradingEnv
 
 
 # If your TradingEnv is defined in another module, import it. Otherwise this file expects
