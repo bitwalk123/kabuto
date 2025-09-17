@@ -291,7 +291,7 @@ if __name__ == '__main__':
     """
 
     # Path to your tick data file
-    xlsx = '../excel/tick_20250828.xlsx'
+    xlsx = '../excel/tick_20250819.xlsx'
     if not os.path.exists(xlsx):
         raise FileNotFoundError(f"{xlsx} not found in working directory")
 
