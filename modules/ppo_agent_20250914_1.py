@@ -105,8 +105,14 @@ class ActorCritic(nn.Module):
 
 
 # ----------------------------- PPO Trainer -----------------------------
-
-def compute_gae(rewards, values, dones, last_value, gamma=0.99, lam=0.95):
+def compute_gae(
+        rewards,
+        values,
+        dones,
+        last_value,
+        gamma=0.99,
+        lam=0.95
+):
     advantages = np.zeros_like(rewards, dtype=np.float32)
     last_gae_lam = 0
     for t in reversed(range(len(rewards))):
@@ -122,10 +128,20 @@ def compute_gae(rewards, values, dones, last_value, gamma=0.99, lam=0.95):
     return advantages, returns
 
 
-def ppo_update(model: nn.Module, optimizer: optim.Optimizer,
-               obs, actions, logprobs_old, returns, advantages,
-               clip_coef=0.2, vf_coef=0.5, ent_coef=0.01,
-               max_grad_norm=0.5, epochs=8, minibatch_size=64):
+def ppo_update(
+        model: nn.Module,
+        optimizer: optim.Optimizer,
+        obs, actions,
+        logprobs_old,
+        returns,
+        advantages,
+        clip_coef=0.2,
+        vf_coef=0.5,
+        ent_coef=0.01,
+        max_grad_norm=0.5,
+        epochs=8,
+        minibatch_size=64
+):
     obs = torch.tensor(obs, dtype=torch.float32)
     actions = torch.tensor(actions, dtype=torch.long)
     logprobs_old = torch.tensor(logprobs_old, dtype=torch.float32)
@@ -168,7 +184,13 @@ def ppo_update(model: nn.Module, optimizer: optim.Optimizer,
 
 # ----------------------------- Main training loop -----------------------------
 
-def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0):
+def train_on_file(
+        env_class,
+        xlsx_path:
+        str,
+        n_epochs: int = 100,
+        seed: int = 0
+):
     torch.manual_seed(seed)
     np.random.seed(seed)
     random.seed(seed)
@@ -198,7 +220,11 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
 
     # storage for logs
     history = {
-        'epoch': [], 'episode_reward': [], 'pnl_total': [], 'approx_kl': [], 'clipfrac': []
+        'epoch': [],
+        'episode_reward': [],
+        'pnl_total': [],
+        'approx_kl': [],
+        'clipfrac': []
     }
 
     for epoch in range(1, n_epochs + 1):
@@ -254,10 +280,21 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
         obs_arr = np.asarray([(o - obs_rms.mean) / (np.sqrt(obs_rms.var) + 1e-8) for o in obs_list], dtype=np.float32)
 
         # PPO update
-        approx_kl, clipfrac = ppo_update(model, optimizer,
-                                         obs_arr, actions_list, logp_arr, returns, advantages,
-                                         clip_coef=clip, vf_coef=vf_coef, ent_coef=ent_coef,
-                                         max_grad_norm=0.5, epochs=ppo_epochs, minibatch_size=minibatch_size)
+        approx_kl, clipfrac = ppo_update(
+            model,
+            optimizer,
+            obs_arr,
+            actions_list,
+            logp_arr,
+            returns,
+            advantages,
+            clip_coef=clip,
+            vf_coef=vf_coef,
+            ent_coef=ent_coef,
+            max_grad_norm=0.5,
+            epochs=ppo_epochs,
+            minibatch_size=minibatch_size
+        )
 
         history['epoch'].append(epoch)
         history['episode_reward'].append(total_reward)
@@ -266,7 +303,13 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
         history['clipfrac'].append(clipfrac)
 
         print(
-            f"Epoch {epoch:03d} | Steps {step:05d} | Reward {total_reward:.3f} | PnL {env.transman.pnl_total:.3f} | KL {approx_kl:.6f} | ClipFrac {clipfrac:.4f}")
+            f"Epoch {epoch:03d} | "
+            f"Steps {step:05d} | "
+            f"Reward {total_reward:.3f} | "
+            f"PnL {env.transman.pnl_total:.3f} | "
+            f"KL {approx_kl:.6f} | "
+            f"ClipFrac {clipfrac:.4f}"
+        )
 
         # save model every 10 epochs
         if epoch % 10 == 0:
