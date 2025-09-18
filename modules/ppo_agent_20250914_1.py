@@ -30,8 +30,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
-#from modules.trading_env_20250914 import TradingEnv
-from modules.trading_env_20250917 import TradingEnv
+# from modules.trading_env_20250914 import TradingEnv
+# from modules.trading_env_20250917 import TradingEnv
+from modules.trading_env_20250918 import TradingEnv
 
 
 # If your TradingEnv is defined in another module, import it. Otherwise this file expects
@@ -66,6 +67,7 @@ class RunningMeanStd:
         self.var = new_var
         self.count = tot_count
 
+
 # ----------------------------- ActorCritic Network -----------------------------
 class ActorCritic(nn.Module):
     def __init__(self, obs_dim: int, n_actions: int, hidden_sizes=(256, 256)):
@@ -78,14 +80,14 @@ class ActorCritic(nn.Module):
             last = h
         self.shared = nn.Sequential(*layers)
         self.policy = nn.Sequential(
-            nn.Linear(last, last//2),
+            nn.Linear(last, last // 2),
             nn.ReLU(),
-            nn.Linear(last//2, n_actions)
+            nn.Linear(last // 2, n_actions)
         )
         self.value = nn.Sequential(
-            nn.Linear(last, last//2),
+            nn.Linear(last, last // 2),
             nn.ReLU(),
-            nn.Linear(last//2, 1)
+            nn.Linear(last // 2, 1)
         )
         # init
         self.apply(self._weights_init)
@@ -101,6 +103,7 @@ class ActorCritic(nn.Module):
         value = self.value(shared).squeeze(-1)
         return logits, value
 
+
 # ----------------------------- PPO Trainer -----------------------------
 
 def compute_gae(rewards, values, dones, last_value, gamma=0.99, lam=0.95):
@@ -111,8 +114,8 @@ def compute_gae(rewards, values, dones, last_value, gamma=0.99, lam=0.95):
             next_non_terminal = 1.0 - dones[t]
             next_values = last_value
         else:
-            next_non_terminal = 1.0 - dones[t+1]
-            next_values = values[t+1]
+            next_non_terminal = 1.0 - dones[t + 1]
+            next_values = values[t + 1]
         delta = rewards[t] + gamma * next_values * next_non_terminal - values[t]
         advantages[t] = last_gae_lam = delta + gamma * lam * next_non_terminal * last_gae_lam
     returns = advantages + values
@@ -162,6 +165,7 @@ def ppo_update(model: nn.Module, optimizer: optim.Optimizer,
     n_updates = epochs * (len(dataset) // minibatch_size + 1)
     return approx_kl / max(1, n_updates), clip_frac / max(1, n_updates)
 
+
 # ----------------------------- Main training loop -----------------------------
 
 def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0):
@@ -178,7 +182,7 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = ActorCritic(obs_dim, n_actions).to(device)
-    #optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
+    # optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
     optimizer = optim.Adam(model.parameters(), lr=1e-4, eps=1e-5)
 
     # hyperparams (tuned to be stable for single-episode rollouts)
@@ -240,7 +244,8 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
 
         # compute GAE advantages and returns
         values_arr = np.asarray(values_list, dtype=np.float32)
-        advantages, returns = compute_gae(np.asarray(rewards_list, dtype=np.float32), values_arr, np.asarray(dones_list, dtype=np.float32), last_value, gamma=gamma, lam=lam)
+        advantages, returns = compute_gae(np.asarray(rewards_list, dtype=np.float32), values_arr,
+                                          np.asarray(dones_list, dtype=np.float32), last_value, gamma=gamma, lam=lam)
 
         # prepare logprobs_old as float array
         logp_arr = np.asarray(logp_list, dtype=np.float32)
@@ -260,7 +265,8 @@ def train_on_file(env_class, xlsx_path: str, n_epochs: int = 100, seed: int = 0)
         history['approx_kl'].append(approx_kl)
         history['clipfrac'].append(clipfrac)
 
-        print(f"Epoch {epoch:03d} | Steps {step:05d} | Reward {total_reward:.3f} | PnL {env.transman.pnl_total:.3f} | KL {approx_kl:.6f} | ClipFrac {clipfrac:.4f}")
+        print(
+            f"Epoch {epoch:03d} | Steps {step:05d} | Reward {total_reward:.3f} | PnL {env.transman.pnl_total:.3f} | KL {approx_kl:.6f} | ClipFrac {clipfrac:.4f}")
 
         # save model every 10 epochs
         if epoch % 10 == 0:
