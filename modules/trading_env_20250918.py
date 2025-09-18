@@ -28,12 +28,18 @@ class TransactionManager:
         self.penalty_rule = -1.0  # 売買ルール違反
         self.penalty_hold_small = -0.001  # 少しばかりの保持違反
 
-        """
         # recommended by GPT-5 on 20250914
         self.reward_contract_bonus = 0.01  # 以前の1.0を縮小
         self.reward_pnl_scale = 0.001  # 以前の0.1を縮小（100分の1）
         self.penalty_rule = -0.01
         self.penalty_hold_small = -0.00001
+        """
+        # modified on 20250919
+        self.reward_contract_bonus = 0.05  # 以前の1.0を縮小
+        self.reward_pnl_scale = 0.01  # 以前の0.1を縮小（100分の1）
+        self.penalty_rule = -0.05
+        self.penalty_hold_small = -0.0001
+
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算
 
