@@ -19,10 +19,6 @@ class PositionType(Enum):
     SHORT = 2
 
 
-def get_datetime(t: float) -> str:
-    return str(datetime.datetime.fromtimestamp(int(t)))
-
-
 class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
@@ -40,6 +36,39 @@ class TransactionManager:
         self.price_entry = 0.0
         self.pnl_total = 0.0
 
+        self.dict_transaction = self._init_transaction()
+        self.code: str = '7011'
+        self.unit: int = 1
+
+    @staticmethod
+    def _init_transaction() -> dict:
+        return {
+            "注文日時": [],
+            "銘柄コード": [],
+            "売買": [],
+            "約定単価": [],
+            "約定数量": [],
+            "損益": [],
+        }
+
+    def _add_transaction(
+            self,
+            t: float,
+            transaction: str,
+            price: float,
+            profit: float = np.nan,
+    ):
+        self.dict_transaction["注文日時"].append(self._get_datetime(t))
+        self.dict_transaction["銘柄コード"].append(self.code)
+        self.dict_transaction["売買"].append(transaction)
+        self.dict_transaction["約定単価"].append(price)
+        self.dict_transaction["約定数量"].append(self.unit)
+        self.dict_transaction["損益"].append(profit)
+
+    @staticmethod
+    def _get_datetime(t: float) -> str:
+        return str(datetime.datetime.fromtimestamp(int(t)))
+
     def clearAll(self):
         """
         初期状態に設定
@@ -48,6 +77,7 @@ class TransactionManager:
         self.resetPosition()
         self.action_pre = ActionType.HOLD
         self.pnl_total = 0.0
+        self.dict_transaction = self._init_transaction()
 
     def resetPosition(self):
         """
@@ -62,7 +92,7 @@ class TransactionManager:
         if action == ActionType.HOLD:
             # ■■■ HOLD: 何もしない
             # 建玉があれば含み損益から報酬を付与、無ければ少しばかりの保持ボーナス
-            reward += self.calc_reward_pnl(price)
+            reward += self._calc_reward_pnl(price)
             # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
             self.penalty_count = 0
         elif action == ActionType.BUY:
@@ -72,7 +102,8 @@ class TransactionManager:
                 # 買建 (LONG)
                 self.position = PositionType.LONG
                 self.price_entry = price
-                print(get_datetime(t), "買建", price)
+                # print(get_datetime(t), "買建", price)
+                self._add_transaction(t, "買建", price)
                 # 約定ボーナス付与（買建）
                 reward += self.bonus_contract
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
@@ -80,7 +111,7 @@ class TransactionManager:
             else:
                 # ○○○ 建玉がある場合 ○○○
                 # 建玉があるので、含み損益から報酬を付与
-                reward += self.calc_reward_pnl(price)
+                reward += self._calc_reward_pnl(price)
                 # ただし、建玉があるのに更に買建 (BUY) しようとしたので売買ルール違反ペナルティも付与
                 self.penalty_count += 1
                 reward += self.penalty_rule * self.penalty_count
@@ -92,7 +123,8 @@ class TransactionManager:
                 # 売建 (SHORT)
                 self.position = PositionType.SHORT
                 self.price_entry = price
-                print(get_datetime(t), "売建", price)
+                # print(get_datetime(t), "売建", price)
+                self._add_transaction(t, "売建", price)
                 # 約定ボーナス付与（売建）
                 reward += self.bonus_contract
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
@@ -100,7 +132,7 @@ class TransactionManager:
             else:
                 # ○○○ 建玉がある場合 ○○○
                 # 建玉があるので、含み損益から報酬を付与
-                reward += self.calc_reward_pnl(price)
+                reward += self._calc_reward_pnl(price)
                 # ただし、建玉があるのに更に売建しようとしたので売買ルール違反ペナルティも付与
                 self.penalty_count += 1
                 reward += self.penalty_rule * self.penalty_count
@@ -112,11 +144,13 @@ class TransactionManager:
                 if self.position == PositionType.LONG:
                     # 実現損益（売埋）
                     profit = price - self.price_entry
-                    print(get_datetime(t), "売埋", profit)
+                    # print(get_datetime(t), "売埋", price, profit)
+                    self._add_transaction(t, "売埋", price, profit)
                 else:
                     # 実現損益（買埋）
                     profit = self.price_entry - price
-                    print(get_datetime(t), "買埋", profit)
+                    # print(get_datetime(t), "買埋", price, profit)
+                    self._add_transaction(t, "買埋", price, profit)
                 # ポジション状態をリセット
                 self.resetPosition()
                 # 総収益を更新
@@ -138,7 +172,7 @@ class TransactionManager:
         self.action_pre = action
         return reward
 
-    def calc_reward_pnl(self, price: float) -> float:
+    def _calc_reward_pnl(self, price: float) -> float:
         """
         含み損益に self.reward_pnl_scale を乗じた報酬を算出
         ポジションが無い場合は微小なペナルティを付与
@@ -251,7 +285,6 @@ class TradingEnv(gym.Env):
         obs = self._get_observation()
 
         if self.current_step >= len(self.df) - 1:
-            print(get_datetime(t))
             done = True
 
         self.current_step += 1

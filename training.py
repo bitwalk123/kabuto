@@ -83,7 +83,8 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
         'episode_reward': [],
         'pnl_total': [],
         'approx_kl': [],
-        'clipfrac': []
+        'clipfrac': [],
+        'transactions': [],
     }
 
     for epoch in range(1, n_epochs + 1):
@@ -199,13 +200,19 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
         """
         history['clipfrac'].append(clipfrac)
 
+        # 取引明細
+        df_transaction = pd.DataFrame(env.transman.dict_transaction)
+        n_transaction = len(df_transaction)
+        history["transactions"].append(n_transaction)
+
         print(
             f"Epoch {epoch:03d} | "
             f"Steps {step:05d} | "
             f"Reward {total_reward:+6.1f} | "
             f"PnL {env.transman.pnl_total:+6.1f} | "
             f"KL {approx_kl:.5f} | "
-            f"ClipFrac {clipfrac:.3f}"
+            f"ClipFrac {clipfrac:.3f} | "
+            f"Transactions {n_transaction: 5d}"
         )
 
         # save model every 10 epochs
@@ -235,4 +242,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=2, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=200, seed=12345)
