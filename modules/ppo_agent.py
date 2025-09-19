@@ -62,7 +62,12 @@ class RunningMeanStd:
 
 # ----------------------------- ActorCritic Network -----------------------------
 class ActorCritic(nn.Module):
-    def __init__(self, obs_dim: int, n_actions: int, hidden_sizes=(256, 256)):
+    def __init__(
+            self,
+            obs_dim: int,
+            n_actions: int,
+            hidden_sizes=(256, 256)
+    ):
         super().__init__()
         layers = []
         last = obs_dim

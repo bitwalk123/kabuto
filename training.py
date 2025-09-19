@@ -16,8 +16,31 @@ from modules.trading_env import TradingEnv
 
 
 class PPOAgent:
-    def __init__(self):
-        pass
+    def __init__(
+            self,
+            env: TradingEnv,
+            lr=3e-4,
+            gamma=0.99,
+            lam=0.95,
+            clip_eps=0.2,
+            batch_size=64,
+            hidden_sizes=(256, 256)
+    ):
+        self.env = env
+
+        self.gamma = gamma
+        self.lam = lam
+        self.clip_eps = clip_eps
+        self.batch_size = batch_size
+
+        # ネットワーク
+        obs_dim = self.env.observation_space.shape[0]
+        n_actions = self.env.action_space.n
+        self.model = ActorCritic(obs_dim, n_actions, hidden_sizes)
+        self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
+
+        # バッファ
+        # self.reset_buffer()
 
 
 def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: int = 100, seed: int = 0):
@@ -40,9 +63,8 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = ActorCritic(obs_dim, n_actions).to(device)
-    #optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
     # optimizer = optim.Adam(model.parameters(), lr=1e-4, eps=1e-5)
-    optimizer = optim.Adam(model.parameters(), lr=1e-3, eps=1e-5)
 
     # hyperparams (tuned to be stable for single-episode rollouts)
     gamma = 0.99
@@ -213,4 +235,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=100, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=10, seed=12345)
