@@ -4,7 +4,7 @@ import torch.optim as optim
 from torch.distributions import Categorical
 import numpy as np
 
-from modules.ppo_agent_20250914_1 import ActorCritic
+from modules.ppo_agent import ActorCritic
 
 
 class PPOAgent:
