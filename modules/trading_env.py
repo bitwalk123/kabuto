@@ -153,7 +153,7 @@ class TradingEnv(gym.Env):
         super().__init__()
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
         # ウォームアップ期間
-        self.period = 5
+        self.period = 60
         # 特徴量の列名のリストが返る
         self.cols_features = self._add_features(self.period)
         # 現在の行位置
@@ -186,6 +186,8 @@ class TradingEnv(gym.Env):
         colname = "dVol"
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
+
+        # 3. RSI
 
         return list_features
 
