@@ -20,11 +20,12 @@ class PPOAgent:
         pass
 
 
-def train_on_file(env: TradingEnv, dir_model: str, n_epochs: int = 100, seed: int = 0):
+def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: int = 100, seed: int = 0):
     """
     model training
     :param env:
     :param dir_model:
+    :param dir_output:
     :param n_epochs:
     :param seed:
     :return:
@@ -39,8 +40,9 @@ def train_on_file(env: TradingEnv, dir_model: str, n_epochs: int = 100, seed: in
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     model = ActorCritic(obs_dim, n_actions).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
+    #optimizer = optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
     # optimizer = optim.Adam(model.parameters(), lr=1e-4, eps=1e-5)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3, eps=1e-5)
 
     # hyperparams (tuned to be stable for single-episode rollouts)
     gamma = 0.99
@@ -190,12 +192,13 @@ def train_on_file(env: TradingEnv, dir_model: str, n_epochs: int = 100, seed: in
             torch.save(model.state_dict(), fname)
 
     # final save
-    torch.save(model.state_dict(), os.path.join(dir_model, 'ppo_trading_final.pt'))
+    torch.save(model.state_dict(), os.path.join(dir_model, "ppo_trading_final.pt"))
 
     # write history to CSV
     hist_df = pd.DataFrame(history)
-    hist_df.to_csv('training_history.csv', index=False)
-    print('\nTraining finished. History saved to training_history.csv')
+    file_history = os.path.join(dir_output, "training_history.csv")
+    hist_df.to_csv(file_history, index=False)
+    print(f"\nTraining finished. History saved to {file_history}")
 
 
 if __name__ == '__main__':
@@ -208,5 +211,6 @@ if __name__ == '__main__':
     df = pd.read_excel(path_excel)
     env = TradingEnv(df)
     dir_model = "models"
+    dir_result = "output"
     # training
-    train_on_file(env, dir_model, n_epochs=100, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=100, seed=12345)
