@@ -24,8 +24,8 @@ class TransactionManager:
         # modified on 20250919
         self.reward_contract_bonus = 0.05  # 約定ボーナス（買建、売建、返済）
         self.reward_pnl_scale = 0.01  # 含み損益のスケール（比率に対する係数）
-        self.penalty_rule = -0.05 # 売買ルール違反
-        self.penalty_hold_small = -0.0001 # 少しばかりの保持違反
+        self.penalty_rule = -0.05  # 売買ルール違反
+        self.penalty_hold_small = -0.0001  # 少しばかりの保持違反
 
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算
@@ -187,7 +187,23 @@ class TradingEnv(gym.Env):
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
 
-        # 3. RSI
+        # moving IQR
+        colname = "IQR"
+        mv_q1 = self.df["Price"].rolling(period).quantile(0.25)
+        mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
+        self.df[colname] = mv_q3 - mv_q1
+        list_features.append(colname)
+
+        # RSI
+        colname = "RSI"
+        mva = self.df["Price"].rolling(period, min_periods=1).mean()
+        self.df[colname] = (ta.RSI(mva, period - 1) - 50.) / 100.
+        list_features.append(colname)
+
+        # ROC
+        colname = "ROC"
+        self.df["ROC"] = ta.ROC(mva, period - 1)
+        list_features.append(colname)
 
         return list_features
 
