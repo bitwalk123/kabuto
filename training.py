@@ -226,7 +226,7 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
 if __name__ == '__main__':
     # Path to your tick data file
     dir_excel = "excel"
-    path_excel = os.path.join(dir_excel, "tick_20250828.xlsx")
+    path_excel = os.path.join(dir_excel, "tick_20250819.xlsx")
     if not os.path.exists(path_excel):
         raise FileNotFoundError(f"{path_excel} not found in working directory")
 
@@ -235,4 +235,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=100, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=2, seed=12345)

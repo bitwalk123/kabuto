@@ -1,3 +1,4 @@
+import datetime
 import gymnasium as gym
 import numpy as np
 import pandas as pd
@@ -18,14 +19,18 @@ class PositionType(Enum):
     SHORT = 2
 
 
+def get_datetime(t: float) -> str:
+    return str(datetime.datetime.fromtimestamp(int(t)))
+
+
 class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         # modified on 20250919
-        self.reward_contract_bonus = 0.05  # 約定ボーナス（買建、売建、返済）
-        self.reward_pnl_scale = 0.01  # 含み損益のスケール（比率に対する係数）
+        self.bonus_contract = 0.05  # 約定ボーナス（買建、売建、返済）
+        self.reward_pnl_scale = 0.1  # 含み損益の少数スケール（含み損益✕係数）
+        self.allowance_small = 0.00001  # 僅かな報酬またはペナルティ
         self.penalty_rule = -0.05  # 売買ルール違反
-        self.penalty_hold_small = -0.0001  # 少しばかりの保持違反
 
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算
@@ -52,11 +57,11 @@ class TransactionManager:
         self.position = PositionType.NONE
         self.price_entry = 0.0
 
-    def setAction(self, action: ActionType, price: float) -> float:
+    def setAction(self, action: ActionType, t: float, price: float) -> float:
         reward = 0.0
         if action == ActionType.HOLD:
             # ■■■ HOLD: 何もしない
-            # 建玉があれば含み損益から報酬を付与、無ければ僅かなペナルティ
+            # 建玉があれば含み損益から報酬を付与、無ければ少しばかりの保持ボーナス
             reward += self.calc_reward_pnl(price)
             # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
             self.penalty_count = 0
@@ -67,8 +72,9 @@ class TransactionManager:
                 # 買建 (LONG)
                 self.position = PositionType.LONG
                 self.price_entry = price
+                print(get_datetime(t), "買建", price)
                 # 約定ボーナス付与（買建）
-                reward += self.reward_contract_bonus
+                reward += self.bonus_contract
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -86,8 +92,9 @@ class TransactionManager:
                 # 売建 (SHORT)
                 self.position = PositionType.SHORT
                 self.price_entry = price
+                print(get_datetime(t), "売建", price)
                 # 約定ボーナス付与（売建）
-                reward += self.reward_contract_bonus
+                reward += self.bonus_contract
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -103,11 +110,13 @@ class TransactionManager:
             if self.position != PositionType.NONE:
                 # ○○○ 建玉がある場合 ○○○
                 if self.position == PositionType.LONG:
-                    # 実現損益（買建）
+                    # 実現損益（売埋）
                     profit = price - self.price_entry
+                    print(get_datetime(t), "売埋", profit)
                 else:
-                    # 実現損益（売建）
+                    # 実現損益（買埋）
                     profit = self.price_entry - price
+                    print(get_datetime(t), "買埋", profit)
                 # ポジション状態をリセット
                 self.resetPosition()
                 # 総収益を更新
@@ -115,7 +124,7 @@ class TransactionManager:
                 # 報酬に収益を追加
                 reward += profit
                 # 約定ボーナス付与（返済）
-                reward += self.reward_contract_bonus
+                reward += self.bonus_contract
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -137,14 +146,14 @@ class TransactionManager:
         :return:
         """
         if self.position == PositionType.LONG:
-            # 含み損益（買建）× self.reward_pnl_scale
+            # 含み損益（買建）× 少数スケール
             return (price - self.price_entry) * self.reward_pnl_scale
         elif self.position == PositionType.SHORT:
-            # 含み損益（売建）× self.reward_pnl_scale
+            # 含み損益（売建）× 少数スケール
             return (self.price_entry - price) * self.reward_pnl_scale
         else:
             # PositionType.NONE に対して僅かなペナルティ
-            return self.penalty_hold_small
+            return self.allowance_small
 
 
 class TradingEnv(gym.Env):
@@ -236,11 +245,13 @@ class TradingEnv(gym.Env):
         reward = 0.0
         done = False
 
+        t = self.df.at[self.current_step, "Time"]
         price = self.df.at[self.current_step, "Price"]
-        reward += self.transman.setAction(action, price)
+        reward += self.transman.setAction(action, t, price)
         obs = self._get_observation()
 
         if self.current_step >= len(self.df) - 1:
+            print(get_datetime(t))
             done = True
 
         self.current_step += 1
