@@ -268,7 +268,7 @@ class TradingEnv(gym.Env):
         # 6. TRIX(ROC)
         colname = "TRIX"
         mva = self.df["Price"].rolling(period, min_periods=1).median()
-        self.df[colname] = ta.TRIX(mva, period - 1)
+        self.df[colname] = ta.TRIX(mva, 30)
         list_features.append(colname)
 
         return list_features
