@@ -228,13 +228,6 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        """
-        # 1. 株価差分（Δ株価）
-        colname = "dPrice"
-        self.df[colname] = self.df["Price"].diff()
-        list_features.append(colname)
-        """
-
         # 1. 株価（始値からの差分）
         colname = "PriceShift"
         self.df[colname] = self.df["Price"] - price_start
@@ -256,20 +249,6 @@ class TradingEnv(gym.Env):
         mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
         self.df[colname] = mv_q3 - mv_q1
         list_features.append(colname)
-
-        """
-        # 5. RSI → 取引数が増える！
-        colname = "RSI"
-        mva = self.df["Price"].rolling(period, min_periods=1).median()
-        self.df[colname] = (ta.RSI(mva, period - 1) - 50.) / 100.
-        list_features.append(colname)
-
-        # 6. ROC → 取引数が増える！
-        colname = "ROC"
-        mva = self.df["Price"].rolling(period, min_periods=1).median()
-        self.df[colname] = ta.ROC(mva, period - 1)
-        list_features.append(colname)
-        """
 
         return list_features
 
