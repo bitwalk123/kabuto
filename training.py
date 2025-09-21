@@ -202,7 +202,7 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
 
         # 取引明細
         df_transaction = pd.DataFrame(env.transman.dict_transaction)
-        file_transaction = os.path.join(dir_output, f"transaction_{epoch:3d}.csv")
+        file_transaction = os.path.join(dir_output, f"transaction_{epoch:03d}.csv")
         df_transaction.to_csv(file_transaction, index=False)
 
         n_transaction = len(df_transaction)
