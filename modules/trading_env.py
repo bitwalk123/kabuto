@@ -23,11 +23,11 @@ class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         # modified on 20250921
-        self.bonus_contract = -0.1  # 約定ボーナスまたはペナルティ（買建、売建、返済）
-        self.reward_pnl_scale = 0.1  # 含み損益の少数スケール（含み損益✕係数）
-        self.reward_hold = 0.05  # 建玉を保持する報酬
-        self.penalty_none = -0.05  # 建玉を持たないペナルティ
-        self.penalty_rule = -0.2  # 売買ルール違反
+        self.bonus_contract = -0.5  # 約定ボーナスまたはペナルティ（買建、売建、返済）
+        self.reward_pnl_scale = 0.5  # 含み損益のスケール（含み損益✕係数）
+        self.reward_hold = 0.1  # 建玉を保持する報酬
+        self.penalty_none = +0.05  # 建玉を持たないペナルティ
+        self.penalty_rule = -1.0  # 売買ルール違反
 
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算
@@ -227,19 +227,21 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        # 1. 株価（始値からの差分）
-        # colname = "PriceShift"
-        # self.df[colname] = self.df["Price"] - price_start
-        # list_features.append(colname)
-
-        # 2. 株価（始値との比）移動メディアンでスムージング
-        # colname = "PriceRatio"
-        # self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
-        # list_features.append(colname)
-
+        """
         # 1. 株価差分（Δ株価）
         colname = "dPrice"
         self.df[colname] = self.df["Price"].diff()
+        list_features.append(colname)
+        """
+
+        # 1. 株価（始値からの差分）
+        colname = "PriceShift"
+        self.df[colname] = self.df["Price"] - price_start
+        list_features.append(colname)
+
+        # 2. 株価（始値との比）移動メディアンでスムージング
+        colname = "PriceRatio"
+        self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
         list_features.append(colname)
 
         # 3. 累計出来高差分 / 最小取引単位
