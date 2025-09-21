@@ -257,13 +257,13 @@ class TradingEnv(gym.Env):
         self.df[colname] = mv_q3 - mv_q1
         list_features.append(colname)
 
-        """
         # 5. RSI
         colname = "RSI"
         mva = self.df["Price"].rolling(period, min_periods=1).median()
         self.df[colname] = (ta.RSI(mva, period - 1) - 50.) / 100.
         list_features.append(colname)
 
+        """
         # 6. ROC
         colname = "ROC"
         self.df["ROC"] = ta.ROC(mva, period - 1)

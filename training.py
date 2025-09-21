@@ -242,4 +242,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=10, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=20, seed=12345)
