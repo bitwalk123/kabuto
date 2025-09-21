@@ -22,11 +22,12 @@ class PositionType(Enum):
 class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
-        # modified on 20250919
-        self.bonus_contract = 0.05  # 約定ボーナス（買建、売建、返済）
+        # modified on 20250921
+        self.bonus_contract = -0.1  # 約定ボーナスまたはペナルティ（買建、売建、返済）
         self.reward_pnl_scale = 0.1  # 含み損益の少数スケール（含み損益✕係数）
-        self.allowance_small = 0.00001  # 僅かな報酬またはペナルティ
-        self.penalty_rule = -0.05  # 売買ルール違反
+        self.reward_hold = 0.05  # 建玉を保持する報酬
+        self.penalty_none = -0.05  # 建玉を持たないペナルティ
+        self.penalty_rule = -0.2  # 売買ルール違反
 
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算
@@ -179,15 +180,19 @@ class TransactionManager:
         :param price:
         :return:
         """
-        if self.position == PositionType.LONG:
-            # 含み損益（買建）× 少数スケール
-            return (price - self.price_entry) * self.reward_pnl_scale
-        elif self.position == PositionType.SHORT:
-            # 含み損益（売建）× 少数スケール
-            return (self.price_entry - price) * self.reward_pnl_scale
-        else:
+        if self.position == PositionType.NONE:
             # PositionType.NONE に対して僅かなペナルティ
-            return self.allowance_small
+            return self.penalty_none
+        else:
+            reward = 0.0
+            if self.position == PositionType.LONG:
+                # 含み損益（買建）× 少数スケール
+                reward += (price - self.price_entry) * self.reward_pnl_scale
+            elif self.position == PositionType.SHORT:
+                # 含み損益（売建）× 少数スケール
+                reward += (self.price_entry - price) * self.reward_pnl_scale
+            reward += self.reward_hold
+            return reward
 
 
 class TradingEnv(gym.Env):
@@ -223,13 +228,18 @@ class TradingEnv(gym.Env):
         price_start = self.df["Price"].iloc[0]
 
         # 1. 株価（始値からの差分）
-        colname = "PriceShift"
-        self.df[colname] = self.df["Price"] - price_start
-        list_features.append(colname)
+        # colname = "PriceShift"
+        # self.df[colname] = self.df["Price"] - price_start
+        # list_features.append(colname)
 
         # 2. 株価（始値との比）移動メディアンでスムージング
-        colname = "PriceRatio"
-        self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
+        # colname = "PriceRatio"
+        # self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
+        # list_features.append(colname)
+
+        # 1. 株価差分（Δ株価）
+        colname = "dPrice"
+        self.df[colname] = self.df["Price"].diff()
         list_features.append(colname)
 
         # 3. 累計出来高差分 / 最小取引単位
