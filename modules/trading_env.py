@@ -227,22 +227,24 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
+        """
         # 1. 株価差分（Δ株価）
         colname = "dPrice"
         self.df[colname] = self.df["Price"].diff()
         list_features.append(colname)
-
         """
+
         # 1. 株価（始値からの差分）
         colname = "PriceShift"
         self.df[colname] = self.df["Price"] - price_start
         list_features.append(colname)
-        """
 
+        """
         # 2. 株価（始値との比）移動メディアンでスムージング
         colname = "PriceRatio"
         self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
         list_features.append(colname)
+        """
 
         # 3. 累計出来高差分 / 最小取引単位
         colname = "dVol"
