@@ -25,9 +25,9 @@ class TransactionManager:
         # modified on 20250921
         self.reward_sell_buy = +1.0  # 約定ボーナスまたはペナルティ（買建、売建）
         self.penalty_repay = -0.5  # 約定ボーナスまたはペナルティ（返済）
-        self.reward_pnl_scale = +0.5  # 含み損益のスケール（含み損益✕係数）
-        self.reward_hold = +0.02  # 建玉を保持する報酬
-        self.penalty_none = -0.01  # 建玉を持たないペナルティ
+        self.reward_pnl_scale = +0.75  # 含み損益のスケール（含み損益✕係数）
+        self.reward_hold = +0.005  # 建玉を保持する報酬
+        self.penalty_none = -0.005  # 建玉を持たないペナルティ
         self.penalty_rule = -1.0  # 売買ルール違反
 
         # 売買ルール違反カウンター
