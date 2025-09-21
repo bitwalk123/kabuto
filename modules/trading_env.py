@@ -23,7 +23,8 @@ class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         # modified on 20250921
-        self.bonus_contract = +1.0  # 約定ボーナスまたはペナルティ（買建、売建、返済）
+        self.reward_sell_buy = +1.0  # 約定ボーナスまたはペナルティ（買建、売建）
+        self.penalty_repay = -0.5  # 約定ボーナスまたはペナルティ（返済）
         self.reward_pnl_scale = +0.1  # 含み損益のスケール（含み損益✕係数）
         self.reward_hold = +0.05  # 建玉を保持する報酬
         self.penalty_none = -0.005  # 建玉を持たないペナルティ
@@ -106,7 +107,7 @@ class TransactionManager:
                 # print(get_datetime(t), "買建", price)
                 self._add_transaction(t, "買建", price)
                 # 約定ボーナス付与（買建）
-                reward += self.bonus_contract
+                reward += self.reward_sell_buy
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -127,7 +128,7 @@ class TransactionManager:
                 # print(get_datetime(t), "売建", price)
                 self._add_transaction(t, "売建", price)
                 # 約定ボーナス付与（売建）
-                reward += self.bonus_contract
+                reward += self.reward_sell_buy
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -158,8 +159,8 @@ class TransactionManager:
                 self.pnl_total += profit
                 # 報酬に収益を追加
                 reward += profit
-                # 約定ボーナス付与（返済）
-                reward += self.bonus_contract
+                # 約定ペナルティ付与（返済）
+                reward += self.penalty_repay
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
