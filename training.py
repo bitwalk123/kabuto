@@ -208,7 +208,7 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
         print(
             f"Epoch {epoch:03d} | "
             f"Steps {step:05d} | "
-            f"Reward {total_reward:+10.1f} | "
+            f"Reward {total_reward:+12.1f} | "
             f"PnL {env.transman.pnl_total:+6.1f} | "
             f"KL {approx_kl:.5f} | "
             f"ClipFrac {clipfrac:.3f} | "
@@ -242,4 +242,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=200, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=10, seed=12345)

@@ -23,8 +23,8 @@ class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         # modified on 20250921
-        self.bonus_contract = -0.1  # 約定ボーナスまたはペナルティ（買建、売建、返済）
-        self.reward_pnl_scale = 0.1  # 含み損益のスケール（含み損益✕係数）
+        self.bonus_contract = +0.1  # 約定ボーナスまたはペナルティ（買建、売建、返済）
+        self.reward_pnl_scale = 0.01  # 含み損益のスケール（含み損益✕係数）
         self.reward_hold = 0.05  # 建玉を保持する報酬
         self.penalty_none = -0.005  # 建玉を持たないペナルティ
         self.penalty_rule = -1.0  # 売買ルール違反
