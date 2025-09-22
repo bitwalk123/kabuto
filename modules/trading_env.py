@@ -229,7 +229,7 @@ class TradingEnv(gym.Env):
         price_start = self.df["Price"].iloc[0]
 
         # 1. 株価（指数移動平均）
-        colname = "PriceEMA"
+        colname = "EMA"
         self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
         list_features.append(colname)
 
