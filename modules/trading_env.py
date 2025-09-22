@@ -25,9 +25,9 @@ class TransactionManager:
         # modified on 20250922
         self.reward_sell_buy = +0.5  # 約定ボーナスまたはペナルティ（買建、売建）
         self.penalty_repay = -0.25  # 約定ボーナスまたはペナルティ（返済）
-        self.reward_pnl_scale = +0.5  # 含み損益のスケール（含み損益✕係数）
-        self.reward_hold = +0.005  # 建玉を保持する報酬
-        self.penalty_none = -0.005  # 建玉を持たないペナルティ
+        self.reward_pnl_scale = +0.1  # 含み損益のスケール（含み損益✕係数）
+        self.reward_hold = +0.5 # 建玉を保持する報酬
+        self.penalty_none = -0.01  # 建玉を持たないペナルティ
         self.penalty_rule = -0.5  # 売買ルール違反
 
         # 売買ルール違反カウンター
@@ -228,42 +228,56 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        # 1. 株価（差分）
-        colname = "dPrice"
-        self.df[colname] = self.df["Price"].shift()
+        # 1. 株価（差分1）
+        colname = "dPrice1"
+        self.df[colname] = self.df["Price"].diff()
         list_features.append(colname)
 
-        # 2. 株価（指数移動平均、始値との差分）
+        # 2. 株価（差分2）
+        colname = "dPrice2"
+        self.df[colname] = self.df["Price"].diff(10)
+        list_features.append(colname)
+
+        # 3. 株価（差分3）
+        colname = "dPrice3"
+        self.df[colname] = self.df["Price"].diff(30)
+        list_features.append(colname)
+
+        # 4. 株価（差分3）
+        colname = "dPrice4"
+        self.df[colname] = self.df["Price"].diff(59)
+        list_features.append(colname)
+
+        """
+        # 4. 株価（指数移動平均、始値との差分）
         colname = "EMA"
-        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean() - price_start
+        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
         list_features.append(colname)
 
-        # 3. 株価（始値との差分）
-        colname = "PriceShift"
-        self.df[colname] = self.df["Price"] - price_start
-        list_features.append(colname)
-
-        # 4. 株価（始値との比）の指数移動平均
+        # 5. 株価（始値との比）の指数移動平均
         colname = "PriceRatio"
         self.df[colname] = (self.df["Price"] / price_start).rolling(window=period, min_periods=1).mean()
         list_features.append(colname)
+        """
 
-        # 5. 累計出来高差分 / 最小取引単位
+        # 6. 累計出来高差分 / 最小取引単位
         colname = "dVol"
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
 
-        # 6. moving IQR
+        # 7. moving IQR
         colname = "IQR"
         mv_q1 = self.df["Price"].rolling(period).quantile(0.25)
         mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
         self.df[colname] = mv_q3 - mv_q1
         list_features.append(colname)
 
-        # 7. RSI
+        """
+        # 8. RSI
         colname = "RSI"
         self.df[colname] = ta.RSI(self.df["EMA"], period - 1)
         list_features.append(colname)
+        """
 
         return list_features
 
