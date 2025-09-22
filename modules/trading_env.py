@@ -160,7 +160,10 @@ class TransactionManager:
                 # 報酬に収益を追加
                 reward += profit
                 # 約定ペナルティ付与（返済）
-                reward += self.penalty_repay
+                # reward += self.penalty_repay
+                """
+                実運用を見据えるなら「返済したら必ずペナルティ」という設計はちょっと違和感あります（決済はゴール動作なのでペナルティでなくてもいいかも？）。
+                """
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
             else:
@@ -243,59 +246,43 @@ class TradingEnv(gym.Env):
         self.df[colname] = self.df["EMA"].diff(50)
         list_features.append(colname)
 
-        """
-        # 4. 株価（差分3）
-        colname = "dPrice3"
-        self.df[colname] = self.df["EMA"].diff(50)
-        list_features.append(colname)
-
-        # 3. 株価（差分3）
-        colname = "dPrice3"
-        self.df[colname] = self.df["Price"].diff(30)
-        list_features.append(colname)
-
-        # 4. 株価（差分4）
-        colname = "dPrice4"
-        self.df[colname] = self.df["Price"].diff(59)
-        list_features.append(colname)
-
-        # 4. 株価（指数移動平均、始値との差分）
-        colname = "EMA"
-        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
-        list_features.append(colname)
-
-        # 5. 株価（始値との比）の指数移動平均
-        colname = "PriceRatio"
-        self.df[colname] = (self.df["Price"] / price_start).rolling(window=period, min_periods=1).mean()
-        list_features.append(colname)
-        """
-
-        # 6. 累計出来高差分 / 最小取引単位
+        # 3. 累計出来高差分 / 最小取引単位
         colname = "dVol"
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
 
-        # 7. moving IQR
+        # 4. moving IQR
         colname = "IQR"
         mv_q1 = self.df["Price"].rolling(period).quantile(0.25)
         mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
         self.df[colname] = mv_q3 - mv_q1
         list_features.append(colname)
 
-        """
-        # 8. RSI
+        # 5. RSI
         colname = "RSI"
         self.df[colname] = ta.RSI(self.df["EMA"], period - 1)
         list_features.append(colname)
-        """
 
         return list_features
+
+    def _get_action_mask(self):
+        if self.current_step < self.period:
+            return np.array([1, 0, 0, 0], dtype=np.int8)  # 強制HOLD
+        if self.transman.position == PositionType.NONE:
+            return np.array([1, 1, 1, 0], dtype=np.int8)  # HOLD, BUY, SELL
+        else:
+            return np.array([1, 0, 0, 1], dtype=np.int8)  # HOLD, REPAY
 
     def _get_observation(self):
         if self.current_step >= self.period:
             features = self.df.iloc[self.current_step][self.cols_features]
         else:
             features = [0] * len(self.cols_features)
+            """
+            recommended by GPT-5
+            → ここも [0,...] にしているので、序盤の数十ステップが「完全にフラットな状態」になります。
+            もし観測にノイズが少し欲しいなら、最初から EMA だけ計算して、差分系だけゼロにするなども検討できます（ただしこれはお好み次第）。
+            """
         obs = np.array(features, dtype=np.float32)
 
         # PositionType → one-hot
@@ -308,7 +295,8 @@ class TradingEnv(gym.Env):
         self.current_step = 0
         self.transman.clearAll()
         obs = self._get_observation()
-        return obs, {}
+        # return obs, {}
+        return obs, {"action_mask": self._get_action_mask()}
 
     def step(self, n_action: int):
         # --- ウォームアップ期間 (self.period) は強制 HOLD ---
@@ -329,6 +317,9 @@ class TradingEnv(gym.Env):
             done = True
 
         self.current_step += 1
-        dict_info = {"pnl_total": self.transman.pnl_total}
-        print(self.current_step, self.transman.action_pre, reward, done)
-        return obs, reward, done, False, dict_info
+        info = {
+            "pnl_total": self.transman.pnl_total,
+            "action_mask": self._get_action_mask()
+        }
+        # print(self.current_step, self.transman.action_pre, reward, done)
+        return obs, reward, done, False, info

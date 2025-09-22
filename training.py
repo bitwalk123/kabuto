@@ -91,7 +91,7 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
         # run 1 full episode (one file -> one episode)
         obs_list, actions_list, rewards_list, dones_list, values_list, logp_list = [], [], [], [], [], []
 
-        obs, _ = env.reset()
+        obs, info = env.reset()
         done = False
         total_reward = 0.0
         step = 0
@@ -100,7 +100,14 @@ def train_on_file(env: TradingEnv, dir_model: str, dir_output: str, n_epochs: in
             obs_tensor = torch.tensor(obs_norm, dtype=torch.float32, device=device).unsqueeze(0)
             with torch.no_grad():
                 logits, value = model(obs_tensor)
-                dist = torch.distributions.Categorical(logits=logits)
+
+                # マスク適用
+                mask = info.get("action_mask", np.ones(n_actions, dtype=np.float32))
+                mask_tensor = torch.tensor(mask, dtype=torch.float32, device=device)
+                masked_logits = logits + (mask_tensor + 1e-8).log()
+
+                dist = torch.distributions.Categorical(logits=masked_logits)
+                #dist = torch.distributions.Categorical(logits=logits)
                 action = dist.sample().cpu().numpy()[0]
                 logp = dist.log_prob(torch.tensor(action)).cpu().numpy()
                 value = value.cpu().numpy()[0]
@@ -245,4 +252,4 @@ if __name__ == '__main__':
     dir_model = "models"
     dir_result = "output"
     # training
-    train_on_file(env, dir_model, dir_result, n_epochs=3, seed=12345)
+    train_on_file(env, dir_model, dir_result, n_epochs=10, seed=12345)
