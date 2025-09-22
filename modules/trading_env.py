@@ -26,7 +26,7 @@ class TransactionManager:
         self.reward_sell_buy = +0.01  # 約定ボーナスまたはペナルティ（買建、売建）
         self.penalty_repay = -0.05  # 約定ボーナスまたはペナルティ（返済）
         self.reward_pnl_scale = +0.5  # 含み損益のスケール（含み損益✕係数）
-        self.reward_hold = +0.75 # 建玉を保持する報酬
+        self.reward_hold = +0.75  # 建玉を保持する報酬
         self.penalty_none = -0.001  # 建玉を持たないペナルティ
         self.penalty_rule = -1.0  # 売買ルール違反
 
@@ -228,27 +228,32 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        # 1. 株価（差分1）
+        # 1. 株価（指数移動平均）
+        colname = "EMA"
+        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
+        list_features.append(colname)
+
+        # 2. 株価（差分1）
         colname = "dPrice1"
-        self.df[colname] = self.df["Price"].diff()
+        self.df[colname] = self.df["EMA"].diff()
         list_features.append(colname)
 
-        # 2. 株価（差分2）
+        # 3. 株価（差分2）
         colname = "dPrice2"
-        self.df[colname] = self.df["Price"].diff(10)
+        self.df[colname] = self.df["EMA"].diff(50)
         list_features.append(colname)
 
+        """
         # 3. 株価（差分3）
         colname = "dPrice3"
         self.df[colname] = self.df["Price"].diff(30)
         list_features.append(colname)
 
-        # 4. 株価（差分3）
+        # 4. 株価（差分4）
         colname = "dPrice4"
         self.df[colname] = self.df["Price"].diff(59)
         list_features.append(colname)
 
-        """
         # 4. 株価（指数移動平均、始値との差分）
         colname = "EMA"
         self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
