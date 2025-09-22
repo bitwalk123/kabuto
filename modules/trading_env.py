@@ -233,9 +233,10 @@ class TradingEnv(gym.Env):
         self.df[colname] = self.df["Price"] - price_start
         list_features.append(colname)
 
-        # 2. 株価（始値との比）移動メディアンでスムージング
+        # 2. 株価（始値との比）の指数移動平均
         colname = "PriceRatio"
-        self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
+        #self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
+        self.df[colname] = (self.df["Price"] / price_start).rolling(window=period, min_periods=1).mean()
         list_features.append(colname)
 
         # 3. 累計出来高差分 / 最小取引単位
