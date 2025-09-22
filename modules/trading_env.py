@@ -298,7 +298,6 @@ class TradingEnv(gym.Env):
         self.current_step = 0
         self.transman.clearAll()
         obs = self._get_observation()
-        # return obs, {}
         return obs, {"action_mask": self._get_action_mask()}
 
     def step(self, n_action: int):
