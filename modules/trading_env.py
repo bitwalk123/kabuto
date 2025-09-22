@@ -240,7 +240,6 @@ class TradingEnv(gym.Env):
 
         # 3. 株価（始値との比）の指数移動平均
         colname = "PriceRatio"
-        #self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
         self.df[colname] = (self.df["Price"] / price_start).rolling(window=period, min_periods=1).mean()
         list_features.append(colname)
 
