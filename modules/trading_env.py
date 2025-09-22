@@ -228,12 +228,12 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        # 1. 株価（指数移動平均）
+        # 1. 株価（指数移動平均、始値との差分）
         colname = "EMA"
-        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
+        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean() - price_start
         list_features.append(colname)
 
-        # 2. 株価
+        # 2. 株価（始値との差分）
         colname = "PriceShift"
         self.df[colname] = self.df["Price"] - price_start
         list_features.append(colname)
