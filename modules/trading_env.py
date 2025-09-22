@@ -162,7 +162,9 @@ class TransactionManager:
                 # 約定ペナルティ付与（返済）
                 # reward += self.penalty_repay
                 """
-                実運用を見据えるなら「返済したら必ずペナルティ」という設計はちょっと違和感あります（決済はゴール動作なのでペナルティでなくてもいいかも？）。
+                commented by GPT-5
+                実運用を見据えるなら「返済したら必ずペナルティ」という設計はちょっと違和感あります
+                （決済はゴール動作なのでペナルティでなくてもいいかも？）。
                 """
                 # 売買ルールを遵守した処理だったのでペナルティカウントをリセット
                 self.penalty_count = 0
@@ -279,9 +281,10 @@ class TradingEnv(gym.Env):
         else:
             features = [0] * len(self.cols_features)
             """
-            recommended by GPT-5
+            commented by GPT-5
             → ここも [0,...] にしているので、序盤の数十ステップが「完全にフラットな状態」になります。
-            もし観測にノイズが少し欲しいなら、最初から EMA だけ計算して、差分系だけゼロにするなども検討できます（ただしこれはお好み次第）。
+            もし観測にノイズが少し欲しいなら、最初から EMA だけ計算して、差分系だけゼロにするなども検討できます
+            （ただしこれはお好み次第）。
             """
         obs = np.array(features, dtype=np.float32)
 
