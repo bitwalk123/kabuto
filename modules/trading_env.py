@@ -23,9 +23,9 @@ class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
     def __init__(self):
         # modified on 20250922
-        self.reward_sell_buy = 0.01  # 約定ボーナスまたはペナルティ（買建、売建）
+        self.reward_sell_buy = 0.1  # 約定ボーナスまたはペナルティ（買建、売建）
         self.penalty_repay = -0.05  # 約定ボーナスまたはペナルティ（返済）
-        self.reward_pnl_scale = 0.01  # 含み損益のスケール（含み損益✕係数）
+        self.reward_pnl_scale = 0.3  # 含み損益のスケール（含み損益✕係数）
         self.reward_hold = 0.001  # 建玉を保持する報酬
         self.penalty_none = -0.001  # 建玉を持たないペナルティ
         self.penalty_rule = -1.0  # 売買ルール違反
@@ -330,4 +330,5 @@ class TradingEnv(gym.Env):
 
         self.current_step += 1
         dict_info = {"pnl_total": self.transman.pnl_total}
+        print(self.current_step, self.transman.action_pre, reward, done)
         return obs, reward, done, False, dict_info
