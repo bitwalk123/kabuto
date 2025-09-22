@@ -228,33 +228,35 @@ class TradingEnv(gym.Env):
 
         price_start = self.df["Price"].iloc[0]
 
-        # 0. 株価（指数移動平均）
-        self.df["EMA"] = self.df["Price"].ewm(span=period, adjust=False).mean()
+        # 1. 株価（指数移動平均）
+        colname = "PriceEMA"
+        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
+        list_features.append(colname)
 
-        # 1. 株価（始値からの差分）
+        # 2. 株価
         colname = "PriceShift"
         self.df[colname] = self.df["Price"] - price_start
         list_features.append(colname)
 
-        # 2. 株価（始値との比）の指数移動平均
+        # 3. 株価（始値との比）の指数移動平均
         colname = "PriceRatio"
         #self.df[colname] = (self.df["Price"] / price_start).rolling(period, min_periods=1).median()
         self.df[colname] = (self.df["Price"] / price_start).rolling(window=period, min_periods=1).mean()
         list_features.append(colname)
 
-        # 3. 累計出来高差分 / 最小取引単位
+        # 4. 累計出来高差分 / 最小取引単位
         colname = "dVol"
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
 
-        # 4. moving IQR
+        # 5. moving IQR
         colname = "IQR"
         mv_q1 = self.df["Price"].rolling(period).quantile(0.25)
         mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
         self.df[colname] = mv_q3 - mv_q1
         list_features.append(colname)
 
-        # 5. RSI
+        # 6. RSI
         colname = "RSI"
         self.df[colname] = ta.RSI(self.df["EMA"], period - 1)
         list_features.append(colname)
