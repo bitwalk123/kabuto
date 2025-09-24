@@ -225,54 +225,41 @@ class TradingEnv(gym.Env):
         self.action_space = gym.spaces.Discrete(len(ActionType))
 
     def _add_features(self, period: int) -> list:
+        """
+        特徴量の追加
+        :param period:
+        :return:
+        """
         list_features = list()
 
-        tickprice = 1  # 呼び値（銘柄別）
+        # 調整用係数
         factor_ticker = 10  # 調整因子（銘柄別）
         unit = 100  # 最小取引単位
 
-        price_start = self.df["Price"].iloc[0]
-
-        # 1. 株価（指数移動平均）
-        colname = "EMA"
-        self.df[colname] = self.df["Price"].ewm(span=period, adjust=False).mean()
+        # 1. 株価
+        colname = "Price"
         list_features.append(colname)
 
-        # 2. 株価（差分1）
-        colname = "dPrice1"
-        self.df[colname] = self.df["EMA"].diff()
-        list_features.append(colname)
-
-        # 3. 株価（差分2）
-        colname = "dPrice2"
-        self.df[colname] = self.df["EMA"].diff(50)
-        list_features.append(colname)
-
-        # 3. 累計出来高差分 / 最小取引単位
+        # 2. 累計出来高差分 / 最小取引単位
         colname = "dVol"
         self.df[colname] = np.log1p(self.df["Volume"].diff() / unit) / factor_ticker
         list_features.append(colname)
 
-        # 4. moving IQR
-        colname = "IQR"
-        mv_q1 = self.df["Price"].rolling(period).quantile(0.25)
-        mv_q3 = self.df["Price"].rolling(period).quantile(0.75)
-        self.df[colname] = mv_q3 - mv_q1
-        list_features.append(colname)
-
-        # 5. RSI
-        colname = "RSI"
-        self.df[colname] = ta.RSI(self.df["EMA"], period - 1)
-        list_features.append(colname)
-
         return list_features
 
-    def _get_action_mask(self):
+    def _get_action_mask(self) -> np.ndarray:
+        """
+        行動マスク
+        :return:
+        """
         if self.current_step < self.period:
+            # ウォーミングアップ期間
             return np.array([1, 0, 0, 0], dtype=np.int8)  # 強制HOLD
         if self.transman.position == PositionType.NONE:
+            # 建玉なし
             return np.array([1, 1, 1, 0], dtype=np.int8)  # HOLD, BUY, SELL
         else:
+            # 建玉あり
             return np.array([1, 0, 0, 1], dtype=np.int8)  # HOLD, REPAY
 
     def _get_observation(self):
@@ -298,6 +285,7 @@ class TradingEnv(gym.Env):
         self.current_step = 0
         self.transman.clearAll()
         obs = self._get_observation()
+        # 観測値と行動マスクを返す
         return obs, {"action_mask": self._get_action_mask()}
 
     def step(self, n_action: int):
@@ -319,6 +307,7 @@ class TradingEnv(gym.Env):
             done = True
 
         self.current_step += 1
+        # info 辞書に総PnLと行動マスク
         info = {
             "pnl_total": self.transman.pnl_total,
             "action_mask": self._get_action_mask()
