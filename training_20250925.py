@@ -461,3 +461,65 @@ if __name__ == '__main__':
     print("\n--- 取引履歴 ---")
     print(df_transactions.tail(10))  # 最新の10件を表示
     """
+
+    # 7. 学習済みモデルのテスト (修正案)
+
+    # テスト用のティックデータ（例：別の日のデータ）を読み込む
+    # ※ここでは例として学習に使ったのと同じファイル名を使用しますが、実際は別のテスト用ファイルを使用することを推奨します。
+    test_excel_file = "excel/tick_20250819.xlsx"  # ここを別のテストファイルに変更
+    test_df_data = pd.read_excel(test_excel_file)
+    print(f"\n--- 学習済みモデルの最終評価（テストデータ {test_excel_file}）---")
+
+    # テスト環境を作成し、データを設定
+    # 'raw_data'は環境クラスに渡すデータを想定
+    #test_env = StockTradingEnv(df=test_df_data, initial_balance=1000000)
+    # PPOモデルが VecEnv を使っている場合、テスト環境も VecEnv でラップする必要があります
+    #test_vec_env = make_vec_env(lambda: test_env, n_envs=1)
+    # 修正後のテスト環境作成部分 (TradingEnv を使用する場合)
+    #test_env = TradingEnv(df=test_df_data)
+    #test_vec_env = make_vec_env(lambda: TradingEnv(df=test_df_data), n_envs=1)
+    # make_vec_env の中で環境作成用の関数を定義
+    #test_vec_env = make_vec_env(lambda: TradingEnv(df=test_df_data), n_envs=1)
+
+    # 環境をリセットし、最初の観測を取得
+    #print(test_vec_env.reset())
+    #obs, info = test_vec_env.reset()
+    #terminated = False
+    #truncated = False
+    #total_reward = 0
+    print("\n--- 学習済みモデルの最終評価 ---")
+    eval_env = make_env()
+    obs, info = eval_env.reset()
+    total_pnl = 0.0
+    terminated = False
+    truncated = False
+
+
+    while not terminated and not truncated:
+        # モデルを使って行動を予測 (action は 1要素の NumPy 配列または 0次元配列)
+        action, _states = model.predict(obs, deterministic=True)
+
+        # action を環境に渡す前に、安全にスカラー値（Python int/float）に変換
+        if isinstance(action, np.ndarray):
+            # 0次元配列または要素数1の配列からスカラー値を取り出す
+            # action.item() は 0次元配列または要素数1の配列からPythonスカラー値を取り出せるため、最も安全
+            action_value = action.item()
+        else:
+            # action が既にスカラー値である場合
+            action_value = action
+
+        # 環境を1ステップ進める
+        # action_value をそのまま渡します
+        #obs, reward, terminated, truncated, info = eval_env.step([action_value])
+        obs, reward, terminated, truncated, info = eval_env.step(action_value)
+
+        total_pnl += reward[0]
+
+        # 必要に応じて、ここでエージェントの行動（売買）や残高などを記録・表示
+
+    print(f"--- テスト結果 ---")
+    print(f"最終的な累積報酬（利益）: {total_pnl:.2f}")
+
+    # 環境内の 'info' や最終残高などの評価指標を出力することも可能です
+    final_info = info[0]  # info は VecEnv から返されるため、0番目の要素を取得
+    # 例: print(f"最終残高: {final_info.get('current_balance', 'N/A')}")
