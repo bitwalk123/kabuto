@@ -236,8 +236,12 @@ class TradingEnv(gym.Env):
         factor_ticker = 10  # 調整因子（銘柄別）
         unit = 100  # 最小取引単位
 
-        # 1. 株価
-        colname = "Price"
+        # 最初の株価（株価比率の算出用）
+        price_start = self.df["Price"].iloc[0]
+
+        # 1. 株価比率
+        colname = "PriceRatio"
+        self.df[colname] = self.df["Price"] / price_start
         list_features.append(colname)
 
         # 2. 累計出来高差分 / 最小取引単位
