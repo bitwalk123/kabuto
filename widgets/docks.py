@@ -40,9 +40,7 @@ class DockWidget(QDockWidget):
         super().__init__()
         self.title = title
 
-        self.setFeatures(
-            QDockWidget.DockWidgetFeature.NoDockWidgetFeatures
-        )
+        self.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
         self.dock_title = DockTitle(title)
         self.setTitleBarWidget(self.dock_title)
 
