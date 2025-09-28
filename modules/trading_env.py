@@ -21,14 +21,21 @@ class PositionType(Enum):
 
 class TransactionManager:
     # ナンピンをしない（建玉を１単位しか持たない）売買管理クラス
-    def __init__(self):
-        # modified on 20250922
-        self.reward_sell_buy = 0.1  # 約定ボーナスまたはペナルティ（買建、売建）
-        self.penalty_repay = -0.05  # 約定ボーナスまたはペナルティ（返済）
-        self.reward_pnl_scale = 0.3  # 含み損益のスケール（含み損益✕係数）
-        self.reward_hold = 0.001  # 建玉を保持する報酬
-        self.penalty_none = -0.001  # 建玉を持たないペナルティ
-        self.penalty_rule = -1.0  # 売買ルール違反
+    def __init__(
+            self,
+            reward_sell_buy=0.1,
+            penalty_repay=-0.05,
+            reward_pnl_scale=0.3,
+            reward_hold=0.001,
+            penalty_none=-0.001,
+            penalty_rule=-1.0,
+    ):
+        self.reward_sell_buy = reward_sell_buy  # 約定ボーナスまたはペナルティ（買建、売建）
+        self.penalty_repay = penalty_repay  # 約定ボーナスまたはペナルティ（返済）
+        self.reward_pnl_scale = reward_pnl_scale  # 含み損益のスケール（含み損益✕係数）
+        self.reward_hold = reward_hold  # 建玉を保持する報酬
+        self.penalty_none = penalty_none  # 建玉を持たないペナルティ
+        self.penalty_rule = penalty_rule  # 売買ルール違反
 
         # 売買ルール違反カウンター
         self.penalty_count = 0  # 売買ルール違反ペナルティを繰り返すとカウントを加算

@@ -33,7 +33,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.11.0"
+    __version__ = "0.12.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -106,7 +106,7 @@ class Kabuto(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
         # ウィンドウアイコンとタイトルを設定
-        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "beetle.png")))
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         if debug:
             # デバッグモードを示す文字列を追加
