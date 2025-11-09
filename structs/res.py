@@ -11,9 +11,12 @@ class AppRes:
     dir_excel = 'excel'
     dir_font = 'fonts'
     dir_image = 'images'
+    dir_info = 'info'
+    dir_log = 'logs'
     dir_model = 'models'
     dir_output = 'output'
     dir_report = 'report'
+    dir_temp = 'tmp'
     dir_training = 'training'
     dir_transaction = 'transaction'
 
@@ -31,8 +34,12 @@ class AppRes:
         list_dir = [
             self.dir_collection,
             self.dir_excel,
+            self.dir_info,
+            self.dir_log,
+            self.dir_model,
             self.dir_output,
             self.dir_report,
+            self.dir_temp,
             self.dir_training,
             self.dir_transaction,
         ]

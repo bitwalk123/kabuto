@@ -2,6 +2,14 @@ import datetime
 import glob
 import os
 import re
+from pathlib import Path
+
+from structs.res import AppRes
+
+
+def get_collection_path(res: AppRes, file: str) -> str:
+    path_excel = str(Path(os.path.join(res.dir_collection, file)).resolve())
+    return path_excel
 
 
 def get_name_15min_chart(code: str, dt: datetime.datetime) -> str:
@@ -28,6 +36,7 @@ def get_date_str_from_collections(file_excel: str) -> str:
         date_str = "1970-01-01"
     return date_str
 
+
 def get_date_str_from_report(file_excel: str) -> str:
     pattern = re.compile(r".+report_([0-9]{4}-[0-9]{2}-[0-9]{2})\.csv")
     m = pattern.match(file_excel)
@@ -36,6 +45,7 @@ def get_date_str_from_report(file_excel: str) -> str:
     else:
         date_str = "1970-01-01"
     return date_str
+
 
 def get_sources_for_collection(dir_path: str) -> list:
     """

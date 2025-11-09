@@ -2,8 +2,6 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from modules.rl_ppo_lite_20250901_5 import TradingSimulator
-
 
 class RLModelWorker(QObject):
     # 売買アクションを通知

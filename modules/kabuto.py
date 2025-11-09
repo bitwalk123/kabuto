@@ -33,12 +33,13 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.12.0"
+    __version__ = "0.13.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
+
     # 現在価格取得リクエスト・シグナル
     requestCurrentPrice = Signal(float)
     requestSaveDataFrame = Signal()
@@ -369,6 +370,10 @@ class Kabuto(QMainWindow):
         self.toolbar.updateTime(self.ts_system)
 
     def on_show_transaction(self):
+        """
+        取引明細の表示
+        :return:
+        """
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
 
