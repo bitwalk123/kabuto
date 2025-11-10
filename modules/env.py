@@ -434,29 +434,6 @@ class ObservationManager:
         return obs
 
 
-class ActionMaskWrapper(gym.Wrapper):
-    """
-    SB3 で環境の方策マスクに対応させるためのラッパー
-    """
-
-    def __init__(self, env):
-        super().__init__(env)
-        self.action_mask = None
-
-    def reset(self, **kwargs):
-        obs, info = self.env.reset(**kwargs)
-        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
-        return obs, info
-
-    def step(self, action):
-        if self.action_mask[action] == 0:
-            # 無効なアクションを選んだ場合、強制的に HOLD に置き換える
-            action = 0  # ActionType.HOLD.value
-        obs, reward, done, truncated, info = self.env.step(action)
-        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
-        return obs, reward, done, truncated, info
-
-
 class TradingEnv(gym.Env):
     # 環境クラス
     def __init__(self):
@@ -473,6 +450,7 @@ class TradingEnv(gym.Env):
         self.trans_man = TransactionManager(provider)
         # 観測値管理クラス
         self.obs_man = ObservationManager(provider)
+        self.obs = None
 
         # 観測空間
         n_feature = self.obs_man.n_feature
@@ -512,11 +490,8 @@ class TradingEnv(gym.Env):
     def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
         self.step_current = 0
         self.trans_man.clear()
-        obs = self.obs_man.getObsReset()
+        self.obs = obs = self.obs_man.getObsReset()
         return obs, {"action_mask": self._get_action_mask()}
-
-    def receive_tick(self, ts: float, price: float, volume: float):
-        self.provider.update(ts, price, volume)
 
     @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
@@ -526,12 +501,6 @@ class TradingEnv(gym.Env):
 
         # 報酬
         reward = self.trans_man.evalReward(action)
-        # 観測値
-        obs = self.obs_man.getObs(
-            self.trans_man.getPL4Obs(),  # 含み損益
-            self.trans_man.count_unreal_profit_weighted,  # HOLD 継続カウンタ
-            self.trans_man.position,  # ポジション
-        )
 
         done = False
         truncated = False
@@ -541,7 +510,17 @@ class TradingEnv(gym.Env):
         }
 
         self.step_current += 1
-        return obs, reward, done, truncated, info
+        return self.obs, reward, done, truncated, info
+
+    def receive_tick(self, ts: float, price: float, volume: float):
+        self.provider.update(ts, price, volume)
+        # 観測値
+        self.obs = self.obs_man.getObs(
+            self.trans_man.getPL4Obs(),  # 含み損益
+            self.trans_man.count_unreal_profit_weighted,  # HOLD 継続カウンタ
+            self.trans_man.position,  # ポジション
+        )
+        return self.obs
 
 
 class TrainingEnv(TradingEnv):
@@ -595,4 +574,31 @@ class TrainingEnv(TradingEnv):
             "action_mask": self._get_action_mask()
         }
 
+        return obs, reward, done, truncated, info
+
+
+class ActionMaskWrapper(gym.Wrapper):
+    """
+    SB3 で環境の方策マスクに対応させるためのラッパー
+    """
+
+    def __init__(self, env: TradingEnv):
+        super().__init__(env)
+        self.env = env
+        self.action_mask = None
+
+    def receive_tick(self, ts: float, price: float, volume: float):
+        return self.env.receive_tick(ts, price, volume)
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
+        return obs, info
+
+    def step(self, action):
+        if self.action_mask[action] == 0:
+            # 無効なアクションを選んだ場合、強制的に HOLD に置き換える
+            action = 0  # ActionType.HOLD.value
+        obs, reward, done, truncated, info = self.env.step(action)
+        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
         return obs, reward, done, truncated, info

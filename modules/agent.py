@@ -8,7 +8,7 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 
-from modules.env import TrainingEnv, ActionMaskWrapper
+from modules.env import TrainingEnv, TradingEnv, ActionMaskWrapper
 
 
 class PPOAgentSB3:
@@ -102,7 +102,7 @@ class PPOAgentSB3:
 
 class AgentWorker(QObject):
     # 売買アクションを通知
-    notifyAction = Signal(str)
+    notifyAction = Signal(int)
     finished = Signal()
 
     def __init__(self, path_model: str, autopilot: bool):
@@ -112,18 +112,22 @@ class AgentWorker(QObject):
         self._running = True
         self._stop_flag = False
 
-        # シミュレータ・インスタンス
-        # model_path = "policy.pth"
-        # self.sim = TradingSimulator(model_path)
+        # 学習環境の取得
+        self.env = env = ActionMaskWrapper(TradingEnv())
+        env.reset()
+        # 学習済モデルの読み込み
+        self.model = PPO.load(path_model, env)
 
     @Slot(float, float, float)
     def addData(self, ts, price, volume):
-        action = self.sim.add(ts, price, volume)
+        obs = self.env.receive_tick(ts, price, volume)  # 状態更新のみ
+        action, _ = self.model.predict(obs)  # マスクは内部で反映
         if self.autopilot:
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 売買アクションを通知するシグナル
             self.notifyAction.emit(action)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        obs, reward, _, _, info = self.env.step(action)  # マスク更新と報酬計算
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):
@@ -135,3 +139,5 @@ class AgentWorker(QObject):
         """終了処理"""
         self._stop_flag = True
         self.finished.emit()
+
+

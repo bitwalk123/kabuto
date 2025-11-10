@@ -6,9 +6,11 @@ from PySide6.QtCore import Signal, QThread, Qt
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from funcs.models import get_trained_ppo_model_path
 from modules.chart import TrendChart
 from modules.dock import DockTrader
 from modules.agent import AgentWorker
+from structs.app_enum import ActionType
 from structs.res import AppRes
 
 
@@ -82,8 +84,11 @@ class Trader(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
         self.thread = QThread(self)
-        path_model =
-        self.worker = AgentWorker(path_model, self.dock.option.isAutoPilotEnabled())
+        # 学習済みモデルのパス
+        path_model = get_trained_ppo_model_path(res, code)
+        # AutoPilot フラグ
+        flag_autopilot = self.dock.option.isAutoPilotEnabled()
+        self.worker = AgentWorker(path_model, flag_autopilot)
         self.worker.moveToThread(self.thread)
         self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
         self.sendTradeData.connect(self.worker.addData)
@@ -114,11 +119,13 @@ class Trader(QMainWindow):
         })
 
     def on_action(self, action):
-        if action == "BUY":
+        action_enum = ActionType(action)
+        #print(action_enum)
+        if action_enum == ActionType.BUY:
             self.dock.doBuy()
-        elif action == "SELL":
+        elif action_enum == ActionType.SELL:
             self.dock.doSell()
-        elif action == "REPAY":
+        elif action_enum == ActionType.REPAY:
             self.dock.doRepay()
         else:
             pass
