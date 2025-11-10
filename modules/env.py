@@ -463,6 +463,7 @@ class TradingEnv(gym.Env):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
+
         # ステップ数カウンタ = 現在の行位置
         self.step_current: int = 0
 
@@ -514,9 +515,33 @@ class TradingEnv(gym.Env):
         obs = self.obs_man.getObsReset()
         return obs, {"action_mask": self._get_action_mask()}
 
+    def receive_tick(self, ts: float, price: float, volume: float):
+        self.provider.update(ts, price, volume)
+
     @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
-        ...
+        # --- ウォームアップ期間 (self.n_warmup) は強制 HOLD ---
+        if self.step_current < self.n_warmup:
+            action = ActionType.HOLD.value
+
+        # 報酬
+        reward = self.trans_man.evalReward(action)
+        # 観測値
+        obs = self.obs_man.getObs(
+            self.trans_man.getPL4Obs(),  # 含み損益
+            self.trans_man.count_unreal_profit_weighted,  # HOLD 継続カウンタ
+            self.trans_man.position,  # ポジション
+        )
+
+        done = False
+        truncated = False
+        info = {
+            "pnl_total": self.trans_man.pnl_total,
+            "action_mask": self._get_action_mask()
+        }
+
+        self.step_current += 1
+        return obs, reward, done, truncated, info
 
 
 class TrainingEnv(TradingEnv):
@@ -530,10 +555,10 @@ class TrainingEnv(TradingEnv):
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
 
     def _get_tick(self) -> tuple[float, float, float]:
-        t: float = self.df.at[self.step_current, "Time"]
+        ts: float = self.df.at[self.step_current, "Time"]
         price: float = self.df.at[self.step_current, "Price"]
         volume: float = self.df.at[self.step_current, "Volume"]
-        return t, price, volume
+        return ts, price, volume
 
     @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:

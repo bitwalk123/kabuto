@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QMainWindow
 
 from modules.chart import TrendChart
 from modules.dock import DockTrader
+from modules.agent import AgentWorker
 from structs.res import AppRes
 
 
@@ -80,13 +81,14 @@ class Trader(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
-        # self.thread = QThread(self)
-        # self.worker = RLModelWorker(self.dock.option.isAutoPilotEnabled())
-        # self.worker.moveToThread(self.thread)
-        # self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
-        # self.sendTradeData.connect(self.worker.addData)
-        # self.worker.notifyAction.connect(self.on_action)
-        # self.thread.start()
+        self.thread = QThread(self)
+        path_model =
+        self.worker = AgentWorker(path_model, self.dock.option.isAutoPilotEnabled())
+        self.worker.moveToThread(self.thread)
+        self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
+        self.sendTradeData.connect(self.worker.addData)
+        self.worker.notifyAction.connect(self.on_action)
+        self.thread.start()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
