@@ -505,9 +505,6 @@ class TradingEnv(gym.Env):
             """
             return np.array([1, 0, 0, 1], dtype=np.int8)
 
-    def _get_tick(self) -> tuple[float, float, float]:
-        ...
-
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.trans_man.dict_transaction)
 
@@ -517,6 +514,7 @@ class TradingEnv(gym.Env):
         obs = self.obs_man.getObsReset()
         return obs, {"action_mask": self._get_action_mask()}
 
+    @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
         ...
 
@@ -531,7 +529,6 @@ class TrainingEnv(TradingEnv):
         super().__init__()
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
 
-    @override
     def _get_tick(self) -> tuple[float, float, float]:
         t: float = self.df.at[self.step_current, "Time"]
         price: float = self.df.at[self.step_current, "Price"]
