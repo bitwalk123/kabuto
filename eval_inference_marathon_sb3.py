@@ -1,3 +1,4 @@
+import datetime
 import os
 import sys
 from time import perf_counter
@@ -6,7 +7,7 @@ import pandas as pd
 
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
-from funcs.models import get_ppo_model_path
+from funcs.models import get_ppo_model_path, get_trained_ppo_model_path
 from modules.agent import PPOAgentSB3
 from structs.res import AppRes
 
@@ -24,6 +25,10 @@ if __name__ == "__main__":
     list_file = sorted(os.listdir(res.dir_collection))
     code = "7011"
 
+    dt = datetime.datetime.now()
+    date_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
+    path_result = os.path.join(res.dir_output, f"result_{date_str}.csv")
+
     # ループ開始時刻
     t_start = perf_counter()
     n_tick = 0
@@ -34,7 +39,8 @@ if __name__ == "__main__":
         # Excel ファイルをデータフレームに読み込む
         df = get_excel_sheet(path_excel, code)
         n_tick += len(df)
-        path_model = get_ppo_model_path(res, code)
+        # path_model = get_ppo_model_path(res, code)
+        path_model = get_trained_ppo_model_path(res, code)
 
         result = agent.infer(df, path_model)
         if not result:
@@ -57,6 +63,7 @@ if __name__ == "__main__":
     df_result = pd.DataFrame(dict_result)
     print(df_result)
     print(f"総々収益 : {df_result["総損益"].sum()} 円")
+    df_result.to_csv(path_result)
 
     t_delta = t_end - t_start
     print(f"計測時間 :\t\t{t_delta * 1_000:,.6f} msec")

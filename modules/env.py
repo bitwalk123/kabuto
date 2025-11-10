@@ -7,6 +7,7 @@ import gymnasium as gym
 import numpy as np
 import pandas as pd
 import talib
+from gymnasium.utils import seeding
 
 
 class ActionType(Enum):
@@ -488,6 +489,8 @@ class TradingEnv(gym.Env):
         return pd.DataFrame(self.trans_man.dict_transaction)
 
     def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
+        self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
+
         self.step_current = 0
         self.trans_man.clear()
         self.obs = obs = self.obs_man.getObsReset()
