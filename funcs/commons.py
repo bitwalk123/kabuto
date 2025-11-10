@@ -27,6 +27,13 @@ def get_name_15min_chart_now(code: str) -> str:
     return f"{year:4d}/{month:02d}{day:02d}_15min_chart_{code}.png"
 
 
+def get_name_15min_chart_usd(code: str, dt: datetime.datetime) -> str:
+    year = dt.year
+    month = dt.month
+    day = dt.day
+    return f"{year:4d}/{month:02d}{day:02d}_15min_chart_{code}_usd.png"
+
+
 def get_date_str_from_collections(file_excel: str) -> str:
     pattern = re.compile(r".+ticks_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")
     m = pattern.match(file_excel)

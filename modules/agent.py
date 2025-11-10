@@ -6,8 +6,7 @@ from stable_baselines3.common.env_checker import check_env
 from stable_baselines3.common.logger import configure
 from stable_baselines3.common.monitor import Monitor
 
-from modules.agent_auxiliary import ActionMaskWrapper
-from modules.env import TrainingEnv
+from modules.env import TrainingEnv, ActionMaskWrapper
 
 
 class PPOAgentSB3:

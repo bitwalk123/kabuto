@@ -365,7 +365,7 @@ class ObservationManager:
         if self.provider.price_open == 0.0:
             ma_diff_scaled = 0.0
         else:
-            ma_diff_scaled = ma_diff / self.tickprice  * self.factor_ma_diff
+            ma_diff_scaled = ma_diff / self.tickprice * self.factor_ma_diff
         return np.tanh(ma_diff_scaled)
 
     def getObs(
@@ -434,20 +434,45 @@ class ObservationManager:
         return obs
 
 
+class ActionMaskWrapper(gym.Wrapper):
+    """
+    SB3 で環境の方策マスクに対応させるためのラッパー
+    """
+
+    def __init__(self, env):
+        super().__init__(env)
+        self.action_mask = None
+
+    def reset(self, **kwargs):
+        obs, info = self.env.reset(**kwargs)
+        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
+        return obs, info
+
+    def step(self, action):
+        if self.action_mask[action] == 0:
+            # 無効なアクションを選んだ場合、強制的に HOLD に置き換える
+            action = 0  # ActionType.HOLD.value
+        obs, reward, done, truncated, info = self.env.step(action)
+        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
+        return obs, reward, done, truncated, info
+
+
 class TradingEnv(gym.Env):
     # 環境クラス
     def __init__(self):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
-        # 現在の行位置
+        # ステップ数カウンタ = 現在の行位置
         self.step_current: int = 0
+
         # 特徴量プロバイダ
         self.provider = provider = FeatureProvider()
         # 売買管理クラス
         self.trans_man = TransactionManager(provider)
         # 観測値管理クラス
         self.obs_man = ObservationManager(provider)
+
         # 観測空間
         n_feature = self.obs_man.n_feature
         self.observation_space = gym.spaces.Box(
