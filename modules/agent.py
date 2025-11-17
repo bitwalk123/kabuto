@@ -18,7 +18,8 @@ class PPOAgentSB3:
         self.total_timesteps = 100_000
 
     def train(self, df: pd.DataFrame, path_model: str, log_dir: str, new_model: bool = False):
-        custom_logger = configure(log_dir, ["stdout", "csv", "tensorboard"])  # 出力形式を指定
+        # 出力形式を指定
+        custom_logger = configure(log_dir, ["stdout", "csv", "tensorboard"])
 
         # 学習環境の取得
         env = TrainingEnv(df)
