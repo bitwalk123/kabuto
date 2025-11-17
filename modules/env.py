@@ -179,7 +179,7 @@ class TransactionManager:
         self.factor_vwap_scaling = 0.0
         # 取引コストペナルティ
         # self.penalty_trade_count = 0.01 # 11/17 AlmaLinux
-        self.penalty_trade_count = 0.005 # 11/17 Windows
+        self.penalty_trade_count = 0.005  # 11/17 Windows
         # 建玉なしで僅かな報酬・ペナルティ
         self.reward_hold = -0.00001
 
@@ -627,30 +627,6 @@ class TradingEnv(gym.Env):
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.trans_man.dict_transaction)
 
-    def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
-        self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
-        self.step_current = 0
-        self.trans_man.clear()
-        self.obs = obs = self.obs_man.getObsReset()
-        return obs, {}
-
-    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
-        # --- ウォームアップ期間 (self.n_warmup) は強制 HOLD ---
-        if self.step_current < self.n_warmup:
-            action = ActionType.HOLD.value
-
-        # 報酬
-        reward = self.trans_man.evalReward(action)
-
-        done = False
-        truncated = False
-        info = {
-            "pnl_total": self.trans_man.pnl_total
-        }
-
-        self.step_current += 1
-        return self.obs, reward, done, truncated, info
-
     def receive_tick(self, ts: float, price: float, volume: float):
         self.provider.update(ts, price, volume)
         # 観測値
@@ -660,6 +636,31 @@ class TradingEnv(gym.Env):
             self.trans_man.position,  # ポジション
         )
         return self.obs
+
+    def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
+        self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
+        self.step_current = 0
+        self.trans_man.clear()
+        self.obs = obs = self.obs_man.getObsReset()
+        return obs, {}
+
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
+        # 報酬
+        reward = self.trans_man.evalReward(action)
+
+        terminated = False
+        truncated = False
+        info = {
+            "pnl_total": self.trans_man.pnl_total
+        }
+
+        # 取引回数上限チェック
+        if self.provider.n_trade_max <= self.provider.n_trade:
+            reward += self.trans_man.forceRepay()
+            truncated = True  # 取引回数上限による終了を明示
+
+        self.step_current += 1
+        return self.obs, reward, terminated, truncated, info
 
 
 class TrainingEnv(TradingEnv):
@@ -684,10 +685,6 @@ class TrainingEnv(TradingEnv):
         """
         過去のティックデータを使うことを前提とした step 処理
         """
-        # --- ウォームアップ期間 (self.n_warmup) は強制 HOLD ---
-        if self.step_current < self.n_warmup:
-            action = ActionType.HOLD.value
-
         # データフレームからティックデータを取得
         # t, price, volume = self._get_tick()
         self.provider.update(*self._get_tick())
@@ -703,10 +700,12 @@ class TrainingEnv(TradingEnv):
         terminated = False
         truncated = False
 
+        # ティックデータのステップ上限チェック
         if len(self.df) - 1 <= self.step_current:
             reward += self.trans_man.forceRepay()
             truncated = True  # ← ステップ数上限による終了
 
+        # 取引回数上限チェック
         if self.provider.n_trade_max <= self.provider.n_trade:
             reward += self.trans_man.forceRepay()
             truncated = True  # 取引回数上限による終了を明示

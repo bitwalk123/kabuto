@@ -107,18 +107,23 @@ class AgentWorker(QObject):
 
     @Slot(float, float, float)
     def addData(self, ts, price, volume):
-        obs = self.env.receive_tick(ts, price, volume)  # 状態更新のみ
-        action, _ = self.model.predict(obs)
-        action_masks = self.env.action_masks()  # マスク情報を取得
-        action, _states = self.model.predict(obs, action_masks=action_masks)
+        # 状態更新のみ
+        obs = self.env.receive_tick(ts, price, volume)
+        # マスク情報を取得
+        masks = self.env.action_masks()
+        # モデルによる行動予測
+        action, _states = self.model.predict(obs, action_masks=masks)
 
-        position: PositionType = self.env.trans_man.position
+        # self.autopilot フラグが立っていれば通知
         if self.autopilot:
+            position: PositionType = self.env.trans_man.position
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 売買アクションを通知するシグナル
+            # 売買アクションを通知するシグナル
             self.notifyAction.emit(action, position)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        obs, reward, _, _, info = self.env.step(action)  # マスク更新と報酬計算
+
+        # マスク更新と報酬計算
+        obs, reward, _, _, info = self.env.step(action)
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):
