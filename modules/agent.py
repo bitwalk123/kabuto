@@ -100,7 +100,6 @@ class AgentWorker(QObject):
 
         # 学習環境の取得
         self.env = env = TradingEnv()
-        self.action_masks = env.action_masks()
         env.reset()
         # 学習済モデルの読み込み
         self.model = MaskablePPO.load(path_model, env)
@@ -108,8 +107,9 @@ class AgentWorker(QObject):
     @Slot(float, float, float)
     def addData(self, ts, price, volume):
         obs = self.env.receive_tick(ts, price, volume)  # 状態更新のみ
-        action, _ = self.model.predict(obs)  # マスクは内部で反映
-        action, _states = self.model.predict(obs, action_masks=self.action_masks)
+        action, _ = self.model.predict(obs)
+        action_masks = self.env.action_masks()  # マスク情報を取得
+        action, _states = self.model.predict(obs, action_masks=action_masks)
 
         position: PositionType = self.env.trans_man.position
         if self.autopilot:
