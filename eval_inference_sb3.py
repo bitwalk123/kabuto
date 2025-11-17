@@ -46,21 +46,22 @@ def plot_bar_profit(df: pd.DataFrame):
 
 
 def plot_obs_trend(df: pd.DataFrame, n: int, list_ylabel: list):
-    fig = plt.figure(figsize=(15, 8))
+    fig = plt.figure(figsize=(15, 12))
     ax = dict()
     gs = fig.add_gridspec(
         n, 1,
         wspace=0.0, hspace=0.0,
-        height_ratios=[1 if i < n - 4 else 0.5 for i in range(n)]
+        height_ratios=[1 if i < n - 7 else 0.5 for i in range(n)]
     )
     for i, axis in enumerate(gs.subplots(sharex="col")):
         ax[i] = axis
+        ax[i].set_xlim(0, 19500)
         ax[i].grid()
 
     for i in range(n):
         ax[i].plot(df[i])
         y_min, y_max = ax[i].get_ylim()
-        if i < n - 4:
+        if i < n - 7:
             if -1.1 < y_min:
                 y_min = -1.1
             if y_max < 1.1:
@@ -118,8 +119,8 @@ if __name__ == "__main__":
     # 推論用データ
     # file = "ticks_20250819.xlsx"
     # file = "ticks_20250828.xlsx"
-    # file = "ticks_20251006.xlsx"
-    file = "ticks_20251009.xlsx"
+    file = "ticks_20251006.xlsx"
+    # file = "ticks_20251009.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について推論します。")
@@ -164,7 +165,10 @@ if __name__ == "__main__":
         "RSI",
         "VWAPΔ",
         "含損益",
-        "HOLD",
+        "含損益M",
+        "HOLD1",
+        "HOLD2",
+        "TRADE",
         "NONE",
         "LONG",
         "SHORT"

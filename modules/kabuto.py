@@ -19,13 +19,13 @@ from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
 from modules.dialog import DlgAboutThis
 from modules.dock import DockTrader
+from modules.env import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from modules.statusbar import StatusBar
 from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction
-from structs.app_enum import ActionType
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout

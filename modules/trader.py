@@ -10,7 +10,7 @@ from funcs.models import get_trained_ppo_model_path
 from modules.chart import TrendChart
 from modules.dock import DockTrader
 from modules.agent import AgentWorker
-from structs.app_enum import ActionType
+from modules.env import ActionType, PositionType
 from structs.res import AppRes
 
 
@@ -118,17 +118,26 @@ class Trader(QMainWindow):
             "Volume": self.v_data[0: self.count_data],
         })
 
-    def on_action(self, action):
+    def on_action(self, action: int, position: PositionType):
         action_enum = ActionType(action)
-        #print(action_enum)
         if action_enum == ActionType.BUY:
-            self.dock.doBuy()
+            if position == PositionType.NONE:
+                self.dock.doBuy()
+            elif position == PositionType.LONG:
+                self.dock.doRepay()
+            else:
+                self.logger.error(f"{__name__}: trade rule violation!")
         elif action_enum == ActionType.SELL:
-            self.dock.doSell()
-        elif action_enum == ActionType.REPAY:
-            self.dock.doRepay()
-        else:
+            if position == PositionType.NONE:
+                self.dock.doSell()
+            elif position == PositionType.SHORT:
+                self.dock.doRepay()
+            else:
+                self.logger.error(f"{__name__}: trade rule violation!")
+        elif action_enum == ActionType.HOLD:
             pass
+        else:
+            self.logger.error(f"{__name__}: unknown action type {action_enum}!")
 
     def setLastCloseLine(self, price_close: float):
         """

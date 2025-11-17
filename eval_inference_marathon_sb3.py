@@ -7,7 +7,7 @@ import pandas as pd
 
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
-from funcs.models import get_ppo_model_path, get_trained_ppo_model_path
+from funcs.models import get_trained_ppo_model_path
 from modules.agent import PPOAgentSB3
 from structs.res import AppRes
 
@@ -66,6 +66,6 @@ if __name__ == "__main__":
     df_result.to_csv(path_result)
 
     t_delta = t_end - t_start
-    print(f"計測時間 :\t\t{t_delta * 1_000:,.6f} msec")
+    print(f"計測時間 :\t\t{t_delta * 1_000_000:,.1f} sec")
     print(f"総ティック量 :\t\t{n_tick:,d} tick")
     print(f"時間 / 1 ティック :\t{t_delta / n_tick * 1_000:.6f} msec")
