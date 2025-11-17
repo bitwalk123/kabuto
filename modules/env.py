@@ -180,8 +180,8 @@ class TransactionManager:
         # 取引コストペナルティ
         # self.penalty_trade_count = 0.01 # 11/17 AlmaLinux
         self.penalty_trade_count = 0.005 # 11/17 Windows
-        # 建玉なしで僅かなペナルティ
-        self.reward_hold = 0.00001
+        # 建玉なしで僅かな報酬・ペナルティ
+        self.reward_hold = -0.00001
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
