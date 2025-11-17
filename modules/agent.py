@@ -97,6 +97,7 @@ class AgentWorker(QObject):
         self.autopilot = autopilot
         self._running = True
         self._stop_flag = False
+        self.logger.info(f"{__name__}: model, {path_model} is used.")
 
         # 学習環境の取得
         self.env = env = TradingEnv()
