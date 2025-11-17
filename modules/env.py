@@ -178,7 +178,8 @@ class TransactionManager:
         # エントリ時のVWAP に紐づく報酬ファクター
         self.factor_vwap_scaling = 0.0
         # 取引コストペナルティ
-        self.penalty_trade_count = 0.01
+        # self.penalty_trade_count = 0.01 # 11/17 AlmaLinux
+        self.penalty_trade_count = 0.005 # 11/17 Windows
         # 建玉なしで僅かなペナルティ
         self.reward_hold = 0.00001
 
