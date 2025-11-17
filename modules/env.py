@@ -14,7 +14,6 @@ class ActionType(Enum):
     HOLD = 0
     BUY = 1
     SELL = 2
-    REPAY = 3
 
 
 class PositionType(Enum):
@@ -29,12 +28,20 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+        self.period_rsi = 60
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
         self.cum_vol = 0.0  # VWAP 用 Volume 累積
         self.volume_prev = None  # VWAP 用 前の Volume
+
+        # カウンタ関連
+        self.n_trade_max = 100.0  # 最大取引回数（買建、売建）
+        self.n_trade = 0.0  # 取引カウンタ
+        self.n_hold_divisor = 250.0  # 建玉なしの HOLD カウンタ用除数（仮）
+        self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
+        self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
 
         # キューを定義
         self.n_deque_price = 300
@@ -64,6 +71,14 @@ class FeatureProvider:
         self.cum_vol = 0.0  # VWAP 用 Volume 累積
         self.volume_prev = None  # VWAP 用 前の Volume
 
+        # カウンタ関連
+        # 取引カウンタ
+        self.resetTradeCounter()
+        # 建玉なしの HOLD カウンタ
+        self.resetHoldCounter()
+        # 建玉ありの HOLD カウンタ
+        self.resetHoldPosCounter()
+
         # キュー
         self.deque_price.clear()  # 移動平均など
 
@@ -89,7 +104,7 @@ class FeatureProvider:
         VWAP 乖離率 (deviation rate = dr)
         """
         n = len(self.deque_price)
-        if n > 2:
+        if 2 < n:
             array_rsi = talib.RSI(
                 np.array(self.deque_price, dtype=np.float64),
                 timeperiod=n - 1
@@ -103,6 +118,15 @@ class FeatureProvider:
             return 0.0
         else:
             return (self.price - self.vwap) / self.vwap
+
+    def resetHoldCounter(self):
+        self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
+
+    def resetHoldPosCounter(self):
+        self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
+
+    def resetTradeCounter(self):
+        self.n_trade = 0.0  # 取引カウンタ
 
     def update(self, ts, price, volume):
         # 最新ティック情報を保持
@@ -140,20 +164,23 @@ class TransactionManager:
         self.position = PositionType.NONE  # ポジション（建玉）
         self.price_entry = 0.0  # 取得価格
         self.pnl_total = 0.0  # 総損益
+        self.profit_max = 0.0  # 含み損益の最大値
         self.dict_transaction = self.init_transaction()  # 取引明細
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 含み損益の場合に乗ずる比率
         self.ratio_unreal_profit = 0.1
-        # 含み損益の保持のカウンター
-        self.count_unreal_profit_weighted = 0
         # 含み損益のインセンティブ・ペナルティ比率
-        self.ratio_unreal_profit_weighted = 0.5
+        self.ratio_hold_position = 0.5
         # 報酬の平方根処理で割る因子
         self.factor_reward_sqrt = 25.0
         # エントリ時のVWAP に紐づく報酬ファクター
         self.factor_vwap_scaling = 0.0
+        # 取引コストペナルティ
+        self.penalty_trade_count = 0.01
+        # 建玉なしで僅かなペナルティ
+        self.reward_hold = 0.00001
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -166,12 +193,21 @@ class TransactionManager:
     def clear(self):
         self.clear_position()
         self.pnl_total = 0.0  # 総損益
+        self.provider.resetTradeCounter()  # 取引回数カウンターのリセット
         self.dict_transaction = self.init_transaction()  # 取引明細
 
     def clear_position(self):
         self.position = PositionType.NONE
         self.price_entry = 0.0
-        self.count_unreal_profit_weighted = 0
+        self.profit_max = 0.0  # 含み損益の最大値
+        self.provider.resetHoldPosCounter()
+
+    def calc_penalty_trade_count(self) -> float:
+        """
+        取引回数に応じたペナルティ
+        """
+        penalty = self.provider.n_trade * self.penalty_trade_count
+        return np.tanh(penalty)
 
     def evalReward(self, action: int) -> float:
         action_type = ActionType(action)
@@ -181,11 +217,18 @@ class TransactionManager:
             # ポジションが無い場合に取りうるアクションは HOLD, BUY, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
-                pass
+                # HOLD カウンターのインクリメント
+                self.provider.n_hold += 1.0
+                reward += self.reward_hold
             elif action_type == ActionType.BUY:
+                # HOLD カウンターのリセット
+                self.provider.n_hold = 0.0
                 # =============================================================
                 # 買建 (LONG)
                 # =============================================================
+                # 取引コストペナルティ付与
+                reward -= self.calc_penalty_trade_count()
+                self.provider.n_trade += 1  # 取引回数を更新
                 self.position = PositionType.LONG  # ポジションを更新
                 self.price_entry = self.provider.price  # 取得価格
                 reward += np.tanh(
@@ -195,9 +238,14 @@ class TransactionManager:
                 # -------------------------------------------------------------
                 self.add_transaction("買建")
             elif action_type == ActionType.SELL:
+                # HOLD カウンターのリセット
+                self.provider.n_hold = 0.0
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
+                # 取引コストペナルティ付与
+                reward -= self.calc_penalty_trade_count()
+                self.provider.n_trade += 1  # 取引回数を更新
                 self.position = PositionType.SHORT  # ポジションを更新
                 self.price_entry = self.provider.price  # 取得価格
                 reward += np.tanh(
@@ -206,57 +254,96 @@ class TransactionManager:
                 # 取引明細
                 # -------------------------------------------------------------
                 self.add_transaction("売建")
-            elif action_type == ActionType.REPAY:
-                # 取引ルール違反
-                raise TypeError(f"Violation of transaction rule: {action_type}")
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
-        else:
+        elif self.position == PositionType.LONG:
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            # ポジションが有る場合に取りうるアクションは HOLD, REPAY
+            # LONG ポジションの場合に取りうるアクションは HOLD, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
                 # =============================================================
                 # 含み益
                 # =============================================================
                 profit = self.get_profit()
+                if self.profit_max < profit:
+                    self.profit_max = profit
                 # 含み益を持ち続けることで付与されるボーナス
-                self.count_unreal_profit_weighted += 1
-                k = self.count_unreal_profit_weighted * self.ratio_unreal_profit_weighted
+                self.provider.n_hold_position += 1
+                k = self.provider.n_hold_position * self.ratio_hold_position
                 profit_weighted = profit * (1 + k)
-                reward += self.get_reward_from_profit(profit_weighted) * self.ratio_unreal_profit
+                reward += self.get_reward_sqrt(profit_weighted) * self.ratio_unreal_profit
             elif action_type == ActionType.BUY:
                 # 取引ルール違反
                 raise TypeError(f"Violation of transaction rule: {action_type}")
             elif action_type == ActionType.SELL:
-                # 取引ルール違反
-                raise TypeError(f"Violation of transaction rule: {action_type}")
-            elif action_type == ActionType.REPAY:
                 # =============================================================
-                # 返済
+                # 売埋
                 # =============================================================
+                # 取引コストペナルティ付与
+                reward -= self.calc_penalty_trade_count()
+                self.provider.n_trade += 1  # 取引回数を更新
+                # 含み損益 →　確定損益
                 profit = self.get_profit()
                 # 損益追加
                 self.pnl_total += profit
                 # 報酬
-                reward += self.get_reward_from_profit(profit)
+                reward += self.get_reward_sqrt(profit)
                 # -------------------------------------------------------------
                 # 取引明細
                 # -------------------------------------------------------------
-                if self.position == PositionType.LONG:
-                    # 返済: 買建 (LONG) → 売埋
-                    self.add_transaction("売埋", profit)
-                elif self.position == PositionType.SHORT:
-                    # 返済: 売建 (SHORT) → 買埋
-                    self.add_transaction("買埋", profit)
-                else:
-                    raise TypeError(f"Unknown PositionType: {self.position}")
+                # 返済: 買建 (LONG) → 売埋
+                self.add_transaction("売埋", profit)
                 # =============================================================
                 # ポジション解消
                 # =============================================================
                 self.clear_position()
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
+        elif self.position == PositionType.SHORT:
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+            # SHORT ポジションの場合に取りうるアクションは HOLD, BUY
+            # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+            if action_type == ActionType.HOLD:
+                # =============================================================
+                # 含み益
+                # =============================================================
+                profit = self.get_profit()
+                if self.profit_max < profit:
+                    self.profit_max = profit
+                # 含み益を持ち続けることで付与されるボーナス
+                self.provider.n_hold_position += 1
+                k = self.provider.n_hold_position * self.ratio_hold_position
+                profit_weighted = profit * (1 + k)
+                reward += self.get_reward_sqrt(profit_weighted) * self.ratio_unreal_profit
+            elif action_type == ActionType.BUY:
+                # =============================================================
+                # 買埋
+                # =============================================================
+                # 取引コストペナルティ付与
+                reward -= self.calc_penalty_trade_count()
+                self.provider.n_trade += 1  # 取引回数を更新
+                # 含み損益 →　確定損益
+                profit = self.get_profit()
+                # 損益追加
+                self.pnl_total += profit
+                # 報酬
+                reward += self.get_reward_sqrt(profit)
+                # -------------------------------------------------------------
+                # 取引明細
+                # -------------------------------------------------------------
+                # 返済: 売建 (SHORT) → 買埋
+                self.add_transaction("買埋", profit)
+                # =============================================================
+                # ポジション解消
+                # =============================================================
+                self.clear_position()
+            elif action_type == ActionType.SELL:
+                # 取引ルール違反
+                raise TypeError(f"Violation of transaction rule: {action_type}")
+            else:
+                raise TypeError(f"Unknown ActionType: {action_type}")
+        else:
+            raise TypeError(f"Unknown PositionType: {self.position}")
 
         return reward
 
@@ -281,7 +368,7 @@ class TransactionManager:
         # 損益追加
         self.pnl_total += profit
         # 報酬
-        reward += self.get_reward_from_profit(profit)
+        reward += self.get_reward_sqrt(profit)
         # =====================================================================
         # ポジション解消
         # =====================================================================
@@ -307,7 +394,7 @@ class TransactionManager:
         else:
             return 0.0  # 実現損益
 
-    def get_reward_from_profit(self, profit: float) -> float:
+    def get_reward_sqrt(self, profit: float) -> float:
         # 報酬は呼び値で割る
         return np.sign(profit) * np.sqrt(abs(profit / self.tickprice)) / self.factor_reward_sqrt
 
@@ -319,7 +406,37 @@ class TransactionManager:
         観測値用に、損益用の報酬と同じにスケーリングして含み損益を返す。
         """
         profit = self.get_profit()
-        return self.get_reward_from_profit(profit)
+        return self.get_reward_sqrt(profit)
+
+    def getPLRaw(self) -> float:
+        """
+        含み損益。
+        """
+        return self.get_profit()
+
+    def getPLMax4Obs(self) -> float:
+        """
+        含み損益最大値からの比。
+        """
+        if self.profit_max == 0:
+            return 0.0
+        else:
+            return self.get_reward_sqrt(self.profit_max)
+
+    def getPLMaxRaw(self) -> float:
+        """
+        含み損益最大値。
+        """
+        return self.profit_max
+
+    def getPLRatio4Obs(self) -> float:
+        """
+        含み損益最大値からの比。
+        """
+        if self.profit_max == 0:
+            return 0.0
+        else:
+            return self.get_profit() / self.profit_max
 
     @staticmethod
     def init_transaction() -> dict:
@@ -372,7 +489,7 @@ class ObservationManager:
     def getObs(
             self,
             pl: float = 0,  # 含み損益
-            count_hold: int = 0,  # HOLD 継続カウンタ
+            pl_max: float = 0,  # 含み損益（最大値）
             position: PositionType = PositionType.NONE  # ポジション
     ) -> np.ndarray:
         # 観測値（特徴量）用リスト
@@ -416,14 +533,28 @@ class ObservationManager:
         # ---------------------------------------------------------------------
         list_feature.append(pl)
         # ---------------------------------------------------------------------
-        # 7. HOLD 継続カウンタ
+        # 7. 含み損益（最大）
         # ---------------------------------------------------------------------
-        list_feature.append(np.tanh(count_hold / self.factor_hold))
+        list_feature.append(pl_max)
+        # ---------------------------------------------------------------------
+        # 8. HOLD 継続カウンタ 2（建玉なし）
+        # ---------------------------------------------------------------------
+        list_feature.append(np.tanh(self.provider.n_hold / self.provider.n_hold_divisor))
+        # ---------------------------------------------------------------------
+        # 9. HOLD 継続カウンタ 2（建玉あり）
+        # ---------------------------------------------------------------------
+        list_feature.append(self.provider.n_hold_position / self.factor_hold)
+        # ---------------------------------------------------------------------
+        # 10. 取引回数
+        # ---------------------------------------------------------------------
+        ratio_trade_count = self.provider.n_trade / self.provider.n_trade_max
+        list_feature.append(np.tanh(ratio_trade_count))
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 一旦、配列に変換
         arr_feature = np.array(list_feature, dtype=np.float32)
         # ---------------------------------------------------------------------
         # ポジション情報
-        # 8., 9., 10. PositionType → one-hot (3) ［単位行列へ変換］
+        # 11., 12., 13. PositionType → one-hot (3) ［単位行列へ変換］
         # ---------------------------------------------------------------------
         pos_onehot = np.eye(len(PositionType))[position.value].astype(np.float32)
         # arr_feature と pos_onehot を単純結合
@@ -441,9 +572,17 @@ class TradingEnv(gym.Env):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
-
-        # ステップ数カウンタ = 現在の行位置
+        # 一つ前のアクション
+        self.action_pre = PositionType.NONE
+        # 現在の行位置
         self.step_current: int = 0
+        # 最低建玉保持期間
+        self.count_hold_min: int = 30
+        # 利確しきい値
+        self.threshold_ratio_profit: float = 0.1
+        # 次の取引までのインターバル
+        self.interval_trade = 60
+        self.count_interval_trade = 0
 
         # 特徴量プロバイダ
         self.provider = provider = FeatureProvider()
@@ -464,39 +603,36 @@ class TradingEnv(gym.Env):
         # 行動空間
         self.action_space = gym.spaces.Discrete(len(ActionType))
 
-    def _get_action_mask(self) -> np.ndarray:
+    def _get_tick(self) -> tuple[float, float, float]:
+        ...
+
+    def action_masks(self) -> np.ndarray:
         # 行動マスク
         if self.step_current < self.n_warmup:
-            """
-            ウォーミングアップ期間
-            強制 HOLD
-            """
-            return np.array([1, 0, 0, 0], dtype=np.int8)
+            # ウォーミングアップ期間 → 強制 HOLD
+            return np.array([1, 0, 0], dtype=np.int8)
         elif self.trans_man.position == PositionType.NONE:
-            """
-            建玉なし
-            取りうるアクション: HOLD, BUY, SELL
-            """
-            return np.array([1, 1, 1, 0], dtype=np.int8)
+            # 建玉なし → 取りうるアクション: HOLD, BUY, SELL
+            return np.array([1, 1, 1], dtype=np.int8)
+        elif self.trans_man.position == PositionType.LONG:
+            # 建玉あり LONG → 取りうるアクション: HOLD, SELL
+            return np.array([1, 0, 1], dtype=np.int8)
+        elif self.trans_man.position == PositionType.SHORT:
+            # 建玉あり SHORT → 取りうるアクション: HOLD, BUY
+            return np.array([1, 1, 0], dtype=np.int8)
         else:
-            """
-            建玉あり
-            取りうるアクション: HOLD, REPAY
-            """
-            return np.array([1, 0, 0, 1], dtype=np.int8)
+            raise TypeError(f"Unknown PositionType: {self.trans_man.position}")
 
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.trans_man.dict_transaction)
 
     def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
-
         self.step_current = 0
         self.trans_man.clear()
         self.obs = obs = self.obs_man.getObsReset()
-        return obs, {"action_mask": self._get_action_mask()}
+        return obs, {}
 
-    @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
         # --- ウォームアップ期間 (self.n_warmup) は強制 HOLD ---
         if self.step_current < self.n_warmup:
@@ -508,8 +644,7 @@ class TradingEnv(gym.Env):
         done = False
         truncated = False
         info = {
-            "pnl_total": self.trans_man.pnl_total,
-            "action_mask": self._get_action_mask()
+            "pnl_total": self.trans_man.pnl_total
         }
 
         self.step_current += 1
@@ -520,7 +655,7 @@ class TradingEnv(gym.Env):
         # 観測値
         self.obs = self.obs_man.getObs(
             self.trans_man.getPL4Obs(),  # 含み損益
-            self.trans_man.count_unreal_profit_weighted,  # HOLD 継続カウンタ
+            self.trans_man.getPLMax4Obs(),  # 含み損益最大値
             self.trans_man.position,  # ポジション
         )
         return self.obs
@@ -536,11 +671,12 @@ class TrainingEnv(TradingEnv):
         super().__init__()
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
 
+    @override
     def _get_tick(self) -> tuple[float, float, float]:
-        ts: float = self.df.at[self.step_current, "Time"]
+        t: float = self.df.at[self.step_current, "Time"]
         price: float = self.df.at[self.step_current, "Price"]
         volume: float = self.df.at[self.step_current, "Volume"]
-        return ts, price, volume
+        return t, price, volume
 
     @override
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
@@ -559,49 +695,25 @@ class TrainingEnv(TradingEnv):
         # 観測値
         obs = self.obs_man.getObs(
             self.trans_man.getPL4Obs(),  # 含み損益
-            self.trans_man.count_unreal_profit_weighted,  # HOLD 継続カウンタ
+            self.trans_man.getPLMax4Obs(),  # 含み損益最大値
             self.trans_man.position,  # ポジション
         )
 
-        done = False
+        terminated = False
         truncated = False
 
-        if self.step_current >= len(self.df) - 1:
+        if len(self.df) - 1 <= self.step_current:
             reward += self.trans_man.forceRepay()
-            done = True
-            truncated = True  # ← 時間切れによる終了を明示
+            truncated = True  # ← ステップ数上限による終了
+
+        if self.provider.n_trade_max <= self.provider.n_trade:
+            reward += self.trans_man.forceRepay()
+            truncated = True  # 取引回数上限による終了を明示
 
         self.step_current += 1
-        info = {
-            "pnl_total": self.trans_man.pnl_total,
-            "action_mask": self._get_action_mask()
-        }
+        info = {"pnl_total": self.trans_man.pnl_total}
 
-        return obs, reward, done, truncated, info
+        # 保持するアクションを更新
+        self.action_pre = action
 
-
-class ActionMaskWrapper(gym.Wrapper):
-    """
-    SB3 で環境の方策マスクに対応させるためのラッパー
-    """
-
-    def __init__(self, env: TradingEnv):
-        super().__init__(env)
-        self.env = env
-        self.action_mask = None
-
-    def receive_tick(self, ts: float, price: float, volume: float):
-        return self.env.receive_tick(ts, price, volume)
-
-    def reset(self, **kwargs):
-        obs, info = self.env.reset(**kwargs)
-        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
-        return obs, info
-
-    def step(self, action):
-        if self.action_mask[action] == 0:
-            # 無効なアクションを選んだ場合、強制的に HOLD に置き換える
-            action = 0  # ActionType.HOLD.value
-        obs, reward, done, truncated, info = self.env.step(action)
-        self.action_mask = info.get("action_mask", np.ones(self.env.action_space.n, dtype=np.int8))
-        return obs, reward, done, truncated, info
+        return obs, reward, terminated, truncated, info
