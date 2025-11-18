@@ -119,7 +119,7 @@ class FeatureProvider:
             )
             return array_rsi[-1]
         else:
-            return 0.
+            return 50.
 
     def getVWAPdr(self) -> float:
         if self.vwap == 0.0:
