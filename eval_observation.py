@@ -73,7 +73,7 @@ if __name__ == "__main__":
         ts = df.loc[row, "Time"]
         price = df.loc[row, "Price"]
         volume = df.loc[row, "Volume"]
-        obs = env.receive_tick(ts, price, volume)
+        obs = env.getObservation(ts, price, volume)
         list_obs.append(obs)
 
     list_name = [

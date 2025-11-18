@@ -111,8 +111,6 @@ class WorkerAgent(QObject):
     @Slot(float, float, float)
     def addData(self, ts, price, volume):
         if not self.done:
-            # 状態更新のみ
-            # obs = self.env.receive_tick(ts, price, volume)
             # マスク情報を取得
             masks = self.env.action_masks()
             # モデルによる行動予測
@@ -122,12 +120,13 @@ class WorkerAgent(QObject):
             if self.autopilot:
                 position: PositionType = self.env.reward_man.position
                 if ActionType(action) != ActionType.HOLD:
-                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    # 売買アクションを通知するシグナル
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    # 売買アクションを通知するシグナル（HOLD の時は通知しない）
                     self.notifyAction.emit(action, position)
-                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             # マスク更新と報酬計算
+            self.env.setData(ts, price, volume)
             self.obs, reward, terminated, truncated, info = self.env.step(action)
             if terminated or truncated:
                 self.done = True
