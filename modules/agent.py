@@ -6,7 +6,8 @@ from PySide6.QtCore import QObject, Signal, Slot
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.logger import configure
 
-from modules.env import TrainingEnv, TradingEnv, PositionType, ActionType
+from modules.env import TrainingEnv, TradingEnv
+from structs.app_enum import ActionType, PositionType
 
 
 class PPOAgentSB3:
@@ -119,7 +120,7 @@ class AgentWorker(QObject):
 
             # self.autopilot フラグが立っていれば通知
             if self.autopilot:
-                position: PositionType = self.env.trans_man.position
+                position: PositionType = self.env.reward_man.position
                 if ActionType(action) != ActionType.HOLD:
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                     # 売買アクションを通知するシグナル

@@ -19,7 +19,7 @@ from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
 from modules.dialog import DlgAboutThis
 from modules.dock import DockTrader
-from modules.env import ActionType
+from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from modules.statusbar import StatusBar

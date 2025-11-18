@@ -3,7 +3,7 @@ import logging
 import pandas as pd
 
 from funcs.tide import conv_datetime_from_timestamp
-from modules.env import ActionType
+from structs.app_enum import ActionType
 
 
 class PositionManager:

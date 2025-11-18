@@ -10,7 +10,7 @@ from funcs.models import get_trained_ppo_model_path
 from modules.chart import TrendChart
 from modules.dock import DockTrader
 from modules.agent import AgentWorker
-from modules.env import ActionType, PositionType
+from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 
 
