@@ -9,7 +9,7 @@ import pandas as pd
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_ppo_model_path
-from modules.agent import PPOAgentSB3
+from modules.agent import MaskablePPOAgent
 from structs.res import AppRes
 
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     pattern = re.compile(r".+(\d{8})\.xlsx")
 
     res = AppRes()
-    agent = PPOAgentSB3()
+    agent = MaskablePPOAgent()
 
     dt = datetime.datetime.now()
     date_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"

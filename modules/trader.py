@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QMainWindow
 from funcs.models import get_trained_ppo_model_path
 from modules.chart import TrendChart
 from modules.dock import DockTrader
-from modules.agent import AgentWorker
+from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 
@@ -88,7 +88,7 @@ class Trader(QMainWindow):
         path_model = get_trained_ppo_model_path(res, code)
         # AutoPilot フラグ
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
-        self.worker = AgentWorker(path_model, flag_autopilot)
+        self.worker = WorkerAgent(path_model, flag_autopilot)
         self.worker.moveToThread(self.thread)
         self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
         self.sendTradeData.connect(self.worker.addData)

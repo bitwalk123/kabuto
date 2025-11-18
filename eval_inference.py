@@ -8,7 +8,7 @@ import pandas as pd
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_ppo_model_path
-from modules.agent import PPOAgentSB3
+from modules.agent import MaskablePPOAgent
 from structs.res import AppRes
 
 FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
@@ -117,7 +117,7 @@ def plot_tick_trend(df: pd.DataFrame):
 
 if __name__ == "__main__":
     res = AppRes()
-    agent = PPOAgentSB3()
+    agent = MaskablePPOAgent()
 
     # 推論用データ
     # file = "ticks_20250819.xlsx"

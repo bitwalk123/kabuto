@@ -10,7 +10,7 @@ from modules.env import TrainingEnv, TradingEnv
 from structs.app_enum import ActionType, PositionType
 
 
-class PPOAgentSB3:
+class MaskablePPOAgent:
     def __init__(self):
         super().__init__()
         # 結果保持用辞書
@@ -88,7 +88,7 @@ class PPOAgentSB3:
         return True
 
 
-class AgentWorker(QObject):
+class WorkerAgent(QObject):
     # 売買アクションを通知
     notifyAction = Signal(int, PositionType)
     finished = Signal()
