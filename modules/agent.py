@@ -6,7 +6,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.logger import configure
 
-from modules.env import TrainingEnv, TradingEnv, PositionType
+from modules.env import TrainingEnv, TradingEnv, PositionType, ActionType
 
 
 class PPOAgentSB3:
@@ -48,7 +48,7 @@ class PPOAgentSB3:
         # 学習環境の解放
         env.close()
 
-    def infer(self, df: pd.DataFrame, path_model: str) -> bool:
+    def infer(self, df: pd.DataFrame, path_model: str, flag_all: bool = False) -> bool:
         # 学習環境の取得
         env = TrainingEnv(df)
 
@@ -95,6 +95,7 @@ class AgentWorker(QObject):
     def __init__(self, path_model: str, autopilot: bool):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.done = False
         self.autopilot = autopilot
         self._running = True
         self._stop_flag = False
@@ -102,29 +103,33 @@ class AgentWorker(QObject):
 
         # 学習環境の取得
         self.env = env = TradingEnv()
-        env.reset()
+        self.obs, _ = env.reset()
         # 学習済モデルの読み込み
         self.model = MaskablePPO.load(path_model, env)
 
     @Slot(float, float, float)
     def addData(self, ts, price, volume):
-        # 状態更新のみ
-        obs = self.env.receive_tick(ts, price, volume)
-        # マスク情報を取得
-        masks = self.env.action_masks()
-        # モデルによる行動予測
-        action, _states = self.model.predict(obs, action_masks=masks)
+        if not self.done:
+            # 状態更新のみ
+            # obs = self.env.receive_tick(ts, price, volume)
+            # マスク情報を取得
+            masks = self.env.action_masks()
+            # モデルによる行動予測
+            action, _states = self.model.predict(self.obs, action_masks=masks)
 
-        # self.autopilot フラグが立っていれば通知
-        if self.autopilot:
-            position: PositionType = self.env.trans_man.position
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 売買アクションを通知するシグナル
-            self.notifyAction.emit(action, position)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # self.autopilot フラグが立っていれば通知
+            if self.autopilot:
+                position: PositionType = self.env.trans_man.position
+                if ActionType(action) != ActionType.HOLD:
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    # 売買アクションを通知するシグナル
+                    self.notifyAction.emit(action, position)
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # マスク更新と報酬計算
-        obs, reward, _, _, info = self.env.step(action)
+            # マスク更新と報酬計算
+            self.obs, reward, terminated, truncated, info = self.env.step(action)
+            if terminated or truncated:
+                self.done = True
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):

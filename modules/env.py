@@ -663,19 +663,19 @@ class TradingEnv(gym.Env):
         return obs, {}
 
     def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
+        info = dict()
         # 報酬
         reward = self.trans_man.evalReward(action)
 
         terminated = False
         truncated = False
-        info = {
-            "pnl_total": self.trans_man.pnl_total
-        }
+        info["pnl_total"] = self.trans_man.pnl_total
 
         # 取引回数上限チェック
         if self.provider.n_trade_max <= self.provider.n_trade:
             reward += self.trans_man.forceRepay()
             truncated = True  # 取引回数上限による終了を明示
+            info["done_reason"] = "terminated:max_trades"
 
         self.step_current += 1
         return self.obs, reward, terminated, truncated, info
@@ -703,6 +703,7 @@ class TrainingEnv(TradingEnv):
         """
         過去のティックデータを使うことを前提とした step 処理
         """
+        info = dict()
         # データフレームからティックデータを取得
         # t, price, volume = self._get_tick()
         self.provider.update(*self._get_tick())
@@ -722,14 +723,16 @@ class TrainingEnv(TradingEnv):
         if len(self.df) - 1 <= self.step_current:
             reward += self.trans_man.forceRepay()
             truncated = True  # ← ステップ数上限による終了
+            info["done_reason"] = "terminated: last_tick"
 
         # 取引回数上限チェック
         if self.provider.n_trade_max <= self.provider.n_trade:
             reward += self.trans_man.forceRepay()
             truncated = True  # 取引回数上限による終了を明示
+            info["done_reason"] = "terminated: max_trades"
 
         self.step_current += 1
-        info = {"pnl_total": self.trans_man.pnl_total}
+        info["pnl_total"] = self.trans_man.pnl_total
 
         # 保持するアクションを更新
         self.action_pre = action

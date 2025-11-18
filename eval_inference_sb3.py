@@ -133,7 +133,7 @@ if __name__ == "__main__":
     df = get_excel_sheet(path_excel, code)
     path_model = get_ppo_model_path(res, code)
 
-    result = agent.infer(df, path_model)
+    result = agent.infer(df, path_model, flag_all=True)
     if not result:
         sys.exit("正常終了しませんでした。")
 
