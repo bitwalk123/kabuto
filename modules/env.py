@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import talib
 from gymnasium.utils import seeding
+from scipy.interpolate import make_smoothing_spline
 
 
 class ActionType(Enum):
@@ -26,9 +27,10 @@ class FeatureProvider:
     def __init__(self):
         self.ts = 0
         self.price = 0
+        self.period_rsi = 180
         self.volume = 0
         self.vwap = 0
-        self.period_rsi = 60
+        self.x = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -45,7 +47,11 @@ class FeatureProvider:
 
         # キューを定義
         self.n_deque_price = 300
-        self.deque_price = deque(maxlen=self.n_deque_price)  # 移動平均など
+        self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
+
+        self.deque_x_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
+        self.deque_y_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
+        self.deque_ys_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
 
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
@@ -64,6 +70,7 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+        self.x = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -81,6 +88,10 @@ class FeatureProvider:
 
         # キュー
         self.deque_price.clear()  # 移動平均など
+
+        self.deque_x_rsi.clear()  # for RSI
+        self.deque_y_rsi.clear()  # for RSI
+        self.deque_ys_rsi.clear()  # for RSI
 
     def getMA(self, period: int) -> float:
         """
@@ -100,13 +111,10 @@ class FeatureProvider:
         return self.price / self.price_open if self.price_open > 0 else 0.0
 
     def getRSI(self) -> float:
-        """
-        VWAP 乖離率 (deviation rate = dr)
-        """
-        n = len(self.deque_price)
+        n = len(self.deque_ys_rsi)
         if 2 < n:
             array_rsi = talib.RSI(
-                np.array(self.deque_price, dtype=np.float64),
+                np.array(self.deque_ys_rsi, dtype=np.float64),
                 timeperiod=n - 1
             )
             return array_rsi[-1]
@@ -117,7 +125,8 @@ class FeatureProvider:
         if self.vwap == 0.0:
             return 0.0
         else:
-            return (self.price - self.vwap) / self.vwap
+            # return (self.price - self.vwap) / self.vwap
+            return (self.deque_ys_rsi[-1] - self.vwap) / self.vwap
 
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
@@ -143,7 +152,16 @@ class FeatureProvider:
 
         # キューへの追加
         self.deque_price.append(price)
-        # self.deque_dvol_002.append(volume)
+
+        # for RSI
+        self.deque_x_rsi.append(self.x)
+        self.deque_y_rsi.append(float(price))
+        self.x += 1.0
+        if len(self.deque_x_rsi) > 5:
+            spl = make_smoothing_spline(self.deque_x_rsi, self.deque_y_rsi, lam=10 ** 6)
+            self.deque_ys_rsi.append(spl(self.deque_x_rsi[-1]))
+        else:
+            self.deque_ys_rsi.append(float(price))
 
 
 class TransactionManager:

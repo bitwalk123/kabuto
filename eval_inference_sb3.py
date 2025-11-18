@@ -67,6 +67,9 @@ def plot_obs_trend(df: pd.DataFrame, n: int, list_ylabel: list):
             if y_max < 1.1:
                 y_max = 1.1
             ax[i].set_ylim(y_min, y_max)
+            if list_ylabel[i] == "RSI":
+                ax[i].axhline(0.6, linewidth=0.5, color="C1")
+                ax[i].axhline(-0.6, linewidth=0.5, color="C1")
         else:
             if y_max < 1.1:
                 y_max = 1.1
