@@ -199,7 +199,7 @@ class TransactionManager:
         # self.penalty_trade_count = 0.01 # 11/17 AlmaLinux
         self.penalty_trade_count = 0.005  # 11/17 Windows
         # 建玉なしで僅かな報酬・ペナルティ
-        self.reward_hold = -0.00001
+        self.reward_penalty_hold = -0.00001
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -238,7 +238,7 @@ class TransactionManager:
             if action_type == ActionType.HOLD:
                 # HOLD カウンターのインクリメント
                 self.provider.n_hold += 1.0
-                reward += self.reward_hold
+                reward += self.reward_penalty_hold
             elif action_type == ActionType.BUY:
                 # HOLD カウンターのリセット
                 self.provider.n_hold = 0.0

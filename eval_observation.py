@@ -60,10 +60,7 @@ if __name__ == "__main__":
     tz = 9. * 60 * 60
 
     # 推論用データ
-    # file = "ticks_20250819.xlsx"
-    # file = "ticks_20250828.xlsx"
-    file = "ticks_20251006.xlsx"
-    # file = "ticks_20251009.xlsx"
+    file = "ticks_20251118.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について観測値を算出します。")
