@@ -6,9 +6,7 @@ from typing import override
 import gymnasium as gym
 import numpy as np
 import pandas as pd
-import talib
 from gymnasium.utils import seeding
-from scipy.interpolate import make_smoothing_spline
 
 
 class ActionType(Enum):
@@ -27,10 +25,8 @@ class FeatureProvider:
     def __init__(self):
         self.ts = 0
         self.price = 0
-        self.period_rsi = 180
         self.volume = 0
         self.vwap = 0
-        self.x = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -49,10 +45,6 @@ class FeatureProvider:
         self.n_deque_price = 300
         self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
 
-        self.deque_x_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
-        self.deque_y_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
-        self.deque_ys_rsi = deque(maxlen=self.period_rsi + 1)  # for RSI
-
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
             diff_volume = 0.0
@@ -70,7 +62,6 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
-        self.x = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -89,10 +80,6 @@ class FeatureProvider:
         # キュー
         self.deque_price.clear()  # 移動平均など
 
-        self.deque_x_rsi.clear()  # for RSI
-        self.deque_y_rsi.clear()  # for RSI
-        self.deque_ys_rsi.clear()  # for RSI
-
     def getMA(self, period: int) -> float:
         """
         移動平均 (Moving Average = MA)
@@ -110,23 +97,12 @@ class FeatureProvider:
         """
         return self.price / self.price_open if self.price_open > 0 else 0.0
 
-    def getRSI(self) -> float:
-        n = len(self.deque_ys_rsi)
-        if 2 < n:
-            array_rsi = talib.RSI(
-                np.array(self.deque_ys_rsi, dtype=np.float64),
-                timeperiod=n - 1
-            )
-            return array_rsi[-1]
-        else:
-            return 50.
-
     def getVWAPdr(self) -> float:
         if self.vwap == 0.0:
             return 0.0
         else:
-            # return (self.price - self.vwap) / self.vwap
-            return (self.deque_ys_rsi[-1] - self.vwap) / self.vwap
+            return (self.price - self.vwap) / self.vwap
+            # return (self.deque_ys_rsi[-1] - self.vwap) / self.vwap
 
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
@@ -153,16 +129,6 @@ class FeatureProvider:
         # キューへの追加
         self.deque_price.append(price)
 
-        # for RSI
-        self.deque_x_rsi.append(self.x)
-        self.deque_y_rsi.append(float(price))
-        self.x += 1.0
-        if len(self.deque_x_rsi) > 5:
-            spl = make_smoothing_spline(self.deque_x_rsi, self.deque_y_rsi, lam=10 ** 6)
-            self.deque_ys_rsi.append(spl(self.deque_x_rsi[-1]))
-        else:
-            self.deque_ys_rsi.append(float(price))
-
 
 class TransactionManager:
     """
@@ -187,19 +153,18 @@ class TransactionManager:
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 含み損益の場合に乗ずる比率
-        self.ratio_unreal_profit = 0.1
         # 含み損益のインセンティブ・ペナルティ比率
         self.ratio_hold_position = 0.5
+        # 含み損益の場合に乗ずる比率
+        self.ratio_unreal_profit = 0.075
         # 報酬の平方根処理で割る因子
         self.factor_reward_sqrt = 25.0
         # エントリ時のVWAP に紐づく報酬ファクター
         self.factor_vwap_scaling = 0.0
         # 取引コストペナルティ
-        # self.penalty_trade_count = 0.01 # 11/17 AlmaLinux
-        self.penalty_trade_count = 0.005  # 11/17 Windows
+        self.penalty_trade_count = 0.01
         # 建玉なしで僅かな報酬・ペナルティ
-        self.reward_penalty_hold = -0.00001
+        self.reward_penalty_hold = +0.00001
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -521,50 +486,37 @@ class ObservationManager:
         list_feature.append(price_ratio)
         # 移動平均
         ma_060 = self.provider.getMA(60)
-        ma_120 = self.provider.getMA(120)
         ma_300 = self.provider.getMA(300)
         # ---------------------------------------------------------------------
-        # 2. MAΔ1: 移動平均の差分 MA60 - MA120
+        # 2. MAΔ: 移動平均の差分 MA60 - MA300
         # ---------------------------------------------------------------------
-        # 移動平均の算出 1
-        ma_diff_1 = ma_060 - ma_120
-        list_feature.append(self.func_ma_diff_scaling(ma_diff_1))
+        # 移動平均の算出
+        ma_diff = ma_060 - ma_300
+        list_feature.append(self.func_ma_diff_scaling(ma_diff))
         # ---------------------------------------------------------------------
-        # 3. MAΔ2: 移動平均の差分 MA60 - MA300
-        # ---------------------------------------------------------------------
-        # 移動平均の算出 2
-        ma_diff_2 = ma_060 - ma_300
-        list_feature.append(self.func_ma_diff_scaling(ma_diff_2))
-        # ---------------------------------------------------------------------
-        # 4. RSI: [-1, 1] に標準化
-        # ---------------------------------------------------------------------
-        rsi = self.provider.getRSI()
-        rsi_scaled = (rsi - 50.) / 50.
-        list_feature.append(rsi_scaled)
-        # ---------------------------------------------------------------------
-        # 5. VWAP 乖離率 (deviation rate = dr)
+        # 3. VWAP 乖離率 (deviation rate = dr)
         # ---------------------------------------------------------------------
         vwap_dr = self.provider.getVWAPdr()
         vwap_dr_scaled = np.clip(vwap_dr * self.factor_vwap, -1.0, 1.0)
         list_feature.append(vwap_dr_scaled)
         # ---------------------------------------------------------------------
-        # 6. 含み損益
+        # 4. 含み損益
         # ---------------------------------------------------------------------
         list_feature.append(pl)
         # ---------------------------------------------------------------------
-        # 7. 含み損益（最大）
+        # 5. 含み損益（最大）
         # ---------------------------------------------------------------------
         list_feature.append(pl_max)
         # ---------------------------------------------------------------------
-        # 8. HOLD 継続カウンタ 2（建玉なし）
+        # 6. HOLD 継続カウンタ 2（建玉なし）
         # ---------------------------------------------------------------------
         list_feature.append(np.tanh(self.provider.n_hold / self.provider.n_hold_divisor))
         # ---------------------------------------------------------------------
-        # 9. HOLD 継続カウンタ 2（建玉あり）
+        # 7. HOLD 継続カウンタ 2（建玉あり）
         # ---------------------------------------------------------------------
         list_feature.append(self.provider.n_hold_position / self.factor_hold)
         # ---------------------------------------------------------------------
-        # 10. 取引回数
+        # 8. 取引回数
         # ---------------------------------------------------------------------
         ratio_trade_count = self.provider.n_trade / self.provider.n_trade_max
         list_feature.append(np.tanh(ratio_trade_count))
@@ -573,7 +525,7 @@ class ObservationManager:
         arr_feature = np.array(list_feature, dtype=np.float32)
         # ---------------------------------------------------------------------
         # ポジション情報
-        # 11., 12., 13. PositionType → one-hot (3) ［単位行列へ変換］
+        # 9., 10., 11. PositionType → one-hot (3) ［単位行列へ変換］
         # ---------------------------------------------------------------------
         pos_onehot = np.eye(len(PositionType))[position.value].astype(np.float32)
         # arr_feature と pos_onehot を単純結合
@@ -591,8 +543,6 @@ class TradingEnv(gym.Env):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
-        # 一つ前のアクション
-        self.action_pre = PositionType.NONE
         # 現在の行位置
         self.step_current: int = 0
         # 最低建玉保持期間
@@ -707,8 +657,10 @@ class TrainingEnv(TradingEnv):
         # データフレームからティックデータを取得
         # t, price, volume = self._get_tick()
         self.provider.update(*self._get_tick())
+
         # 報酬
         reward = self.trans_man.evalReward(action)
+
         # 観測値
         obs = self.obs_man.getObs(
             self.trans_man.getPL4Obs(),  # 含み損益
@@ -733,8 +685,5 @@ class TrainingEnv(TradingEnv):
 
         self.step_current += 1
         info["pnl_total"] = self.trans_man.pnl_total
-
-        # 保持するアクションを更新
-        self.action_pre = action
 
         return obs, reward, terminated, truncated, info

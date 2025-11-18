@@ -22,7 +22,7 @@ def plot_obs_trend(df: pd.DataFrame, title: str):
     plt.rcParams["font.family"] = font_prop.get_name()
     plt.rcParams["font.size"] = 9
 
-    fig = plt.figure(figsize=(6, 5))
+    fig = plt.figure(figsize=(6, 3))
     ax = dict()
     n = len(df.columns)
     gs = fig.add_gridspec(
@@ -78,9 +78,7 @@ if __name__ == "__main__":
 
     list_name = [
         "株価比",
-        "MAΔ1",
-        "MAΔ2",
-        "RSI",
+        "MAΔ",
         "VWAPΔ",
         "含損益",
         "含損益M",
@@ -96,6 +94,6 @@ if __name__ == "__main__":
     list_dt = pd.to_datetime([datetime.datetime.fromtimestamp(ts) for ts in df["Time"]])
     df_obs.index = list_dt[:len(df_obs)]
     print(df_obs)
-    list_col = list_name[:5]
+    list_col = list_name[:3]
     title = f"Observation trends from tick data\n{file} / {code}"
     plot_obs_trend(df_obs[list_col], title)

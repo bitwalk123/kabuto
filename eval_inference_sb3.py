@@ -46,7 +46,7 @@ def plot_bar_profit(df: pd.DataFrame):
 
 
 def plot_obs_trend(df: pd.DataFrame, n: int, list_ylabel: list):
-    fig = plt.figure(figsize=(15, 12))
+    fig = plt.figure(figsize=(15, 11))
     ax = dict()
     gs = fig.add_gridspec(
         n, 1,
@@ -163,9 +163,7 @@ if __name__ == "__main__":
     print(f"観測数 : {rows}")
     list_name = [
         "株価比",
-        "MAΔ1",
-        "MAΔ2",
-        "RSI",
+        "MAΔ",
         "VWAPΔ",
         "含損益",
         "含損益M",
