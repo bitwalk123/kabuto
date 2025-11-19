@@ -65,8 +65,8 @@ class RewardManager:
                 # HOLD カウンターのインクリメント
                 self.provider.n_hold += 1
             elif action_type == ActionType.BUY:
-                reward -= self.proc_hft_penalty()  # 高頻度取引ペナルティ
-                reward -= self.proc_no_volatility_penalty()  # ボラティリティ無しペナルティ
+                reward -= self.proc_penalty_hft_entry()  # 高頻度取引ペナルティ
+                reward -= self.proc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 買建 (LONG)
                 # =============================================================
@@ -78,8 +78,8 @@ class RewardManager:
                 # -------------------------------------------------------------
                 self.add_transaction("買建")
             elif action_type == ActionType.SELL:
-                reward -= self.proc_hft_penalty()  # 高頻度取引ペナルティ
-                reward -= self.proc_no_volatility_penalty()  # ボラティリティ無しペナルティ
+                reward -= self.proc_penalty_hft_entry()  # 高頻度取引ペナルティ
+                reward -= self.proc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
@@ -264,7 +264,7 @@ class RewardManager:
             "損益": [],
         }
 
-    def proc_hft_penalty(self) -> float:
+    def proc_penalty_hft_entry(self) -> float:
         """
         高頻度売買 (High Frequency Trading) に対するペナルティ
         :return:
@@ -275,7 +275,7 @@ class RewardManager:
         self.provider.n_hold = 0
         return penalty
 
-    def proc_no_volatility_penalty(self) -> float:
+    def proc_penalty_no_volatility(self) -> float:
         """
         ボラタイルが無い時のエントリに対するペナルティ
         :return:
