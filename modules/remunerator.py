@@ -65,7 +65,8 @@ class RewardManager:
                 # HOLD カウンターのインクリメント
                 self.provider.n_hold += 1
             elif action_type == ActionType.BUY:
-                reward -= self.proc_hft_penalty()
+                reward -= self.proc_hft_penalty()  # 高頻度取引ペナルティ
+                reward -= self.proc_no_volatility_penalty()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 買建 (LONG)
                 # =============================================================
@@ -77,7 +78,8 @@ class RewardManager:
                 # -------------------------------------------------------------
                 self.add_transaction("買建")
             elif action_type == ActionType.SELL:
-                reward -= self.proc_hft_penalty()
+                reward -= self.proc_hft_penalty()  # 高頻度取引ペナルティ
+                reward -= self.proc_no_volatility_penalty()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
@@ -158,7 +160,6 @@ class RewardManager:
             raise TypeError(f"Unknown PositionType: {self.position}")
 
         return reward
-
 
     def forceRepay(self) -> float:
         reward = 0.0
@@ -274,7 +275,18 @@ class RewardManager:
         self.provider.n_hold = 0
         return penalty
 
-    def proc_unrealized_pnl(self)->float:
+    def proc_no_volatility_penalty(self) -> float:
+        """
+        ボラタイルが無い時のエントリに対するペナルティ
+        :return:
+        """
+        volatility = self.provider.msd / self.price_tick
+        if volatility < 1.0:
+            return 1.0
+        else:
+            return 0.0
+
+    def proc_unrealized_pnl(self) -> float:
         """
         含み損益の処理
         :return:

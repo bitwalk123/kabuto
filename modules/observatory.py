@@ -65,8 +65,9 @@ class ObservationManager:
         list_feature.append(vwap_dr_scaled)
         # ---------------------------------------------------------------------
         # 4. 移動標準偏差
-        msd = self.provider.getMSD(60)
+        msd = self.provider.getMSD()
         msd_scaled = np.tanh(msd / self.price_tick / self.divisor_msd)
+        # list_feature.append(msd)
         list_feature.append(msd_scaled)
         # ---------------------------------------------------------------------
         # 5. 含み損益
@@ -102,6 +103,6 @@ class ObservationManager:
         return np.concatenate([arr_feature, pos_onehot])
 
     def getObsReset(self) -> np.ndarray:
-        obs = self.getObs() # 引数無しで呼んだ場合、ダミーの観測値が返る
+        obs = self.getObs()  # 引数無しで呼んだ場合、ダミーの観測値が返る
         self.clear()
         return obs

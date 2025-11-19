@@ -8,6 +8,7 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+        self.msd = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -24,6 +25,17 @@ class FeatureProvider:
         # キューを定義
         self.n_deque_price = 300
         self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
+
+    def _calc_msd(self) -> float:
+        """
+        移動標準偏差 (Moving Standard Deviation = MSD)
+        """
+        n_deque = len(self.deque_price)
+        if n_deque < self.period_msd:
+            return stdev(list(self.deque_price)) if n_deque > 1 else 0.0
+        else:
+            recent_prices = list(self.deque_price)[-self.period_msd:]
+            return stdev(recent_prices)
 
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
@@ -42,12 +54,14 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+        self.msd = 0
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
         self.cum_vol = 0.0  # VWAP 用 Volume 累積
         self.volume_prev = None  # VWAP 用 前の Volume
+        self.period_msd = 60
 
         # カウンタ関連
         # 取引カウンタ
@@ -71,16 +85,11 @@ class FeatureProvider:
             recent_prices = list(self.deque_price)[-period:]
             return sum(recent_prices) / period
 
-    def getMSD(self, period: int) -> float:
+    def getMSD(self) -> float:
         """
         移動標準偏差 (Moving Standard Deviation = MSD)
         """
-        n_deque = len(self.deque_price)
-        if n_deque < period:
-            return stdev(list(self.deque_price)) if n_deque > 1 else 0.0
-        else:
-            recent_prices = list(self.deque_price)[-period:]
-            return stdev(recent_prices)
+        return self.msd
 
     def getPriceRatio(self) -> float:
         """
@@ -115,8 +124,7 @@ class FeatureProvider:
             self.price_open = price
 
         self.price = float(price)
+        self.deque_price.append(float(price))  # キューへの追加
         self.volume = float(volume)
-        self.vwap = self._calc_vwap()
-
-        # キューへの追加
-        self.deque_price.append(float(price))
+        self.vwap = self._calc_vwap()  # VWAP
+        self.msd = self._calc_msd()  # 移動標準偏差

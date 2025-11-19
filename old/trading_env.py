@@ -300,7 +300,7 @@ class TradingEnv(gym.Env):
         return obs, {"action_mask": self._get_action_mask()}
 
     def step(self, n_action: int):
-        # --- ウォームアップ期間 (self.period) は強制 HOLD ---
+        # --- ウォームアップ期間 (self.period_msd) は強制 HOLD ---
         if self.current_step < self.period:
             action = ActionType.HOLD
         else:
