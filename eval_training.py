@@ -83,7 +83,10 @@ if __name__ == "__main__":
         else:
             file_date_str = "unknown"
         log_dir = str(os.path.join(res.dir_log, code, datetime_str, file_date_str))
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # モデルの学習
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         agent.train(df, path_model, log_dir, new_model=flag_new_model)
         if flag_new_model:
             flag_new_model = False

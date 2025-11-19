@@ -42,6 +42,9 @@ if __name__ == "__main__":
         # path_model = get_ppo_model_path(res, code)
         path_model = get_trained_ppo_model_path(res, code)
 
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 推論
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         result = agent.infer(df, path_model)
         if not result:
             sys.exit("正常終了しませんでした。")

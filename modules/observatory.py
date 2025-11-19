@@ -8,38 +8,26 @@ class ObservationManager:
     def __init__(self, provider: FeatureProvider):
         # 特徴量プロバイダ
         self.provider = provider
-        # 調整用係数
+        # 取引用係数
         self.price_tick = 1.0  # 呼び値
         self.unit = 100  # 最小取引単位（出来高）
+        # 調整用係数
         self.divisor_hold = 10_000.  # 建玉保持カウンタ用
         self.divisor_ma_diff = 20.0  # 移動平均差用
         self.multiplier_price = 20.0  # 株価用
         self.multiplier_vwap = 40.0  # VWAP用
         self.divisor_msd = 25.0  # 移動標準偏差用
+
         """
         観測量（特徴量）数の取得
         観測量の数 (self.n_feature) は、評価によって頻繁に変動するので、
-        コンストラクタでダミー（空）を実行して数を自律的に把握できるようにする。
+        コンストラクタでダミー（空）処理を実行して数を自律的に把握できるようにする。
         """
         self.n_feature = len(self.getObs())
-        self.clear()  # ダミーを実行したのでリセット
+        self.clear()  # ダミー処理を実行したのでリセット
 
     def clear(self):
         self.provider.clear()
-
-    def func_ma_scaling(self, ma: float) -> float:
-        if self.provider.price_open == 0.0:
-            ma_ratio = 0.0
-        else:
-            ma_ratio = (ma / self.provider.price_open - 1.0) * self.multiplier_price
-        return ma_ratio
-
-    def func_ma_diff_scaling(self, ma_diff: float) -> float:
-        if self.provider.price_open == 0.0:
-            ma_diff_scaled = 0.0
-        else:
-            ma_diff_scaled = ma_diff / self.price_tick / self.divisor_ma_diff
-        return np.tanh(ma_diff_scaled)
 
     def getObs(
             self,
@@ -63,7 +51,11 @@ class ObservationManager:
         # ---------------------------------------------------------------------
         # 移動平均差の算出
         ma_diff = ma_060 - ma_300
-        list_feature.append(self.func_ma_diff_scaling(ma_diff))
+        if self.provider.price_open == 0.0:
+            ma_diff_scaled = 0.0
+        else:
+            ma_diff_scaled = ma_diff / self.price_tick / self.divisor_ma_diff
+        list_feature.append(ma_diff_scaled)
         # ---------------------------------------------------------------------
         # 3. VWAP 乖離率 (deviation rate = dr)
         # ---------------------------------------------------------------------
