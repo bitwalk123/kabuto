@@ -66,9 +66,9 @@ if __name__ == "__main__":
 
     # 学習用データ
     code = "7011"
-    list_file = ["ticks_20250819.xlsx"]
+    # list_file = ["ticks_20250819.xlsx"]
     # list_file = ["ticks_20250819.xlsx", "ticks_20250828.xlsx", "ticks_20251009.xlsx"]
-    # list_file = sorted(os.listdir(res.dir_collection))
+    list_file = sorted(os.listdir(res.dir_collection))
     flag_new_model = True
     for file in list_file:
         print(f"学習するティックデータ : {file}")

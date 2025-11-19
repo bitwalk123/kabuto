@@ -70,7 +70,7 @@ def plot_obs_trend(df: pd.DataFrame):
         ax[i].grid()
 
     for i, colname in enumerate(df.columns):
-        ax[i].plot(df[colname])
+        ax[i].plot(df[colname], linewidth=0.75)
         y_min, y_max = ax[i].get_ylim()
         if colname in list_pos:
             y_min = -0.1
@@ -117,7 +117,7 @@ def plot_reward_distribution(ser: pd.Series, logscale: bool = False):
 def plot_tick_trend(df: pd.DataFrame):
     fig, ax = plt.subplots(figsize=(15, 3))
 
-    ax.plot(df["Price"])
+    ax.plot(df["Price"], linewidth=0.75)
     ax.set_ylabel("Price")
     ax.grid()
 

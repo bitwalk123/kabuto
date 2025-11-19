@@ -6,7 +6,7 @@ import pandas as pd
 from gymnasium.utils import seeding
 
 from modules.observatory import ObservationManager
-from modules.features import FeatureProvider
+from modules.feature_provider import FeatureProvider
 from modules.remunerator import RewardManager
 from structs.app_enum import ActionType, PositionType
 

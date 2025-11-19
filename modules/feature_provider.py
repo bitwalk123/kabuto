@@ -18,7 +18,6 @@ class FeatureProvider:
         # カウンタ関連
         self.n_trade_max = 100.0  # 最大取引回数（買建、売建）
         self.n_trade = 0.0  # 取引カウンタ
-        self.n_hold_divisor = 250.0  # 建玉なしの HOLD カウンタ用除数（仮）
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
 
