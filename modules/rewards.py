@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-from modules.provider import FeatureProvider
+from modules.features import FeatureProvider
 from structs.app_enum import PositionType, ActionType
 
 

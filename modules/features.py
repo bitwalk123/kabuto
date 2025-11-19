@@ -1,4 +1,5 @@
 from collections import deque
+from statistics import stdev
 
 
 class FeatureProvider:
@@ -71,6 +72,17 @@ class FeatureProvider:
             recent_prices = list(self.deque_price)[-period:]
             return sum(recent_prices) / period
 
+    def getMSD(self, period: int) -> float:
+        """
+        移動標準偏差 (Moving Standard Deviation = MSD)
+        """
+        n_deque = len(self.deque_price)
+        if n_deque < period:
+            return stdev(list(self.deque_price)) if n_deque > 1 else 0.0
+        else:
+            recent_prices = list(self.deque_price)[-period:]
+            return stdev(recent_prices)
+
     def getPriceRatio(self) -> float:
         """
         （始値で割った）株価比
@@ -81,8 +93,8 @@ class FeatureProvider:
         if self.vwap == 0.0:
             return 0.0
         else:
-            return (self.price - self.vwap) / self.vwap
-            # return (self.deque_ys_rsi[-1] - self.vwap) / self.vwap
+            ma = self.getMA(60)
+            return (ma - self.vwap) / self.vwap
 
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
@@ -102,9 +114,10 @@ class FeatureProvider:
             ※ 寄り付き後の株価が送られてくることをシステムが保証している
             """
             self.price_open = price
-        self.price = price
-        self.volume = volume
+
+        self.price = float(price)
+        self.volume = float(volume)
         self.vwap = self._calc_vwap()
 
         # キューへの追加
-        self.deque_price.append(price)
+        self.deque_price.append(float(price))

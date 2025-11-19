@@ -6,8 +6,8 @@ import pandas as pd
 from gymnasium.utils import seeding
 
 from modules.observatory import ObservationManager
-from modules.provider import FeatureProvider
-from modules.rewardman import RewardManager
+from modules.features import FeatureProvider
+from modules.rewards import RewardManager
 from structs.app_enum import ActionType, PositionType
 
 
@@ -46,12 +46,12 @@ class TradingEnv(gym.Env):
         """
         行動マスク
         【マスク】
-        - ウォーミングアップ期間
+        - ウォームアップ期間
         - ナンピン取引の禁止
         :return:
         """
         if self.step_current < self.n_warmup:
-            # ウォーミングアップ期間 → 強制 HOLD
+            # ウォームアップ期間 → 強制 HOLD
             return np.array([1, 0, 0], dtype=np.int8)
         elif self.reward_man.position == PositionType.NONE:
             # 建玉なし → 取りうるアクション: HOLD, BUY, SELL
@@ -173,6 +173,7 @@ class TrainingEnv(TradingEnv):
         過去のティックデータを使うことを前提とした step 処理
         """
         info = dict()
+
         # ---------------------------------------------------------------------
         # データフレームからティックデータを取得
         # t, price, volume = self._get_tick()

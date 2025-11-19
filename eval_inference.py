@@ -45,36 +45,46 @@ def plot_bar_profit(df: pd.DataFrame):
     plt.show()
 
 
-def plot_obs_trend(df: pd.DataFrame, n: int, list_ylabel: list):
+def plot_obs_trend(df: pd.DataFrame):
+    list_pos = [
+        "Mσ",
+        "含損益M",
+        "HOLD1",
+        "HOLD2",
+        "TRADE",
+        "NONE",
+        "LONG",
+        "SHORT"
+    ]
+    n = len(df.columns)
     fig = plt.figure(figsize=(15, 11))
     ax = dict()
     gs = fig.add_gridspec(
         n, 1,
         wspace=0.0, hspace=0.0,
-        height_ratios=[1 if i < n - 7 else 0.5 for i in range(n)]
+        height_ratios=[0.5 if s in list_pos else 1 for s in df.columns]
     )
     for i, axis in enumerate(gs.subplots(sharex="col")):
         ax[i] = axis
         ax[i].set_xlim(0, 19500)
         ax[i].grid()
 
-    for i in range(n):
-        ax[i].plot(df[i])
+    for i, colname in enumerate(df.columns):
+        ax[i].plot(df[colname])
         y_min, y_max = ax[i].get_ylim()
-        if i < n - 7:
+        if colname in list_pos:
+            y_min = -0.1
+            if y_max < 1.1:
+                y_max = 1.1
+        else:
             if -1.1 < y_min:
                 y_min = -1.1
             if y_max < 1.1:
                 y_max = 1.1
-            ax[i].set_ylim(y_min, y_max)
-            if list_ylabel[i] == "RSI":
-                ax[i].axhline(0.6, linewidth=0.5, color="C1")
-                ax[i].axhline(-0.6, linewidth=0.5, color="C1")
-        else:
-            if y_max < 1.1:
-                y_max = 1.1
-            ax[i].set_ylim(-0.1, y_max)
-        ax[i].set_ylabel(list_ylabel[i])
+
+        ax[i].set_ylim(y_min, y_max)
+        ax[i].set_ylabel(colname)
+
     plt.tight_layout()
     plt.show()
 
@@ -165,6 +175,7 @@ if __name__ == "__main__":
         "株価比",
         "MAΔ",
         "VWAPΔ",
+        "Mσ",
         "含損益",
         "含損益M",
         "HOLD1",
@@ -174,4 +185,5 @@ if __name__ == "__main__":
         "LONG",
         "SHORT"
     ]
-    plot_obs_trend(df_obs, rows, list_name)
+    df_obs.columns = list_name
+    plot_obs_trend(df_obs)
