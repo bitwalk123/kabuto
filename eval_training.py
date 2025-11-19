@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     # 学習用データ
     code = "7011"
-    list_file = sorted(os.listdir(res.dir_collection))[-5:]
+    list_file = sorted(os.listdir(res.dir_collection))
     flag_new_model = True
     for file in list_file:
         print(f"学習するティックデータ : {file}")
