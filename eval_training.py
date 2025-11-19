@@ -61,6 +61,7 @@ if __name__ == "__main__":
     res = AppRes()
     agent = MaskablePPOAgent()
 
+    # タイムスタンプ情報の取得
     datetime_str = get_datetime_str()
 
     # 学習用データ

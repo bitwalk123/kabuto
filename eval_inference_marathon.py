@@ -1,4 +1,3 @@
-import datetime
 import os
 import sys
 from time import perf_counter
@@ -26,8 +25,7 @@ if __name__ == "__main__":
     list_file = sorted(os.listdir(res.dir_collection))
     code = "7011"
 
-    #dt = datetime.datetime.now()
-    #datetime_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
+    # タイムスタンプ情報の取得
     datetime_str = get_datetime_str()
     path_result = os.path.join(res.dir_output, f"result_{datetime_str}.csv")
 
