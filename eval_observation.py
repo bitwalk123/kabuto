@@ -12,6 +12,7 @@ from structs.res import AppRes
 
 
 def plot_obs_trend(df: pd.DataFrame, title: str):
+    list_positive = ["Mσ"]
     FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
     fm.fontManager.addfont(FONT_PATH)
 
@@ -23,12 +24,18 @@ def plot_obs_trend(df: pd.DataFrame, title: str):
     plt.rcParams["font.size"] = 9
 
     n = len(df.columns)
-    fig = plt.figure(figsize=(6, 0.2 + n))
+    list_height = list()
+    for colname in df.columns:
+        if colname in list_positive:
+            list_height.append(0.5)
+        else:
+            list_height.append(1)
+    fig = plt.figure(figsize=(6, 0.2 + sum(list_height)))
     ax = dict()
     gs = fig.add_gridspec(
         n, 1,
         wspace=0.0, hspace=0.0,
-        height_ratios=[1 for i in range(n)]
+        height_ratios=list_height
     )
     for i, axis in enumerate(gs.subplots(sharex="col")):
         ax[i] = axis
@@ -38,10 +45,15 @@ def plot_obs_trend(df: pd.DataFrame, title: str):
     for i, colname in enumerate(df.columns):
         ax[i].plot(df[colname], linewidth=0.5)
         y_min, y_max = ax[i].get_ylim()
-        if -1.1 < y_min:
-            y_min = -1.1
-        if y_max < 1.1:
-            y_max = 1.1
+        if colname in list_positive:
+            y_min = -0.1
+            if y_max < 1.1:
+                y_max = 1.1
+        else:
+            if -1.1 < y_min:
+                y_min = -1.1
+            if y_max < 1.1:
+                y_max = 1.1
         ax[i].set_ylim(y_min, y_max)
         if colname == "RSI":
             ax[i].axhline(0.6, linewidth=0.5, color="C1")
@@ -61,7 +73,7 @@ if __name__ == "__main__":
 
     # 推論用データ
     # file = "ticks_20251006.xlsx"
-    file = "ticks_20251118.xlsx"
+    file = "ticks_20251119.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について観測値を算出します。")
