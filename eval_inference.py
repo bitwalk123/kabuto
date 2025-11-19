@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # file = "ticks_20250819.xlsx"
     # file = "ticks_20250828.xlsx"
     # file = "ticks_20251006.xlsx"
-    file = "ticks_20251118.xlsx"
+    file = "ticks_20251119.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について推論します。")
