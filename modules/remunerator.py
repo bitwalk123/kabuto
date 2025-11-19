@@ -30,7 +30,7 @@ class RewardManager:
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.divisor_profit = 10.0  # 損益を報酬化する際の除数
+        self.divisor_profit = 20.0  # 損益を報酬化する際の除数
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -65,10 +65,7 @@ class RewardManager:
                 # HOLD カウンターのインクリメント
                 self.provider.n_hold += 1
             elif action_type == ActionType.BUY:
-                # ポジション解消後に立て続けに売買するとペナルティ
-                reward -= 1.0 / (1.0 + self.provider.n_hold)
-                # HOLD カウンターのリセット
-                self.provider.n_hold = 0
+                reward -= self.proc_hft_penalty()
                 # =============================================================
                 # 買建 (LONG)
                 # =============================================================
@@ -80,10 +77,7 @@ class RewardManager:
                 # -------------------------------------------------------------
                 self.add_transaction("買建")
             elif action_type == ActionType.SELL:
-                # ポジション解消後に立て続けに売買するとペナルティ
-                reward -= 1.0 / (1.0 + self.provider.n_hold)
-                # HOLD カウンターのリセット
-                self.provider.n_hold = 0
+                reward -= self.proc_hft_penalty()
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
@@ -229,7 +223,6 @@ class RewardManager:
         観測値用に、損益用の報酬と同じにスケーリングして含み損益を返す。
         """
         profit = self.get_profit()
-        # return self.get_reward_sqrt(profit)
         return self.get_scaled_profit(profit)  # 報酬用にスケーリング
 
     def getPLRaw(self) -> float:
@@ -270,6 +263,17 @@ class RewardManager:
             "損益": [],
         }
 
+    def proc_hft_penalty(self) -> float:
+        """
+        高頻度売買 (High Frequency Trading) に対するペナルティ
+        :return:
+        """
+        # ポジション解消後に立て続けに売買するとペナルティ
+        penalty = 1.0 / (1.0 + self.provider.n_hold)
+        # HOLD カウンターのリセット
+        self.provider.n_hold = 0
+        return penalty
+
     def proc_unrealized_pnl(self)->float:
         """
         含み損益の処理
@@ -281,7 +285,12 @@ class RewardManager:
 
         # ポジション持ちに応じた報酬計算
         k = np.sqrt(self.provider.n_hold_position) / 100.
-        reward = profit * (1 + k) / 5.
+        # 最大含み益からの按分
+        if 0 < self.profit_max:
+            r = abs(profit) / self.profit_max
+        else:
+            r = 1
+        reward = profit * (1 + k) * r
 
         # ポジション持ちカウンタの更新
         self.provider.n_hold_position += 1
