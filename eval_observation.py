@@ -22,9 +22,9 @@ def plot_obs_trend(df: pd.DataFrame, title: str):
     plt.rcParams["font.family"] = font_prop.get_name()
     plt.rcParams["font.size"] = 9
 
-    fig = plt.figure(figsize=(6, 3))
-    ax = dict()
     n = len(df.columns)
+    fig = plt.figure(figsize=(6, 0.2 + n))
+    ax = dict()
     gs = fig.add_gridspec(
         n, 1,
         wspace=0.0, hspace=0.0,
@@ -60,6 +60,7 @@ if __name__ == "__main__":
     tz = 9. * 60 * 60
 
     # 推論用データ
+    # file = "ticks_20251006.xlsx"
     file = "ticks_20251118.xlsx"
     code = "7011"
 
@@ -80,6 +81,7 @@ if __name__ == "__main__":
         "株価比",
         "MAΔ",
         "VWAPΔ",
+        "Mσ",
         "含損益",
         "含損益M",
         "HOLD1",
@@ -93,7 +95,9 @@ if __name__ == "__main__":
     df_obs.columns = list_name
     list_dt = pd.to_datetime([datetime.datetime.fromtimestamp(ts) for ts in df["Time"]])
     df_obs.index = list_dt[:len(df_obs)]
-    print(df_obs)
-    list_col = list_name[:3]
+    # print(df_obs)
+    list_col = list_name[:4]
+    df_obs_sub = df_obs[list_col]
     title = f"Observation trends from tick data\n{file} / {code}"
-    plot_obs_trend(df_obs[list_col], title)
+    plot_obs_trend(df_obs_sub, title)
+    print(df_obs_sub.describe())
