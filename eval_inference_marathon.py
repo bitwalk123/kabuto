@@ -8,6 +8,7 @@ import pandas as pd
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_trained_ppo_model_path
+from funcs.tide import get_datetime_str
 from modules.agent import MaskablePPOAgent
 from structs.res import AppRes
 
@@ -25,9 +26,10 @@ if __name__ == "__main__":
     list_file = sorted(os.listdir(res.dir_collection))
     code = "7011"
 
-    dt = datetime.datetime.now()
-    date_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
-    path_result = os.path.join(res.dir_output, f"result_{date_str}.csv")
+    #dt = datetime.datetime.now()
+    #datetime_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
+    datetime_str = get_datetime_str()
+    path_result = os.path.join(res.dir_output, f"result_{datetime_str}.csv")
 
     # ループ開始時刻
     t_start = perf_counter()

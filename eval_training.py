@@ -1,4 +1,3 @@
-import datetime
 import os
 import re
 
@@ -9,6 +8,7 @@ import pandas as pd
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_ppo_model_path
+from funcs.tide import get_datetime_str
 from modules.agent import MaskablePPOAgent
 from structs.res import AppRes
 
@@ -61,8 +61,7 @@ if __name__ == "__main__":
     res = AppRes()
     agent = MaskablePPOAgent()
 
-    dt = datetime.datetime.now()
-    date_str = f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
+    datetime_str = get_datetime_str()
 
     # 学習用データ
     code = "7011"
@@ -82,7 +81,7 @@ if __name__ == "__main__":
             file_date_str = m.group(1)
         else:
             file_date_str = "unknown"
-        log_dir: str = os.path.join(res.dir_log, code, date_str, file_date_str)
+        log_dir = str(os.path.join(res.dir_log, code, datetime_str, file_date_str))
         # モデルの学習
         agent.train(df, path_model, log_dir, new_model=flag_new_model)
         if flag_new_model:

@@ -466,7 +466,7 @@ class Kabuto(QMainWindow):
         # リアルタイムのタイマー終了後に呼び出される通常保存ファイル名
         name_excel = os.path.join(
             self.res.dir_excel,
-            f"tick_{self.dict_ts["date_str"]}.xlsx"
+            f"tick_{self.dict_ts["datetime_str"]}.xlsx"
         )
         # Trader インスタンスからティックデータのデータフレームを辞書で取得
         dict_df = self.get_current_tick_data()
