@@ -24,7 +24,7 @@ if __name__ == "__main__":
     env = TradingEnv(df)
 
     # ===== ランダムエージェント =====
-    obs, info = env.reset()
+    obs, info = env.resetEnv()
     done = False
     rewards = []
     pnls = []
