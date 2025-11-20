@@ -15,11 +15,11 @@ from structs.res import AppRes
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.1"
+    __version__ = "0.0.2"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
-    requestReset = Signal()
+    requestResetEnv = Signal()
     requestPostProcs = Signal()
     sendTradeData = Signal(float, float, float)
 
@@ -83,7 +83,7 @@ class Prophet(QMainWindow):
         self.start_thread(path_model)
 
         # エージェント環境のリセット
-        self.requestReset.emit()
+        self.requestResetEnv.emit()
 
     def post_process(self, dict_result: dict):
         """
@@ -137,7 +137,7 @@ class Prophet(QMainWindow):
         self.worker = WorkerAgent(path_model, True)
         self.worker.moveToThread(self.thread)
 
-        self.requestReset.connect(self.worker.resetEnv)
+        self.requestResetEnv.connect(self.worker.resetEnv)
         self.requestPostProcs.connect(self.worker.postProcs)
         self.sendTradeData.connect(self.worker.addData)
 
@@ -152,7 +152,7 @@ class Prophet(QMainWindow):
         スレッド終了
         :return:
         """
-        self.requestReset.disconnect()
+        self.requestResetEnv.disconnect()
         self.requestPostProcs.disconnect()
         self.sendTradeData.disconnect()
 
