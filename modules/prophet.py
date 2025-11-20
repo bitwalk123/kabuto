@@ -144,6 +144,7 @@ class Prophet(QMainWindow):
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
         self.worker.sendResults.connect(self.post_process)
+
         self.thread.start()
 
     def stop_thread(self):
