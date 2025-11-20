@@ -53,6 +53,7 @@ class Prophet(QMainWindow):
         t_start = perf_counter()
         row = 0
         done = False # 推論終了フラグ
+        agent.reset() # エージェントのリセット
         while not done:
             ts = float(df["Time"].iloc[row])
             price = float(df["Price"].iloc[row])
@@ -70,9 +71,7 @@ class Prophet(QMainWindow):
         print(f"ティック数 :\t\t\t{row:,d} ticks")
         print(f"処理時間 / ティック :\t{t_delta / row * 1_000:.3f} msec")
 
-        """
         print("\n取引明細")
         df_transaction = agent.getTransaction()
         print(df_transaction)
         print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
-        """

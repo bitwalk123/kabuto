@@ -104,9 +104,10 @@ class WorkerAgent(QObject):
 
         # 学習環境の取得
         self.env = env = TradingEnv()
-        self.obs, _ = env.reset()
         # 学習済モデルの読み込み
         self.model = MaskablePPO.load(path_model, env)
+        self.reset()
+
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float) -> bool:
@@ -135,6 +136,11 @@ class WorkerAgent(QObject):
 
     def getTransaction(self) -> pd.DataFrame:
         return self.env.getTransaction()
+
+    @Slot()
+    def reset(self):
+        # 環境のリセット
+        self.obs, _ = self.env.reset()
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):
