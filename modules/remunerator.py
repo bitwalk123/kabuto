@@ -64,6 +64,7 @@ class RewardManager:
         else:
             # 建玉をすぐに返済するとペナルティ（報酬）
             reward = -1.0 / (1.0 + self.alpha * self.provider.n_hold_position)
+            # 含み損益の方がパネルティ (reward) より小さければ置き換える
             if pnl < reward:
                 reward = pnl
         # HOLD カウンターのリセット
