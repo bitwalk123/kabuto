@@ -12,7 +12,7 @@ class RewardManager:
     方策マスクでナンピンをしないことが前提
     """
 
-    def __init__(self, provider: FeatureProvider, code: str = '7011'):
+    def __init__(self, provider: FeatureProvider, code: str):
         # 特徴量プロバイダ
         self.provider = provider
         self.code: str = code  # 銘柄コード

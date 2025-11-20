@@ -16,7 +16,7 @@ class TradingEnv(gym.Env):
     取引用環境クラス
     """
 
-    def __init__(self):
+    def __init__(self, code: str = "7011"):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
@@ -27,7 +27,7 @@ class TradingEnv(gym.Env):
         # 特徴量プロバイダ
         self.provider = provider = FeatureProvider()
         # 売買管理クラス
-        self.reward_man = RewardManager(provider)
+        self.reward_man = RewardManager(provider, code)
         # 観測値管理クラス
         self.obs_man = ObservationManager(provider)
 
@@ -152,8 +152,8 @@ class TrainingEnv(TradingEnv):
     過去のティックデータを使った学習、推論用
     """
 
-    def __init__(self, df: pd.DataFrame):
-        super().__init__()
+    def __init__(self, df: pd.DataFrame, code: str = "7011"):
+        super().__init__(code)
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
 
     def _get_tick(self) -> tuple[float, float, float]:

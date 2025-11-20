@@ -20,6 +20,7 @@ class Prophet(QMainWindow):
     __license__ = "MIT"
 
     requestReset = Signal()
+    requestPostProcs = Signal()
     sendTradeData = Signal(float, float, float)
 
     def __init__(self):
@@ -28,6 +29,8 @@ class Prophet(QMainWindow):
         self.res = res = AppRes()
         self.df = None
         self.done = False  # 推論終了フラグ
+        self.row = 0
+        self.t_start = 0
 
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
@@ -42,8 +45,22 @@ class Prophet(QMainWindow):
         self.thread = None
         self.worker = None
 
+    def conclude_result(self, dict_result: dict):
+        print("\n取引明細")
+        df_transaction = dict_result["transaction"]
+        print(df_transaction)
+        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
+
+        # スレッドの終了
+        self.stop_thread()
+
     def finished_trading(self):
-        self.done = True
+        t_end = perf_counter()  # ループ終了時刻
+        t_delta = t_end - self.t_start
+        print("\n推論ループを終了しました。")
+        print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
+        print(f"ティック数 :\t\t\t{self.row - 1 :,d} ticks")
+        print(f"処理時間 / ティック :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
 
     def on_start(self):
         dict_info = self.toolbar.getInfo()
@@ -61,37 +78,25 @@ class Prophet(QMainWindow):
         print("\nExcel ファイルをデータフレームに読み込みました。")
         print(self.df)
 
+        # スレッドの開始
         print("\nスレッド内にワーカーエージェントを生成します。")
         self.start_thread(path_model)
+
         # エージェント環境のリセット
         self.requestReset.emit()
+        self.row = 0
+        print("\n推論ループを開始します。")
+        self.t_start = perf_counter()  # ループ開始時刻
+        self.simulation()
 
     def simulation(self):
-        print("\n推論ループを開始します。")
-        t_start = perf_counter()  # ループ開始時刻
-        row = 0
-        while not self.done:
-            ts = float(self.df["Time"].iloc[row])
-            price = float(self.df["Price"].iloc[row])
-            volume = float(self.df["Volume"].iloc[row])
-            self.sendTradeData.emit(ts, price, volume)
-            row += 1
-            if row > len(self.df):
-                self.done = True
-
-        t_end = perf_counter()  # ループ終了時刻
-        t_delta = t_end - t_start
-        print("\n推論ループを終了しました。")
-        print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
-        print(f"ティック数 :\t\t\t{row:,d} ticks")
-        print(f"処理時間 / ティック :\t{t_delta / row * 1_000:.3f} msec")
-
-        """
-        print("\n取引明細")
-        df_transaction = agent.getTransaction()
-        print(df_transaction)
-        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
-        """
+        ts = float(self.df["Time"].iloc[self.row])
+        price = float(self.df["Price"].iloc[self.row])
+        volume = float(self.df["Volume"].iloc[self.row])
+        self.sendTradeData.emit(ts, price, volume)
+        self.row += 1
+        if self.row > len(self.df):
+            self.done = True
 
     def start_thread(self, path_model: str):
         """
@@ -102,10 +107,15 @@ class Prophet(QMainWindow):
         self.thread = QThread(self)
         self.worker = WorkerAgent(path_model, True)
         self.worker.moveToThread(self.thread)
+
         self.requestReset.connect(self.worker.resetEnv)
+        self.requestPostProcs.connect(self.worker.postProcs)
+
         self.sendTradeData.connect(self.worker.addData)
         self.worker.completedResetEnv.connect(self.simulation)
         self.worker.completedTrading.connect(self.finished_trading)
+        self.worker.readyNext.connect(self.simulation)
+        self.worker.sendResults.connect(self.conclude_result)
         self.thread.start()
 
     def stop_thread(self):
@@ -123,4 +133,3 @@ class Prophet(QMainWindow):
         if self.thread is not None:
             self.thread.deleteLater()
             self.thread = None
-

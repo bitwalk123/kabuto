@@ -89,11 +89,12 @@ class MaskablePPOAgent:
 
 
 class WorkerAgent(QObject):
-    # 売買アクションを通知
     completedResetEnv = Signal()
     completedTrading = Signal()
-    notifyAction = Signal(int, PositionType)
     finished = Signal()
+    notifyAction = Signal(int, PositionType)  # 売買アクションを通知
+    readyNext = Signal()
+    sendResults = Signal(dict)
 
     def __init__(self, path_model: str, autopilot: bool):
         super().__init__()
@@ -112,7 +113,10 @@ class WorkerAgent(QObject):
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
-        if not self.done:
+        if self.done:
+            # 取引終了
+            self.completedTrading.emit()
+        else:
             # マスク情報を取得
             masks = self.env.action_masks()
             # モデルによる行動予測
@@ -132,12 +136,15 @@ class WorkerAgent(QObject):
             self.obs, reward, terminated, truncated, info = self.env.step(action)
             if terminated or truncated:
                 self.done = True
-        else:
-            # 取引終了
-            self.completedTrading.emit()
+                # 取引終了
+                self.completedTrading.emit()
+            else:
+                self.readyNext.emit()
 
-    def getTransaction(self) -> pd.DataFrame:
-        return self.env.getTransaction()
+    def postProcs(self):
+        dict_result = dict()
+        dict_result["transaction"] = self.env.getTransaction()
+        self.sendResults.emit(dict_result)
 
     @Slot()
     def resetEnv(self):
