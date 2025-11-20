@@ -23,9 +23,17 @@ class Prophet(QMainWindow):
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
 
-        toolbar = ToolBarProphet(res)
+        self.toolbar = toolbar = ToolBarProphet(res)
         toolbar.clickedPlay.connect(self.on_start)
         self.addToolBar(toolbar)
 
     def on_start(self):
-        pass
+        dict_info = self.toolbar.getInfo()
+        path_model = dict_info["path_model"]
+        path_excel = dict_info["path_excel"]
+        code = dict_info["code"]
+
+        print("下記の条件で推論を実施します。")
+        print(f"モデル\t\t: {path_model}")
+        print(f"ティックデータ\t: {path_excel}")
+        print(f"銘柄コード\t: {code}")

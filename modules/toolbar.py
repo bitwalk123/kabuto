@@ -1,5 +1,6 @@
 import datetime
 import os
+import re
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction, QIcon
@@ -140,6 +141,9 @@ class ToolBarProphet(QToolBar):
         super().__init__()
         self.res = res
 
+        self.dir_model = os.path.join(self.res.dir_model, "trained")
+        self.dir_collection = self.res.dir_collection
+
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, 'play.png')),
             "推論の開始",
@@ -170,22 +174,52 @@ class ToolBarProphet(QToolBar):
         combo_tick.addItems(self.get_tick_data())
         self.addWidget(combo_tick)
 
-    def get_trained_models(self) -> list[str]:
-        """
-        学習済みモデル一覧の取得
-        :return:
-        """
-        dir_model = os.path.join(self.res.dir_model, "trained")
-        list_model = sorted(os.listdir(dir_model), reverse=True)
-        return list_model
+        self.addSeparator()
+
+        action_update = QAction(
+            QIcon(os.path.join(res.dir_image, 'update.png')),
+            "ファイル一覧の更新",
+            self
+        )
+        action_update.triggered.connect(self.on_update)
+        self.addAction(action_update)
 
     def get_tick_data(self) -> list[str]:
         """
         ティックデータ一覧の取得
         :return:
         """
-        list_tick = sorted(os.listdir(self.res.dir_collection), reverse=True)
+        list_tick = sorted(os.listdir(self.dir_collection), reverse=True)
         return list_tick
+
+    def get_trained_models(self) -> list[str]:
+        """
+        学習済みモデル一覧の取得
+        :return:
+        """
+        list_model = sorted(os.listdir(self.dir_model), reverse=True)
+        return list_model
+
+    def getInfo(self) -> dict:
+        dict_info = dict()
+        model = self.combo_model.currentText()
+        pattern = re.compile(r"ppo_([A-Z0-9]{4}).*\.zip")
+        if m := pattern.match(model):
+            code = m.group(1)
+        else:
+            code = "unknown"
+        dict_info["code"] = code
+        path_model = os.path.join(self.dir_model, model)
+        dict_info["path_model"] = path_model
+
+        excel = self.combo_tick.currentText()
+        path_excel = os.path.join(self.dir_collection, excel)
+        dict_info["path_excel"] = path_excel
+
+        return dict_info
 
     def on_start_inference(self):
         self.clickedPlay.emit()
+
+    def on_update(self):
+        pass
