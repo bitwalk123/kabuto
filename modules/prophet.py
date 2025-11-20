@@ -28,7 +28,6 @@ class Prophet(QMainWindow):
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res = AppRes()
         self.df = None
-        self.done = False  # 推論終了フラグ
         self.row = 0
         self.t_start = 0
 
@@ -125,7 +124,7 @@ class Prophet(QMainWindow):
         self.row += 1
         # 行位置が最後であれば終了（最後の行は使わない）
         if self.row >= len(self.df):
-            self.done = True
+            self.finished_trading()
 
     def start_thread(self, path_model: str):
         """
