@@ -109,7 +109,7 @@ class WorkerAgent(QObject):
         self.model = MaskablePPO.load(path_model, env)
 
     @Slot(float, float, float)
-    def addData(self, ts, price, volume) -> bool:
+    def addData(self, ts: float, price: float, volume: float) -> bool:
         if not self.done:
             # マスク情報を取得
             masks = self.env.action_masks()

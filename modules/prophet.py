@@ -36,7 +36,7 @@ class Prophet(QMainWindow):
         path_excel = dict_info["path_excel"]
         code = dict_info["code"]
 
-        print("下記の条件で推論を実施します。")
+        print("\n下記の条件で推論を実施します。")
         print(f"モデル\t\t: {path_model}")
         print(f"ティックデータ\t: {path_excel}")
         print(f"銘柄コード\t: {code}")
@@ -54,9 +54,9 @@ class Prophet(QMainWindow):
         row = 0
         done = False # 推論終了フラグ
         while not done:
-            ts = df["Time"].iloc[row]
-            price = df["Price"].iloc[row]
-            volume = df["Volume"].iloc[row]
+            ts = float(df["Time"].iloc[row])
+            price = float(df["Price"].iloc[row])
+            volume = float(df["Volume"].iloc[row])
             done = agent.addData(ts, price, volume)
             row += 1
             if row > len(df):
@@ -70,7 +70,9 @@ class Prophet(QMainWindow):
         print(f"ティック数 :\t\t\t{row:,d} ticks")
         print(f"処理時間 / ティック :\t{t_delta / row * 1_000:.3f} msec")
 
+        """
         print("\n取引明細")
         df_transaction = agent.getTransaction()
         print(df_transaction)
         print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
+        """
