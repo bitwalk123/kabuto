@@ -45,15 +45,6 @@ class Prophet(QMainWindow):
         self.thread = None
         self.worker = None
 
-    def conclude_result(self, dict_result: dict):
-        print("\n取引明細")
-        df_transaction = dict_result["transaction"]
-        print(df_transaction)
-        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
-
-        # スレッドの終了
-        self.stop_thread()
-
     def finished_trading(self):
         t_end = perf_counter()  # ループ終了時刻
         t_delta = t_end - self.t_start
@@ -61,6 +52,9 @@ class Prophet(QMainWindow):
         print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
         print(f"ティック数 :\t\t\t{self.row - 1 :,d} ticks")
         print(f"処理時間 / ティック :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
+
+        # 後処理をリクエスト
+        self.requestPostProcs.emit()
 
     def on_start(self):
         dict_info = self.toolbar.getInfo()
@@ -84,12 +78,33 @@ class Prophet(QMainWindow):
 
         # エージェント環境のリセット
         self.requestReset.emit()
-        self.row = 0
-        print("\n推論ループを開始します。")
-        self.t_start = perf_counter()  # ループ開始時刻
-        self.simulation()
 
-    def simulation(self):
+    def post_process(self, dict_result: dict):
+        """
+        推論後の処理
+        :param dict_result:
+        :return:
+        """
+        print("\n取引明細")
+        df_transaction: pd.DataFrame = dict_result["transaction"]
+        print(df_transaction)
+        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
+
+        # スレッドの終了
+        self.stop_thread()
+
+    def send_first_tick(self):
+        print("\n環境がリセットされました。")
+        self.row = 0
+        print("推論ループを開始します。")
+        self.t_start = perf_counter()  # ループ開始時刻
+        self.send_one_tick()
+
+    def send_one_tick(self):
+        """
+        ひとつずつティックデータを送ってリアルタイムをシミュレート
+        :return:
+        """
         ts = float(self.df["Time"].iloc[self.row])
         price = float(self.df["Price"].iloc[self.row])
         volume = float(self.df["Volume"].iloc[self.row])
@@ -112,10 +127,10 @@ class Prophet(QMainWindow):
         self.requestPostProcs.connect(self.worker.postProcs)
 
         self.sendTradeData.connect(self.worker.addData)
-        self.worker.completedResetEnv.connect(self.simulation)
+        self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
-        self.worker.readyNext.connect(self.simulation)
-        self.worker.sendResults.connect(self.conclude_result)
+        self.worker.readyNext.connect(self.send_one_tick)
+        self.worker.sendResults.connect(self.post_process)
         self.thread.start()
 
     def stop_thread(self):

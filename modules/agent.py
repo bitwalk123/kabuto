@@ -91,7 +91,6 @@ class MaskablePPOAgent:
 class WorkerAgent(QObject):
     completedResetEnv = Signal()
     completedTrading = Signal()
-    finished = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     readyNext = Signal()
     sendResults = Signal(dict)
@@ -99,17 +98,15 @@ class WorkerAgent(QObject):
     def __init__(self, path_model: str, autopilot: bool):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.obs = None
         self.done = False
         self.autopilot = autopilot
-        self._running = True
-        self._stop_flag = False
-        self.logger.info(f"{__name__}: model, {path_model} is used.")
 
         # 学習環境の取得
         self.env = env = TradingEnv()
         # 学習済モデルの読み込み
+        self.logger.info(f"{__name__}: model, {path_model} is used.")
         self.model = MaskablePPO.load(path_model, env)
-        self.resetEnv()
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -156,9 +153,3 @@ class WorkerAgent(QObject):
     def setAutoPilotStatus(self, state: bool):
         self.autopilot = state
         self.logger.info(f"{__name__}: autopilot is set to {state}.")
-
-    @Slot()
-    def stop(self):
-        """終了処理"""
-        self._stop_flag = True
-        self.finished.emit()
