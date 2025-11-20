@@ -69,6 +69,6 @@ if __name__ == "__main__":
     df_result.to_csv(path_result)
 
     t_delta = t_end - t_start
-    print(f"計測時間 :\t\t{t_delta * 1_000_000:,.1f} sec")
-    print(f"総ティック量 :\t\t{n_tick:,d} tick")
+    print(f"計測時間 :\t\t{t_delta:,.3f} sec")
+    print(f"総ティック量 :\t\t{n_tick:,d} ticks")
     print(f"時間 / 1 ティック :\t{t_delta / n_tick * 1_000:.6f} msec")

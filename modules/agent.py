@@ -109,7 +109,7 @@ class WorkerAgent(QObject):
         self.model = MaskablePPO.load(path_model, env)
 
     @Slot(float, float, float)
-    def addData(self, ts, price, volume):
+    def addData(self, ts, price, volume) -> bool:
         if not self.done:
             # マスク情報を取得
             masks = self.env.action_masks()
@@ -130,6 +130,11 @@ class WorkerAgent(QObject):
             self.obs, reward, terminated, truncated, info = self.env.step(action)
             if terminated or truncated:
                 self.done = True
+
+        return self.done
+
+    def getTransaction(self) -> pd.DataFrame:
+        return self.env.getTransaction()
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):

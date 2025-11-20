@@ -1,9 +1,12 @@
 import logging
 import os
+from time import perf_counter
 
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
+from funcs.ios import get_excel_sheet
+from modules.agent import WorkerAgent
 from modules.toolbar import ToolBarProphet
 from structs.res import AppRes
 
@@ -37,3 +40,37 @@ class Prophet(QMainWindow):
         print(f"モデル\t\t: {path_model}")
         print(f"ティックデータ\t: {path_excel}")
         print(f"銘柄コード\t: {code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        df = get_excel_sheet(path_excel, code)
+        print("\nExcel ファイルをデータフレームに読み込みました。")
+        print(df)
+
+        print("\nAgent のインスタンスを生成します。")
+        agent = WorkerAgent(path_model, True)
+
+        print("\n推論ループを開始します。")
+        t_start = perf_counter()
+        row = 0
+        done = False # 推論終了フラグ
+        while not done:
+            ts = df["Time"].iloc[row]
+            price = df["Price"].iloc[row]
+            volume = df["Volume"].iloc[row]
+            done = agent.addData(ts, price, volume)
+            row += 1
+            if row > len(df):
+                done = True
+        # ループ終了時刻
+        t_end = perf_counter()
+
+        print("\n推論ループを終了しました。")
+        t_delta = t_end - t_start
+        print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
+        print(f"ティック数 :\t\t\t{row:,d} ticks")
+        print(f"処理時間 / ティック :\t{t_delta / row * 1_000:.3f} msec")
+
+        print("\n取引明細")
+        df_transaction = agent.getTransaction()
+        print(df_transaction)
+        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")

@@ -156,7 +156,6 @@ class TrainingEnv(TradingEnv):
         super().__init__()
         self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
 
-    @override
     def _get_tick(self) -> tuple[float, float, float]:
         """
         データフレームから 1 ステップ分のティックデータを読み込む
