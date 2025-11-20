@@ -57,8 +57,15 @@ class RewardManager:
         高頻度売買 (High Frequency Trading) に対するペナルティ (2)
         :return:
         """
-        # 建玉をすぐに返済するとペナルティ（報酬）
-        reward = self.alpha - (1.0 + self.alpha) / (1.0 + self.alpha * self.provider.n_hold_position)  # 報酬 あるいは ペナルティ
+        pnl = self.calc_pnl_unrealized()
+        if pnl > 0:
+            # 含み損益がプラスだったらそのまま報酬
+            reward = pnl
+        else:
+            # 建玉をすぐに返済するとペナルティ（報酬）
+            reward = -1.0 / (1.0 + self.alpha * self.provider.n_hold_position)
+            if pnl < reward:
+                reward = pnl
         # HOLD カウンターのリセット
         self.provider.n_hold_position = 0
         return reward
@@ -165,13 +172,14 @@ class RewardManager:
                 # =============================================================
                 # 売埋
                 # =============================================================
-                reward += self.calc_reward_hft_repayment()  # 建玉をすぐに返済したらペナルティ
                 # -------------------------------------------------------------
                 self.provider.n_trade += 1  # 取引回数を更新
                 # 含み損益 →　確定損益
                 profit = self.get_profit()
                 # 確定損益追加
                 self.pnl_total += profit
+                # 建玉をすぐに返済したら基本的にペナルティ
+                reward += self.calc_reward_hft_repayment()
                 # 報酬（返済時の報酬は無し）
                 # reward += self.get_scaled_profit(profit)  # 報酬用にスケーリング
                 # -------------------------------------------------------------
@@ -196,13 +204,14 @@ class RewardManager:
                 # =============================================================
                 # 買埋
                 # =============================================================
-                reward += self.calc_reward_hft_repayment()  # 建玉をすぐに返済したらペナルティ
                 # -------------------------------------------------------------
                 self.provider.n_trade += 1  # 取引回数を更新
                 # 含み損益 →　確定損益
                 profit = self.get_profit()
                 # 損益追加
                 self.pnl_total += profit
+                # 建玉をすぐに返済したら基本的にペナルティ
+                reward += self.calc_reward_hft_repayment()
                 # 報酬（返済時の報酬は無し）
                 # reward += self.get_scaled_profit(profit)  # 報酬用にスケーリング
                 # -------------------------------------------------------------
