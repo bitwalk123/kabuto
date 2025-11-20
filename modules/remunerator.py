@@ -31,6 +31,7 @@ class RewardManager:
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.divisor_profit = 20.0  # 損益を報酬化する際の除数
+        self.alpha = 0.2  # エントリ・利確時の報酬計算に使うパラメータ
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -40,27 +41,27 @@ class RewardManager:
         self.dict_transaction["約定数量"].append(self.unit)
         self.dict_transaction["損益"].append(profit)
 
-    def calc_penalty_hft_entry(self) -> float:
+    def calc_reward_hft_entry(self) -> float:
         """
         高頻度売買 (High Frequency Trading) に対するペナルティ (1)
         :return:
         """
-        # ポジション解消後に立て続けに売買するとペナルティ
-        penalty = 1.0 / (1.0 + self.provider.n_hold)
+        # ポジション解消後に立て続けに売買するとペナルティ（報酬）
+        reward = self.alpha - (1.0 + self.alpha) / (1.0 + self.alpha * self.provider.n_hold)  # 報酬 あるいは ペナルティ
         # HOLD カウンターのリセット
         self.provider.n_hold = 0
-        return penalty
+        return reward
 
-    def calc_penalty_hft_repayment(self) -> float:
+    def calc_reward_hft_repayment(self) -> float:
         """
         高頻度売買 (High Frequency Trading) に対するペナルティ (2)
         :return:
         """
-        # 建玉をすぐに返済するとペナルティ
-        penalty = 1.0 / (1.0 + self.provider.n_hold_position)
+        # 建玉をすぐに返済するとペナルティ（報酬）
+        reward = self.alpha - (1.0 + self.alpha) / (1.0 + self.alpha * self.provider.n_hold_position)  # 報酬 あるいは ペナルティ
         # HOLD カウンターのリセット
         self.provider.n_hold_position = 0
-        return penalty
+        return reward
 
     def calc_penalty_no_volatility(self) -> float:
         """
@@ -123,7 +124,7 @@ class RewardManager:
                 # HOLD カウンターのインクリメント
                 self.provider.n_hold += 1
             elif action_type == ActionType.BUY:
-                reward -= self.calc_penalty_hft_entry()  # 高頻度取引ペナルティ
+                reward += self.calc_reward_hft_entry()  # 高頻度取引ペナルティ
                 reward -= self.calc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 買建 (LONG)
@@ -136,7 +137,7 @@ class RewardManager:
                 # -------------------------------------------------------------
                 self.add_transaction("買建")
             elif action_type == ActionType.SELL:
-                reward -= self.calc_penalty_hft_entry()  # 高頻度取引ペナルティ
+                reward += self.calc_reward_hft_entry()  # 高頻度取引ペナルティ
                 reward -= self.calc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 売建 (SHORT)
@@ -164,7 +165,7 @@ class RewardManager:
                 # =============================================================
                 # 売埋
                 # =============================================================
-                reward -= self.calc_penalty_hft_repayment() # 建玉をすぐに返済したらペナルティ
+                reward += self.calc_reward_hft_repayment()  # 建玉をすぐに返済したらペナルティ
                 # -------------------------------------------------------------
                 self.provider.n_trade += 1  # 取引回数を更新
                 # 含み損益 →　確定損益
@@ -195,7 +196,7 @@ class RewardManager:
                 # =============================================================
                 # 買埋
                 # =============================================================
-                reward -= self.calc_penalty_hft_repayment() # 建玉をすぐに返済したらペナルティ
+                reward += self.calc_reward_hft_repayment()  # 建玉をすぐに返済したらペナルティ
                 # -------------------------------------------------------------
                 self.provider.n_trade += 1  # 取引回数を更新
                 # 含み損益 →　確定損益
