@@ -167,6 +167,7 @@ class ToolBarProphet(QToolBar):
 
         self.combo_tick = combo_tick = ComboBox()
         combo_tick.setToolTip("ティックデータ一覧")
+        combo_tick.addItems(self.get_tick_data())
         self.addWidget(combo_tick)
 
     def get_trained_models(self) -> list[str]:
@@ -177,6 +178,14 @@ class ToolBarProphet(QToolBar):
         dir_model = os.path.join(self.res.dir_model, "trained")
         list_model = sorted(os.listdir(dir_model), reverse=True)
         return list_model
+
+    def get_tick_data(self) -> list[str]:
+        """
+        ティックデータ一覧の取得
+        :return:
+        """
+        list_tick = sorted(os.listdir(self.res.dir_collection), reverse=True)
+        return list_tick
 
     def on_start_inference(self):
         self.clickedPlay.emit()
