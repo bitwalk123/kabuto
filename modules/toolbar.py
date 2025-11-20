@@ -140,10 +140,6 @@ class ToolBarProphet(QToolBar):
         super().__init__()
         self.res = res
 
-        # モデル一覧
-        dir_model = os.path.join(self.res.dir_model, "trained")
-        files_model = sorted(os.listdir(dir_model), reverse=True)
-
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, 'play.png')),
             "推論の開始",
@@ -154,13 +150,33 @@ class ToolBarProphet(QToolBar):
 
         self.addSeparator()
 
-        lab_model = Label("Model")
+        lab_model = Label("モデル")
         lab_model.setStyleSheet("QLabel {padding: 0 5px 0 5px;}")
         self.addWidget(lab_model)
 
-        combo_model = ComboBox()
-        combo_model.addItems(files_model)
+        self.combo_model = combo_model = ComboBox()
+        combo_model.setToolTip("学習済みモデル一覧")
+        combo_model.addItems(self.get_trained_models())
         self.addWidget(combo_model)
+
+        self.addSeparator()
+
+        lab_tick = Label("ティックデータ")
+        lab_tick.setStyleSheet("QLabel {padding: 0 5px 0 5px;}")
+        self.addWidget(lab_tick)
+
+        self.combo_tick = combo_tick = ComboBox()
+        combo_tick.setToolTip("ティックデータ一覧")
+        self.addWidget(combo_tick)
+
+    def get_trained_models(self) -> list[str]:
+        """
+        学習済みモデル一覧の取得
+        :return:
+        """
+        dir_model = os.path.join(self.res.dir_model, "trained")
+        list_model = sorted(os.listdir(dir_model), reverse=True)
+        return list_model
 
     def on_start_inference(self):
         self.clickedPlay.emit()
