@@ -147,6 +147,7 @@ class WorkerAgent(QObject):
     def resetEnv(self):
         # 環境のリセット
         self.obs, _ = self.env.reset()
+        self.done = False
         self.completedResetEnv.emit()
 
     @Slot(bool)

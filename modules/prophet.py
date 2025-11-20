@@ -57,6 +57,12 @@ class Prophet(QMainWindow):
         self.requestPostProcs.emit()
 
     def on_start(self):
+        """
+        スタートボタンがクリックされた時の処理
+        :return:
+        """
+        # 選択されたモデルと過去ティックデータ、
+        # およびモデルに紐づく銘柄コードを取得
         dict_info = self.toolbar.getInfo()
         path_model: str = dict_info["path_model"]
         path_excel: str = dict_info["path_excel"]
@@ -94,6 +100,10 @@ class Prophet(QMainWindow):
         self.stop_thread()
 
     def send_first_tick(self):
+        """
+        環境をリセットした後の最初のティックデータ送信
+        :return:
+        """
         print("\n環境がリセットされました。")
         self.row = 0
         print("推論ループを開始します。")
@@ -105,12 +115,16 @@ class Prophet(QMainWindow):
         ひとつずつティックデータを送ってリアルタイムをシミュレート
         :return:
         """
+        # データフレームからティックデータを１セット取得
         ts = float(self.df["Time"].iloc[self.row])
         price = float(self.df["Price"].iloc[self.row])
         volume = float(self.df["Volume"].iloc[self.row])
+        # エージェントにティックデータを送る
         self.sendTradeData.emit(ts, price, volume)
+        # 行位置をインクリメント
         self.row += 1
-        if self.row > len(self.df):
+        # 行位置が最後であれば終了（最後の行は使わない）
+        if self.row >= len(self.df):
             self.done = True
 
     def start_thread(self, path_model: str):
@@ -125,8 +139,8 @@ class Prophet(QMainWindow):
 
         self.requestReset.connect(self.worker.resetEnv)
         self.requestPostProcs.connect(self.worker.postProcs)
-
         self.sendTradeData.connect(self.worker.addData)
+
         self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
@@ -138,6 +152,10 @@ class Prophet(QMainWindow):
         スレッド終了
         :return:
         """
+        self.requestReset.disconnect()
+        self.requestPostProcs.disconnect()
+        self.sendTradeData.disconnect()
+
         self.thread.quit()
         self.thread.wait()
 
