@@ -6,6 +6,7 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QFileDialog, QToolBar
 
 from structs.res import AppRes
+from widgets.combos import ComboBox
 from widgets.containers import PadH
 from widgets.labels import Label, LCDTime
 
@@ -130,3 +131,36 @@ class ToolBar(QToolBar):
     def updateTime(self, ts: float):
         dt = datetime.datetime.fromtimestamp(ts)
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
+
+
+class ToolBarProphet(QToolBar):
+    clickedPlay = Signal()
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+
+        # モデル一覧
+        dir_model = os.path.join(self.res.dir_model, "trained")
+        files_model = sorted(os.listdir(dir_model), reverse=True)
+
+        action_start = QAction(
+            QIcon(os.path.join(res.dir_image, 'play.png')),
+            "推論の開始",
+            self
+        )
+        action_start.triggered.connect(self.on_start_inference)
+        self.addAction(action_start)
+
+        self.addSeparator()
+
+        lab_model = Label("Model")
+        lab_model.setStyleSheet("QLabel {padding: 0 5px 0 5px;}")
+        self.addWidget(lab_model)
+
+        combo_model = ComboBox()
+        combo_model.addItems(files_model)
+        self.addWidget(combo_model)
+
+    def on_start_inference(self):
+        self.clickedPlay.emit()
