@@ -43,6 +43,7 @@ class Prophet(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
+        self.setFixedSize(1500, 500)
 
         # =====================================================================
         # ツールバー

@@ -107,13 +107,22 @@ class TickChart(Chart):
     def __init__(self, res: AppRes):
         super().__init__(res)
         # 余白設定
-        self.figure.subplots_adjust(left=0.075, right=0.99, top=0.9, bottom=0.08)
+        self.figure.subplots_adjust(
+            left=0.04,
+            right=0.998,
+            top=0.9,
+            bottom=0.08,
+        )
         # タイムスタンプへ時差を加算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
 
+        self.clearPlot()
+
     def clearPlot(self):
         self.ax.cla()
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        self.ax.xaxis.set_major_formatter(
+            mdates.DateFormatter("%H:%M")
+        )
         self.ax.grid()
 
     def updateData(self, df: pd.DataFrame, title: str):
