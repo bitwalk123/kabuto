@@ -15,3 +15,7 @@ def calc_vwap(df: pd.DataFrame):
     df["VWAP"] = df["cum_pv"] / df["cum_vol"]
     # VWAP乖離率の計算
     df["VWAP_deviation"] = (df["Price"] - df["VWAP"]) / df["VWAP"]
+
+def calc_ma(df: pd.DataFrame):
+    df["MA060"]=df["Price"].rolling(60, min_periods=1).mean()
+    df["MA300"]=df["Price"].rolling(300, min_periods=1).mean()
