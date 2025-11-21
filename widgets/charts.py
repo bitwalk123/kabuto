@@ -108,8 +108,8 @@ class TickChart(Chart):
         super().__init__(res)
         # 余白設定
         self.figure.subplots_adjust(
-            left=0.04,
-            right=0.998,
+            left=0.05,
+            right=0.95,
             top=0.9,
             bottom=0.08,
         )
@@ -126,15 +126,22 @@ class TickChart(Chart):
         self.ax.grid()
 
     def updateData(self, df: pd.DataFrame, title: str):
-        # トレンドライン（株価）
-        ser = df['Price']
-        ser.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
+        # トレンドライン（株価とVWAP）
+        df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
+        ser_price = df["Price"]
+        ser_vwap = df["VWAP"]
+
         # 消去
         self.ax.cla()
+
         # プロット
-        self.ax.plot(ser, color='lightyellow', linewidth=0.5)
+        self.ax.plot(ser_price, linewidth=0.5, label="Price")
+        self.ax.plot(ser_vwap, linewidth=0.5, label="VWAP")
+
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)
+        self.ax.legend(fontsize=9)
         self.ax.set_title(title)
+
         # 再描画
         self.draw()

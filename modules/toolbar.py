@@ -135,7 +135,9 @@ class ToolBar(QToolBar):
 
 
 class ToolBarProphet(QToolBar):
+    clickedDebug = Signal()
     clickedPlay = Signal()
+    clickedUpdate = Signal()
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -149,7 +151,7 @@ class ToolBarProphet(QToolBar):
             "推論の開始",
             self
         )
-        action_start.triggered.connect(self.on_start_inference)
+        action_start.triggered.connect(self.on_start)
         self.addAction(action_start)
 
         self.addSeparator()
@@ -183,6 +185,17 @@ class ToolBarProphet(QToolBar):
         )
         action_update.triggered.connect(self.on_update)
         self.addAction(action_update)
+
+        pad = PadH()
+        self.addWidget(pad)
+
+        action_debug = QAction(
+            QIcon(os.path.join(res.dir_image, 'debug.png')),
+            "デバッグ用",
+            self
+        )
+        action_debug.triggered.connect(self.on_debug)
+        self.addAction(action_debug)
 
     def get_tick_data(self) -> list[str]:
         """
@@ -218,8 +231,11 @@ class ToolBarProphet(QToolBar):
 
         return dict_info
 
-    def on_start_inference(self):
+    def on_debug(self):
+        self.clickedDebug.emit()
+
+    def on_start(self):
         self.clickedPlay.emit()
 
     def on_update(self):
-        pass
+        self.clickedUpdate.emit()

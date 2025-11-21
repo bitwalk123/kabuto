@@ -49,6 +49,7 @@ class Prophet(QMainWindow):
         # ツールバー
         # =====================================================================
         self.toolbar = toolbar = ToolBarProphet(res)
+        toolbar.clickedDebug.connect(self.on_debug)
         toolbar.clickedPlay.connect(self.on_start)
         self.addToolBar(toolbar)
 
@@ -81,6 +82,15 @@ class Prophet(QMainWindow):
         # 後処理をリクエスト
         self.requestPostProcs.emit()
 
+    def on_debug(self):
+        dict_info = self.toolbar.getInfo()
+        path_excel: str = dict_info["path_excel"]
+        code: str = dict_info["code"]
+        df = get_excel_sheet(path_excel, code)
+
+        title = f"{os.path.basename(path_excel)}, {code}"
+        self.win_tick.draw(df, title)
+
     def on_start(self):
         """
         スタートボタンがクリックされた時の処理
@@ -100,7 +110,10 @@ class Prophet(QMainWindow):
         # Excel ファイルをデータフレームに読み込む
         self.df = get_excel_sheet(path_excel, code)
         print("\nExcel ファイルをデータフレームに読み込みました。")
-        # print(self.df)
+
+        # ティックデータのプロット
+        title = f"{os.path.basename(path_excel)}, {code}"
+        self.win_tick.draw(self.df, title)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 推論用スレッドの開始
@@ -109,6 +122,7 @@ class Prophet(QMainWindow):
         # エージェント環境のリセット → リセット終了で推論開始
         self.requestResetEnv.emit()
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
 
     def post_process(self, dict_result: dict):
         """
