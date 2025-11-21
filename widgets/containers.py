@@ -2,12 +2,19 @@ from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (
     QFrame,
+    QMainWindow,
     QSizePolicy,
+    QTabWidget,
     QWidget,
 )
 
 from structs.res import AppRes
-from widgets.buttons import TradeButton, ToggleButtonAutoPilot, ButtonSave, ButtonSetting
+from widgets.buttons import (
+    ButtonSave,
+    ButtonSetting,
+    ToggleButtonAutoPilot,
+    TradeButton,
+)
 from widgets.layouts import GridLayout, HBoxLayout
 
 
@@ -18,6 +25,7 @@ class Frame(QFrame):
             QFrame.Shape.StyledPanel | QFrame.Shadow.Plain
         )
         self.setLineWidth(1)
+
 
 class FrameSunken(QFrame):
     def __init__(self):
@@ -56,6 +64,12 @@ class IndicatorBuySell(QFrame):
         self.setStyleSheet("QFrame{background-color: cyan;}")
 
 
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+
+
 class PadH(QWidget):
     def __init__(self):
         super().__init__()
@@ -73,6 +87,20 @@ class PadV(QWidget):
         self.setSizePolicy(
             QSizePolicy.Policy.Preferred,
             QSizePolicy.Policy.Expanding
+        )
+
+
+class TabWidget(QTabWidget):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setStyleSheet(
+            """
+            QTabWidget {
+                font-family: monospace;
+                font-size: 9pt;
+            }
+            """
         )
 
 

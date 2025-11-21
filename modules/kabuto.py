@@ -22,7 +22,7 @@ from modules.dock import DockTrader
 from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
-from modules.statusbar import StatusBar
+from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction

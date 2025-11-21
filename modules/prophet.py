@@ -9,8 +9,11 @@ from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
 from modules.agent import WorkerAgent
+from modules.win_tick import WinTick
+from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBarProphet
 from structs.res import AppRes
+from widgets.containers import TabWidget
 
 
 class Prophet(QMainWindow):
@@ -31,18 +34,40 @@ class Prophet(QMainWindow):
         self.row = 0
         self.t_start = 0
 
+        # 強化学習モデル用スレッド
+        self.thread = None
+        self.worker = None
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # GUI
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
 
+        # =====================================================================
+        # ツールバー
+        # =====================================================================
         self.toolbar = toolbar = ToolBarProphet(res)
         toolbar.clickedPlay.connect(self.on_start)
         self.addToolBar(toolbar)
 
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 強化学習モデル用スレッド
-        self.thread = None
-        self.worker = None
+        # =====================================================================
+        # ステータスバー
+        # =====================================================================
+        self.statusbar = statusbar = StatusBar(res)
+        self.setStatusBar(statusbar)
+
+        # =====================================================================
+        # メイン・ウィンドウ
+        # =====================================================================
+        self.tab_base = tabbase = TabWidget()
+        self.tab_base.setTabPosition(TabWidget.TabPosition.South)
+        self.setCentralWidget(tabbase)
+        # ---------------------------------------------------------------------
+        # タブオブジェクト
+        # ---------------------------------------------------------------------
+        self.win_tick = win_tick = WinTick(res)
+        tabbase.addTab(win_tick, "ティックチャート")
 
     def finished_trading(self):
         t_end = perf_counter()  # ループ終了時刻
@@ -60,8 +85,7 @@ class Prophet(QMainWindow):
         スタートボタンがクリックされた時の処理
         :return:
         """
-        # 選択されたモデルと過去ティックデータ、
-        # およびモデルに紐づく銘柄コードを取得
+        # 選択されたモデルと過去ティックデータ、銘柄コードを取得
         dict_info = self.toolbar.getInfo()
         path_model: str = dict_info["path_model"]
         path_excel: str = dict_info["path_excel"]
@@ -75,14 +99,15 @@ class Prophet(QMainWindow):
         # Excel ファイルをデータフレームに読み込む
         self.df = get_excel_sheet(path_excel, code)
         print("\nExcel ファイルをデータフレームに読み込みました。")
-        print(self.df)
+        # print(self.df)
 
-        # スレッドの開始
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 推論用スレッドの開始
         print("\nスレッド内にワーカーエージェントを生成します。")
         self.start_thread(path_model)
-
-        # エージェント環境のリセット
+        # エージェント環境のリセット → リセット終了で推論開始
         self.requestResetEnv.emit()
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def post_process(self, dict_result: dict):
         """
