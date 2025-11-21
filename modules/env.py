@@ -68,8 +68,9 @@ class TradingEnv(gym.Env):
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.reward_man.dict_transaction)
 
-    def getObservation(self, ts: float, price: float, volume: float):
+    def getObservation(self, ts: float, price: float, volume: float) -> np.ndarray:
         """
+        観測値を取得（リアルタイム用）
         ティックデータから観測値を算出（デバッグ用）
         :param ts:
         :param price:
@@ -98,19 +99,10 @@ class TradingEnv(gym.Env):
         obs = self.obs_man.getObsReset()
         return obs, {}
 
-    def setData(self, ts: float, price: float, volume: float):
-        """
-        リアルタイム推論時には、step メソッドを呼ぶ前に本メソッドでデータを渡す。
-        :param ts:
-        :param price:
-        :param volume:
-        :return:
-        """
-        self.provider.update(ts, price, volume)
 
-    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
+    def step(self, action: int) -> tuple[float, bool, bool, dict]:
         """
-        アクションによるステップ処理
+        アクションによるステップ処理（リアルタイム用）
         :param action:
         :return:
         """
@@ -135,20 +127,8 @@ class TradingEnv(gym.Env):
         # 収益情報
         info["pnl_total"] = self.reward_man.pnl_total
 
-        # ---------------------------------------------------------------------
-        # 次の観測値
-        # ---------------------------------------------------------------------
-        """
-        TODO: ここで provider.update 相当の処理ができるようにする必要がある！
-        """
-        obs = self.obs_man.getObs(
-            self.reward_man.getPL4Obs(),  # 含み損益
-            self.reward_man.getPLMax4Obs(),  # 含み損益最大値
-            self.reward_man.position,  # ポジション
-        )
-
         self.step_current += 1
-        return obs, reward, terminated, truncated, info
+        return reward, terminated, truncated, info
 
 
 class TrainingEnv(TradingEnv):

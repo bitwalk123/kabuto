@@ -114,16 +114,14 @@ class WorkerAgent(QObject):
             # 取引終了
             self.completedTrading.emit()
         else:
-            """
-            TODO:
-            ここで最新の観測値をモデルへ渡してアクションを取得するべきではないのか？
-            """
-            # 現在のマスク情報を取得
+            # ティックデータから観測値を取得
+            obs = self.env.getObservation(ts, price, volume)
+            # 現在の行動マスクを取得
             masks = self.env.action_masks()
             # モデルによる行動予測
-            action, _states = self.model.predict(self.obs, action_masks=masks)
+            action, _states = self.model.predict(obs, action_masks=masks)
 
-            # self.autopilot フラグが立っていれば通知
+            # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
                 position: PositionType = self.env.reward_man.position
                 if ActionType(action) != ActionType.HOLD:
@@ -132,17 +130,17 @@ class WorkerAgent(QObject):
                     self.notifyAction.emit(action, position)
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-            # マスク更新と報酬計算
-            """
-            TODO: アクションに対して報酬が決まりその後に次の観測値が決まるようにする必要がある！
-            """
-            self.env.setData(ts, price, volume)
-            self.obs, reward, terminated, truncated, info = self.env.step(action)
+            # -----------------------------------------------------------------
+            # アクションによる環境の状態更新
+            # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
+            # -----------------------------------------------------------------
+            reward, terminated, truncated, info = self.env.step(action)
             if terminated or truncated:
                 self.done = True
                 # 取引終了
                 self.completedTrading.emit()
             else:
+                # 次のアクション受け入れ準備完了
                 self.readyNext.emit()
 
     def postProcs(self):
