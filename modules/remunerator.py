@@ -30,8 +30,7 @@ class RewardManager:
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.divisor_profit = 20.0  # 損益を報酬化する際の除数
-        self.alpha = 0.2  # エントリ・利確時の報酬計算に使うパラメータ
+        self.divisor_profit_scaled = 100.0  # 損益を報酬化する際の除数
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -40,70 +39,6 @@ class RewardManager:
         self.dict_transaction["約定単価"].append(self.provider.price)
         self.dict_transaction["約定数量"].append(self.unit)
         self.dict_transaction["損益"].append(profit)
-
-    def calc_reward_hft_entry(self) -> float:
-        """
-        高頻度売買 (High Frequency Trading) に対するペナルティ (1)
-        :return:
-        """
-        # ポジション解消後に立て続けに売買するとペナルティ（報酬）
-        reward = self.alpha - (1.0 + self.alpha) / (1.0 + self.alpha * self.provider.n_hold)  # 報酬 あるいは ペナルティ
-        # HOLD カウンターのリセット
-        self.provider.n_hold = 0
-        return reward
-
-    def calc_reward_hft_repayment(self) -> float:
-        """
-        高頻度売買 (High Frequency Trading) に対するペナルティ (2)
-        :return:
-        """
-        pnl = self.calc_pnl_unrealized()
-        if pnl > 0:
-            # 含み損益がプラスだったらそのまま報酬
-            reward = pnl
-        else:
-            # 建玉をすぐに返済するとペナルティ（報酬）
-            reward = -1.0 / (1.0 + self.alpha * self.provider.n_hold_position)
-            # 含み損益の方がパネルティ (reward) より小さければ置き換える
-            if pnl < reward:
-                reward = pnl
-        # HOLD カウンターのリセット
-        self.provider.n_hold_position = 0
-        return reward
-
-    def calc_penalty_no_volatility(self) -> float:
-        """
-        ボラタイルが無い時のエントリに対するペナルティ
-        :return:
-        """
-        volatility = self.provider.msd / self.price_tick
-        if volatility < 1.0:
-            return 1.0
-        else:
-            return 0.0
-
-    def calc_pnl_unrealized(self) -> float:
-        """
-        含み損益の処理
-        :return:
-        """
-        profit = self.get_profit()
-        if self.profit_max < profit:
-            self.profit_max = profit
-
-        # ポジション持ち HOLD に応じた報酬計算
-        k = np.sqrt(self.provider.n_hold_position) / 100.
-        # 最大含み益からの按分
-        if 0 < self.profit_max:
-            r = abs(profit) / self.profit_max
-        else:
-            r = 1
-        reward = profit * (1 + k) * r
-
-        # ポジション持ち HOLD カウンタの更新
-        self.provider.n_hold_position += 1
-
-        return self.get_scaled_profit(reward)
 
     def clear(self):
         self.clear_position()
@@ -115,9 +50,10 @@ class RewardManager:
 
     def clear_position(self):
         self.position = PositionType.NONE
+        # エントリ価格をリセット
         self.price_entry = 0.0
-        self.profit_max = 0.0  # 含み損益の最大値
-        self.provider.resetHoldPosCounter()
+        # 含み損益の最大値
+        self.profit_max = 0.0
         # ポジション持ち HOLD カウンタのリセット
         self.provider.n_hold_position = 0
 
@@ -129,34 +65,20 @@ class RewardManager:
             # ポジションが無い場合に取りうるアクションは HOLD, BUY, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
-                # HOLD カウンターのインクリメント
+                # HOLD カウンター（建玉なし）のインクリメント
                 self.provider.n_hold += 1
             elif action_type == ActionType.BUY:
-                reward += self.calc_reward_hft_entry()  # 高頻度取引ペナルティ
-                reward -= self.calc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 買建 (LONG)
                 # =============================================================
-                self.provider.n_trade += 1  # 取引回数を更新
-                self.position = PositionType.LONG  # ポジションを更新
-                self.price_entry = self.provider.price  # 取得価格
-                # -------------------------------------------------------------
-                # 取引明細
-                # -------------------------------------------------------------
-                self.add_transaction("買建")
+                # 新規ポジション
+                reward += self.position_open(PositionType.LONG)
             elif action_type == ActionType.SELL:
-                reward += self.calc_reward_hft_entry()  # 高頻度取引ペナルティ
-                reward -= self.calc_penalty_no_volatility()  # ボラティリティ無しペナルティ
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
-                self.provider.n_trade += 1  # 取引回数を更新
-                self.position = PositionType.SHORT  # ポジションを更新
-                self.price_entry = self.provider.price  # 取得価格
-                # -------------------------------------------------------------
-                # 取引明細
-                # -------------------------------------------------------------
-                self.add_transaction("売建")
+                # 新規ポジション
+                reward += self.position_open(PositionType.SHORT)
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
         elif self.position == PositionType.LONG:
@@ -164,8 +86,8 @@ class RewardManager:
             # LONG ポジションの場合に取りうるアクションは HOLD, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
-                # 含み損益の処理
-                reward += self.calc_pnl_unrealized()
+                # HOLD カウンター（建玉あり）のインクリメント
+                self.provider.n_hold_position += 1
             elif action_type == ActionType.BUY:
                 # 取引ルール違反
                 raise TypeError(f"Violation of transaction rule: {action_type}")
@@ -173,25 +95,7 @@ class RewardManager:
                 # =============================================================
                 # 売埋
                 # =============================================================
-                # -------------------------------------------------------------
-                self.provider.n_trade += 1  # 取引回数を更新
-                # 含み損益 →　確定損益
-                profit = self.get_profit()
-                # 確定損益追加
-                self.pnl_total += profit
-                # 建玉をすぐに返済したら基本的にペナルティ
-                reward += self.calc_reward_hft_repayment()
-                # 報酬（返済時の報酬は無し）
-                # reward += self.get_scaled_profit(profit)  # 報酬用にスケーリング
-                # -------------------------------------------------------------
-                # 取引明細
-                # -------------------------------------------------------------
-                # 返済: 買建 (LONG) → 売埋
-                self.add_transaction("売埋", profit)
-                # =============================================================
-                # ポジション解消
-                # =============================================================
-                self.clear_position()
+                reward += self.position_close()
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
         elif self.position == PositionType.SHORT:
@@ -199,31 +103,13 @@ class RewardManager:
             # SHORT ポジションの場合に取りうるアクションは HOLD, BUY
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
-                # 含み損益の処理
-                reward += self.calc_pnl_unrealized()
+                # HOLD カウンター（建玉あり）のインクリメント
+                self.provider.n_hold_position += 1
             elif action_type == ActionType.BUY:
                 # =============================================================
                 # 買埋
                 # =============================================================
-                # -------------------------------------------------------------
-                self.provider.n_trade += 1  # 取引回数を更新
-                # 含み損益 →　確定損益
-                profit = self.get_profit()
-                # 損益追加
-                self.pnl_total += profit
-                # 建玉をすぐに返済したら基本的にペナルティ
-                reward += self.calc_reward_hft_repayment()
-                # 報酬（返済時の報酬は無し）
-                # reward += self.get_scaled_profit(profit)  # 報酬用にスケーリング
-                # -------------------------------------------------------------
-                # 取引明細
-                # -------------------------------------------------------------
-                # 返済: 売建 (SHORT) → 買埋
-                self.add_transaction("買埋", profit)
-                # =============================================================
-                # ポジション解消
-                # =============================================================
-                self.clear_position()
+                reward += self.position_close()
             elif action_type == ActionType.SELL:
                 # 取引ルール違反
                 raise TypeError(f"Violation of transaction rule: {action_type}")
@@ -255,11 +141,7 @@ class RewardManager:
         # 損益追加
         self.pnl_total += profit
         # 報酬
-        reward += self.get_scaled_profit(profit)  # 報酬用にスケーリング
-        # =====================================================================
-        # ポジション解消
-        # =====================================================================
-        self.clear_position()
+        reward += self.get_profit_scaled(profit)  # シンプルにスケーリングされた報酬
 
         return reward
 
@@ -269,25 +151,22 @@ class RewardManager:
 
     def get_profit(self) -> float:
         if self.position == PositionType.LONG:
-            # ---------------------------------------------------------
             # 返済: 買建 (LONG) → 売埋
-            # ---------------------------------------------------------
-            return self.provider.price - self.price_entry
+            profit = self.provider.price - self.price_entry
         elif self.position == PositionType.SHORT:
-            # ---------------------------------------------------------
             # 返済: 売建 (SHORT) → 買埋
-            # ---------------------------------------------------------
-            return self.price_entry - self.provider.price
+            profit = self.price_entry - self.provider.price
         else:
-            return 0.0  # 実現損益
+            profit = 0.0  # 実現損益
 
-    def get_scaled_profit(self, profit) -> float:
-        """
-        損益のスケール
-        :param profit:
-        :return:
-        """
-        return np.sign(profit) * np.sqrt(abs(profit / self.price_tick)) / self.divisor_profit
+        # 最大含み益を保持
+        if self.profit_max < profit:
+            self.profit_max = profit
+
+        return profit
+
+    def get_profit_scaled(self, profit) -> float:
+        return np.tanh(profit / self.price_tick / self.divisor_profit_scaled)
 
     def getNumberOfTransactions(self) -> int:
         return len(self.dict_transaction["注文日時"])
@@ -297,7 +176,7 @@ class RewardManager:
         観測値用に、損益用の報酬と同じにスケーリングして含み損益を返す。
         """
         profit = self.get_profit()
-        return self.get_scaled_profit(profit)  # 報酬用にスケーリング
+        return self.get_profit_scaled(profit)  # 報酬用にスケーリング
 
     def getPLRaw(self) -> float:
         """
@@ -309,7 +188,7 @@ class RewardManager:
         """
         含み損益最大値
         """
-        return self.get_scaled_profit(self.profit_max)  # 報酬用にスケーリング
+        return self.get_profit_scaled(self.profit_max)  # 報酬用にスケーリング
 
     def getPLMaxRaw(self) -> float:
         """
@@ -336,3 +215,69 @@ class RewardManager:
             "約定数量": [],
             "損益": [],
         }
+
+    def position_close(self) -> float:
+        reward = 0
+
+        # HOLD カウンター（建玉あり）のリセット
+        self.provider.n_hold_position = 0
+        # 取引回数のインクリメント
+        self.provider.n_trade += 1
+
+        # 確定損益
+        profit = self.get_profit()
+        # 確定損益追加
+        self.pnl_total += profit
+        # 報酬に追加
+        reward += self.get_profit_scaled(profit)
+
+        # エントリ価格をリセット
+        self.price_entry = 0.0
+        # 含み損益の最大値
+        self.profit_max = 0.0
+
+        # -------------------------------------------------------------
+        # 取引明細
+        # -------------------------------------------------------------
+        if self.position == PositionType.LONG:
+            # 返済: 買建 (LONG) → 売埋
+            self.add_transaction("売埋", profit)
+        elif self.position == PositionType.SHORT:
+            # 返済: 売建 (SHORT) → 買埋
+            self.add_transaction("買埋", profit)
+        else:
+            raise TypeError(f"Unknown PositionType: {self.position}")
+
+        # ポジションの更新
+        self.position = PositionType.NONE
+
+        return reward
+
+    def position_open(self, position: PositionType) -> float:
+        """
+        新規ポジション
+        :return:
+        """
+        reward = 0.0
+
+        # HOLD カウンター（建玉なし）のリセット
+        self.provider.n_hold = 0
+        # 取引回数のインクリメント
+        self.provider.n_trade += 1
+
+        # エントリ価格
+        self.price_entry = self.provider.price
+        # ポジションを更新
+        self.position = position
+
+        # -------------------------------------------------------------
+        # 取引明細
+        # -------------------------------------------------------------
+        if self.position == PositionType.LONG:
+            self.add_transaction("買建")
+        elif self.position == PositionType.SHORT:
+            self.add_transaction("売建")
+        else:
+            raise TypeError(f"Unknown PositionType: {self.position}")
+
+        return reward
