@@ -114,7 +114,11 @@ class WorkerAgent(QObject):
             # 取引終了
             self.completedTrading.emit()
         else:
-            # マスク情報を取得
+            """
+            TODO:
+            ここで最新の観測値をモデルへ渡してアクションを取得するべきではないのか？
+            """
+            # 現在のマスク情報を取得
             masks = self.env.action_masks()
             # モデルによる行動予測
             action, _states = self.model.predict(self.obs, action_masks=masks)
@@ -129,6 +133,9 @@ class WorkerAgent(QObject):
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             # マスク更新と報酬計算
+            """
+            TODO: アクションに対して報酬が決まりその後に次の観測値が決まるようにする必要がある！
+            """
             self.env.setData(ts, price, volume)
             self.obs, reward, terminated, truncated, info = self.env.step(action)
             if terminated or truncated:

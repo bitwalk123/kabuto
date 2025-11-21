@@ -117,30 +117,35 @@ class TradingEnv(gym.Env):
         info = dict()
 
         # ---------------------------------------------------------------------
-        # 報酬
+        # アクションに対する報酬
         # ---------------------------------------------------------------------
         reward = self.reward_man.evalReward(action)
 
         # ---------------------------------------------------------------------
-        # 観測値
+        # ステップ終了判定
         # ---------------------------------------------------------------------
+        terminated = False
+        truncated = False
+        # 取引回数上限チェック
+        if self.provider.n_trade_max <= self.provider.n_trade:
+            reward += self.reward_man.forceRepay()
+            truncated = True  # 取引回数上限による終了を明示
+            info["done_reason"] = "terminated:max_trades"
+
+        # 収益情報
+        info["pnl_total"] = self.reward_man.pnl_total
+
+        # ---------------------------------------------------------------------
+        # 次の観測値
+        # ---------------------------------------------------------------------
+        """
+        TODO: ここで provider.update 相当の処理ができるようにする必要がある！
+        """
         obs = self.obs_man.getObs(
             self.reward_man.getPL4Obs(),  # 含み損益
             self.reward_man.getPLMax4Obs(),  # 含み損益最大値
             self.reward_man.position,  # ポジション
         )
-
-        terminated = False
-        truncated = False
-        info["pnl_total"] = self.reward_man.pnl_total
-
-        # ---------------------------------------------------------------------
-        # 取引回数上限チェック
-        # ---------------------------------------------------------------------
-        if self.provider.n_trade_max <= self.provider.n_trade:
-            reward += self.reward_man.forceRepay()
-            truncated = True  # 取引回数上限による終了を明示
-            info["done_reason"] = "terminated:max_trades"
 
         self.step_current += 1
         return obs, reward, terminated, truncated, info
@@ -174,45 +179,42 @@ class TrainingEnv(TradingEnv):
         info = dict()
 
         # ---------------------------------------------------------------------
-        # データフレームからティックデータを取得
-        # t, price, volume = self._get_tick()
-        self.provider.update(*self._get_tick())
-        # ---------------------------------------------------------------------
-
-        # ---------------------------------------------------------------------
-        # 報酬
+        # アクションに対する報酬
         # ---------------------------------------------------------------------
         reward = self.reward_man.evalReward(action)
 
         # ---------------------------------------------------------------------
-        # 観測値
+        # ステップ終了判定
         # ---------------------------------------------------------------------
+        terminated = False
+        truncated = False
+        if len(self.df) - 1 <= self.step_current:
+            # ティックデータのステップ上限チェック
+            reward += self.reward_man.forceRepay()
+            truncated = True  # ← ステップ数上限による終了
+            info["done_reason"] = "terminated: last_tick"
+        elif self.provider.n_trade_max <= self.provider.n_trade:
+            # 取引回数上限チェック
+            reward += self.reward_man.forceRepay()
+            truncated = True  # 取引回数上限による終了を明示
+            info["done_reason"] = "terminated: max_trades"
+
+        # 収益情報
+        info["pnl_total"] = self.reward_man.pnl_total
+
+        # ---------------------------------------------------------------------
+        # 次の観測値
+        # ---------------------------------------------------------------------
+        # データフレームから次のティックデータを取得
+        # t, price, volume = self._get_tick()
+        self.provider.update(*self._get_tick())
+        # モデルへ渡す観測値を取得
         obs = self.obs_man.getObs(
             self.reward_man.getPL4Obs(),  # 含み損益
             self.reward_man.getPLMax4Obs(),  # 含み損益最大値
             self.reward_man.position,  # ポジション
         )
-
-        terminated = False
-        truncated = False
-
-        # ---------------------------------------------------------------------
-        # ティックデータのステップ上限チェック
-        # ---------------------------------------------------------------------
-        if len(self.df) - 1 <= self.step_current:
-            reward += self.reward_man.forceRepay()
-            truncated = True  # ← ステップ数上限による終了
-            info["done_reason"] = "terminated: last_tick"
-
-        # ---------------------------------------------------------------------
-        # 取引回数上限チェック
-        # ---------------------------------------------------------------------
-        if self.provider.n_trade_max <= self.provider.n_trade:
-            reward += self.reward_man.forceRepay()
-            truncated = True  # 取引回数上限による終了を明示
-            info["done_reason"] = "terminated: max_trades"
-
+        # step（行位置）をインクリメント
         self.step_current += 1
-        info["pnl_total"] = self.reward_man.pnl_total
 
         return obs, reward, terminated, truncated, info
