@@ -89,26 +89,13 @@ if __name__ == "__main__":
         obs = env.getObservation(ts, price, volume)
         list_obs.append(obs)
 
-    list_name = [
-        "株価比",
-        "MAΔ",
-        "VWAPΔ",
-        "Mσ",
-        "含損益",
-        "含損益M",
-        "HOLD1",
-        "HOLD2",
-        "TRADE",
-        "NONE",
-        "LONG",
-        "SHORT"
-    ]
+    list_name = env.obs_man.getObsList()
     df_obs = pd.concat([pd.Series(row) for row in list_obs], axis=1).T
     df_obs.columns = list_name
     list_dt = pd.to_datetime([datetime.datetime.fromtimestamp(ts) for ts in df["Time"]])
     df_obs.index = list_dt[:len(df_obs)]
     # print(df_obs)
-    list_col = list_name[:4]
+    list_col = list_name[:5]
     df_obs_sub = df_obs[list_col]
     title = f"Observation trends from tick data\n{file} / {code}"
     plot_obs_trend(df_obs_sub, title)

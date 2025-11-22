@@ -13,6 +13,7 @@ from structs.app_enum import ActionType, PositionType
 class MaskablePPOAgent:
     def __init__(self):
         super().__init__()
+        self.env = None
         # 結果保持用辞書
         self.results = dict()
         # 設定値
@@ -23,7 +24,7 @@ class MaskablePPOAgent:
         custom_logger = configure(log_dir, ["stdout", "csv", "tensorboard"])
 
         # 学習環境の取得
-        env = TrainingEnv(df)
+        self.env = env = TrainingEnv(df)
         # 学習済モデルを読み込む
         if not new_model and os.path.exists(path_model):
             print(f"モデル {path_model} を読み込みます。")
@@ -51,7 +52,7 @@ class MaskablePPOAgent:
 
     def infer(self, df: pd.DataFrame, path_model: str, flag_all: bool = False) -> bool:
         # 学習環境の取得
-        env = TrainingEnv(df)
+        self.env = env = TrainingEnv(df)
 
         # 学習済モデルを読み込む
         if os.path.exists(path_model):

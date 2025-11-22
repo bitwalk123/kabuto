@@ -174,19 +174,6 @@ if __name__ == "__main__":
     df_obs = pd.concat([pd.Series(row) for row in agent.results["obs"]], axis=1).T
     rows = df_obs.shape[1]
     print(f"観測数 : {rows}")
-    list_name = [
-        "株価比",
-        "MAΔ",
-        "VWAPΔ",
-        "Mσ",
-        "含損益",
-        "含損益M",
-        "HOLD1",
-        "HOLD2",
-        "TRADE",
-        "NONE",
-        "LONG",
-        "SHORT"
-    ]
+    list_name =agent.env.obs_man.getObsList()
     df_obs.columns = list_name
     plot_obs_trend(df_obs)

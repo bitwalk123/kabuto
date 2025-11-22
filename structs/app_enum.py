@@ -7,14 +7,6 @@ class FollowType(Enum):
     BEP = auto()  # 損益分岐点 (Break-Even Point) に近づけるフォロー
     DECELERATE = auto()  # 追跡フォロー後の減速段階
 
-"""
-class ActionType(Enum):
-    HOLD = 0
-    BUY = 1
-    SELL = 2
-    REPAY = 3
-"""
-
 
 class ActionType(Enum):
     HOLD = 0
@@ -26,3 +18,9 @@ class PositionType(Enum):
     NONE = 0
     LONG = 1
     SHORT = 2
+
+
+class SignalSign(Enum):
+    NEGATIVE = -1
+    ZERO = 0
+    POSITIVE = 1
