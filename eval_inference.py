@@ -1,3 +1,4 @@
+import os
 import sys
 
 from matplotlib import dates as mdates
@@ -133,7 +134,7 @@ if __name__ == "__main__":
     # file = "ticks_20250819.xlsx"
     # file = "ticks_20250828.xlsx"
     # file = "ticks_20251006.xlsx"
-    file = "ticks_20251119.xlsx"
+    file = sorted(os.listdir(res.dir_collection))[-1:][0]
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について推論します。")
@@ -174,6 +175,6 @@ if __name__ == "__main__":
     df_obs = pd.concat([pd.Series(row) for row in agent.results["obs"]], axis=1).T
     rows = df_obs.shape[1]
     print(f"観測数 : {rows}")
-    list_name =agent.env.obs_man.getObsList()
+    list_name = agent.env.obs_man.getObsList()
     df_obs.columns = list_name
     plot_obs_trend(df_obs)

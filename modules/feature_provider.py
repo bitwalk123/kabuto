@@ -138,8 +138,7 @@ class FeatureProvider:
         if self.vwap == 0.0:
             return 0.0
         else:
-            ma = self.getMA(60)
-            return (ma - self.vwap) / self.vwap
+            return (self.price - self.vwap) / self.vwap
 
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
