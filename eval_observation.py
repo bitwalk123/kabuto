@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # 推論用データ
     # file = "ticks_20251006.xlsx"
-    file = "ticks_20251119.xlsx"
+    file = "ticks_20251121.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について観測値を算出します。")
