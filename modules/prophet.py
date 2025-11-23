@@ -9,11 +9,11 @@ from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
 from modules.agent import WorkerAgent
-from modules.win_tick import WinTick
-from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBarProphet
+from modules.win_tick import WinTick
 from structs.res import AppRes
 from widgets.containers import TabWidget
+from widgets.statusbars import StatusBar
 
 
 class Prophet(QMainWindow):
