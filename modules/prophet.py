@@ -18,7 +18,7 @@ from widgets.containers import TabWidget
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.2"
+    __version__ = "0.0.3"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -123,7 +123,6 @@ class Prophet(QMainWindow):
         self.requestResetEnv.emit()
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
-
     def post_process(self, dict_result: dict):
         """
         推論後の処理
@@ -154,17 +153,18 @@ class Prophet(QMainWindow):
         ひとつずつティックデータを送ってリアルタイムをシミュレート
         :return:
         """
-        # データフレームからティックデータを１セット取得
-        ts = float(self.df["Time"].iloc[self.row])
-        price = float(self.df["Price"].iloc[self.row])
-        volume = float(self.df["Volume"].iloc[self.row])
-        # エージェントにティックデータを送る
-        self.sendTradeData.emit(ts, price, volume)
-        # 行位置をインクリメント
-        self.row += 1
-        # 行位置が最後であれば終了（最後の行は使わない）
         if self.row >= len(self.df):
+            # データフレームの末尾で終了
             self.finished_trading()
+        else:
+            # データフレームからティックデータを１セット取得
+            ts = float(self.df["Time"].iloc[self.row])
+            price = float(self.df["Price"].iloc[self.row])
+            volume = float(self.df["Volume"].iloc[self.row])
+            # エージェントにティックデータを送る
+            self.sendTradeData.emit(ts, price, volume)
+            # 行位置をインクリメント
+            self.row += 1
 
     def start_thread(self, path_model: str):
         """
@@ -173,7 +173,8 @@ class Prophet(QMainWindow):
         :return:
         """
         self.thread = QThread(self)
-        self.worker = WorkerAgent(path_model, True)
+        # self.worker = WorkerAgent(path_model, True)
+        self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
         self.worker.moveToThread(self.thread)
 
         self.requestResetEnv.connect(self.worker.resetEnv)

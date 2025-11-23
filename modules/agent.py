@@ -89,7 +89,7 @@ class MaskablePPOAgent:
         return True
 
 
-class WorkerAgent(QObject):
+class WorkerAgentSB3(QObject):
     completedResetEnv = Signal()
     completedTrading = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
@@ -140,6 +140,78 @@ class WorkerAgent(QObject):
                 self.done = True
                 # 取引終了
                 self.completedTrading.emit()
+            else:
+                # 次のアクション受け入れ準備完了
+                self.readyNext.emit()
+
+    def postProcs(self):
+        dict_result = dict()
+        dict_result["transaction"] = self.env.getTransaction()
+        self.sendResults.emit(dict_result)
+
+    @Slot()
+    def resetEnv(self):
+        # 環境のリセット
+        self.obs, _ = self.env.reset()
+        self.done = False
+        self.completedResetEnv.emit()
+
+    @Slot(bool)
+    def setAutoPilotStatus(self, state: bool):
+        self.autopilot = state
+        self.logger.info(f"{__name__}: autopilot is set to {state}.")
+
+
+class WorkerAgent(QObject):
+    completedResetEnv = Signal()
+    completedTrading = Signal()
+    notifyAction = Signal(int, PositionType)  # 売買アクションを通知
+    readyNext = Signal()
+    sendResults = Signal(dict)
+
+    def __init__(self, autopilot: bool):
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.obs = None
+        self.done = False
+        self.autopilot = autopilot
+
+        # 学習環境の取得
+        self.env = env = TradingEnv()
+
+    @Slot(float, float, float)
+    def addData(self, ts: float, price: float, volume: float):
+        if self.done:
+            # 取引終了
+            self.completedTrading.emit()
+        else:
+            # ティックデータから観測値を取得
+            obs = self.env.getObservation(ts, price, volume)
+            # print(obs)
+            # 現在の行動マスクを取得
+            masks = self.env.action_masks()
+            # モデルによる行動予測
+            # action, _states = self.model.predict(obs, action_masks=masks)
+            action = 0
+
+            # self.autopilot フラグが立っていればアクションとポジションを通知
+            if self.autopilot:
+                position: PositionType = self.env.reward_man.position
+                if ActionType(action) != ActionType.HOLD:
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                    # 売買アクションを通知するシグナル（HOLD の時は通知しない）
+                    self.notifyAction.emit(action, position)
+                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+            # -----------------------------------------------------------------
+            # アクションによる環境の状態更新
+            # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
+            # -----------------------------------------------------------------
+            reward, terminated, truncated, info = self.env.step(action)
+            if terminated or truncated:
+                self.done = True
+                # 取引終了
+                # self.completedTrading.emit()
             else:
                 # 次のアクション受け入れ準備完了
                 self.readyNext.emit()
