@@ -98,12 +98,10 @@ class Prophet(QMainWindow):
         """
         # 選択されたモデルと過去ティックデータ、銘柄コードを取得
         dict_info = self.toolbar.getInfo()
-        path_model: str = dict_info["path_model"]
         path_excel: str = dict_info["path_excel"]
         code: str = dict_info["code"]
 
         print("\n下記の条件で推論を実施します。")
-        print(f"モデル\t\t: {path_model}")
         print(f"ティックデータ\t: {path_excel}")
         print(f"銘柄コード\t: {code}")
 
@@ -118,7 +116,7 @@ class Prophet(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 推論用スレッドの開始
         print("\nスレッド内にワーカーエージェントを生成します。")
-        self.start_thread(path_model)
+        self.start_thread()
         # エージェント環境のリセット → リセット終了で推論開始
         self.requestResetEnv.emit()
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -166,7 +164,7 @@ class Prophet(QMainWindow):
             # 行位置をインクリメント
             self.row += 1
 
-    def start_thread(self, path_model: str):
+    def start_thread(self):
         """
         スレッドの開始
         :param path_model:
