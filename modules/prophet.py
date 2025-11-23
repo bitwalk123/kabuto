@@ -79,9 +79,9 @@ class Prophet(QMainWindow):
         t_end = perf_counter()  # ループ終了時刻
         t_delta = t_end - self.t_start
         print("\nループを終了しました。")
-        print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
-        print(f"ティック数 :\t\t\t{self.row - 1 :,d} ticks")
-        print(f"処理時間 / ティック :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
+        print(f"計測時間 :\t\t{t_delta:,.3f} sec")
+        print(f"ティック数 :\t\t{self.row - 1 :,d} ticks")
+        print(f"単位処理時間 :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
 
         # 後処理をリクエスト
         self.requestPostProcs.emit()
