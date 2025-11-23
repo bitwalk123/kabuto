@@ -78,7 +78,7 @@ class Prophet(QMainWindow):
     def finished_trading(self):
         t_end = perf_counter()  # ループ終了時刻
         t_delta = t_end - self.t_start
-        print("\n推論ループを終了しました。")
+        print("\nループを終了しました。")
         print(f"計測時間 :\t\t\t{t_delta:,.3f} sec")
         print(f"ティック数 :\t\t\t{self.row - 1 :,d} ticks")
         print(f"処理時間 / ティック :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
@@ -87,13 +87,11 @@ class Prophet(QMainWindow):
         self.requestPostProcs.emit()
 
     def on_debug(self):
-        dict_info = self.toolbar.getInfo()
-        path_excel: str = dict_info["path_excel"]
-        code: str = dict_info["code"]
-        df = get_excel_sheet(path_excel, code)
-
-        title = f"{os.path.basename(path_excel)}, {code}"
-        self.win_tick.draw(df, title)
+        """
+        機能確認用
+        :return:
+        """
+        pass
 
     def on_start(self):
         """
@@ -114,9 +112,9 @@ class Prophet(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 推論用スレッドの開始
-        print("\nスレッド内にワーカーエージェントを生成します。")
+        print("\nワーカースレッドを生成・開始します。")
         self.start_thread()
-        # 必要なパラメータを取得してティックデータのチャートを作成
+        # 必要なパラメータをエージェント側から取得してティックデータのチャートを作成
         self.requestParam.emit()
         # エージェント環境のリセット → リセット終了で推論開始
         self.requestResetEnv.emit()
@@ -135,7 +133,7 @@ class Prophet(QMainWindow):
 
     def post_process(self, dict_result: dict):
         """
-        推論後の処理
+        ループ後の処理
         :param dict_result:
         :return:
         """
@@ -153,10 +151,10 @@ class Prophet(QMainWindow):
         :return:
         """
         print("\n環境がリセットされました。")
-        self.row = 0
-        print("推論ループを開始します。")
+        self.row = 0  # 行位置を 0 にリセット
+        print("ループを開始します。")
         self.t_start = perf_counter()  # ループ開始時刻
-        self.send_one_tick()
+        self.send_one_tick()  # 一行のデータをエージェントに送る
 
     def send_one_tick(self):
         """
