@@ -15,6 +15,10 @@ class FeatureProvider:
         self.mad_sign_signal = SignalSign.ZERO
         self.msd = 0
 
+        # 移動平均差用
+        self.t1 = 60
+        self.t2 = 600
+
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
@@ -28,7 +32,7 @@ class FeatureProvider:
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
 
         # キューを定義
-        self.n_deque_price = 600
+        self.n_deque_price = self.t2
         self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
 
     def _calc_mad(self) -> tuple[float, SignalSign]:
@@ -36,9 +40,9 @@ class FeatureProvider:
         移動平均差 (Moving Average Difference = MAD)
         :return:
         """
-        ma_060 = self.getMA(60)
-        ma_600 = self.getMA(600)
-        mad_new = ma_060 - ma_600
+        ma1 = self.getMA(self.t1)
+        ma2 = self.getMA(self.t2)
+        mad_new = ma1 - ma2
         if 0 < mad_new:
             signal_sign_new = SignalSign.POSITIVE
         elif mad_new < 0:

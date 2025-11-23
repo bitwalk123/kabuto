@@ -23,6 +23,7 @@ class Prophet(QMainWindow):
     __license__ = "MIT"
 
     requestResetEnv = Signal()
+    requestParam = Signal()
     requestPostProcs = Signal()
     sendTradeData = Signal(float, float, float)
 
@@ -33,6 +34,9 @@ class Prophet(QMainWindow):
         self.df = None
         self.row = 0
         self.t_start = 0
+
+        # 実行用パラメータ（主にデータ、銘柄コードなど）
+        self.dict_info = dict()
 
         # 強化学習モデル用スレッド
         self.thread = None
@@ -97,11 +101,10 @@ class Prophet(QMainWindow):
         :return:
         """
         # 選択されたモデルと過去ティックデータ、銘柄コードを取得
-        dict_info = self.toolbar.getInfo()
-        path_excel: str = dict_info["path_excel"]
-        code: str = dict_info["code"]
+        self.dict_info = dict_info = self.toolbar.getInfo()
 
         print("\n下記の条件で推論を実施します。")
+        path_excel, code = self.get_file_code()
         print(f"ティックデータ\t: {path_excel}")
         print(f"銘柄コード\t: {code}")
 
@@ -109,17 +112,26 @@ class Prophet(QMainWindow):
         self.df = get_excel_sheet(path_excel, code)
         print("\nExcel ファイルをデータフレームに読み込みました。")
 
-        # ティックデータのプロット
-        title = f"{os.path.basename(path_excel)}, {code}"
-        self.win_tick.draw(self.df, title)
-
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 推論用スレッドの開始
         print("\nスレッド内にワーカーエージェントを生成します。")
         self.start_thread()
+        # 必要なパラメータを取得してティックデータのチャートを作成
+        self.requestParam.emit()
         # エージェント環境のリセット → リセット終了で推論開始
         self.requestResetEnv.emit()
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def get_file_code(self) -> tuple[str, str]:
+        path_excel = self.dict_info["path_excel"]
+        code = self.dict_info["code"]
+        return path_excel, code
+
+    def plot_chart(self, dict_param: dict):
+        # ティックデータのプロット
+        path_excel, code = self.get_file_code()
+        title = f"{os.path.basename(path_excel)}, {code}"
+        self.win_tick.draw(self.df, dict_param, title)
 
     def post_process(self, dict_result: dict):
         """
@@ -176,12 +188,14 @@ class Prophet(QMainWindow):
         self.worker.moveToThread(self.thread)
 
         self.requestResetEnv.connect(self.worker.resetEnv)
+        self.requestParam.connect(self.worker.getParam)
         self.requestPostProcs.connect(self.worker.postProcs)
         self.sendTradeData.connect(self.worker.addData)
 
         self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
+        self.worker.sendParam.connect(self.plot_chart)
         self.worker.sendResults.connect(self.post_process)
 
         self.thread.start()

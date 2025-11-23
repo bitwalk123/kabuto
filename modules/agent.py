@@ -163,10 +163,14 @@ class WorkerAgentSB3(QObject):
 
 
 class WorkerAgent(QObject):
+    """
+    強化学習を利用せずに、アルゴリズムのみのエージェント
+    """
     completedResetEnv = Signal()
     completedTrading = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     readyNext = Signal()
+    sendParam = Signal(dict)
     sendResults = Signal(dict)
 
     def __init__(self, autopilot: bool):
@@ -216,6 +220,16 @@ class WorkerAgent(QObject):
                 # 次のアクション受け入れ準備完了
                 self.readyNext.emit()
 
+    @Slot()
+    def getParam(self):
+        dict_param = dict()
+        # MAD 計算用パラメータ
+        dict_param["mad_t1"], dict_param["mad_t2"] = self.env.getMADParam()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 売買アクションを通知するシグナル（HOLD の時は通知しない）
+        self.sendParam.emit(dict_param)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def predict(self, obs, action_masks) -> int:
         # print(obs, action_masks)
         mad_signal = SignalSign(int(obs[0]))
@@ -232,6 +246,7 @@ class WorkerAgent(QObject):
         else:
             return ActionType.HOLD.value
 
+    @Slot()
     def postProcs(self):
         dict_result = dict()
         dict_result["transaction"] = self.env.getTransaction()

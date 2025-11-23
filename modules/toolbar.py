@@ -165,6 +165,17 @@ class ToolBarProphet(QToolBar):
 
         self.addSeparator()
 
+        lab_code = Label("銘柄コード")
+        lab_code.setStyleSheet("QLabel {padding: 0 5px 0 5px;}")
+        self.addWidget(lab_code)
+
+        self.combo_code = combo_code = ComboBox()
+        combo_code.setToolTip("銘柄コード一覧")
+        combo_code.addItems(self.get_list_code())
+        self.addWidget(combo_code)
+
+        self.addSeparator()
+
         pad = PadH()
         self.addWidget(pad)
 
@@ -176,6 +187,14 @@ class ToolBarProphet(QToolBar):
         action_debug.triggered.connect(self.on_debug)
         self.addAction(action_debug)
 
+    def get_list_code(self) -> list[str]:
+        """
+        銘柄コード一覧の取得
+        :return:
+        """
+        list_code = ["7011"]
+        return list_code
+
     def get_tick_data(self) -> list[str]:
         """
         ティックデータ一覧の取得
@@ -185,13 +204,19 @@ class ToolBarProphet(QToolBar):
         return list_tick
 
     def getInfo(self) -> dict:
+        """
+        選択されている情報を辞書にして返す
+        :return:
+        """
         dict_info = dict()
 
+        # ティックデータ
         excel = self.combo_tick.currentText()
         path_excel = os.path.join(self.dir_collection, excel)
         dict_info["path_excel"] = path_excel
 
-        dict_info["code"] = "7011"  # TODO: 銘柄コードの選択機能の追加
+        # 銘柄コード
+        dict_info["code"] = self.combo_code.currentText()
 
         return dict_info
 

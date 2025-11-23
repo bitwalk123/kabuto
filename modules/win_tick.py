@@ -2,7 +2,6 @@ import logging
 
 import pandas as pd
 
-from funcs.technical import calc_vwap, calc_ma
 from structs.res import AppRes
 from widgets.charts import ChartNavigation, TickChart
 from widgets.containers import MainWindow
@@ -30,8 +29,5 @@ class WinTick(MainWindow):
         statusbar.addWidget(navbar)
         self.setStatusBar(statusbar)
 
-    def draw(self, df: pd.DataFrame, title: str = ""):
-        # VWAP, MA を算出してからプロット
-        # calc_vwap(df)
-        calc_ma(df)
-        self.chart.updateData(df, title)
+    def draw(self, df: pd.DataFrame, dict_param: dict, title: str = ""):
+        self.chart.updateData(df, dict_param, title)

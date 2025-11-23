@@ -65,6 +65,13 @@ class TradingEnv(gym.Env):
         else:
             raise TypeError(f"Unknown PositionType: {self.reward_man.position}")
 
+    def getMADParam(self):
+        """
+        移動平均差の算出パラメータ取得
+        :return:
+        """
+        return self.provider.t1, self.provider.t2
+
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.reward_man.dict_transaction)
 
@@ -98,7 +105,6 @@ class TradingEnv(gym.Env):
         self.reward_man.clear()
         obs = self.obs_man.getObsReset()
         return obs, {}
-
 
     def step(self, action: int) -> tuple[float, bool, bool, dict]:
         """
