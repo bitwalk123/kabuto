@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from modules.feature_provider import FeatureProvider
-from structs.app_enum import PositionType, ActionType
+from structs.app_enum import PositionType, ActionType, SignalSign
 
 
 class RewardManager:
@@ -31,6 +31,8 @@ class RewardManager:
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.divisor_profit_scaled = 100.0  # 損益を報酬化する際の除数
+        self.reward_position = 0.01  # テクニカル指標に従ったポジション
+        self.panelty_position = 0.01  # テクニカル指標に逆行したポジション
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
@@ -269,6 +271,27 @@ class RewardManager:
         self.price_entry = self.provider.price
         # ポジションを更新
         self.position = position
+
+        # MAΔS に従った場合
+        signal = SignalSign(self.provider.mad_sign_signal)
+        if signal == SignalSign.POSITIVE:
+            # ゴールデンクロスは買いシグナル
+            if position == PositionType.LONG:
+                reward += self.reward_position  # テクニカル指標に従ったポジション
+            elif position == PositionType.SHORT:
+                reward -= self.panelty_position  # テクニカル指標に逆行したポジション
+            else:
+                raise TypeError(f"Unknown PositionType: {self.position}")
+        elif signal == SignalSign.NEGATIVE:
+            # デッドクロスは売りシグナル
+            if position == PositionType.LONG:
+                reward -= self.panelty_position  # テクニカル指標に逆行したポジション
+            elif position == PositionType.SHORT:
+                reward += self.reward_position  # テクニカル指標に従ったポジション
+            else:
+                raise TypeError(f"Unknown PositionType: {self.position}")
+        else:
+            pass
 
         # -------------------------------------------------------------
         # 取引明細
