@@ -1,0 +1,23 @@
+Wrapping the env with a `Monitor` wrapper
+Wrapping the env in a DummyVecEnv.
+取引回数 : 100 回, 一株当りの損益 : 55.0 円
+----------------------------------------------------------------
+                   ファイル  取引回数   総損益
+0   ticks_20250819.xlsx   100 -10.0
+1   ticks_20250820.xlsx   100  13.0
+2   ticks_20250821.xlsx   100  16.0
+3   ticks_20250822.xlsx   100   7.0
+4   ticks_20250825.xlsx   100  13.0
+..                  ...   ...   ...
+60  ticks_20251117.xlsx   100  -4.0
+61  ticks_20251118.xlsx   100   5.0
+62  ticks_20251119.xlsx   100 -61.0
+63  ticks_20251120.xlsx   100  10.0
+64  ticks_20251121.xlsx   100  55.0
+
+[65 rows x 3 columns]
+総々収益 : -8.0 円
+計測時間 :		332.912 sec
+総ティック量 :		1,256,972 ticks
+時間 / 1 ティック :	0.264852 msec
+
