@@ -32,6 +32,6 @@ class WinTick(MainWindow):
 
     def draw(self, df: pd.DataFrame, title: str = ""):
         # VWAP, MA を算出してからプロット
-        calc_vwap(df)
+        # calc_vwap(df)
         calc_ma(df)
         self.chart.updateData(df, title)

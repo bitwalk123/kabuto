@@ -129,18 +129,18 @@ class TickChart(Chart):
         # トレンドライン（株価とVWAP）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
         ser_price = df["Price"]
-        ser_vwap = df["VWAP"]
+        # ser_vwap = df["VWAP"]
         ser_ma060 = df["MA060"]
-        ser_ma300 = df["MA300"]
+        ser_ma600 = df["MA600"]
 
         # 消去
         self.ax.cla()
 
         # プロット
         self.ax.plot(ser_price, linewidth=0.5, linestyle="solid", label="Price")
-        self.ax.plot(ser_vwap, linewidth=0.5, linestyle="solid", label="VWAP")
-        self.ax.plot(ser_ma060, linewidth=1, linestyle="dotted", label="MA060")
-        self.ax.plot(ser_ma300, linewidth=1, linestyle="dotted", label="MA300")
+        # self.ax.plot(ser_vwap, linewidth=0.5, linestyle="solid", label="VWAP")
+        self.ax.plot(ser_ma060, linewidth=1, linestyle="solid", label="MA060")
+        self.ax.plot(ser_ma600, linewidth=1, linestyle="solid", label="MA600")
 
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)

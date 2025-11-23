@@ -42,50 +42,53 @@ class ObservationManager:
     ) -> np.ndarray:
         # 観測値（特徴量）用リスト
         list_feature = list()
+        """
         # ---------------------------------------------------------------------
-        # 1. 株価比
+        # ?. 株価比
         price_ratio = self.provider.getPriceRatio()
         price_ratio = (price_ratio - 1.0) * self.multiplier_price
         list_feature.append(price_ratio)
         # ---------------------------------------------------------------------
-        # 2. MAΔ（異なる２つの移動平均の差分）
+        # ?. MAΔ（異なる２つの移動平均の差分）
         if self.provider.price_open == 0.0:
             mad_scaled = 0.0
         else:
             mad = self.provider.getMAD()
             mad_scaled = np.tanh(mad / self.price_tick / self.divisor_ma_diff)
         list_feature.append(mad_scaled)
+        """
         # ---------------------------------------------------------------------
-        # 3. MAΔS（MAΔ の符号反転シグナル）
+        # 1. MAΔS（MAΔ の符号反転シグナル）
         mad_signal = self.provider.getMADSignal()
         list_feature.append(mad_signal)
         # ---------------------------------------------------------------------
-        # 4. VWAPΔ（VWAP 乖離率, deviation rate = dr）
+        """
+        # ?. VWAPΔ（VWAP 乖離率, deviation rate = dr）
         vwap_dr = self.provider.getVWAPdr()
         vwap_dr_scaled = np.tanh(vwap_dr * self.multiplier_vwap)
         list_feature.append(vwap_dr_scaled)
         # ---------------------------------------------------------------------
-        # 5. Mσ（移動標準偏差, Moving σ）
+        # ?. Mσ（移動標準偏差, Moving σ）
         msd = self.provider.getMSD()
         msd_scaled = np.tanh(msd / self.price_tick / self.divisor_msd)
         # list_feature.append(msd)
         list_feature.append(msd_scaled)
         # ---------------------------------------------------------------------
-        # 6. 含損益
+        # ?. 含損益
         list_feature.append(pl)
         # ---------------------------------------------------------------------
-        # 7. 含損益M（含み損益最大）
+        # ?. 含損益M（含み損益最大）
         list_feature.append(pl_max)
         # ---------------------------------------------------------------------
-        # 8. HOLD1（継続カウンタ 1, 建玉なし）
+        # ?. HOLD1（継続カウンタ 1, 建玉なし）
         hold_1_scaled = np.tanh(self.provider.n_hold / self.divisor_hold)
         list_feature.append(hold_1_scaled)
         # ---------------------------------------------------------------------
-        # 9. HOLD2（継続カウンタ 2, 建玉あり）
+        # ?. HOLD2（継続カウンタ 2, 建玉あり）
         hold_2_scaled = self.provider.n_hold_position / self.divisor_hold_position
         list_feature.append(hold_2_scaled)
         # ---------------------------------------------------------------------
-        # 10. TRADE（取引回数）
+        # ?. TRADE（取引回数）
         ratio_trade_count = self.provider.n_trade / self.provider.n_trade_max
         list_feature.append(np.tanh(ratio_trade_count))
         # ---------------------------------------------------------------------
@@ -96,30 +99,32 @@ class ObservationManager:
 
         # ---------------------------------------------------------------------
         # ポジション情報
-        # 11. NONE, 12. LONG, 13. SHORT
+        # >. NONE, ?. LONG, ?. SHORT
         # PositionType → one-hot (3) ［単位行列へ変換］
         pos_onehot = np.eye(len(PositionType))[position.value].astype(np.float32)
         # ---------------------------------------------------------------------
 
         # arr_feature と pos_onehot を単純結合
         return np.concatenate([arr_feature, pos_onehot])
+        """
+        return np.array(list_feature, dtype=np.float32)
 
     @staticmethod
     def getObsList() -> list:
         return [
-            "株価比",
-            "MAΔ",
+            #"株価比",
+            #"MAΔ",
             "MAΔS",
-            "VWAPΔ",
-            "Mσ",
-            "含損益",
-            "含損益M",
-            "HOLD1",
-            "HOLD2",
-            "TRADE",
-            "NONE",
-            "LONG",
-            "SHORT"
+            #"VWAPΔ",
+            #"Mσ",
+            #"含損益",
+            #"含損益M",
+            #"HOLD1",
+            #"HOLD2",
+            #"TRADE",
+            #"NONE",
+            #"LONG",
+            #"SHORT"
         ]
 
     def getObsReset(self) -> np.ndarray:

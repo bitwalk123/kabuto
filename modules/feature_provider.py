@@ -37,8 +37,8 @@ class FeatureProvider:
         :return:
         """
         ma_060 = self.getMA(60)
-        ma_300 = self.getMA(600)
-        mad_new = ma_060 - ma_300
+        ma_600 = self.getMA(600)
+        mad_new = ma_060 - ma_600
         if 0 < mad_new:
             signal_sign_new = SignalSign.POSITIVE
         elif mad_new < 0:

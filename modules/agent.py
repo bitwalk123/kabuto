@@ -7,7 +7,7 @@ from sb3_contrib import MaskablePPO
 from stable_baselines3.common.logger import configure
 
 from modules.env import TrainingEnv, TradingEnv
-from structs.app_enum import ActionType, PositionType
+from structs.app_enum import ActionType, PositionType, SignalSign
 
 
 class MaskablePPOAgent:
@@ -192,7 +192,7 @@ class WorkerAgent(QObject):
             masks = self.env.action_masks()
             # モデルによる行動予測
             # action, _states = self.model.predict(obs, action_masks=masks)
-            action = 0
+            action = self.predict(obs, masks)
 
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
@@ -215,6 +215,22 @@ class WorkerAgent(QObject):
             else:
                 # 次のアクション受け入れ準備完了
                 self.readyNext.emit()
+
+    def predict(self, obs, action_masks) -> int:
+        # print(obs, action_masks)
+        mad_signal = SignalSign(int(obs[0]))
+        if mad_signal == SignalSign.POSITIVE:
+            if action_masks[ActionType.BUY.value]:
+                return ActionType.BUY.value
+            else:
+                return ActionType.HOLD.value
+        elif mad_signal == SignalSign.NEGATIVE:
+            if action_masks[ActionType.SELL.value]:
+                return ActionType.SELL.value
+            else:
+                return ActionType.HOLD.value
+        else:
+            return ActionType.HOLD.value
 
     def postProcs(self):
         dict_result = dict()

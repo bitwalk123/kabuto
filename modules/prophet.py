@@ -207,3 +207,5 @@ class Prophet(QMainWindow):
         if self.thread is not None:
             self.thread.deleteLater()
             self.thread = None
+
+        print("\nスレッドを終了しました。")
