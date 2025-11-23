@@ -31,8 +31,8 @@ class RewardManager:
         # 報酬設計
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         self.divisor_profit_scaled = 100.0  # 損益を報酬化する際の除数
-        self.reward_position = 0.01  # テクニカル指標に従ったポジション
-        self.panelty_position = 0.01  # テクニカル指標に逆行したポジション
+        self.reward_position = 0.1  # テクニカル指標に従ったポジション
+        self.panelty_position = 0.1  # テクニカル指標に逆行したポジション
 
     def add_transaction(self, transaction: str, profit: float = np.nan):
         self.dict_transaction["注文日時"].append(self.get_datetime(self.provider.ts))
