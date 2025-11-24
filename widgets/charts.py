@@ -10,7 +10,7 @@ from matplotlib.backends.backend_qtagg import (
 )
 from matplotlib.figure import Figure
 
-from funcs.technical import calc_ma
+from funcs.technical import calc_ma, calc_msd
 from structs.res import AppRes
 
 
@@ -107,6 +107,7 @@ class TickChart(Chart):
 
     def __init__(self, res: AppRes):
         super().__init__(res)
+        self.ax2 = self.ax.twinx()
         # 余白設定
         self.figure.subplots_adjust(
             left=0.05,
@@ -114,6 +115,7 @@ class TickChart(Chart):
             top=0.9,
             bottom=0.08,
         )
+        self.space = "          "
         # タイムスタンプへ時差を加算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
 
@@ -121,34 +123,68 @@ class TickChart(Chart):
 
     def clearPlot(self):
         self.ax.cla()
+        self.ax2.cla()
         self.ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%H:%M")
         )
-        self.ax.grid()
+        # self.ax.grid()
 
     def updateData(self, df: pd.DataFrame, dict_param: dict, title: str):
         # トレンドライン（株価とVWAP）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
 
-        t1 = dict_param["mad_t1"]
-        t2 = dict_param["mad_t2"]
-        colname1, colname2 = calc_ma(df, t1, t2)
+        period_mad_1 = dict_param["period_mad_1"]
+        period_mad_2 = dict_param["period_mad_2"]
+        period_msd = dict_param["period_msd"]
+        colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
+        colname_msd = calc_msd(df, period_msd)
         ser_price = df["Price"]
-        ser_ma1 = df[colname1]
-        ser_ma2 = df[colname2]
+        ser_ma_1 = df[colname_ma_1]
+        ser_ma_2 = df[colname_ma_2]
+        ser_msd = df[colname_msd]
+        # print(ser_msd.describe())
 
         # 消去
         self.ax.cla()
+        self.ax2.cla()
 
-        # プロット
+        # プロット　(y)
         self.ax.plot(ser_price, color="lightgray", linewidth=0.5, linestyle="solid", label="Price")
-        self.ax.plot(ser_ma1, linewidth=1, linestyle="solid", label=colname1)
-        self.ax.plot(ser_ma2, linewidth=1, linestyle="solid", label=colname2)
+        self.ax.plot(ser_ma_1, linewidth=1, linestyle="solid", label=colname_ma_1)
+        self.ax.plot(ser_ma_2, linewidth=1, linestyle="solid", label=colname_ma_2)
 
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)
+
+        y_min, y_max = self.ax.get_ylim()
+        y_min_2 = 2 * y_min - y_max
+        if y_min_2 < 0:
+            y_min_2 = 0
+        self.ax.set_ylim(y_min_2, y_max)
+        yticks = self.ax.get_yticklabels()
+        idx_min = len(yticks) // 2 - 1
+        for i in range(idx_min):
+            yticks[i].set_visible(False)
+
         self.ax.legend(fontsize=9)
+        self.ax.set_ylabel(f"{self.space}Price [JPY]")
         self.ax.set_title(title)
+
+        # プロット　(y2)
+        self.ax2.plot(ser_msd, color="C2", linewidth=0.75, linestyle="solid", label=colname_msd)
+        y_min, y_max = self.ax2.get_ylim()
+        y_min = 0.0
+        y_max_2 = 2 * y_max - y_min
+        self.ax2.set_ylim(y_min, y_max_2)
+        y2ticks = self.ax2.get_yticklabels()
+        idx_max = len(y2ticks) // 2 + 2
+        for i in range(idx_max, len(y2ticks)):
+            y2ticks[i].set_visible(False)
+
+        y_min, _ = self.ax.get_ylim()
+        y2_min, _ = self.ax2.get_ylim()
+        self.ax2.yaxis.set_label_position("right")
+        self.ax2.set_ylabel(f"Moving σ{self.space}")
 
         # 再描画
         self.draw()

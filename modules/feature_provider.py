@@ -16,8 +16,12 @@ class FeatureProvider:
         self.msd = 0
 
         # 移動平均差用
-        self.t1 = 60
-        self.t2 = 600
+        self.period_mad_1 = 60
+        self.period_mad_2 = 600
+
+        # 移動標準偏差用
+        self.period_msd = 60
+        self.threshold_msd = 3
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
@@ -32,7 +36,7 @@ class FeatureProvider:
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
 
         # キューを定義
-        self.n_deque_price = self.t2
+        self.n_deque_price = self.period_mad_2
         self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
 
     def _calc_mad(self) -> tuple[float, SignalSign]:
@@ -40,8 +44,8 @@ class FeatureProvider:
         移動平均差 (Moving Average Difference = MAD)
         :return:
         """
-        ma1 = self.getMA(self.t1)
-        ma2 = self.getMA(self.t2)
+        ma1 = self.getMA(self.period_mad_1)
+        ma2 = self.getMA(self.period_mad_2)
         mad_new = ma1 - ma2
         if 0 < mad_new:
             signal_sign_new = SignalSign.POSITIVE
@@ -90,7 +94,6 @@ class FeatureProvider:
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
         self.cum_vol = 0.0  # VWAP 用 Volume 累積
         self.volume_prev = None  # VWAP 用 前の Volume
-        self.period_msd = 60
 
         # カウンタ関連
         # 取引カウンタ
@@ -144,6 +147,12 @@ class FeatureProvider:
         else:
             return (self.price - self.vwap) / self.vwap
 
+    def isLowVolatility(self) -> bool:
+        if self.getMSD() < self.threshold_msd:
+            return True
+        else:
+            return False
+
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
 
@@ -167,7 +176,7 @@ class FeatureProvider:
         self.deque_price.append(float(price))  # キューへの追加
         self.volume = float(volume)
         self.vwap = self._calc_vwap()  # VWAP
-        self.mad, mad_sign = self._calc_mad() # 移動平均差
+        self.mad, mad_sign = self._calc_mad()  # 移動平均差
         if self.mad_sign_current != mad_sign:
             self.mad_sign_signal = mad_sign
         else:

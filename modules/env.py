@@ -65,12 +65,19 @@ class TradingEnv(gym.Env):
         else:
             raise TypeError(f"Unknown PositionType: {self.reward_man.position}")
 
-    def getMADParam(self):
+    def getMADParam(self) -> tuple[int, int]:
         """
         移動平均差の算出パラメータ取得
         :return:
         """
-        return self.provider.t1, self.provider.t2
+        return self.provider.period_mad_1, self.provider.period_mad_2
+
+    def getMSDParam(self) -> tuple[int, float]:
+        """
+        移動標準偏差の算出パラメータ取得
+        :return:
+        """
+        return self.provider.period_msd, self.provider.threshold_msd
 
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.reward_man.dict_transaction)

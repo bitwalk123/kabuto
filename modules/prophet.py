@@ -8,6 +8,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
+from funcs.tide import get_datetime_str
 from modules.agent import WorkerAgent
 from widgets.toolbars import ToolBarProphet
 from structs.app_enum import AppMode
@@ -23,9 +24,9 @@ class Prophet(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
-    requestResetEnv = Signal()
     requestParam = Signal()
     requestPostProcs = Signal()
+    requestResetEnv = Signal()
     sendTradeData = Signal(float, float, float)
 
     def __init__(self):
@@ -36,8 +37,11 @@ class Prophet(QMainWindow):
         self.row = 0
         self.t_start = 0
 
-        # 実行用パラメータ（主にデータ、銘柄コードなど）
+        # 実行用パラメータ（主にデータ、銘柄コードなど）格納用
         self.dict_info = dict()
+        # 環境内のテクニカル指標などのパラメータ格納用
+        self.dict_param = dict()
+
         self.code = ''
         self.path_excel = ''
         # ALL モードで実行するティックデータのリスト
@@ -49,6 +53,7 @@ class Prophet(QMainWindow):
             "total": [],
         }
 
+
         # 強化学習モデル用スレッド
         self.thread = None
         self.worker = None
@@ -58,7 +63,7 @@ class Prophet(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
-        self.setFixedSize(1500, 500)
+        self.setFixedSize(1500, 700)
 
         # =====================================================================
         # ツールバー
@@ -137,6 +142,7 @@ class Prophet(QMainWindow):
         return path_excel, code
 
     def plot_chart(self, dict_param: dict):
+        self.dict_param = dict_param
         # ティックデータのプロット
         title = f"{os.path.basename(self.path_excel)}, {self.code}"
         self.win_tick.draw(self.df, dict_param, title)
@@ -168,6 +174,10 @@ class Prophet(QMainWindow):
         df_all = pd.DataFrame(self.dict_all)
         print(df_all)
         print(f"合計: {df_all['total'].sum(): ,.0f}")
+        datetime_str = get_datetime_str()
+        path_result = os.path.join(self.res.dir_log, f"result_{datetime_str}.csv")
+        print(f"結果を {path_result} へ保存しました。")
+        df_all.to_csv(path_result)
 
     def send_first_tick(self):
         """

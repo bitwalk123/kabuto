@@ -230,9 +230,11 @@ class WorkerAgent(QObject):
     def getParam(self):
         dict_param = dict()
         # MAD 計算用パラメータ
-        dict_param["mad_t1"], dict_param["mad_t2"] = self.env.getMADParam()
+        dict_param["period_mad_1"], dict_param["period_mad_2"] = self.env.getMADParam()
+        # NSD 計算用パラメータ
+        dict_param["period_msd"], dict_param["threshold_msd"] = self.env.getMSDParam()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 売買アクションを通知するシグナル（HOLD の時は通知しない）
+        # テクニカル指標などのパラメータ取得
         self.sendParam.emit(dict_param)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
