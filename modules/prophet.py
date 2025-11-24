@@ -45,6 +45,7 @@ class Prophet(QMainWindow):
         self.idx_tick = 0
         self.dict_all = {
             "file": [],
+            "trade": [],
             "total": [],
         }
 
@@ -149,12 +150,14 @@ class Prophet(QMainWindow):
         print("\n取引明細")
         df_transaction: pd.DataFrame = dict_result["transaction"]
         print(df_transaction)
+        n_trade = len(df_transaction)
         total = df_transaction['損益'].sum()
-        print(f"一株当りの損益 : {total} 円")
+        print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
 
         mode = self.dict_info["mode"]
         if mode == AppMode.ALL:
             self.dict_all["file"].append(os.path.basename(self.path_excel))
+            self.dict_all["trade"].append(n_trade)
             self.dict_all["total"].append(total)
 
         # スレッドの終了

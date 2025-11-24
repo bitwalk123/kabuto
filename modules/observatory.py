@@ -13,6 +13,9 @@ class ObservationManager:
         self.price_tick = 1.0  # 呼び値
         self.unit = 100  # 最小取引単位（出来高）
 
+        self.mad_signal_pre = 0.0
+        self.position_reverse = False
+
         # ---------------------------------------------------------------------
         # 調整用係数
         self.divisor_hold = 250.0  # 建玉なしの HOLD カウンタ用除数
@@ -58,8 +61,24 @@ class ObservationManager:
         list_feature.append(mad_scaled)
         """
         # ---------------------------------------------------------------------
-        # 1. MAΔS（MAΔ の符号反転シグナル）
+        # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
         mad_signal = self.provider.getMADSignal()
+        if mad_signal != 0 and position != PositionType.NONE:
+            """
+            mad_signal が立った時（クロス時）に建玉を持っている場合は、
+            次のステップでも同じフラグを立てて反対売買を許容する。
+            """
+            self.mad_signal_pre = mad_signal
+            self.position_reverse = True
+        elif self.position_reverse and position == PositionType.NONE:
+            """
+            self.position_reverse で反対売買が許可されていて建玉が無い場合は、
+            反対売買をして、フラグをリセットする。
+            """
+            mad_signal = self.mad_signal_pre
+            self.mad_signal_pre = 0.0
+            self.position_reverse = False
+
         list_feature.append(mad_signal)
         # ---------------------------------------------------------------------
         """
