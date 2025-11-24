@@ -63,21 +63,26 @@ class ObservationManager:
         # ---------------------------------------------------------------------
         # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
         mad_signal = self.provider.getMADSignal()
-        if mad_signal != 0 and position != PositionType.NONE:
-            """
-            mad_signal が立った時（クロス時）に建玉を持っている場合は、
-            次のステップでも同じフラグを立てて反対売買を許容する。
-            """
-            self.mad_signal_pre = mad_signal
-            self.position_reverse = True
-        elif self.position_reverse and position == PositionType.NONE:
-            """
-            self.position_reverse で反対売買が許可されていて建玉が無い場合は、
-            反対売買をして、フラグをリセットする。
-            """
-            mad_signal = self.mad_signal_pre
-            self.mad_signal_pre = 0.0
-            self.position_reverse = False
+
+        if position == PositionType.NONE:
+            # ポジション無し
+            if self.position_reverse:
+                """
+                self.position_reverse で反対売買が許可されていて建玉が無い場合は、
+                反対売買をして、フラグをリセットする。
+                """
+                mad_signal = self.mad_signal_pre
+                self.mad_signal_pre = 0.0
+                self.position_reverse = False
+        else:
+            # ポジション有り
+            if mad_signal != 0:
+                """
+                mad_signal が立った時（クロス時）に建玉を持っている場合は、
+                次のステップでも同じフラグを立てて反対売買を許容する。
+                """
+                self.mad_signal_pre = mad_signal
+                self.position_reverse = True
 
         list_feature.append(mad_signal)
         # ---------------------------------------------------------------------
@@ -131,19 +136,19 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
-            #"株価比",
-            #"MAΔ",
+            # "株価比",
+            # "MAΔ",
             "MAΔS",
-            #"VWAPΔ",
-            #"Mσ",
-            #"含損益",
-            #"含損益M",
-            #"HOLD1",
-            #"HOLD2",
-            #"TRADE",
-            #"NONE",
-            #"LONG",
-            #"SHORT"
+            # "VWAPΔ",
+            # "Mσ",
+            # "含損益",
+            # "含損益M",
+            # "HOLD1",
+            # "HOLD2",
+            # "TRADE",
+            # "NONE",
+            # "LONG",
+            # "SHORT"
         ]
 
     def getObsReset(self) -> np.ndarray:
