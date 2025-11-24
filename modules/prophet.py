@@ -53,7 +53,6 @@ class Prophet(QMainWindow):
             "total": [],
         }
 
-
         # 強化学習モデル用スレッド
         self.thread = None
         self.worker = None
@@ -177,7 +176,7 @@ class Prophet(QMainWindow):
         datetime_str = get_datetime_str()
         path_result = os.path.join(self.res.dir_log, f"result_{datetime_str}.csv")
         print(f"結果を {path_result} へ保存しました。")
-        df_all.to_csv(path_result)
+        df_all.to_csv(path_result, index=False)
 
     def send_first_tick(self):
         """
