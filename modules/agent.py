@@ -112,7 +112,7 @@ class WorkerAgentSB3(QObject):
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
         if self.done:
-            # 取引終了
+            # 取引終了（念の為）
             self.completedTrading.emit()
         else:
             # ティックデータから観測値を取得
@@ -186,7 +186,7 @@ class WorkerAgent(QObject):
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
         if self.done:
-            # 取引終了
+            # 取引終了（念の為）
             self.completedTrading.emit()
         else:
             # ティックデータから観測値を取得
@@ -212,10 +212,16 @@ class WorkerAgent(QObject):
             # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
             # -----------------------------------------------------------------
             reward, terminated, truncated, info = self.env.step(action)
-            if terminated or truncated:
+            if terminated:
+                print("terminated フラグが立ちました。")
                 self.done = True
                 # 取引終了
-                # self.completedTrading.emit()
+                self.completedTrading.emit()
+            elif truncated:
+                print("truncated フラグが立ちました。")
+                self.done = True
+                # 取引終了
+                self.completedTrading.emit()
             else:
                 # 次のアクション受け入れ準備完了
                 self.readyNext.emit()

@@ -9,7 +9,8 @@ from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
 from modules.agent import WorkerAgent
-from modules.toolbar import ToolBarProphet
+from widgets.toolbars import ToolBarProphet
+from structs.app_enum import AppMode
 from modules.win_tick import WinTick
 from structs.res import AppRes
 from widgets.containers import TabWidget
@@ -37,6 +38,15 @@ class Prophet(QMainWindow):
 
         # 実行用パラメータ（主にデータ、銘柄コードなど）
         self.dict_info = dict()
+        self.code = ''
+        self.path_excel = ''
+        # ALL モードで実行するティックデータのリスト
+        self.list_tick = []
+        self.idx_tick = 0
+        self.dict_all = {
+            "file": [],
+            "total": [],
+        }
 
         # 強化学習モデル用スレッド
         self.thread = None
@@ -99,39 +109,38 @@ class Prophet(QMainWindow):
         :return:
         """
         # 選択されたモデルと過去ティックデータ、銘柄コードを取得
-        self.dict_info = dict_info = self.toolbar.getInfo()
+        self.dict_info = self.toolbar.getInfo()
+        mode = self.dict_info["mode"]
+        if mode == AppMode.SINGLE:
+            self.start_mode_single()
+        elif mode == AppMode.ALL:
+            self.list_tick = self.toolbar.getListTicks(reverse=False)
+            self.idx_tick = 0
+            self.start_mode_all()
+        elif mode == AppMode.DOE:
+            self.start_mode_doe()
+        else:
+            raise TypeError(f"Unknown AppMode: {mode}")
 
-        print("\n下記の条件で推論を実施します。")
-        path_excel, code = self.get_file_code()
-        print(f"ティックデータ\t: {path_excel}")
-        print(f"銘柄コード\t: {code}")
+    def get_file_code_all(self) -> tuple[str, str]:
+        path_excel = os.path.join(
+            self.res.dir_collection,
+            self.list_tick[self.idx_tick]
+        )
+        code = self.dict_info["code"]
+        return path_excel, code
 
-        # Excel ファイルをデータフレームに読み込む
-        self.df = get_excel_sheet(path_excel, code)
-        print("\nExcel ファイルをデータフレームに読み込みました。")
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 推論用スレッドの開始
-        print("\nワーカースレッドを生成・開始します。")
-        self.start_thread()
-        # 必要なパラメータをエージェント側から取得してティックデータのチャートを作成
-        self.requestParam.emit()
-        # エージェント環境のリセット → リセット終了で推論開始
-        self.requestResetEnv.emit()
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-
-    def get_file_code(self) -> tuple[str, str]:
+    def get_file_code_single(self) -> tuple[str, str]:
         path_excel = self.dict_info["path_excel"]
         code = self.dict_info["code"]
         return path_excel, code
 
     def plot_chart(self, dict_param: dict):
         # ティックデータのプロット
-        path_excel, code = self.get_file_code()
-        title = f"{os.path.basename(path_excel)}, {code}"
+        title = f"{os.path.basename(self.path_excel)}, {self.code}"
         self.win_tick.draw(self.df, dict_param, title)
 
-    def post_process(self, dict_result: dict):
+    def post_procs(self, dict_result: dict):
         """
         ループ後の処理
         :param dict_result:
@@ -140,10 +149,22 @@ class Prophet(QMainWindow):
         print("\n取引明細")
         df_transaction: pd.DataFrame = dict_result["transaction"]
         print(df_transaction)
-        print(f"一株当りの損益 : {df_transaction['損益'].sum()} 円")
+        total = df_transaction['損益'].sum()
+        print(f"一株当りの損益 : {total} 円")
+
+        mode = self.dict_info["mode"]
+        if mode == AppMode.ALL:
+            self.dict_all["file"].append(os.path.basename(self.path_excel))
+            self.dict_all["total"].append(total)
 
         # スレッドの終了
         self.stop_thread()
+
+    def post_procs_all(self):
+        print("ALL モードの全ループを終了しました。")
+        df_all = pd.DataFrame(self.dict_all)
+        print(df_all)
+        print(f"合計: {df_all['total'].sum(): ,.0f}")
 
     def send_first_tick(self):
         """
@@ -163,6 +184,7 @@ class Prophet(QMainWindow):
         """
         if self.row >= len(self.df):
             # データフレームの末尾で終了
+            print("ティックデータの末尾に達しました。")
             self.finished_trading()
         else:
             # データフレームからティックデータを１セット取得
@@ -174,12 +196,46 @@ class Prophet(QMainWindow):
             # 行位置をインクリメント
             self.row += 1
 
+    def start_mode_all(self):
+        self.path_excel, self.code = self.get_file_code_all()
+        self.idx_tick += 1
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("\nExcel ファイルをデータフレームに読み込みました。")
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread()
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def start_mode_doe(self):
+        pass
+
+    def start_mode_single(self):
+        print("\n下記の条件で推論を実施します。")
+        self.path_excel, self.code = self.get_file_code_single()
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("\nExcel ファイルをデータフレームに読み込みました。")
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread()
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
     def start_thread(self):
         """
         スレッドの開始
         :param path_model:
         :return:
         """
+        print("\nワーカースレッドを生成・開始します。")
         self.thread = QThread(self)
         # self.worker = WorkerAgent(path_model, True)
         self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
@@ -194,9 +250,14 @@ class Prophet(QMainWindow):
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
         self.worker.sendParam.connect(self.plot_chart)
-        self.worker.sendResults.connect(self.post_process)
+        self.worker.sendResults.connect(self.post_procs)
 
         self.thread.start()
+
+        # 必要なパラメータをエージェント側から取得してティックデータのチャートを作成
+        self.requestParam.emit()
+        # エージェント環境のリセット → リセット終了で処理開始
+        self.requestResetEnv.emit()
 
     def stop_thread(self):
         """
@@ -219,3 +280,17 @@ class Prophet(QMainWindow):
             self.thread = None
 
         print("\nスレッドを終了しました。")
+
+        mode = self.dict_info["mode"]
+        if mode == AppMode.SINGLE:
+            print("SINGLE モードを終了しました。")
+        elif mode == AppMode.ALL:
+            if len(self.list_tick) <= self.idx_tick:
+                self.post_procs_all()
+            else:
+                print("次のティックデータに進みます（ALL モード）。")
+                self.start_mode_all()
+        elif mode == AppMode.DOE:
+            pass
+        else:
+            raise TypeError(f"Unknown AppMode: {mode}")

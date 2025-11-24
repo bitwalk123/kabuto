@@ -7,7 +7,7 @@ from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.models import get_trained_ppo_model_path
-from modules.chart import TrendChart
+from widgets.charts import TrendChart
 from modules.dock import DockTrader
 from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType

@@ -23,7 +23,7 @@ from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.statusbars import StatusBar
-from modules.toolbar import ToolBar
+from widgets.toolbars import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction
 from structs.res import AppRes

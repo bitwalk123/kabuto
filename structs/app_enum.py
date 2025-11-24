@@ -14,6 +14,12 @@ class ActionType(Enum):
     SELL = 2
 
 
+class AppMode(Enum):
+    SINGLE = auto()
+    ALL = auto()
+    DOE = auto()
+
+
 class PositionType(Enum):
     NONE = 0
     LONG = 1
