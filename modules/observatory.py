@@ -75,7 +75,7 @@ class ObservationManager:
                 self.mad_signal_pre = 0.0
                 self.position_reverse = False
 
-            if mad_signal != 0 and self.provider.isLowVolatility():
+            if mad_signal != 0.0 and self.provider.isLowVolatility():
                 """
                 ボラティリティが小さい時はエントリを禁止
                 """
