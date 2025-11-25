@@ -62,7 +62,6 @@ class Prophet(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
-        # self.setFixedSize(1500, 700)
 
         # =====================================================================
         # ツールバー
@@ -91,13 +90,14 @@ class Prophet(QMainWindow):
         tabbase.addTab(win_tick, "ティックチャート")
 
     def finished_trading(self):
+        # ベンチマーク計測
         t_end = perf_counter()  # ループ終了時刻
         t_delta = t_end - self.t_start
+        # ベンチマーク出力
         print("ループを終了しました。")
         print(f"計測時間 :\t\t{t_delta:,.3f} sec")
         print(f"ティック数 :\t\t{self.row - 1 :,d} ticks")
         print(f"単位処理時間 :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
-
         # 後処理をリクエスト
         self.requestPostProcs.emit()
 
@@ -129,7 +129,10 @@ class Prophet(QMainWindow):
 
     def get_file_code_all(self) -> tuple[str, str]:
         path_excel = str(
-            os.path.join(self.res.dir_collection, self.list_tick[self.idx_tick])
+            os.path.join(
+                self.res.dir_collection,
+                self.list_tick[self.idx_tick]
+            )
         )
         code = self.dict_info["code"]
         return path_excel, code

@@ -150,7 +150,6 @@ class ObservationManager:
 
         list_feature.append(emad_signal)
         '''
-
         # ---------------------------------------------------------------------
         """
         # ?. VWAPΔ（VWAP 乖離率, deviation rate = dr）
@@ -163,12 +162,14 @@ class ObservationManager:
         msd_scaled = np.tanh(msd / self.price_tick / self.divisor_msd)
         # list_feature.append(msd)
         list_feature.append(msd_scaled)
+        """
         # ---------------------------------------------------------------------
-        # ?. 含損益
+        # 4 含損益
         list_feature.append(pl)
         # ---------------------------------------------------------------------
-        # ?. 含損益M（含み損益最大）
+        # 5. 含損益M（含み損益最大）
         list_feature.append(pl_max)
+        """
         # ---------------------------------------------------------------------
         # ?. HOLD1（継続カウンタ 1, 建玉なし）
         hold_1_scaled = np.tanh(self.provider.n_hold / self.divisor_hold)
@@ -210,8 +211,8 @@ class ObservationManager:
             "POS",
             # "VWAPΔ",
             # "Mσ",
-            # "含損益",
-            # "含損益M",
+            "含損益",
+            "含損益M",
             # "HOLD1",
             # "HOLD2",
             # "TRADE",

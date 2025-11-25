@@ -106,8 +106,8 @@ class TradingEnv(gym.Env):
         self.provider.update(ts, price, volume)
         # 観測値
         obs = self.obs_man.getObs(
-            self.reward_man.getPL4Obs(),  # 含み損益
-            self.reward_man.getPLMax4Obs(),  # 含み損益最大値
+            self.reward_man.getPLRaw(),  # 含み損益
+            self.reward_man.getPLMaxRaw(),  # 含み損益最大値
             self.reward_man.position,  # ポジション
         )
         return obs

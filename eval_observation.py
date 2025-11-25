@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # 推論用データ
     # file = "ticks_20251006.xlsx"
-    file = "ticks_20251121.xlsx"
+    file = "ticks_20251125.xlsx"
     code = "7011"
 
     print(f"過去データ {file} の銘柄 {code} について観測値を算出します。")
@@ -89,14 +89,11 @@ if __name__ == "__main__":
         obs = env.getObservation(ts, price, volume)
         list_obs.append(obs)
 
-    list_name = env.obs_man.getObsList()
     df_obs = pd.concat([pd.Series(row) for row in list_obs], axis=1).T
+    list_name = env.obs_man.getObsList()
     df_obs.columns = list_name
     list_dt = pd.to_datetime([datetime.datetime.fromtimestamp(ts) for ts in df["Time"]])
     df_obs.index = list_dt[:len(df_obs)]
-    # print(df_obs)
-    list_col = list_name[:5]
-    df_obs_sub = df_obs[list_col]
     title = f"Observation trends from tick data\n{file} / {code}"
-    plot_obs_trend(df_obs_sub, title)
-    print(df_obs_sub.describe())
+    plot_obs_trend(df_obs, title)
+    print(df_obs.describe())
