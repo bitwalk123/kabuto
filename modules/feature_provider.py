@@ -32,7 +32,7 @@ class FeatureProvider:
 
         # 移動標準偏差用
         self.period_msd = 60
-        self.threshold_msd = 3.0
+        self.threshold_msd = 3
 
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値

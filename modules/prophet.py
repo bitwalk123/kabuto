@@ -93,7 +93,7 @@ class Prophet(QMainWindow):
     def finished_trading(self):
         t_end = perf_counter()  # ループ終了時刻
         t_delta = t_end - self.t_start
-        print("\nループを終了しました。")
+        print("ループを終了しました。")
         print(f"計測時間 :\t\t{t_delta:,.3f} sec")
         print(f"ティック数 :\t\t{self.row - 1 :,d} ticks")
         print(f"単位処理時間 :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
@@ -215,7 +215,7 @@ class Prophet(QMainWindow):
 
         # Excel ファイルをデータフレームに読み込む
         self.df = get_excel_sheet(self.path_excel, self.code)
-        print("\nExcel ファイルをデータフレームに読み込みました。")
+        print("Excel ファイルをデータフレームに読み込みました。")
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # スレッドの開始
@@ -226,14 +226,14 @@ class Prophet(QMainWindow):
         pass
 
     def start_mode_single(self):
-        print("\n下記の条件で推論を実施します。")
+        print("下記の条件で取引シミュレーションを実施します。")
         self.path_excel, self.code = self.get_file_code_single()
         print(f"ティックデータ\t: {self.path_excel}")
         print(f"銘柄コード\t: {self.code}")
 
         # Excel ファイルをデータフレームに読み込む
         self.df = get_excel_sheet(self.path_excel, self.code)
-        print("\nExcel ファイルをデータフレームに読み込みました。")
+        print("Excel ファイルをデータフレームに読み込みました。")
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # スレッドの開始
@@ -246,7 +246,7 @@ class Prophet(QMainWindow):
         :param path_model:
         :return:
         """
-        print("\nワーカースレッドを生成・開始します。")
+        print("ワーカースレッドを生成・開始します。")
         self.thread = QThread(self)
         # self.worker = WorkerAgent(path_model, True)
         self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
