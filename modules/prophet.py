@@ -62,7 +62,7 @@ class Prophet(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "inference.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
         self.setWindowTitle(title_win)
-        self.setFixedSize(1500, 700)
+        # self.setFixedSize(1500, 700)
 
         # =====================================================================
         # ツールバー
@@ -128,9 +128,8 @@ class Prophet(QMainWindow):
             raise TypeError(f"Unknown AppMode: {mode}")
 
     def get_file_code_all(self) -> tuple[str, str]:
-        path_excel = os.path.join(
-            self.res.dir_collection,
-            self.list_tick[self.idx_tick]
+        path_excel = str(
+            os.path.join(self.res.dir_collection, self.list_tick[self.idx_tick])
         )
         code = self.dict_info["code"]
         return path_excel, code

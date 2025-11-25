@@ -13,6 +13,7 @@ class WinTick(MainWindow):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
+        self.setFixedWidth(1800)
 
         # ---------------------------------------------------------------------
         # チャート
@@ -25,7 +26,7 @@ class WinTick(MainWindow):
         # ---------------------------------------------------------------------
         self.statusbar = statusbar = StatusBar(res)
         statusbar.setSizeGripEnabled(False)
-        navbar = ChartNavigation(chart)
+        navbar = ChartNavigation(chart.canvas)
         statusbar.addWidget(navbar)
         self.setStatusBar(statusbar)
 

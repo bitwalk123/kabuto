@@ -1,8 +1,10 @@
 import pandas as pd
+from PySide6.QtWidgets import QSizePolicy
 from matplotlib import (
     dates as mdates,
     font_manager as fm,
     pyplot as plt,
+    ticker,
 )
 from matplotlib.backends.backend_qtagg import (
     NavigationToolbar2QT as NavigationToolbar,
@@ -12,14 +14,17 @@ from matplotlib.figure import Figure
 
 from funcs.technical import calc_ma, calc_msd
 from structs.res import AppRes
+from widgets.containers import Widget
+from widgets.layouts import VBoxLayout
 
 
-class Chart(FigureCanvas):
+class Chart(Widget):
     """
     チャート用 FigureCanvas の雛形
     """
 
     def __init__(self, res: AppRes):
+        super().__init__()
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
         font_prop = fm.FontProperties(fname=res.path_monospace)
@@ -30,10 +35,21 @@ class Chart(FigureCanvas):
 
         # Figure オブジェクト
         self.figure = Figure()
+        self.canvas = FigureCanvas(self.figure)
+        self.canvas.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+        self.canvas.updateGeometry()
+
+        # レイアウトに追加
+        layout = VBoxLayout()
+        layout.addWidget(self.canvas)
+        self.setLayout(layout)
+
         # 軸領域
         self.ax = self.figure.add_subplot(111)
 
-        super().__init__(self.figure)
 
 
 class MplChart(FigureCanvas):
@@ -111,10 +127,11 @@ class TickChart(Chart):
         # 余白設定
         self.figure.subplots_adjust(
             left=0.05,
-            right=0.95,
-            top=0.9,
-            bottom=0.08,
+            right=0.96,
+            top=0.94,
+            bottom=0.06,
         )
+        plt.rcParams['font.size'] = 14
         self.space = "          "
         # タイムスタンプへ時差を加算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
@@ -154,6 +171,7 @@ class TickChart(Chart):
         self.ax.plot(ser_ma_2, linewidth=1, linestyle="solid", label=colname_ma_2)
 
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
         self.ax.grid(True, lw=0.5)
 
         y_min, y_max = self.ax.get_ylim()
@@ -187,7 +205,7 @@ class TickChart(Chart):
         self.ax2.set_ylabel(f"Moving σ{self.space}")
 
         # 再描画
-        self.draw()
+        self.canvas.draw()
 
 
 class TrendChart(FigureCanvas):
