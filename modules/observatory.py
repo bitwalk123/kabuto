@@ -13,7 +13,7 @@ class ObservationManager:
         self.price_tick = 1.0  # 呼び値
         self.unit = 100  # 最小取引単位（出来高）
 
-        self.mad_signal_pre = 0.0
+        self.signal_mad_pre = 0.0
         self.emad_signal_pre = 0.0
         self.position_reverse = False
 
@@ -62,8 +62,15 @@ class ObservationManager:
         list_feature.append(mad_scaled)
         """
         # ---------------------------------------------------------------------
+        # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
+        if self.position_reverse:
+            signal_reverse = 1
+        else:
+            signal_reverse = 0
+        list_feature.append(signal_reverse)
+        # ---------------------------------------------------------------------
         # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        mad_signal = self.provider.getMADSignal()
+        signal_mad = self.provider.getMADSignal()
 
         if position == PositionType.NONE:
             # ポジション無し
@@ -72,26 +79,44 @@ class ObservationManager:
                 self.position_reverse で反対売買が許可されていて建玉が無い場合は、
                 反対売買をして、フラグをリセットする。
                 """
-                mad_signal = self.mad_signal_pre
-                self.mad_signal_pre = 0.0
+                signal_mad = self.signal_mad_pre
+                self.signal_mad_pre = 0
                 self.position_reverse = False
 
-            if mad_signal != 0.0 and self.provider.isLowVolatility():
+            if signal_mad != 0 and self.provider.isLowVolatility():
                 """
                 ボラティリティが小さい時はエントリを禁止
                 """
-                mad_signal = 0.0
+                signal_mad = 0
         else:
             # ポジション有り
-            if mad_signal != 0:
+            if signal_mad != 0:
                 """
                 mad_signal が立った時（クロス時）に建玉を持っている場合は、
                 次のステップでも同じフラグを立てて反対売買を許容する。
                 """
-                self.mad_signal_pre = mad_signal
+                self.signal_mad_pre = signal_mad
                 self.position_reverse = True
 
-        list_feature.append(mad_signal)
+        list_feature.append(signal_mad)
+        # ---------------------------------------------------------------------
+        # 2. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
+        if self.provider.isLowVolatility():
+            vol_low = 1
+        else:
+            vol_low = 0
+        list_feature.append(vol_low)
+        # ---------------------------------------------------------------------
+        # 3. ポジション情報
+        if position == PositionType.NONE:
+            value_position = 0
+        elif position == PositionType.LONG:
+            value_position = 1
+        elif position == PositionType.SHORT:
+            value_position = -1
+        else:
+            raise TypeError(f"Unknown PositionType: {position}")
+        list_feature.append(value_position)
         '''
         # ---------------------------------------------------------------------
         # ?. EMAΔS+（EMAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
@@ -179,7 +204,10 @@ class ObservationManager:
         return [
             # "株価比",
             # "MAΔ",
+            "REV",
             "MAΔS",
+            "VolL",
+            "POS",
             # "VWAPΔ",
             # "Mσ",
             # "含損益",

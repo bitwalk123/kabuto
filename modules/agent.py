@@ -170,7 +170,7 @@ class WorkerAgent(QObject):
     completedTrading = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     readyNext = Signal()
-    sendParam = Signal(dict)
+    sendParams = Signal(dict)
     sendResults = Signal(dict)
 
     def __init__(self, autopilot: bool):
@@ -227,32 +227,36 @@ class WorkerAgent(QObject):
                 self.readyNext.emit()
 
     @Slot()
-    def getParam(self):
-        dict_param = dict()
-        # MAD 計算用パラメータ
-        dict_param["period_mad_1"], dict_param["period_mad_2"] = self.env.getMADParam()
-        # NSD 計算用パラメータ
-        dict_param["period_msd"], dict_param["threshold_msd"] = self.env.getMSDParam()
+    def getParams(self):
+        dict_param = self.env.getParams()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # テクニカル指標などのパラメータ取得
-        self.sendParam.emit(dict_param)
+        self.sendParams.emit(dict_param)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def predict(self, obs, action_masks) -> int:
-        # print(obs, action_masks)
-        mad_signal = SignalSign(int(obs[0]))
-        if mad_signal == SignalSign.POSITIVE:
+        # ---------------------------------------------------------------------
+        # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
+        signal_reverse = int(obs[0])
+        # ---------------------------------------------------------------------
+        # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
+        signal_mad = SignalSign(int(obs[1]))
+        if signal_mad == SignalSign.ZERO:
+            action = ActionType.HOLD.value
+        elif signal_mad == SignalSign.POSITIVE:
             if action_masks[ActionType.BUY.value]:
-                return ActionType.BUY.value
+                action = ActionType.BUY.value
             else:
-                return ActionType.HOLD.value
-        elif mad_signal == SignalSign.NEGATIVE:
+                action = ActionType.HOLD.value
+        elif signal_mad == SignalSign.NEGATIVE:
             if action_masks[ActionType.SELL.value]:
-                return ActionType.SELL.value
+                action = ActionType.SELL.value
             else:
-                return ActionType.HOLD.value
+                action = ActionType.HOLD.value
         else:
-            return ActionType.HOLD.value
+            raise TypeError(f"Unknown SingalSign: {signal_mad}")
+
+        return action
 
     @Slot()
     def postProcs(self):

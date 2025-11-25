@@ -79,6 +79,18 @@ class TradingEnv(gym.Env):
         """
         return self.provider.period_msd, self.provider.threshold_msd
 
+    def getParams(self) -> dict:
+        """
+        調整可能？なパラメータを辞書で返す
+        :return:
+        """
+        dict_param = dict()
+        # MAD 計算用パラメータ
+        dict_param["period_mad_1"], dict_param["period_mad_2"] = self.getMADParam()
+        # NSD 計算用パラメータ
+        dict_param["period_msd"], dict_param["threshold_msd"] = self.getMSDParam()
+        return dict_param
+
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.reward_man.dict_transaction)
 

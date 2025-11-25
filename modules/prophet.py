@@ -20,11 +20,11 @@ from widgets.statusbars import StatusBar
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.3"
+    __version__ = "0.0.4"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
-    requestParam = Signal()
+    requestParams = Signal()
     requestPostProcs = Signal()
     requestResetEnv = Signal()
     sendTradeData = Signal(float, float, float)
@@ -151,7 +151,7 @@ class Prophet(QMainWindow):
         :param dict_result:
         :return:
         """
-        print("\n取引明細")
+        print("\n【取引明細】")
         df_transaction: pd.DataFrame = dict_result["transaction"]
         print(df_transaction)
         n_trade = len(df_transaction)
@@ -182,7 +182,7 @@ class Prophet(QMainWindow):
         環境をリセットした後の最初のティックデータ送信
         :return:
         """
-        print("\n環境がリセットされました。")
+        print("環境がリセットされました。")
         self.row = 0  # 行位置を 0 にリセット
         print("ループを開始します。")
         self.t_start = perf_counter()  # ループ開始時刻
@@ -253,20 +253,20 @@ class Prophet(QMainWindow):
         self.worker.moveToThread(self.thread)
 
         self.requestResetEnv.connect(self.worker.resetEnv)
-        self.requestParam.connect(self.worker.getParam)
+        self.requestParams.connect(self.worker.getParams)
         self.requestPostProcs.connect(self.worker.postProcs)
         self.sendTradeData.connect(self.worker.addData)
 
         self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
-        self.worker.sendParam.connect(self.plot_chart)
+        self.worker.sendParams.connect(self.plot_chart)
         self.worker.sendResults.connect(self.post_procs)
 
         self.thread.start()
 
         # 必要なパラメータをエージェント側から取得してティックデータのチャートを作成
-        self.requestParam.emit()
+        self.requestParams.emit()
         # エージェント環境のリセット → リセット終了で処理開始
         self.requestResetEnv.emit()
 

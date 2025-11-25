@@ -132,7 +132,8 @@ class TickChart(Chart):
             bottom=0.06,
         )
         plt.rcParams['font.size'] = 14
-        self.space = "          "
+        self.space = "            "
+
         # タイムスタンプへ時差を加算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
 
