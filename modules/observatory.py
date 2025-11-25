@@ -14,6 +14,7 @@ class ObservationManager:
         self.unit = 100  # 最小取引単位（出来高）
 
         self.mad_signal_pre = 0.0
+        self.emad_signal_pre = 0.0
         self.position_reverse = False
 
         # ---------------------------------------------------------------------
@@ -91,6 +92,40 @@ class ObservationManager:
                 self.position_reverse = True
 
         list_feature.append(mad_signal)
+        '''
+        # ---------------------------------------------------------------------
+        # ?. EMAΔS+（EMAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
+        emad_signal = self.provider.getEMADSignal()
+
+        if position == PositionType.NONE:
+            # ポジション無し
+            if self.position_reverse:
+                """
+                self.position_reverse で反対売買が許可されていて建玉が無い場合は、
+                反対売買をして、フラグをリセットする。
+                """
+                emad_signal = self.emad_signal_pre
+                self.emad_signal_pre = 0.0
+                self.position_reverse = False
+
+            if emad_signal != 0.0 and self.provider.isLowVolatility():
+                """
+                ボラティリティが小さい時はエントリを禁止
+                """
+                emad_signal = 0.0
+        else:
+            # ポジション有り
+            if emad_signal != 0:
+                """
+                emad_signal が立った時（クロス時）に建玉を持っている場合は、
+                次のステップでも同じフラグを立てて反対売買を許容する。
+                """
+                self.emad_signal_pre = emad_signal
+                self.position_reverse = True
+
+        list_feature.append(emad_signal)
+        '''
+
         # ---------------------------------------------------------------------
         """
         # ?. VWAPΔ（VWAP 乖離率, deviation rate = dr）

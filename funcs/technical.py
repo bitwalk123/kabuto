@@ -1,3 +1,5 @@
+from collections import deque
+
 import pandas as pd
 
 
@@ -31,6 +33,7 @@ def calc_ma(df: pd.DataFrame, period_1: int = 60, period_2: int = 600) -> tuple[
     df[colname2] = df["Price"].rolling(period_2, min_periods=1).mean()
     return colname1, colname2
 
+
 def calc_msd(df: pd.DataFrame, period: int = 60) -> str:
     """
     移動平均差
@@ -41,3 +44,33 @@ def calc_msd(df: pd.DataFrame, period: int = 60) -> str:
     colname = f"MSD{period:03d}"
     df[colname] = df["Price"].rolling(period, min_periods=1).std()
     return colname
+
+
+class EMA:
+    """
+    リアルタイム用の指数平滑移動平均 (Exponential Moving Average, EMA)
+    """
+
+    def __init__(self, period: int):
+        self.period = period
+        self.alpha = 2 / (period + 1)
+        self.deque = deque(maxlen=period)
+        self.ema = None  # 最新の EMA 値
+
+    def update(self, value: float) -> float:
+        # データを deque に追加
+        self.deque.append(value)
+
+        # 初期化: 最初は単純平均を使うことも可能
+        if self.ema is None:
+            if len(self.deque) < self.period:
+                # データが period 未満なら平均で初期化
+                self.ema = sum(self.deque) / len(self.deque)
+            else:
+                # period 個揃ったらその平均を初期 EMA に
+                self.ema = sum(self.deque) / self.period
+        else:
+            # 通常更新: 再帰式
+            self.ema = self.alpha * value + (1 - self.alpha) * self.ema
+
+        return self.ema

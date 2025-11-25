@@ -1,6 +1,7 @@
 from collections import deque
 from statistics import stdev
 
+from funcs.technical import EMA
 from structs.app_enum import SignalSign
 
 
@@ -10,14 +11,24 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+
         self.mad = 0
         self.mad_sign_current = SignalSign.ZERO
         self.mad_sign_signal = SignalSign.ZERO
+
+        self.emad = 0
+        self.emad_sign_current = SignalSign.ZERO
+        self.emad_sign_signal = SignalSign.ZERO
+
         self.msd = 0
 
         # 移動平均差用
         self.period_mad_1 = 60
         self.period_mad_2 = 600
+
+        # EMA差用
+        self.ema_1 = EMA(self.period_mad_1)
+        self.ema_2 = EMA(self.period_mad_2)
 
         # 移動標準偏差用
         self.period_msd = 60
@@ -38,6 +49,23 @@ class FeatureProvider:
         # キューを定義
         self.n_deque_price = self.period_mad_2
         self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
+
+    def _calc_emad(self) -> tuple[float, SignalSign]:
+        """
+        移動平均差 (Moving Average Difference = MAD)
+        :return:
+        """
+        ema_1 = self.ema_1.update(self.price)
+        ema_2 = self.ema_2.update(self.price)
+        emad_new = ema_1 - ema_2
+        if 0 < emad_new:
+            signal_sign_new = SignalSign.POSITIVE
+        elif emad_new < 0:
+            signal_sign_new = SignalSign.NEGATIVE
+        else:
+            signal_sign_new = SignalSign.ZERO
+
+        return emad_new, signal_sign_new
 
     def _calc_mad(self) -> tuple[float, SignalSign]:
         """
@@ -84,9 +112,17 @@ class FeatureProvider:
         self.price = 0
         self.volume = 0
         self.vwap = 0
+
         self.mad = 0
         self.mad_sign_current = SignalSign.ZERO
         self.mad_sign_signal = SignalSign.ZERO
+
+        self.emad = 0
+        self.emad_sign_current = SignalSign.ZERO
+        self.emad_sign_signal = SignalSign.ZERO
+        self.ema_1 = EMA(self.period_mad_1)
+        self.ema_2 = EMA(self.period_mad_2)
+
         self.msd = 0
 
         # 特徴量算出のために保持する変数
@@ -105,6 +141,18 @@ class FeatureProvider:
 
         # キュー
         self.deque_price.clear()  # 移動平均など
+
+    def getEMAD(self) -> float:
+        """
+        移動EMA差 (EMA Devisation = MAD)
+        """
+        return self.emad
+
+    def getEMADSignal(self) -> float:
+        """
+        移動平均差 (Moving Average Devisation = MAD)
+        """
+        return float(self.emad_sign_signal.value)
 
     def getMA(self, period: int) -> float:
         """
@@ -176,10 +224,20 @@ class FeatureProvider:
         self.deque_price.append(float(price))  # キューへの追加
         self.volume = float(volume)
         self.vwap = self._calc_vwap()  # VWAP
+
         self.mad, mad_sign = self._calc_mad()  # 移動平均差
         if self.mad_sign_current != mad_sign:
             self.mad_sign_signal = mad_sign
         else:
             self.mad_sign_signal = SignalSign.ZERO
         self.mad_sign_current = mad_sign
+        """
+        self.emad, emad_sign = self._calc_emad()  # EMA差
+        if self.emad_sign_current != emad_sign:
+            self.emad_sign_signal = emad_sign
+        else:
+            self.emad_sign_signal = SignalSign.ZERO
+        self.emad_sign_current = emad_sign
+        """
+
         self.msd = self._calc_msd()  # 移動標準偏差
