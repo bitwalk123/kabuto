@@ -170,6 +170,7 @@ class WorkerAgent(QObject):
     completedTrading = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     readyNext = Signal()
+    sendObs = Signal(pd.DataFrame)
     sendParams = Signal(dict)
     sendResults = Signal(dict)
 
@@ -180,8 +181,11 @@ class WorkerAgent(QObject):
         self.done = False
         self.autopilot = autopilot
 
+        self.list_obs = None
+        self.df_obs = None
+
         # 学習環境の取得
-        self.env = env = TradingEnv()
+        self.env = TradingEnv()
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -189,6 +193,11 @@ class WorkerAgent(QObject):
             # 取引終了（念の為）
             self.completedTrading.emit()
         else:
+            # デバッグ用
+            r = len(self.df_obs)
+            self.df_obs.at[r, "Timestamp"] = ts
+            self.df_obs.at[r, "Price"] = price
+            self.df_obs.at[r, "Volume"] = volume
             # ティックデータから観測値を取得
             obs = self.env.getObservation(ts, price, volume)
             # print(obs)
@@ -227,6 +236,10 @@ class WorkerAgent(QObject):
                 self.readyNext.emit()
 
     @Slot()
+    def getObs(self):
+        self.sendObs.emit(self.df_obs)
+
+    @Slot()
     def getParams(self):
         dict_param = self.env.getParams()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -235,12 +248,14 @@ class WorkerAgent(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def predict(self, obs, action_masks) -> int:
+        idx_reverse = self.list_obs.index("反対売買")
+        idx_cross = self.list_obs.index("クロスS")
         # ---------------------------------------------------------------------
         # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
-        signal_reverse = int(obs[0])
+        signal_reverse = int(obs[idx_reverse])
         # ---------------------------------------------------------------------
         # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        signal_mad = SignalSign(int(obs[2]))
+        signal_mad = SignalSign(int(obs[idx_cross]))
         if signal_mad == SignalSign.ZERO:
             action = ActionType.HOLD.value
         elif signal_mad == SignalSign.POSITIVE:
@@ -269,6 +284,15 @@ class WorkerAgent(QObject):
         # 環境のリセット
         self.obs, _ = self.env.reset()
         self.done = False
+
+        list_colname = ["Timestamp", "Price", "Volume"]
+        self.list_obs = self.env.getObsList()
+        list_colname.extend(self.list_obs)
+        dict_colname = dict()
+        for colname in list_colname:
+            dict_colname[colname] = []
+        self.df_obs = pd.DataFrame(dict_colname)
+
         self.completedResetEnv.emit()
 
     @Slot(bool)

@@ -77,7 +77,7 @@ if __name__ == "__main__":
         list_obs.append(obs)
 
     df_obs = pd.concat([pd.Series(row) for row in list_obs], axis=1).T
-    list_name = env.obs_man.getObsList()
+    list_name = env.getObsList()
     df_obs.columns = list_name
     list_dt = pd.to_datetime([datetime.datetime.fromtimestamp(ts) for ts in df["Time"]])
     df_obs.index = list_dt[:len(df_obs)]

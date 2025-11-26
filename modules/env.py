@@ -79,8 +79,8 @@ class TradingEnv(gym.Env):
         """
         dict_param = dict()
         # MAD 計算用パラメータ
-        dict_param["PERIOD_MAD_1"]=self.provider.PERIOD_MAD_1
-        dict_param["PERIOD_MAD_2"]=self.provider.PERIOD_MAD_2
+        dict_param["PERIOD_MAD_1"] = self.provider.PERIOD_MAD_1
+        dict_param["PERIOD_MAD_2"] = self.provider.PERIOD_MAD_2
         # MSD 計算用パラメータ
         dict_param["PERIOD_MSD"] = self.provider.PERIOD_MSD
         dict_param["THRESHOLD_MSD"] = self.provider.THRESHOLD_MSD
@@ -109,6 +109,9 @@ class TradingEnv(gym.Env):
         # 観測値
         obs = self.obs_man.getObs()
         return obs
+
+    def getObsList(self) -> list:
+        return self.obs_man.getObsList()
 
     def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
         """

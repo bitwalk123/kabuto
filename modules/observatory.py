@@ -42,10 +42,6 @@ class ObservationManager:
         # 観測値（特徴量）用リスト
         list_feature = list()
         # ---------------------------------------------------------------------
-        # 0. 株価
-        price = self.provider.price
-        list_feature.append(price)
-        # ---------------------------------------------------------------------
         # 1. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
         if self.position_reverse:
             signal_reverse = 1
@@ -118,7 +114,6 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
-            "株価",
             "反対売買",
             "クロスS",
             "低ボラ",

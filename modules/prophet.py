@@ -24,6 +24,7 @@ class Prophet(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
+    requestObs = Signal()
     requestParams = Signal()
     requestPostProcs = Signal()
     requestResetEnv = Signal()
@@ -100,6 +101,8 @@ class Prophet(QMainWindow):
         print(f"単位処理時間 :\t{t_delta / (self.row - 1) * 1_000:.3f} msec")
         # 後処理をリクエスト
         self.requestPostProcs.emit()
+        # 処理した観測値をリクエスト
+        self.requestObs.emit()
 
     def on_debug(self):
         """
@@ -142,7 +145,10 @@ class Prophet(QMainWindow):
         code = self.dict_info["code"]
         return path_excel, code
 
-    def plot_chart(self, dict_param: dict):
+    def plot_obs(self, df_obs: pd.DataFrame):
+        print(df_obs)
+
+    def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param
         # ティックデータのプロット
         title = f"{os.path.basename(self.path_excel)}, {self.code}"
@@ -255,15 +261,17 @@ class Prophet(QMainWindow):
         self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
         self.worker.moveToThread(self.thread)
 
-        self.requestResetEnv.connect(self.worker.resetEnv)
+        self.requestObs.connect(self.worker.getObs)
         self.requestParams.connect(self.worker.getParams)
         self.requestPostProcs.connect(self.worker.postProcs)
+        self.requestResetEnv.connect(self.worker.resetEnv)
         self.sendTradeData.connect(self.worker.addData)
 
         self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
-        self.worker.sendParams.connect(self.plot_chart)
+        self.worker.sendObs.connect(self.plot_obs)
+        self.worker.sendParams.connect(self.plot_tick)
         self.worker.sendResults.connect(self.post_procs)
 
         self.thread.start()
