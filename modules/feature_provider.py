@@ -2,7 +2,7 @@ from collections import deque
 from statistics import stdev
 
 from funcs.technical import EMA
-from structs.app_enum import SignalSign
+from structs.app_enum import SignalSign, PositionType
 
 
 class FeatureProvider:
@@ -53,6 +53,17 @@ class FeatureProvider:
         # キュー
         self.deque_price = None
         # ---------------------------------------------------------------------
+        # 取引関連の変数
+        # ---------------------------------------------------------------------
+        self.code = None  # 銘柄コード
+        self.dict_transaction = None # 取引履歴
+        self.position = None # ポジション
+        self.pnl_total = None # 損益合計
+        self.price_tick = None # 呼び値
+        self.price_entry = None # エントリ価格
+        self.profit_max = None # 最大含み益
+        self.unit = None # 売買単位
+        # ---------------------------------------------------------------------
         # 変数の初期化
         self.clear()
 
@@ -86,6 +97,16 @@ class FeatureProvider:
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
         # キューを定義
         self.deque_price = deque(maxlen=self.N_DEQUE_PRICE)  # for MA
+        # ---------------------------------------------------------------------
+        # 取引関連の変数
+        # ---------------------------------------------------------------------
+        self.dict_transaction = self.init_transaction()  # 取引明細
+        self.position = PositionType.NONE  # ポジション（建玉）
+        self.pnl_total = 0.0  # 総損益
+        self.price_tick: float = 1.0  # 呼び値
+        self.price_entry = 0.0  # 取得価格
+        self.profit_max = 0.0  # 含み損益の最大値
+        self.unit: float = 1  # 売買単位
 
     def _calc_emad(self) -> tuple[float, SignalSign]:
         """
@@ -196,6 +217,17 @@ class FeatureProvider:
             return 0.0
         else:
             return (self.price - self.vwap) / self.vwap
+
+    @staticmethod
+    def init_transaction() -> dict:
+        return {
+            "注文日時": [],
+            "銘柄コード": [],
+            "売買": [],
+            "約定単価": [],
+            "約定数量": [],
+            "損益": [],
+        }
 
     def isLowVolatility(self) -> bool:
         if self.getMSD() < self.THRESHOLD_MSD:

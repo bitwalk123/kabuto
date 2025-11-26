@@ -53,17 +53,24 @@ class TradingEnv(gym.Env):
         if self.step_current < self.n_warmup:
             # ウォームアップ期間 → 強制 HOLD
             return np.array([1, 0, 0], dtype=np.int8)
-        elif self.reward_man.position == PositionType.NONE:
+        elif self.provider.position == PositionType.NONE:
             # 建玉なし → 取りうるアクション: HOLD, BUY, SELL
             return np.array([1, 1, 1], dtype=np.int8)
-        elif self.reward_man.position == PositionType.LONG:
+        elif self.provider.position == PositionType.LONG:
             # 建玉あり LONG → 取りうるアクション: HOLD, SELL
             return np.array([1, 0, 1], dtype=np.int8)
-        elif self.reward_man.position == PositionType.SHORT:
+        elif self.provider.position == PositionType.SHORT:
             # 建玉あり SHORT → 取りうるアクション: HOLD, BUY
             return np.array([1, 1, 0], dtype=np.int8)
         else:
-            raise TypeError(f"Unknown PositionType: {self.reward_man.position}")
+            raise TypeError(f"Unknown PositionType: {self.provider.position}")
+
+    def getCurrentPosition(self) -> PositionType:
+        """
+        現在のポジションを返す
+        :return:
+        """
+        return self.provider.position
 
     def getMADParam(self) -> tuple[int, int]:
         """
@@ -92,7 +99,7 @@ class TradingEnv(gym.Env):
         return dict_param
 
     def getTransaction(self) -> pd.DataFrame:
-        return pd.DataFrame(self.reward_man.dict_transaction)
+        return pd.DataFrame(self.provider.dict_transaction)
 
     def getObservation(self, ts: float, price: float, volume: float) -> np.ndarray:
         """
@@ -108,7 +115,6 @@ class TradingEnv(gym.Env):
         obs = self.obs_man.getObs(
             self.reward_man.getPLRaw(),  # 含み損益
             self.reward_man.getPLMaxRaw(),  # 含み損益最大値
-            self.reward_man.position,  # ポジション
         )
         return obs
 
@@ -121,7 +127,8 @@ class TradingEnv(gym.Env):
         """
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
         self.step_current = 0
-        self.reward_man.clear()
+        self.provider.clear()
+        # self.reward_man.clear()
         obs = self.obs_man.getObsReset()
         return obs, {}
 
@@ -150,7 +157,7 @@ class TradingEnv(gym.Env):
             info["done_reason"] = "terminated:max_trades"
 
         # 収益情報
-        info["pnl_total"] = self.reward_man.pnl_total
+        info["pnl_total"] = self.provider.pnl_total
 
         self.step_current += 1
         return reward, terminated, truncated, info
@@ -205,7 +212,7 @@ class TrainingEnv(TradingEnv):
             info["done_reason"] = "terminated: max_trades"
 
         # 収益情報
-        info["pnl_total"] = self.reward_man.pnl_total
+        info["pnl_total"] = self.provider.pnl_total
 
         # ---------------------------------------------------------------------
         # 次の観測値
@@ -217,7 +224,6 @@ class TrainingEnv(TradingEnv):
         obs = self.obs_man.getObs(
             self.reward_man.getPL4Obs(),  # 含み損益
             self.reward_man.getPLMax4Obs(),  # 含み損益最大値
-            self.reward_man.position,  # ポジション
         )
         # step（行位置）をインクリメント
         self.step_current += 1

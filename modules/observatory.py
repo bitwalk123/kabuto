@@ -41,8 +41,7 @@ class ObservationManager:
     def getObs(
             self,
             pl: float = 0,  # 含み損益
-            pl_max: float = 0,  # 含み損益（最大値）
-            position: PositionType = PositionType.NONE  # ポジション
+            pl_max: float = 0  # 含み損益（最大値）
     ) -> np.ndarray:
         # 観測値（特徴量）用リスト
         list_feature = list()
@@ -72,7 +71,7 @@ class ObservationManager:
         # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
         signal_mad = self.provider.getMADSignal()
 
-        if position == PositionType.NONE:
+        if self.provider.position == PositionType.NONE:
             # ポジション無し
             if self.position_reverse:
                 """
@@ -108,14 +107,14 @@ class ObservationManager:
         list_feature.append(vol_low)
         # ---------------------------------------------------------------------
         # 3. ポジション情報
-        if position == PositionType.NONE:
+        if self.provider.position == PositionType.NONE:
             value_position = 0
-        elif position == PositionType.LONG:
+        elif self.provider.position == PositionType.LONG:
             value_position = 1
-        elif position == PositionType.SHORT:
+        elif self.provider.position == PositionType.SHORT:
             value_position = -1
         else:
-            raise TypeError(f"Unknown PositionType: {position}")
+            raise TypeError(f"Unknown PositionType: {self.provider.position}")
         list_feature.append(value_position)
         '''
         # ---------------------------------------------------------------------

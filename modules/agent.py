@@ -196,11 +196,11 @@ class WorkerAgent(QObject):
             masks = self.env.action_masks()
             # モデルによる行動予測
             # action, _states = self.model.predict(obs, action_masks=masks)
-            action = self.predict(obs, masks)
+            action = self.predict(obs, action_masks=masks)
 
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
-                position: PositionType = self.env.reward_man.position
+                position: PositionType = self.env.getCurrentPosition()
                 if ActionType(action) != ActionType.HOLD:
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
                     # 売買アクションを通知するシグナル（HOLD の時は通知しない）
