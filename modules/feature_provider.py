@@ -1,5 +1,8 @@
+import datetime
 from collections import deque
 from statistics import stdev
+
+import numpy as np
 
 from funcs.technical import EMA
 from structs.app_enum import SignalSign, PositionType
@@ -56,13 +59,13 @@ class FeatureProvider:
         # 取引関連の変数
         # ---------------------------------------------------------------------
         self.code = None  # 銘柄コード
-        self.dict_transaction = None # 取引履歴
-        self.position = None # ポジション
-        self.pnl_total = None # 損益合計
-        self.price_tick = None # 呼び値
-        self.price_entry = None # エントリ価格
-        self.profit_max = None # 最大含み益
-        self.unit = None # 売買単位
+        self.dict_transaction = None  # 取引履歴
+        self.position = None  # ポジション
+        self.pnl_total = None  # 損益合計
+        self.price_tick = None  # 呼び値
+        self.price_entry = None  # エントリ価格
+        self.profit_max = None  # 最大含み益
+        self.unit = None  # 売買単位
         # ---------------------------------------------------------------------
         # 変数の初期化
         self.clear()
@@ -164,6 +167,34 @@ class FeatureProvider:
         self.volume_prev = self.volume
 
         return self.cum_pv / self.cum_vol if self.cum_vol > 0 else self.price
+
+    def add_transaction(self, transaction: str, profit: float = np.nan):
+        self.dict_transaction["注文日時"].append(self.get_datetime(self.ts))
+        self.dict_transaction["銘柄コード"].append(self.code)
+        self.dict_transaction["売買"].append(transaction)
+        self.dict_transaction["約定単価"].append(self.price)
+        self.dict_transaction["約定数量"].append(self.unit)
+        self.dict_transaction["損益"].append(profit)
+
+    @staticmethod
+    def get_datetime(t: float) -> str:
+        return str(datetime.datetime.fromtimestamp(int(t)))
+
+    def get_profit(self) -> float:
+        if self.position == PositionType.LONG:
+            # 返済: 買建 (LONG) → 売埋
+            profit = self.price - self.price_entry
+        elif self.position == PositionType.SHORT:
+            # 返済: 売建 (SHORT) → 買埋
+            profit = self.price_entry - self.price
+        else:
+            profit = 0.0  # 実現損益
+
+        # 最大含み益を保持
+        if self.profit_max < profit:
+            self.profit_max = profit
+
+        return profit
 
     def getEMAD(self) -> float:
         """
@@ -275,3 +306,29 @@ class FeatureProvider:
         """
 
         self.msd = self._calc_msd()  # 移動標準偏差
+
+    def transaction_close(self, profit):
+        """
+        建玉返済時の取引明細更新
+        :return:
+        """
+        if self.position == PositionType.LONG:
+            # 返済: 買建 (LONG) → 売埋
+            self.add_transaction("売埋", profit)
+        elif self.position == PositionType.SHORT:
+            # 返済: 売建 (SHORT) → 買埋
+            self.add_transaction("買埋", profit)
+        else:
+            raise TypeError(f"Unknown PositionType: {self.position}")
+
+    def transaction_open(self):
+        """
+        新規建玉時の取引明細更新
+        :return:
+        """
+        if self.position == PositionType.LONG:
+            self.add_transaction("買建")
+        elif self.position == PositionType.SHORT:
+            self.add_transaction("売建")
+        else:
+            raise TypeError(f"Unknown PositionType: {self.position}")

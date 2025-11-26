@@ -38,28 +38,9 @@ class ObservationManager:
     def clear(self):
         self.provider.clear()
 
-    def getObs(
-            self,
-            pl: float = 0,  # 含み損益
-            pl_max: float = 0  # 含み損益（最大値）
-    ) -> np.ndarray:
+    def getObs(self) -> np.ndarray:
         # 観測値（特徴量）用リスト
         list_feature = list()
-        """
-        # ---------------------------------------------------------------------
-        # ?. 株価比
-        price_ratio = self.provider.getPriceRatio()
-        price_ratio = (price_ratio - 1.0) * self.multiplier_price
-        list_feature.append(price_ratio)
-        # ---------------------------------------------------------------------
-        # ?. MAΔ（異なる２つの移動平均の差分）
-        if self.provider.price_open == 0.0:
-            mad_scaled = 0.0
-        else:
-            mad = self.provider.getMAD()
-            mad_scaled = np.tanh(mad / self.price_tick / self.divisor_ma_diff)
-        list_feature.append(mad_scaled)
-        """
         # ---------------------------------------------------------------------
         # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
         if self.position_reverse:
@@ -116,108 +97,25 @@ class ObservationManager:
         else:
             raise TypeError(f"Unknown PositionType: {self.provider.position}")
         list_feature.append(value_position)
-        '''
-        # ---------------------------------------------------------------------
-        # ?. EMAΔS+（EMAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        emad_signal = self.provider.getEMADSignal()
-
-        if position == PositionType.NONE:
-            # ポジション無し
-            if self.position_reverse:
-                """
-                self.position_reverse で反対売買が許可されていて建玉が無い場合は、
-                反対売買をして、フラグをリセットする。
-                """
-                emad_signal = self.emad_signal_pre
-                self.emad_signal_pre = 0.0
-                self.position_reverse = False
-
-            if emad_signal != 0.0 and self.provider.isLowVolatility():
-                """
-                ボラティリティが小さい時はエントリを禁止
-                """
-                emad_signal = 0.0
-        else:
-            # ポジション有り
-            if emad_signal != 0:
-                """
-                emad_signal が立った時（クロス時）に建玉を持っている場合は、
-                次のステップでも同じフラグを立てて反対売買を許容する。
-                """
-                self.emad_signal_pre = emad_signal
-                self.position_reverse = True
-
-        list_feature.append(emad_signal)
-        '''
-        # ---------------------------------------------------------------------
-        """
-        # ?. VWAPΔ（VWAP 乖離率, deviation rate = dr）
-        vwap_dr = self.provider.getVWAPdr()
-        vwap_dr_scaled = np.tanh(vwap_dr * self.multiplier_vwap)
-        list_feature.append(vwap_dr_scaled)
-        # ---------------------------------------------------------------------
-        # ?. Mσ（移動標準偏差, Moving σ）
-        msd = self.provider.getMSD()
-        msd_scaled = np.tanh(msd / self.price_tick / self.divisor_msd)
-        # list_feature.append(msd)
-        list_feature.append(msd_scaled)
-        """
         # ---------------------------------------------------------------------
         # 4 含損益
-        list_feature.append(pl)
+        list_feature.append(self.provider.get_profit())
         # ---------------------------------------------------------------------
         # 5. 含損益M（含み損益最大）
-        list_feature.append(pl_max)
-        """
+        list_feature.append(self.provider.profit_max)
         # ---------------------------------------------------------------------
-        # ?. HOLD1（継続カウンタ 1, 建玉なし）
-        hold_1_scaled = np.tanh(self.provider.n_hold / self.divisor_hold)
-        list_feature.append(hold_1_scaled)
-        # ---------------------------------------------------------------------
-        # ?. HOLD2（継続カウンタ 2, 建玉あり）
-        hold_2_scaled = self.provider.n_hold_position / self.divisor_hold_position
-        list_feature.append(hold_2_scaled)
-        # ---------------------------------------------------------------------
-        # ?. TRADE（取引回数）
-        ratio_trade_count = self.provider.n_trade / self.provider.N_TRADE_MAX
-        list_feature.append(np.tanh(ratio_trade_count))
-        # ---------------------------------------------------------------------
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 一旦、配列に変換
-        arr_feature = np.array(list_feature, dtype=np.float32)
-
-        # ---------------------------------------------------------------------
-        # ポジション情報
-        # >. NONE, ?. LONG, ?. SHORT
-        # PositionType → one-hot (3) ［単位行列へ変換］
-        pos_onehot = np.eye(len(PositionType))[position.value].astype(np.float32)
-        # ---------------------------------------------------------------------
-
-        # arr_feature と pos_onehot を単純結合
-        return np.concatenate([arr_feature, pos_onehot])
-        """
+        # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)
 
     @staticmethod
     def getObsList() -> list:
         return [
-            # "株価比",
-            # "MAΔ",
-            "REV",
-            "MAΔS",
-            "VolL",
-            "POS",
-            # "VWAPΔ",
-            # "Mσ",
+            "反対売買",
+            "クロスS",
+            "低ボラ",
+            "ポジション",
             "含損益",
             "含損益M",
-            # "HOLD1",
-            # "HOLD2",
-            # "TRADE",
-            # "NONE",
-            # "LONG",
-            # "SHORT"
         ]
 
     def getObsReset(self) -> np.ndarray:

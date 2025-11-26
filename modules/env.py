@@ -98,6 +98,9 @@ class TradingEnv(gym.Env):
         dict_param["PERIOD_MSD"], dict_param["THRESHOLD_MSD"] = self.getMSDParam()
         return dict_param
 
+    def getTimestamp(self) -> float:
+        return self.provider.ts
+
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.provider.dict_transaction)
 
@@ -112,10 +115,7 @@ class TradingEnv(gym.Env):
         """
         self.provider.update(ts, price, volume)
         # 観測値
-        obs = self.obs_man.getObs(
-            self.reward_man.getPLRaw(),  # 含み損益
-            self.reward_man.getPLMaxRaw(),  # 含み損益最大値
-        )
+        obs = self.obs_man.getObs()
         return obs
 
     def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
@@ -221,10 +221,7 @@ class TrainingEnv(TradingEnv):
         # t, price, volume = self._get_tick()
         self.provider.update(*self._get_tick())
         # モデルへ渡す観測値を取得
-        obs = self.obs_man.getObs(
-            self.reward_man.getPL4Obs(),  # 含み損益
-            self.reward_man.getPLMax4Obs(),  # 含み損益最大値
-        )
+        obs = self.obs_man.getObs()
         # step（行位置）をインクリメント
         self.step_current += 1
 
