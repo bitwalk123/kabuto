@@ -70,14 +70,14 @@ class TradingEnv(gym.Env):
         移動平均差の算出パラメータ取得
         :return:
         """
-        return self.provider.period_mad_1, self.provider.period_mad_2
+        return self.provider.PERIOD_MAD_1, self.provider.PERIOD_MAD_2
 
     def getMSDParam(self) -> tuple[int, float]:
         """
         移動標準偏差の算出パラメータ取得
         :return:
         """
-        return self.provider.period_msd, self.provider.threshold_msd
+        return self.provider.PERIOD_MSD, self.provider.THRESHOLD_MSD
 
     def getParams(self) -> dict:
         """
@@ -86,9 +86,9 @@ class TradingEnv(gym.Env):
         """
         dict_param = dict()
         # MAD 計算用パラメータ
-        dict_param["period_mad_1"], dict_param["period_mad_2"] = self.getMADParam()
+        dict_param["PERIOD_MAD_1"], dict_param["PERIOD_MAD_2"] = self.getMADParam()
         # NSD 計算用パラメータ
-        dict_param["period_msd"], dict_param["threshold_msd"] = self.getMSDParam()
+        dict_param["PERIOD_MSD"], dict_param["THRESHOLD_MSD"] = self.getMSDParam()
         return dict_param
 
     def getTransaction(self) -> pd.DataFrame:
@@ -144,7 +144,7 @@ class TradingEnv(gym.Env):
         terminated = False
         truncated = False
         # 取引回数上限チェック
-        if self.provider.n_trade_max <= self.provider.n_trade:
+        if self.provider.N_TRADE_MAX <= self.provider.n_trade:
             reward += self.reward_man.forceRepay()
             truncated = True  # 取引回数上限による終了を明示
             info["done_reason"] = "terminated:max_trades"
@@ -198,7 +198,7 @@ class TrainingEnv(TradingEnv):
             reward += self.reward_man.forceRepay()
             truncated = True  # ← ステップ数上限による終了
             info["done_reason"] = "terminated: last_tick"
-        elif self.provider.n_trade_max <= self.provider.n_trade:
+        elif self.provider.N_TRADE_MAX <= self.provider.n_trade:
             # 取引回数上限チェック
             reward += self.reward_man.forceRepay()
             truncated = True  # 取引回数上限による終了を明示

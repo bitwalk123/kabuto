@@ -180,7 +180,7 @@ class ObservationManager:
         list_feature.append(hold_2_scaled)
         # ---------------------------------------------------------------------
         # ?. TRADE（取引回数）
-        ratio_trade_count = self.provider.n_trade / self.provider.n_trade_max
+        ratio_trade_count = self.provider.n_trade / self.provider.N_TRADE_MAX
         list_feature.append(np.tanh(ratio_trade_count))
         # ---------------------------------------------------------------------
 

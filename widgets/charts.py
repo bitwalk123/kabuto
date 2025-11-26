@@ -151,9 +151,9 @@ class TickChart(Chart):
         # トレンドライン（株価とVWAP）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
 
-        period_mad_1 = dict_param["period_mad_1"]
-        period_mad_2 = dict_param["period_mad_2"]
-        period_msd = dict_param["period_msd"]
+        period_mad_1 = dict_param["PERIOD_MAD_1"]
+        period_mad_2 = dict_param["PERIOD_MAD_2"]
+        period_msd = dict_param["PERIOD_MSD"]
         colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
         colname_msd = calc_msd(df, period_msd)
         ser_price = df["Price"]

@@ -7,52 +7,89 @@ from structs.app_enum import SignalSign
 
 class FeatureProvider:
     def __init__(self):
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 定数
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 移動平均差用（定数）
+        self.PERIOD_MAD_1 = 60
+        self.PERIOD_MAD_2 = 600
+        # 移動標準偏差用（定数）
+        self.PERIOD_MSD = 60
+        self.THRESHOLD_MSD = 3
+        # 最大取引回数（買建、売建）
+        self.N_TRADE_MAX = 100.0
+        # 株価キューの最大値
+        self.N_DEQUE_PRICE = self.PERIOD_MAD_2
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # 変数
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # リアルタイムで取得する変数
+        self.ts = None
+        self.price = None
+        self.volume = None
+        self.vwap = None
+        # 移動平均差用変数
+        self.mad = None
+        self.mad_sign_current = None
+        self.mad_sign_signal = None
+        # 指数平滑移動平均差用変数
+        self.emad = None
+        self.emad_sign_current = None
+        self.emad_sign_signal = None
+        # 移動標準偏差用変数
+        self.msd = None
+        # 指数平滑移動平均差用インスタンス
+        self.ema_1 = None
+        self.ema_2 = None
+        # 特徴量算出のために保持する変数
+        self.price_open = None
+        self.cum_pv = None
+        self.cum_vol = None
+        self.volume_prev = None
+        # カウンタ関連
+        self.n_trade = None
+        self.n_hold = None
+        self.n_hold_position = None
+        # キュー
+        self.deque_price = None
+        # ---------------------------------------------------------------------
+        # 変数の初期化
+        self.clear()
+
+    def clear(self):
+        # リアルタイムで取得する変数
         self.ts = 0
         self.price = 0
         self.volume = 0
         self.vwap = 0
-
+        # 移動平均差用変数
         self.mad = 0
         self.mad_sign_current = SignalSign.ZERO
         self.mad_sign_signal = SignalSign.ZERO
-
+        # 移動平均差用変数
         self.emad = 0
         self.emad_sign_current = SignalSign.ZERO
         self.emad_sign_signal = SignalSign.ZERO
-
+        # 移動標準偏差用変数
         self.msd = 0
-
-        # 移動平均差用
-        self.period_mad_1 = 60
-        self.period_mad_2 = 600
-
-        # EMA差用
-        self.ema_1 = EMA(self.period_mad_1)
-        self.ema_2 = EMA(self.period_mad_2)
-
-        # 移動標準偏差用
-        self.period_msd = 60
-        self.threshold_msd = 3
-
+        # 指数平滑移動平均差用インスタンス
+        self.ema_1 = EMA(self.PERIOD_MAD_1)
+        self.ema_2 = EMA(self.PERIOD_MAD_2)
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
         self.cum_vol = 0.0  # VWAP 用 Volume 累積
         self.volume_prev = None  # VWAP 用 前の Volume
-
         # カウンタ関連
-        self.n_trade_max = 100.0  # 最大取引回数（買建、売建）
         self.n_trade = 0.0  # 取引カウンタ
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
-
         # キューを定義
-        self.n_deque_price = self.period_mad_2
-        self.deque_price = deque(maxlen=self.n_deque_price)  # for MA
+        self.deque_price = deque(maxlen=self.N_DEQUE_PRICE)  # for MA
 
     def _calc_emad(self) -> tuple[float, SignalSign]:
         """
-        移動平均差 (Moving Average Difference = MAD)
+        指数平滑移動平均差 (Exponential Moving Average Difference = EMAD)
         :return:
         """
         ema_1 = self.ema_1.update(self.price)
@@ -72,8 +109,8 @@ class FeatureProvider:
         移動平均差 (Moving Average Difference = MAD)
         :return:
         """
-        ma1 = self.getMA(self.period_mad_1)
-        ma2 = self.getMA(self.period_mad_2)
+        ma1 = self.getMA(self.PERIOD_MAD_1)
+        ma2 = self.getMA(self.PERIOD_MAD_2)
         mad_new = ma1 - ma2
         if 0 < mad_new:
             signal_sign_new = SignalSign.POSITIVE
@@ -89,10 +126,10 @@ class FeatureProvider:
         移動標準偏差 (Moving Standard Deviation = MSD)
         """
         n_deque = len(self.deque_price)
-        if n_deque < self.period_msd:
+        if n_deque < self.PERIOD_MSD:
             return stdev(list(self.deque_price)) if n_deque > 1 else 0.0
         else:
-            recent_prices = list(self.deque_price)[-self.period_msd:]
+            recent_prices = list(self.deque_price)[-self.PERIOD_MSD:]
             return stdev(recent_prices)
 
     def _calc_vwap(self) -> float:
@@ -106,41 +143,6 @@ class FeatureProvider:
         self.volume_prev = self.volume
 
         return self.cum_pv / self.cum_vol if self.cum_vol > 0 else self.price
-
-    def clear(self):
-        self.ts = 0
-        self.price = 0
-        self.volume = 0
-        self.vwap = 0
-
-        self.mad = 0
-        self.mad_sign_current = SignalSign.ZERO
-        self.mad_sign_signal = SignalSign.ZERO
-
-        self.emad = 0
-        self.emad_sign_current = SignalSign.ZERO
-        self.emad_sign_signal = SignalSign.ZERO
-        self.ema_1 = EMA(self.period_mad_1)
-        self.ema_2 = EMA(self.period_mad_2)
-
-        self.msd = 0
-
-        # 特徴量算出のために保持する変数
-        self.price_open = 0.0  # ザラバの始値
-        self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
-        self.cum_vol = 0.0  # VWAP 用 Volume 累積
-        self.volume_prev = None  # VWAP 用 前の Volume
-
-        # カウンタ関連
-        # 取引カウンタ
-        self.resetTradeCounter()
-        # 建玉なしの HOLD カウンタ
-        self.resetHoldCounter()
-        # 建玉ありの HOLD カウンタ
-        self.resetHoldPosCounter()
-
-        # キュー
-        self.deque_price.clear()  # 移動平均など
 
     def getEMAD(self) -> float:
         """
@@ -196,7 +198,7 @@ class FeatureProvider:
             return (self.price - self.vwap) / self.vwap
 
     def isLowVolatility(self) -> bool:
-        if self.getMSD() < self.threshold_msd:
+        if self.getMSD() < self.THRESHOLD_MSD:
             return True
         else:
             return False
