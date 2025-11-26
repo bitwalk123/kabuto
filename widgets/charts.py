@@ -144,41 +144,37 @@ class TickChart(Chart):
         self.ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%H:%M")
         )
-        # self.ax.grid()
 
     def updateData(self, df: pd.DataFrame, dict_param: dict, title: str):
-        # トレンドライン（株価とVWAP）
+        # トレンドライン（株価と指標）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
-
         period_mad_1 = dict_param["PERIOD_MAD_1"]
         period_mad_2 = dict_param["PERIOD_MAD_2"]
-        # period_msd = dict_param["PERIOD_MSD"]
         period_miqr = dict_param["PERIOD_MIQR"]
         threshold_miqr = dict_param["THRESHOLD_MIQR"]
         colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
-        # colname_msd = calc_msd(df, period_msd)
         colname_miqr = calc_miqr(df, period_miqr)
+
+        # プロット用データ
         ser_price = df["Price"]
         ser_ma_1 = df[colname_ma_1]
         ser_ma_2 = df[colname_ma_2]
-        # ser_msd = df[colname_msd]
         ser_miqr = df[colname_miqr]
-        print(ser_miqr.describe())
-        # print(ser_msd.describe())
 
         # 消去
         self.ax.cla()
         self.ax2.cla()
 
-        # プロット　(y)
-        self.ax.plot(ser_price, color="lightgray", linewidth=0.5, linestyle="solid", label="Price")
-        self.ax.plot(ser_ma_1, linewidth=1, linestyle="solid", label=colname_ma_1)
-        self.ax.plot(ser_ma_2, linewidth=1, linestyle="solid", label=colname_ma_2)
+        # プロット (y)
+        lns1 = self.ax.plot(ser_price, color="lightgray", linewidth=0.5, linestyle="solid", label="Price")
+        lns2 = self.ax.plot(ser_ma_1, linewidth=1, linestyle="solid", label=colname_ma_1)
+        lns3 = self.ax.plot(ser_ma_2, linewidth=1, linestyle="solid", label=colname_ma_2)
 
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
         self.ax.grid(True, lw=0.5)
-
+        self.ax.set_title(title)
+        # y 軸調整
         y_min, y_max = self.ax.get_ylim()
         y_min_2 = 2 * y_min - y_max
         if y_min_2 < 0:
@@ -188,13 +184,10 @@ class TickChart(Chart):
         idx_min = len(yticks) // 2 - 1
         for i in range(idx_min):
             yticks[i].set_visible(False)
-
-        self.ax.legend(fontsize=9)
         self.ax.set_ylabel(f"{self.space}Price [JPY]")
-        self.ax.set_title(title)
 
-        # プロット　(y2)
-        self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
+        # プロット (y2)
+        lns4= self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
         x = ser_miqr.index
         y = ser_miqr.values
         self.ax2.fill_between(
@@ -204,6 +197,7 @@ class TickChart(Chart):
             alpha=0.05,
             transform=self.ax2.get_xaxis_transform()
         )
+        # y2 軸調整
         y_min, y_max = self.ax2.get_ylim()
         y_min = 0.0
         y_max_2 = 2 * y_max - y_min
@@ -212,11 +206,14 @@ class TickChart(Chart):
         idx_max = len(y2ticks) // 2 + 2
         for i in range(idx_max, len(y2ticks)):
             y2ticks[i].set_visible(False)
-
-        y_min, _ = self.ax.get_ylim()
-        y2_min, _ = self.ax2.get_ylim()
         self.ax2.yaxis.set_label_position("right")
         self.ax2.set_ylabel(f"Moving IQR{self.space}")
+
+        # added these three lines
+        lns = lns1 + lns2 + lns3 + lns4
+        labs = [l.get_label() for l in lns]
+        self.ax.legend(lns, labs, bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.25, fontsize=7)
+        #self.ax.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.5, fontsize=7)
 
         # 再描画
         self.canvas.draw()

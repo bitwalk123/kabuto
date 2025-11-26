@@ -1,6 +1,5 @@
 import datetime
 from collections import deque
-from statistics import stdev
 
 import numpy as np
 
@@ -16,11 +15,8 @@ class FeatureProvider:
         # 移動平均差用（定数）
         self.PERIOD_MAD_1 = 60
         self.PERIOD_MAD_2 = 600
-        # 移動標準偏差用（定数）
-        self.PERIOD_MSD = 60
-        self.THRESHOLD_MSD = 3
         # 移動IQR用（定数）
-        self.PERIOD_MIQR = 60
+        self.PERIOD_MIQR = 120
         self.THRESHOLD_MIQR = 2
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100.0
@@ -42,8 +38,6 @@ class FeatureProvider:
         self.emad = None
         self.emad_sign_current = None
         self.emad_sign_signal = None
-        # 移動標準偏差用変数
-        self.msd = None
         # 移動IQR用変数
         self.miqr = None
         # 指数平滑移動平均差用インスタンス
@@ -89,8 +83,6 @@ class FeatureProvider:
         self.emad = 0
         self.emad_sign_current = SignalSign.ZERO
         self.emad_sign_signal = SignalSign.ZERO
-        # 移動標準偏差用変数
-        self.msd = 0
         # 移動IQR用変数
         self.miqr = 0
         # 指数平滑移動平均差用インスタンス
@@ -152,17 +144,6 @@ class FeatureProvider:
 
         return mad_new, signal_sign_new
 
-    def _calc_msd(self) -> float:
-        """
-        移動標準偏差 (Moving Standard Deviation = MSD)
-        """
-        n_deque = len(self.deque_price)
-        if n_deque < self.PERIOD_MSD:
-            return stdev(list(self.deque_price)) if n_deque > 1 else 0.0
-        else:
-            recent_prices = list(self.deque_price)[-self.PERIOD_MSD:]
-            return stdev(recent_prices)
-
     def _calc_miqr(self) -> float:
         """
         移動IQR
@@ -203,15 +184,6 @@ class FeatureProvider:
         self.dict_transaction["約定単価"].append(self.price)
         self.dict_transaction["約定数量"].append(self.unit)
         self.dict_transaction["損益"].append(profit)
-
-    def clear_position(self):
-        self.position = PositionType.NONE
-        # エントリ価格をリセット
-        self.price_entry = 0.0
-        # 含み損益の最大値
-        self.profit_max = 0.0
-        # ポジション持ち HOLD カウンタのリセット
-        self.n_hold_position = 0
 
     @staticmethod
     def get_datetime(t: float) -> str:
@@ -273,12 +245,6 @@ class FeatureProvider:
         移動IQR (Moving IQR = MIQR)
         """
         return self.miqr
-
-    def getMSD(self) -> float:
-        """
-        移動標準偏差 (Moving Standard Deviation = MSD)
-        """
-        return self.msd
 
     def getPriceRatio(self) -> float:
         """
@@ -389,6 +355,7 @@ class FeatureProvider:
             self.mad_sign_signal = SignalSign.ZERO
         self.mad_sign_current = mad_sign
         """
+        # 評価保留
         self.emad, emad_sign = self._calc_emad()  # EMA差
         if self.emad_sign_current != emad_sign:
             self.emad_sign_signal = emad_sign
@@ -397,7 +364,6 @@ class FeatureProvider:
         self.emad_sign_current = emad_sign
         """
 
-        self.msd = self._calc_msd()  # 移動標準偏差
         self.miqr = self._calc_miqr() # 移動IQR
 
     def transaction_close(self, profit):

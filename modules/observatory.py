@@ -37,6 +37,7 @@ class ObservationManager:
             signal_reverse = 1
         else:
             signal_reverse = 0
+
         list_feature.append(signal_reverse)
         # ---------------------------------------------------------------------
         # 2. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
@@ -46,8 +47,8 @@ class ObservationManager:
             # ポジション無し
             if self.position_reverse:
                 """
-                self.position_reverse で反対売買が許可されていて建玉が無い場合は、
-                反対売買をして、フラグをリセットする。
+                self.position_reverse で反対売買が許可されていて
+                建玉が無い場合は反対売買をして、フラグをリセットする。
                 """
                 signal_mad = self.signal_mad_pre
                 self.signal_mad_pre = 0
@@ -75,6 +76,7 @@ class ObservationManager:
             vol_low = 1
         else:
             vol_low = 0
+
         list_feature.append(vol_low)
         # ---------------------------------------------------------------------
         # 4. 移動 IQR
@@ -90,14 +92,17 @@ class ObservationManager:
             value_position = -1
         else:
             raise TypeError(f"Unknown PositionType: {self.provider.position}")
+
         list_feature.append(value_position)
         # ---------------------------------------------------------------------
         # 6. 含損益
-        list_feature.append(self.provider.get_profit())
+        profit_unrealized = self.provider.get_profit()
+        list_feature.append(profit_unrealized)
         # ---------------------------------------------------------------------
         # 7. 含損益M（含み損益最大）
-        list_feature.append(self.provider.profit_max)
-        # ---------------------------------------------------------------------
+        profit_unrealized_max = self.provider.profit_max
+        list_feature.append(profit_unrealized_max)
+        # =====================================================================
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)
 

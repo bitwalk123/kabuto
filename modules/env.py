@@ -81,9 +81,6 @@ class TradingEnv(gym.Env):
         # MAD 計算用パラメータ
         dict_param["PERIOD_MAD_1"] = self.provider.PERIOD_MAD_1
         dict_param["PERIOD_MAD_2"] = self.provider.PERIOD_MAD_2
-        # MSD 計算用パラメータ
-        dict_param["PERIOD_MSD"] = self.provider.PERIOD_MSD
-        dict_param["THRESHOLD_MSD"] = self.provider.THRESHOLD_MSD
         # MIQR 計算用パラメータ
         dict_param["PERIOD_MIQR"] = self.provider.PERIOD_MIQR
         dict_param["THRESHOLD_MIQR"] = self.provider.THRESHOLD_MIQR
@@ -122,9 +119,10 @@ class TradingEnv(gym.Env):
         """
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
         self.step_current = 0
+        self.provider.clear()
         # self.reward_man.clear()
         obs = self.obs_man.getObsReset()
-        self.provider.clear()
+
         return obs, {}
 
     def step(self, action: int) -> tuple[float, bool, bool, dict]:
