@@ -148,7 +148,7 @@ class DataGeneratorWorker(QObject):
         新しいデータを生成し、共有メモリに書き込み、スムージングも行うスロット。
         """
         if not self.shm_initialized:
-            self.logger.warning("DataGeneratorWorker: Shared memory not initialized yet, skipping data generation.")
+            self.logger.warning("DataGeneratorWorker: Shared memory not initialized yet, skipping list_data generation.")
             return
 
         x = counter
@@ -343,7 +343,7 @@ class TrendGraph(pg.PlotWidget):
             self.logger.debug(f"TrendGraph: updateSmoothedLine called. actual_data_count = {actual_data_count}")
 
             if actual_data_count == 0 or actual_data_count < 5:
-                self.logger.debug(f"TrendGraph: Not enough data for smoothing. actual_data_count = {actual_data_count}. Clearing smooth line.")
+                self.logger.debug(f"TrendGraph: Not enough list_data for smoothing. actual_data_count = {actual_data_count}. Clearing smooth line.")
                 self.smoothed_line_item.setData([], []) # データが少ない場合はラインをクリアしておく
                 return
 
@@ -455,7 +455,7 @@ class Example(QMainWindow):
         """
         self.timer.stop()
         if self.data_generator_thread.isRunning():
-            self.logger.info("Terminating data generator thread...")
+            self.logger.info("Terminating list_data generator thread...")
             self.data_generator_thread.quit()
             self.data_generator_thread.wait(5000) # 最大5秒待機
             if self.data_generator_thread.isRunning():

@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qtagg import (
 )
 from matplotlib.figure import Figure
 
-from funcs.technical import calc_ma, calc_msd
+from funcs.technical import calc_ma, calc_msd, calc_miqr
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
@@ -49,7 +49,6 @@ class Chart(Widget):
 
         # 軸領域
         self.ax = self.figure.add_subplot(111)
-
 
 
 class MplChart(FigureCanvas):
@@ -153,13 +152,18 @@ class TickChart(Chart):
 
         period_mad_1 = dict_param["PERIOD_MAD_1"]
         period_mad_2 = dict_param["PERIOD_MAD_2"]
-        period_msd = dict_param["PERIOD_MSD"]
+        # period_msd = dict_param["PERIOD_MSD"]
+        period_miqr = dict_param["PERIOD_MIQR"]
+        threshold_miqr = dict_param["THRESHOLD_MIQR"]
         colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
-        colname_msd = calc_msd(df, period_msd)
+        # colname_msd = calc_msd(df, period_msd)
+        colname_miqr = calc_miqr(df, period_miqr)
         ser_price = df["Price"]
         ser_ma_1 = df[colname_ma_1]
         ser_ma_2 = df[colname_ma_2]
-        ser_msd = df[colname_msd]
+        # ser_msd = df[colname_msd]
+        ser_miqr = df[colname_miqr]
+        print(ser_miqr.describe())
         # print(ser_msd.describe())
 
         # 消去
@@ -190,7 +194,16 @@ class TickChart(Chart):
         self.ax.set_title(title)
 
         # プロット　(y2)
-        self.ax2.plot(ser_msd, color="C2", linewidth=0.75, linestyle="solid", label=colname_msd)
+        self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
+        x = ser_miqr.index
+        y = ser_miqr.values
+        self.ax2.fill_between(
+            x, 0, 1,
+            where=y < threshold_miqr,
+            color='black',
+            alpha=0.05,
+            transform=self.ax2.get_xaxis_transform()
+        )
         y_min, y_max = self.ax2.get_ylim()
         y_min = 0.0
         y_max_2 = 2 * y_max - y_min
@@ -203,7 +216,7 @@ class TickChart(Chart):
         y_min, _ = self.ax.get_ylim()
         y2_min, _ = self.ax2.get_ylim()
         self.ax2.yaxis.set_label_position("right")
-        self.ax2.set_ylabel(f"Moving σ{self.space}")
+        self.ax2.set_ylabel(f"Moving IQR{self.space}")
 
         # 再描画
         self.canvas.draw()

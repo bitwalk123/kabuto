@@ -24,7 +24,7 @@ class TrendChartWindow(QMainWindow):
         self.plot_widget1.setLabel('bottom', '') # X軸の軸ラベルを非表示
         self.plot_widget1.setTitle('Upper Trend')
 
-        # Generate some sample data for Chart 1
+        # Generate some sample list_data for Chart 1
         x1 = np.linspace(0, 10, 100)
         y1 = np.sin(x1 * 2) + np.random.rand(100) * 0.5
         self.plot_widget1.plot(x1, y1, pen='b')
@@ -63,7 +63,7 @@ class TrendChartWindow(QMainWindow):
         self.plot_widget2.setLabel('bottom', 'Time')
         self.plot_widget2.setTitle('Lower Trend')
 
-        # Generate some sample data for Chart 2
+        # Generate some sample list_data for Chart 2
         x2 = np.linspace(0, 10, 100)
         y2 = np.cos(x2 * 3) * 100 + np.random.rand(100) * 30
         self.plot_widget2.plot(x2, y2, pen='r')

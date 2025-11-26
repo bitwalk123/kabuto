@@ -4,7 +4,7 @@ from statistics import stdev
 
 import numpy as np
 
-from funcs.technical import EMA
+from funcs.technical import EMA, percentile
 from structs.app_enum import SignalSign, PositionType
 
 
@@ -19,6 +19,9 @@ class FeatureProvider:
         # 移動標準偏差用（定数）
         self.PERIOD_MSD = 60
         self.THRESHOLD_MSD = 3
+        # 移動IQR用（定数）
+        self.PERIOD_MIQR = 60
+        self.THRESHOLD_MIQR = 2
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100.0
         # 株価キューの最大値
@@ -41,6 +44,8 @@ class FeatureProvider:
         self.emad_sign_signal = None
         # 移動標準偏差用変数
         self.msd = None
+        # 移動IQR用変数
+        self.miqr = None
         # 指数平滑移動平均差用インスタンス
         self.ema_1 = None
         self.ema_2 = None
@@ -86,6 +91,8 @@ class FeatureProvider:
         self.emad_sign_signal = SignalSign.ZERO
         # 移動標準偏差用変数
         self.msd = 0
+        # 移動IQR用変数
+        self.miqr = 0
         # 指数平滑移動平均差用インスタンス
         self.ema_1 = EMA(self.PERIOD_MAD_1)
         self.ema_2 = EMA(self.PERIOD_MAD_2)
@@ -155,6 +162,27 @@ class FeatureProvider:
         else:
             recent_prices = list(self.deque_price)[-self.PERIOD_MSD:]
             return stdev(recent_prices)
+
+    def _calc_miqr(self) -> float:
+        """
+        移動IQR
+        :return:
+        """
+        n_deque = len(self.deque_price)
+        if n_deque < self.PERIOD_MIQR:
+            if n_deque > 0:
+                prices_all = list(self.deque_price)
+                q1 = percentile(prices_all, 0.25)
+                q3 = percentile(prices_all, 0.75)
+                return q3 - q1
+            else:
+                return 0.0
+        else:
+            prices_recent = list(self.deque_price)[-self.PERIOD_MIQR:]
+            q1 = percentile(prices_recent, 0.25)
+            q3 = percentile(prices_recent, 0.75)
+            return q3 - q1
+
 
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
@@ -231,6 +259,12 @@ class FeatureProvider:
         """
         return float(self.mad_sign_signal.value)
 
+    def getMIQR(self) -> float:
+        """
+        移動IQR (Moving IQR = MIQR)
+        """
+        return self.miqr
+
     def getMSD(self) -> float:
         """
         移動標準偏差 (Moving Standard Deviation = MSD)
@@ -261,7 +295,7 @@ class FeatureProvider:
         }
 
     def isLowVolatility(self) -> bool:
-        if self.getMSD() < self.THRESHOLD_MSD:
+        if self.getMIQR() < self.THRESHOLD_MIQR:
             return True
         else:
             return False
@@ -306,6 +340,7 @@ class FeatureProvider:
         """
 
         self.msd = self._calc_msd()  # 移動標準偏差
+        self.miqr = self._calc_miqr() # 移動IQR
 
     def transaction_close(self, profit):
         """

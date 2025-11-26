@@ -42,14 +42,18 @@ class ObservationManager:
         # 観測値（特徴量）用リスト
         list_feature = list()
         # ---------------------------------------------------------------------
-        # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
+        # 0. 株価
+        price = self.provider.price
+        list_feature.append(price)
+        # ---------------------------------------------------------------------
+        # 1. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
         if self.position_reverse:
             signal_reverse = 1
         else:
             signal_reverse = 0
         list_feature.append(signal_reverse)
         # ---------------------------------------------------------------------
-        # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
+        # 2. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
         signal_mad = self.provider.getMADSignal()
 
         if self.provider.position == PositionType.NONE:
@@ -80,14 +84,18 @@ class ObservationManager:
 
         list_feature.append(signal_mad)
         # ---------------------------------------------------------------------
-        # 2. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
+        # 3. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
         if self.provider.isLowVolatility():
             vol_low = 1
         else:
             vol_low = 0
         list_feature.append(vol_low)
         # ---------------------------------------------------------------------
-        # 3. ポジション情報
+        # 4. 移動 IQR
+        miqr = self.provider.miqr
+        list_feature.append(miqr)
+        # ---------------------------------------------------------------------
+        # 5. ポジション情報
         if self.provider.position == PositionType.NONE:
             value_position = 0
         elif self.provider.position == PositionType.LONG:
@@ -98,10 +106,10 @@ class ObservationManager:
             raise TypeError(f"Unknown PositionType: {self.provider.position}")
         list_feature.append(value_position)
         # ---------------------------------------------------------------------
-        # 4 含損益
+        # 6. 含損益
         list_feature.append(self.provider.get_profit())
         # ---------------------------------------------------------------------
-        # 5. 含損益M（含み損益最大）
+        # 7. 含損益M（含み損益最大）
         list_feature.append(self.provider.profit_max)
         # ---------------------------------------------------------------------
         # 配列にして観測値を返す
@@ -110,9 +118,11 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
+            "株価",
             "反対売買",
             "クロスS",
             "低ボラ",
+            "移動IQR",
             "ポジション",
             "含損益",
             "含損益M",

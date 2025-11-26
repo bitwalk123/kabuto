@@ -240,7 +240,7 @@ class WorkerAgent(QObject):
         signal_reverse = int(obs[0])
         # ---------------------------------------------------------------------
         # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        signal_mad = SignalSign(int(obs[1]))
+        signal_mad = SignalSign(int(obs[2]))
         if signal_mad == SignalSign.ZERO:
             action = ActionType.HOLD.value
         elif signal_mad == SignalSign.POSITIVE:

@@ -34,6 +34,22 @@ def calc_ma(df: pd.DataFrame, period_1: int = 60, period_2: int = 600) -> tuple[
     return colname1, colname2
 
 
+def calc_miqr(df: pd.DataFrame, period: int = 60) -> str:
+    """
+    移動IQR
+    :param df:
+    :param period:
+    :return:
+    """
+    colname = f"MIQR{period:03d}"
+    q1 = df["Price"].rolling(window=period, min_periods=1).quantile(0.25)
+    q3 = df["Price"].rolling(window=period, min_periods=1).quantile(0.75)
+
+    # IQR 列を作成
+    df[colname] = q3 - q1
+    return colname
+
+
 def calc_msd(df: pd.DataFrame, period: int = 60) -> str:
     """
     移動平均差
@@ -44,6 +60,17 @@ def calc_msd(df: pd.DataFrame, period: int = 60) -> str:
     colname = f"MSD{period:03d}"
     df[colname] = df["Price"].rolling(period, min_periods=1).std()
     return colname
+
+
+def percentile(list_data: list, p: float):
+    list_data = sorted(list_data)
+    k = (len(list_data) - 1) * p
+    f = int(k)
+    c = f + 1
+    if c < len(list_data):
+        return list_data[f] + (list_data[c] - list_data[f]) * (k - f)
+    else:
+        return list_data[f]
 
 
 class EMA:

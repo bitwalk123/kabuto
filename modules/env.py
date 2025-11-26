@@ -72,20 +72,6 @@ class TradingEnv(gym.Env):
         """
         return self.provider.position
 
-    def getMADParam(self) -> tuple[int, int]:
-        """
-        移動平均差の算出パラメータ取得
-        :return:
-        """
-        return self.provider.PERIOD_MAD_1, self.provider.PERIOD_MAD_2
-
-    def getMSDParam(self) -> tuple[int, float]:
-        """
-        移動標準偏差の算出パラメータ取得
-        :return:
-        """
-        return self.provider.PERIOD_MSD, self.provider.THRESHOLD_MSD
-
     def getParams(self) -> dict:
         """
         調整可能？なパラメータを辞書で返す
@@ -93,9 +79,15 @@ class TradingEnv(gym.Env):
         """
         dict_param = dict()
         # MAD 計算用パラメータ
-        dict_param["PERIOD_MAD_1"], dict_param["PERIOD_MAD_2"] = self.getMADParam()
-        # NSD 計算用パラメータ
-        dict_param["PERIOD_MSD"], dict_param["THRESHOLD_MSD"] = self.getMSDParam()
+        dict_param["PERIOD_MAD_1"]=self.provider.PERIOD_MAD_1
+        dict_param["PERIOD_MAD_2"]=self.provider.PERIOD_MAD_2
+        # MSD 計算用パラメータ
+        dict_param["PERIOD_MSD"] = self.provider.PERIOD_MSD
+        dict_param["THRESHOLD_MSD"] = self.provider.THRESHOLD_MSD
+        # MIQR 計算用パラメータ
+        dict_param["PERIOD_MIQR"] = self.provider.PERIOD_MIQR
+        dict_param["THRESHOLD_MIQR"] = self.provider.THRESHOLD_MIQR
+
         return dict_param
 
     def getTimestamp(self) -> float:
