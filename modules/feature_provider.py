@@ -204,6 +204,15 @@ class FeatureProvider:
         self.dict_transaction["約定数量"].append(self.unit)
         self.dict_transaction["損益"].append(profit)
 
+    def clear_position(self):
+        self.position = PositionType.NONE
+        # エントリ価格をリセット
+        self.price_entry = 0.0
+        # 含み損益の最大値
+        self.profit_max = 0.0
+        # ポジション持ち HOLD カウンタのリセット
+        self.n_hold_position = 0
+
     @staticmethod
     def get_datetime(t: float) -> str:
         return str(datetime.datetime.fromtimestamp(int(t)))
@@ -299,6 +308,55 @@ class FeatureProvider:
             return True
         else:
             return False
+
+    def position_close(self) -> float:
+        reward = 0
+
+        # HOLD カウンター（建玉あり）のリセット
+        self.n_hold_position = 0
+        # 取引回数のインクリメント
+        self.n_trade += 1
+
+        # 確定損益
+        profit = self.get_profit()
+        # 確定損益追加
+        self.pnl_total += profit
+        # 報酬に追加
+        reward += profit
+
+        # エントリ価格をリセット
+        self.price_entry = 0.0
+        # 含み損益の最大値
+        self.profit_max = 0.0
+
+        # 取引明細更新（建玉返済）
+        self.transaction_close(profit)
+
+        # ポジションの更新
+        self.position = PositionType.NONE
+
+        return reward
+
+    def position_open(self, position: PositionType) -> float:
+        """
+        新規ポジション
+        :return:
+        """
+        reward = 0.0
+
+        # HOLD カウンター（建玉なし）のリセット
+        self.n_hold = 0
+        # 取引回数のインクリメント
+        self.n_trade += 1
+
+        # エントリ価格
+        self.price_entry = self.price
+        # ポジションを更新
+        self.position = position
+        # 取引明細更新（新規建玉）
+        self.transaction_open()
+
+        return reward
 
     def resetHoldCounter(self):
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ

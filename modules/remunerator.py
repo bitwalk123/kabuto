@@ -1,7 +1,7 @@
 import numpy as np
 
 from modules.feature_provider import FeatureProvider
-from structs.app_enum import PositionType, ActionType, SignalSign
+from structs.app_enum import PositionType, ActionType
 
 
 class RewardManager:
@@ -25,15 +25,6 @@ class RewardManager:
         self.REWARD_POSITION = 0.1  # テクニカル指標に従ったポジション
         self.PENALTY_POSITION = 0.1  # テクニカル指標に逆行したポジション
 
-    def clear_position(self):
-        self.provider.position = PositionType.NONE
-        # エントリ価格をリセット
-        self.provider.price_entry = 0.0
-        # 含み損益の最大値
-        self.provider.profit_max = 0.0
-        # ポジション持ち HOLD カウンタのリセット
-        self.provider.n_hold_position = 0
-
     def evalReward(self, action: int) -> float:
         action_type = ActionType(action)
         reward = 0.0
@@ -49,13 +40,13 @@ class RewardManager:
                 # 買建 (LONG)
                 # =============================================================
                 # 新規ポジション
-                reward += self.position_open(PositionType.LONG)
+                reward += self.provider.position_open(PositionType.LONG)
             elif action_type == ActionType.SELL:
                 # =============================================================
                 # 売建 (SHORT)
                 # =============================================================
                 # 新規ポジション
-                reward += self.position_open(PositionType.SHORT)
+                reward += self.provider.position_open(PositionType.SHORT)
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
         elif self.provider.position == PositionType.LONG:
@@ -72,7 +63,7 @@ class RewardManager:
                 # =============================================================
                 # 売埋
                 # =============================================================
-                reward += self.position_close()
+                reward += self.get_profit_scaled(self.provider.position_close())
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
         elif self.provider.position == PositionType.SHORT:
@@ -86,7 +77,7 @@ class RewardManager:
                 # =============================================================
                 # 買埋
                 # =============================================================
-                reward += self.position_close()
+                reward += self.get_profit_scaled(self.provider.position_close())
             elif action_type == ActionType.SELL:
                 # 取引ルール違反
                 raise TypeError(f"Violation of transaction rule: {action_type}")
@@ -128,51 +119,3 @@ class RewardManager:
     def getNumberOfTransactions(self) -> int:
         return len(self.provider.dict_transaction["注文日時"])
 
-    def position_close(self) -> float:
-        reward = 0
-
-        # HOLD カウンター（建玉あり）のリセット
-        self.provider.n_hold_position = 0
-        # 取引回数のインクリメント
-        self.provider.n_trade += 1
-
-        # 確定損益
-        profit = self.provider.get_profit()
-        # 確定損益追加
-        self.provider.pnl_total += profit
-        # 報酬に追加
-        reward += self.get_profit_scaled(profit)
-
-        # エントリ価格をリセット
-        self.provider.price_entry = 0.0
-        # 含み損益の最大値
-        self.provider.profit_max = 0.0
-
-        # 取引明細更新（建玉返済）
-        self.provider.transaction_close(profit)
-
-        # ポジションの更新
-        self.provider.position = PositionType.NONE
-
-        return reward
-
-    def position_open(self, position: PositionType) -> float:
-        """
-        新規ポジション
-        :return:
-        """
-        reward = 0.0
-
-        # HOLD カウンター（建玉なし）のリセット
-        self.provider.n_hold = 0
-        # 取引回数のインクリメント
-        self.provider.n_trade += 1
-
-        # エントリ価格
-        self.provider.price_entry = self.provider.price
-        # ポジションを更新
-        self.provider.position = position
-        # 取引明細更新（新規建玉）
-        self.provider.transaction_open()
-
-        return reward

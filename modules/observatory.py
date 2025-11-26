@@ -19,12 +19,6 @@ class ObservationManager:
 
         # ---------------------------------------------------------------------
         # 調整用係数
-        self.divisor_hold = 250.0  # 建玉なしの HOLD カウンタ用除数
-        self.divisor_hold_position = 10_000.0  # 建玉ありの HOLD カウンタ用
-        self.divisor_ma_diff = 50.0  # 移動平均差用
-        self.multiplier_price = 20.0  # 株価用
-        self.multiplier_vwap = 40.0  # VWAP用
-        self.divisor_msd = 25.0  # 移動標準偏差用
         # ---------------------------------------------------------------------
 
         """
@@ -33,10 +27,6 @@ class ObservationManager:
         コンストラクタでダミー（空）処理を実行して数を自律的に把握できるようにする。
         """
         self.n_feature = len(self.getObs())
-        self.clear()  # ダミー処理を実行したのでリセット
-
-    def clear(self):
-        self.provider.clear()
 
     def getObs(self) -> np.ndarray:
         # 観測値（特徴量）用リスト
@@ -125,5 +115,4 @@ class ObservationManager:
 
     def getObsReset(self) -> np.ndarray:
         obs = self.getObs()  # 引数無しで呼んだ場合、ダミーの観測値が返る
-        self.clear()
         return obs

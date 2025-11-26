@@ -122,9 +122,9 @@ class TradingEnv(gym.Env):
         """
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
         self.step_current = 0
-        self.provider.clear()
         # self.reward_man.clear()
         obs = self.obs_man.getObsReset()
+        self.provider.clear()
         return obs, {}
 
     def step(self, action: int) -> tuple[float, bool, bool, dict]:

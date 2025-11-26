@@ -146,7 +146,8 @@ class Prophet(QMainWindow):
         return path_excel, code
 
     def plot_obs(self, df_obs: pd.DataFrame):
-        print(df_obs)
+        pass
+        #print(df_obs)
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param
