@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QSizePolicy,
     QTabWidget,
-    QWidget,
+    QWidget, QScrollArea,
 )
 
 from structs.res import AppRes
@@ -221,3 +221,9 @@ class PanelOption(QFrame):
 
     def setAutoPilotEnabled(self, state: bool = True):
         self.autopilot.setChecked(state)
+
+class ScrollArea(QScrollArea):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setWidgetResizable(True)

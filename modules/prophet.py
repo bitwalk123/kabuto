@@ -12,6 +12,7 @@ from funcs.ios import get_excel_sheet
 from funcs.plot import plot_obs_trend
 from funcs.tide import get_datetime_str
 from modules.agent import WorkerAgent
+from modules.win_obs import WinObs
 from widgets.toolbars import ToolBarProphet
 from structs.app_enum import AppMode
 from modules.win_tick import WinTick
@@ -92,6 +93,8 @@ class Prophet(QMainWindow):
         # ---------------------------------------------------------------------
         self.win_tick = win_tick = WinTick(res)
         tabbase.addTab(win_tick, "ティックチャート")
+        self.win_obj = win_obs = WinObs(res)
+        tabbase.addTab(win_obs, "観測値チャート")
 
     def finished_trading(self):
         # ベンチマーク計測
@@ -153,7 +156,8 @@ class Prophet(QMainWindow):
             [datetime.datetime.fromtimestamp(ts) for ts in df_obs["Timestamp"]]
         )
         cols = [l for l in df_obs.columns if l not in ["Timestamp", "Volume"]]
-        plot_obs_trend(df_obs[cols])
+        # plot_obs_trend(df_obs[cols])
+        self.win_obj.draw(df_obs[cols])
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param

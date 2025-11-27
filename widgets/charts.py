@@ -14,7 +14,7 @@ from matplotlib.figure import Figure
 
 from funcs.technical import calc_ma, calc_msd, calc_miqr
 from structs.res import AppRes
-from widgets.containers import Widget
+from widgets.containers import Widget, ScrollArea
 from widgets.layouts import VBoxLayout
 
 
@@ -187,7 +187,7 @@ class TickChart(Chart):
         self.ax.set_ylabel(f"{self.space}Price [JPY]")
 
         # プロット (y2)
-        lns4= self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
+        lns4 = self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
         x = ser_miqr.index
         y = ser_miqr.values
         self.ax2.fill_between(
@@ -213,10 +213,72 @@ class TickChart(Chart):
         lns = lns1 + lns2 + lns3 + lns4
         labs = [l.get_label() for l in lns]
         self.ax.legend(lns, labs, bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.25, fontsize=7)
-        #self.ax.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.5, fontsize=7)
+        # self.ax.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.5, fontsize=7)
 
         # 再描画
         self.canvas.draw()
+
+
+class ObsChart(ScrollArea):
+    """
+    観測値チャート用
+    """
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        # フォント設定
+        fm.fontManager.addfont(res.path_monospace)
+        font_prop = fm.FontProperties(fname=res.path_monospace)
+        plt.rcParams["font.family"] = font_prop.get_name()
+        plt.rcParams["font.size"] = 11
+        # ダークモードの設定
+        # plt.style.use("dark_background")
+
+        # Figure オブジェクト
+        self.fig = Figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.canvas.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+        self.canvas.updateGeometry()
+
+        # レイアウトに追加
+        # layout = VBoxLayout()
+        # layout.addWidget(self.canvas)
+        # self.setLayout(layout)
+        self.setWidget(self.canvas)
+
+        # 軸領域
+        self.ax = self.fig.add_subplot(111)
+
+        # 余白設定
+        self.fig.subplots_adjust(
+            left=0.05,
+            right=0.96,
+            top=0.94,
+            bottom=0.06,
+        )
+
+    def removeAxes(self):
+        axs = self.fig.axes
+        for ax in axs:
+            ax.remove()
+
+    def updateData(self, df: pd.DataFrame, title: str = ""):
+        self.removeAxes()
+        n = len(df.columns)
+        list_height_ratio = [1 for r in range(n)]
+        gs = self.fig.add_gridspec(
+            n, 1,
+            wspace=0.0, hspace=0.0,
+            height_ratios=list_height_ratio
+        )
+        ax = dict()
+        for i, axis in enumerate(gs.subplots(sharex="col")):
+            ax[i] = axis
+            ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+            ax[i].grid()
 
 
 class TrendChart(FigureCanvas):
