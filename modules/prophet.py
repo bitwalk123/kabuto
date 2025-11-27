@@ -155,9 +155,9 @@ class Prophet(QMainWindow):
         df_obs.index = pd.to_datetime(
             [datetime.datetime.fromtimestamp(ts) for ts in df_obs["Timestamp"]]
         )
+        title = f"{os.path.basename(self.path_excel)}, {self.code}"
         cols = [l for l in df_obs.columns if l not in ["Timestamp", "Volume"]]
-        # plot_obs_trend(df_obs[cols])
-        self.win_obj.draw(df_obs[cols])
+        self.win_obj.draw(df_obs[cols], title)
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param

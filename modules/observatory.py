@@ -1,3 +1,5 @@
+from collections import deque
+
 import numpy as np
 
 from modules.feature_provider import FeatureProvider
@@ -13,6 +15,8 @@ class ObservationManager:
         self.price_tick = 1.0  # 呼び値
         self.unit = 100  # 最小取引単位（出来高）
 
+        # キュー
+        self.deque_signal_mad = deque(maxlen=2)
         # ---------------------------------------------------------------------
         # 調整用係数
         # ---------------------------------------------------------------------
@@ -28,32 +32,41 @@ class ObservationManager:
         # 観測値（特徴量）用リスト
         list_feature = list()
         # ---------------------------------------------------------------------
-        # 1. MAΔS+（MAΔ の符号反転シグナル）
+        # 1. MAΔS1（MAΔ の符号反転シグナル）
         signal_mad_sign = self.provider.getMADSignal()
-        signal_mad = float(signal_mad_sign.value) # 数値化
-        list_feature.append(signal_mad)
+        signal_mad_1 = float(signal_mad_sign.value)  # 数値化
+        self.deque_signal_mad.append(signal_mad_1)
+        list_feature.append(signal_mad_1)
         # ---------------------------------------------------------------------
-        # 2. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
-        if self.provider.isLowVolatility():
-            vol_low = 1
+        # 2. MAΔS2（MAΔ の符号反転シグナル）ひとつ前
+        # ---------------------------------------------------------------------
+        if len(self.deque_signal_mad) > 1:
+            signal_mad_2 = self.deque_signal_mad[-2]
         else:
-            vol_low = 0
-
-        list_feature.append(vol_low)
+            signal_mad_2 = 0.0
+        list_feature.append(signal_mad_2)
         # ---------------------------------------------------------------------
-        # 3. 移動 IQR
+        # 3. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
+        if self.provider.isLowVolatility():
+            flag_vola_low = 1
+        else:
+            flag_vola_low = 0
+
+        list_feature.append(flag_vola_low)
+        # ---------------------------------------------------------------------
+        # 4. 移動 IQR
         miqr = self.provider.miqr
         list_feature.append(miqr)
         # ---------------------------------------------------------------------
-        # 4. ポジション情報
-        value_position = float(self.provider.position.value) # 数値化
+        # 5. ポジション情報
+        value_position = float(self.provider.position.value)  # 数値化
         list_feature.append(value_position)
         # ---------------------------------------------------------------------
-        # 5. 含損益
+        # 6. 含損益
         profit_unrealized = self.provider.get_profit()
         list_feature.append(profit_unrealized)
         # ---------------------------------------------------------------------
-        # 6. 含損益M（含み損益最大）
+        # 7. 含損益M（含み損益最大）
         profit_unrealized_max = self.provider.profit_max
         list_feature.append(profit_unrealized_max)
         # =====================================================================
@@ -63,12 +76,13 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
-            "クロスS",
+            "クロスS1",
+            "クロスS2",
             "低ボラ",
             "移動IQR",
-            "ポジション",
+            "建玉",
             "含損益",
-            "含損益M",
+            "損益M",
         ]
 
     def getObsReset(self) -> np.ndarray:

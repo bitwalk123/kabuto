@@ -267,7 +267,7 @@ class ObsChart(ScrollArea):
         for colname in df.columns:
             if colname == "Price":
                 list_height_ratio.append(2)
-            elif colname == "低ボラ":
+            elif colname in ["低ボラ", "建玉", "損益M"]:
                 list_height_ratio.append(0.5)
             else:
                 list_height_ratio.append(1)
@@ -285,22 +285,33 @@ class ObsChart(ScrollArea):
         for i, colname in enumerate(df.columns):
             if colname == "Price":
                 ax[i].plot(df[colname], linewidth=0.5)
-                self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+                ax[i].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
             elif colname == "低ボラ":
                 x = df.index
                 y = df[colname]
-                ax[i].fill_between(x, 0, y, where=y == 1.0, color='green', alpha=0.5, interpolate=True)
+                ax[i].fill_between(x, 0, y, where=y == 1.0, color='green', alpha=0.4, interpolate=True)
+            elif colname == "建玉":
+                x = df.index
+                y = df[colname]
+                ax[i].fill_between(x, 0, y, where=y > 0.0, color='green', alpha=0.4, interpolate=True)
+                ax[i].fill_between(x, 0, y, where=y < 0.0, color='magenta', alpha=0.4, interpolate=True)
+                ax[i].set_ylim(-1.1, 1.1)
+            elif colname == "損益M":
+                ax[i].plot(df[colname], linewidth=0.5)
+                _, y_max = ax[i].get_ylim()
+                ax[i].set_ylim(-0.1, y_max)
             else:
                 ax[i].plot(df[colname], linewidth=0.5)
 
             ax[i].set_ylabel(colname)
         ax[0].set_title(title)
-        #plt.tight_layout()
+        # plt.tight_layout()
 
         # 再描画
         self.canvas.setFixedHeight(len(list_height_ratio) * 100)
         self.canvas.updateGeometry()
         self.canvas.draw()
+
 
 class TrendChart(FigureCanvas):
     """
