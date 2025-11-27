@@ -63,9 +63,9 @@ class ObservationManager:
 
         list_feature.append(flag_vola_low)
         # ---------------------------------------------------------------------
-        # 6. 移動 IQR
-        miqr = self.provider.miqr
-        list_feature.append(miqr)
+        # 6. 移動範囲
+        mr = self.provider.mr
+        list_feature.append(mr)
         # ---------------------------------------------------------------------
         # 7. ポジション情報
         value_position = float(self.provider.position.value)  # 数値化
@@ -98,7 +98,7 @@ class ObservationManager:
             "クロスS1",
             "クロスS2",
             "低ボラ",
-            "移動IQR",
+            "MR",
             "建玉",
             "含損益",
             "損益M",

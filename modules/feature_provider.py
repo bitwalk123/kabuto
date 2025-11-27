@@ -3,7 +3,7 @@ from collections import deque
 
 import numpy as np
 
-from funcs.technical import EMA, percentile
+from funcs.technical import EMA, percentile, MovingRange
 from structs.app_enum import SignalSign, PositionType
 
 
@@ -15,9 +15,14 @@ class FeatureProvider:
         # 移動平均差用（定数）
         self.PERIOD_MAD_1 = 60
         self.PERIOD_MAD_2 = 600
+        """
         # 移動IQR用（定数）
         self.PERIOD_MIQR = 120
         self.THRESHOLD_MIQR = 2
+        """
+        # 移動範囲用（定数）
+        self.PERIOD_MR = 60
+        self.THRESHOLD_MR = 4
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100.0
         # 株価キューの最大値
@@ -42,8 +47,12 @@ class FeatureProvider:
         self.emad = None
         self.emad_sign_current = None
         self.emad_sign_signal = None
+        """
         # 移動IQR用変数
         self.miqr = None
+        """
+        # 移動範囲用変数
+        self.mr = None
         # 指数平滑移動平均差用インスタンス
         self.ema_1 = None
         self.ema_2 = None
@@ -89,8 +98,12 @@ class FeatureProvider:
         self.emad = 0
         self.emad_sign_current = SignalSign.ZERO
         self.emad_sign_signal = SignalSign.ZERO
+        """
         # 移動IQR用変数
         self.miqr = 0
+        """
+        # 移動範囲用変数
+        self.mr = 0
         # 指数平滑移動平均差用インスタンス
         self.ema_1 = EMA(self.PERIOD_MAD_1)
         self.ema_2 = EMA(self.PERIOD_MAD_2)
@@ -148,6 +161,7 @@ class FeatureProvider:
 
         return mad_new, signal_sign_new
 
+    '''
     def _calc_miqr(self) -> float:
         """
         移動IQR
@@ -167,6 +181,27 @@ class FeatureProvider:
             q1 = percentile(prices_recent, 0.25)
             q3 = percentile(prices_recent, 0.75)
             return q3 - q1
+    '''
+
+    def _calc_mr(self) -> float:
+        """
+        移動IQR
+        :return:
+        """
+        n_deque = len(self.deque_price)
+        if n_deque < self.PERIOD_MR:
+            if n_deque > 0:
+                prices_all = list(self.deque_price)
+                price_min = min(prices_all)
+                price_max = max(prices_all)
+                return price_max - price_min
+            else:
+                return 0.0
+        else:
+            prices_recent = list(self.deque_price)[-self.PERIOD_MR:]
+            price_min = min(prices_recent)
+            price_max = max(prices_recent)
+            return price_max - price_min
 
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
@@ -249,11 +284,19 @@ class FeatureProvider:
         """
         return self.mad_sign_signal
 
+    '''
     def getMIQR(self) -> float:
         """
         移動IQR (Moving IQR = MIQR)
         """
         return self.miqr
+    '''
+
+    def getMR(self) -> float:
+        """
+        移動範囲 (Moving Range = MR)
+        """
+        return self.mr
 
     def getPriceRatio(self) -> float:
         """
@@ -279,7 +322,7 @@ class FeatureProvider:
         }
 
     def isLowVolatility(self) -> bool:
-        if self.getMIQR() < self.THRESHOLD_MIQR:
+        if self.getMR() < self.THRESHOLD_MR:
             return True
         else:
             return False
@@ -375,7 +418,10 @@ class FeatureProvider:
         self.emad_sign_current = emad_sign
         """
 
+        """
         self.miqr = self._calc_miqr()  # 移動IQR
+        """
+        self.mr = self._calc_mr()
 
     def transaction_close(self, profit):
         """

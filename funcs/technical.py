@@ -1,5 +1,6 @@
 from collections import deque
 
+import numpy as np
 import pandas as pd
 
 
@@ -62,6 +63,20 @@ def calc_msd(df: pd.DataFrame, period: int = 60) -> str:
     return colname
 
 
+def calc_mr(df: pd.DataFrame, period: int = 60):
+    """
+    移動範囲 Moving Range
+    :param df:
+    :param period:
+    :return:
+    """
+    colname = f"MR{period:03d}"
+    ser_min = df["Price"].rolling(period, min_periods=1).min()
+    ser_max = df["Price"].rolling(period, min_periods=1).max()
+    df[colname] = ser_max - ser_min
+    return colname
+
+
 def percentile(list_data: list, p: float):
     list_data = sorted(list_data)
     k = (len(list_data) - 1) * p
@@ -101,3 +116,15 @@ class EMA:
             self.ema = self.alpha * value + (1 - self.alpha) * self.ema
 
         return self.ema
+
+
+class MovingRange:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.que_data = deque(maxlen=window_size)
+
+    def update(self, value: float) -> float:
+        # 新しい値を追加
+        self.que_data.append(value)
+        # 移動範囲 (max - min) を返す
+        return max(self.que_data) - min(self.que_data)

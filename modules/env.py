@@ -88,9 +88,9 @@ class TradingEnv(gym.Env):
         # MAD 計算用パラメータ
         dict_param["PERIOD_MAD_1"] = self.provider.PERIOD_MAD_1
         dict_param["PERIOD_MAD_2"] = self.provider.PERIOD_MAD_2
-        # MIQR 計算用パラメータ
-        dict_param["PERIOD_MIQR"] = self.provider.PERIOD_MIQR
-        dict_param["THRESHOLD_MIQR"] = self.provider.THRESHOLD_MIQR
+        # MR 計算用パラメータ
+        dict_param["PERIOD_MR"] = self.provider.PERIOD_MR
+        dict_param["THRESHOLD_MR"] = self.provider.THRESHOLD_MR
 
         return dict_param
 

@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qtagg import (
 )
 from matplotlib.figure import Figure
 
-from funcs.technical import calc_ma, calc_msd, calc_miqr
+from funcs.technical import calc_ma, calc_mr
 from structs.res import AppRes
 from widgets.containers import Widget, ScrollArea
 from widgets.layouts import VBoxLayout
@@ -150,16 +150,16 @@ class TickChart(Chart):
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
         period_mad_1 = dict_param["PERIOD_MAD_1"]
         period_mad_2 = dict_param["PERIOD_MAD_2"]
-        period_miqr = dict_param["PERIOD_MIQR"]
-        threshold_miqr = dict_param["THRESHOLD_MIQR"]
+        period_mr = dict_param["PERIOD_MR"]
+        threshold_miqr = dict_param["THRESHOLD_MR"]
         colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
-        colname_miqr = calc_miqr(df, period_miqr)
+        colname_mr = calc_mr(df, period_mr)
 
         # プロット用データ
         ser_price = df["Price"]
         ser_ma_1 = df[colname_ma_1]
         ser_ma_2 = df[colname_ma_2]
-        ser_miqr = df[colname_miqr]
+        ser_miqr = df[colname_mr]
 
         # 消去
         self.ax.cla()
@@ -187,7 +187,7 @@ class TickChart(Chart):
         self.ax.set_ylabel(f"{self.space}Price [JPY]")
 
         # プロット (y2)
-        lns4 = self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_miqr)
+        lns4 = self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_mr)
         x = ser_miqr.index
         y = ser_miqr.values
         self.ax2.fill_between(
@@ -207,7 +207,7 @@ class TickChart(Chart):
         for i in range(idx_max, len(y2ticks)):
             y2ticks[i].set_visible(False)
         self.ax2.yaxis.set_label_position("right")
-        self.ax2.set_ylabel(f"Moving IQR{self.space}")
+        self.ax2.set_ylabel(f"Moving Range{self.space}")
 
         # added these three lines
         lns = lns1 + lns2 + lns3 + lns4
