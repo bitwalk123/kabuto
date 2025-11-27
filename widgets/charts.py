@@ -207,7 +207,7 @@ class TickChart(Chart):
         for i in range(idx_max, len(y2ticks)):
             y2ticks[i].set_visible(False)
         self.ax2.yaxis.set_label_position("right")
-        self.ax2.set_ylabel(f"Moving Range{self.space}")
+        self.ax2.set_ylabel(f"{colname_mr}{self.space}")
 
         # added these three lines
         lns = lns1 + lns2 + lns3 + lns4

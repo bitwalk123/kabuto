@@ -22,7 +22,7 @@ class FeatureProvider:
         """
         # 移動範囲用（定数）
         self.PERIOD_MR = 60
-        self.THRESHOLD_MR = 4
+        self.THRESHOLD_MR = 5
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100.0
         # 株価キューの最大値
