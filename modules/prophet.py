@@ -171,6 +171,8 @@ class Prophet(QMainWindow):
         :param dict_result:
         :return:
         """
+        # 行の表示数の上限
+        pd.set_option('display.max_rows', 100)
         print("\n【取引明細】")
         df_transaction: pd.DataFrame = dict_result["transaction"]
         print(df_transaction)
@@ -304,8 +306,9 @@ class Prophet(QMainWindow):
         self.requestPostProcs.disconnect()
         self.sendTradeData.disconnect()
 
-        self.thread.quit()
-        self.thread.wait()
+        if self.thread is not None:
+            self.thread.quit()
+            self.thread.wait()
 
         if self.worker is not None:
             self.worker.deleteLater()

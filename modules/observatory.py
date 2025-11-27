@@ -78,6 +78,14 @@ class ObservationManager:
         # 9. 含損益M（含み損益最大）
         profit_unrealized_max = self.provider.profit_max
         list_feature.append(profit_unrealized_max)
+        # ---------------------------------------------------------------------
+        # 10. ロスカット・プラグ
+        if profit_unrealized < self.provider.LOSSCUT:
+            flag_losscut = 1
+        else:
+            flag_losscut = 0
+        list_feature.append(flag_losscut)
+
         # =====================================================================
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)
@@ -94,6 +102,7 @@ class ObservationManager:
             "建玉",
             "含損益",
             "損益M",
+            "ロス",
         ]
 
     def getObsReset(self) -> np.ndarray:
