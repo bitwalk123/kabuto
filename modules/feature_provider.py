@@ -31,6 +31,8 @@ class FeatureProvider:
         self.volume = None
         self.vwap = None
         # 移動平均差用変数
+        self.ma_1 = None
+        self.ma_2 = None
         self.mad = None
         self.mad_sign_current = None
         self.mad_sign_signal = None
@@ -76,6 +78,8 @@ class FeatureProvider:
         self.volume = 0
         self.vwap = 0
         # 移動平均差用変数
+        self.ma_1 = 0
+        self.ma_2 = 0
         self.mad = 0
         self.mad_sign_current = SignalSign.ZERO
         self.mad_sign_signal = SignalSign.ZERO
@@ -132,9 +136,7 @@ class FeatureProvider:
         移動平均差 (Moving Average Difference = MAD)
         :return:
         """
-        ma1 = self.getMA(self.PERIOD_MAD_1)
-        ma2 = self.getMA(self.PERIOD_MAD_2)
-        mad_new = ma1 - ma2
+        mad_new = self.ma_1 - self.ma_2
         if 0 < mad_new:
             signal_sign_new = SignalSign.POSITIVE
         elif mad_new < 0:
@@ -163,7 +165,6 @@ class FeatureProvider:
             q1 = percentile(prices_recent, 0.25)
             q3 = percentile(prices_recent, 0.75)
             return q3 - q1
-
 
     def _calc_vwap(self) -> float:
         if self.volume_prev is None:
@@ -227,6 +228,12 @@ class FeatureProvider:
         else:
             recent_prices = list(self.deque_price)[-period:]
             return sum(recent_prices) / period
+
+    def getMA1(self) -> float:
+        return self.ma_1
+
+    def getMA2(self) -> float:
+        return self.ma_2
 
     def getMAD(self) -> float:
         """
@@ -348,6 +355,8 @@ class FeatureProvider:
         self.volume = float(volume)
         self.vwap = self._calc_vwap()  # VWAP
 
+        self.ma_1 = self.getMA(self.PERIOD_MAD_1)
+        self.ma_2 = self.getMA(self.PERIOD_MAD_2)
         self.mad, mad_sign = self._calc_mad()  # 移動平均差
         if self.mad_sign_current != mad_sign:
             self.mad_sign_signal = mad_sign
@@ -364,7 +373,7 @@ class FeatureProvider:
         self.emad_sign_current = emad_sign
         """
 
-        self.miqr = self._calc_miqr() # 移動IQR
+        self.miqr = self._calc_miqr()  # 移動IQR
 
     def transaction_close(self, profit):
         """

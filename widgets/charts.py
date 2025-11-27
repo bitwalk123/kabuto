@@ -262,10 +262,14 @@ class ObsChart(ScrollArea):
 
     def updateData(self, df: pd.DataFrame, title: str = ""):
         self.removeAxes()
-        n = len(df.columns)
         list_height_ratio = list()
-        for colname in df.columns:
-            if colname == "Price":
+        list_col = list(df.columns)
+        if "MA2" in list_col:
+            idx_ma_2 = list_col.index("MA2")
+            list_col.pop(idx_ma_2)
+        n = len(list_col)
+        for colname in list_col:
+            if colname in ["Price", "MA1"]:
                 list_height_ratio.append(2)
             elif colname in ["低ボラ", "建玉", "損益M"]:
                 list_height_ratio.append(0.5)
@@ -282,28 +286,37 @@ class ObsChart(ScrollArea):
             ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
             ax[i].grid()
 
-        for i, colname in enumerate(df.columns):
+        for i, colname in enumerate(list_col):
             if colname == "Price":
                 ax[i].plot(df[colname], linewidth=0.5)
                 ax[i].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+                ax[i].set_ylabel(colname)
+            elif colname == "MA1":
+                ax[i].plot(df[colname], linewidth=0.5, color="magenta")
+                ax[i].plot(df["MA2"], linewidth=0.5, color="darkgreen")
+                ax[i].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+                ax[i].set_ylabel("移動平均")
             elif colname == "低ボラ":
                 x = df.index
                 y = df[colname]
                 ax[i].fill_between(x, 0, y, where=y == 1.0, color='green', alpha=0.4, interpolate=True)
+                ax[i].set_ylabel(colname)
             elif colname == "建玉":
                 x = df.index
                 y = df[colname]
                 ax[i].fill_between(x, 0, y, where=y > 0.0, color='green', alpha=0.4, interpolate=True)
                 ax[i].fill_between(x, 0, y, where=y < 0.0, color='magenta', alpha=0.4, interpolate=True)
                 ax[i].set_ylim(-1.1, 1.1)
+                ax[i].set_ylabel(colname)
             elif colname == "損益M":
                 ax[i].plot(df[colname], linewidth=0.5)
                 _, y_max = ax[i].get_ylim()
                 ax[i].set_ylim(-0.1, y_max)
+                ax[i].set_ylabel(colname)
             else:
                 ax[i].plot(df[colname], linewidth=0.5)
+                ax[i].set_ylabel(colname)
 
-            ax[i].set_ylabel(colname)
         ax[0].set_title(title)
         # plt.tight_layout()
 
