@@ -1,5 +1,9 @@
 import pandas as pd
-from matplotlib import font_manager as fm, pyplot as plt, dates as mdates
+from matplotlib import (
+    font_manager as fm,
+    pyplot as plt,
+    dates as mdates,
+)
 
 
 def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
@@ -42,3 +46,44 @@ def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
     plt.suptitle(title)
     plt.savefig(imgname)
     plt.close()
+
+
+def plot_obs_trend(df: pd.DataFrame, title: str = ""):
+    FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
+    fm.fontManager.addfont(FONT_PATH)
+
+    # FontPropertiesオブジェクト生成（名前の取得のため）
+    font_prop = fm.FontProperties(fname=FONT_PATH)
+    font_prop.get_name()
+
+    plt.rcParams["font.family"] = font_prop.get_name()
+    plt.rcParams["font.size"] = 9
+
+    n = len(df.columns)
+    fig = plt.figure(figsize=(18, 0.2 + n))
+    gs = fig.add_gridspec(
+        n, 1,
+        wspace=0.0, hspace=0.0,
+        height_ratios=[1 for r in range(n)]
+    )
+    ax = dict()
+    for i, axis in enumerate(gs.subplots(sharex="col")):
+        ax[i] = axis
+        ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+        ax[i].grid()
+
+    for i, colname in enumerate(df.columns):
+        if colname == "低ボラ":
+            x = df.index
+            y = df[colname]
+            # ax[i].plot(df[colname], color='green', alpha=0.5, linewidth=0.5)
+            # ax[i].fill_between(x, 0, 1, where=y == 1.0, color='green', alpha=0.5, transform=ax[i].get_xaxis_transform())
+            ax[i].fill_between(x, 0, y, where=y == 1.0, color='green', alpha=0.5, interpolate=True)
+        else:
+            ax[i].plot(df[colname], linewidth=0.5)
+
+        ax[i].set_ylabel(colname)
+    ax[0].set_title(title)
+
+    plt.tight_layout()
+    plt.show()

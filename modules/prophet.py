@@ -1,3 +1,4 @@
+import datetime
 import logging
 import os
 from time import perf_counter
@@ -8,6 +9,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
+from funcs.plot import plot_obs_trend
 from funcs.tide import get_datetime_str
 from modules.agent import WorkerAgent
 from widgets.toolbars import ToolBarProphet
@@ -147,8 +149,11 @@ class Prophet(QMainWindow):
         return path_excel, code
 
     def plot_obs(self, df_obs: pd.DataFrame):
-        print(df_obs)
-        #pass
+        df_obs.index = pd.to_datetime(
+            [datetime.datetime.fromtimestamp(ts) for ts in df_obs["Timestamp"]]
+        )
+        cols = [l for l in df_obs.columns if l not in ["Timestamp", "Volume"]]
+        plot_obs_trend(df_obs[cols])
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param
@@ -256,7 +261,7 @@ class Prophet(QMainWindow):
     def start_thread(self):
         """
         スレッドの開始
-        :param path_model:
+        :param:
         :return:
         """
         print("ワーカースレッドを生成・開始します。")
