@@ -6,6 +6,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.logger import configure
 
+from modules.algo_trade import AlgoTrade
 from modules.env import TrainingEnv, TradingEnv
 from structs.app_enum import ActionType, PositionType, SignalSign
 
@@ -181,11 +182,13 @@ class WorkerAgent(QObject):
         self.done = False
         self.autopilot = autopilot
 
-        self.list_obs = None
+        self.list_obs = list()
         self.df_obs = None
 
         # 学習環境の取得
         self.env = TradingEnv()
+        # モデルのインスタンス
+        self.model = AlgoTrade(self.list_obs)
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -193,19 +196,17 @@ class WorkerAgent(QObject):
             # 取引終了（念の為）
             self.completedTrading.emit()
         else:
-            # デバッグ用
-            r = len(self.df_obs)
-            self.df_obs.at[r, "Timestamp"] = ts
-            self.df_obs.at[r, "Price"] = price
-            self.df_obs.at[r, "Volume"] = volume
+            # ティックデータをデータフレームへ追加
+            row = len(self.df_obs)
+            self.df_obs.at[row, "Timestamp"] = ts
+            self.df_obs.at[row, "Price"] = price
+            self.df_obs.at[row, "Volume"] = volume
             # ティックデータから観測値を取得
             obs = self.env.getObservation(ts, price, volume)
-            # print(obs)
             # 現在の行動マスクを取得
             masks = self.env.action_masks()
             # モデルによる行動予測
-            # action, _states = self.model.predict(obs, action_masks=masks)
-            action = self.predict(obs, action_masks=masks)
+            action, _states = self.model.predict(obs, action_masks=masks)
 
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
@@ -216,6 +217,10 @@ class WorkerAgent(QObject):
                     self.notifyAction.emit(action, position)
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+            # -----------------------------------------------------------------
+            # obs をデータフレームへ追加
+            for col, val in zip(self.list_obs, obs):
+                self.df_obs.at[row, col] = val
             # -----------------------------------------------------------------
             # アクションによる環境の状態更新
             # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
@@ -236,6 +241,10 @@ class WorkerAgent(QObject):
                 self.readyNext.emit()
 
     @Slot()
+    def forceRepay(self):
+        self.env.forceRepay()
+
+    @Slot()
     def getObs(self):
         self.sendObs.emit(self.df_obs)
 
@@ -246,32 +255,6 @@ class WorkerAgent(QObject):
         # テクニカル指標などのパラメータ取得
         self.sendParams.emit(dict_param)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def predict(self, obs, action_masks) -> int:
-        idx_reverse = self.list_obs.index("反対売買")
-        idx_cross = self.list_obs.index("クロスS")
-        # ---------------------------------------------------------------------
-        # 0. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
-        signal_reverse = int(obs[idx_reverse])
-        # ---------------------------------------------------------------------
-        # 1. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        signal_mad = SignalSign(int(obs[idx_cross]))
-        if signal_mad == SignalSign.ZERO:
-            action = ActionType.HOLD.value
-        elif signal_mad == SignalSign.POSITIVE:
-            if action_masks[ActionType.BUY.value]:
-                action = ActionType.BUY.value
-            else:
-                action = ActionType.HOLD.value
-        elif signal_mad == SignalSign.NEGATIVE:
-            if action_masks[ActionType.SELL.value]:
-                action = ActionType.SELL.value
-            else:
-                action = ActionType.HOLD.value
-        else:
-            raise TypeError(f"Unknown SingalSign: {signal_mad}")
-
-        return action
 
     @Slot()
     def postProcs(self):
@@ -286,7 +269,8 @@ class WorkerAgent(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs = self.env.getObsList()
+        self.list_obs.clear()
+        self.list_obs.extend(self.env.getObsList())
         list_colname.extend(self.list_obs)
         dict_colname = dict()
         for colname in list_colname:

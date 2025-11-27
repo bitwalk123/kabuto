@@ -234,11 +234,11 @@ class FeatureProvider:
         """
         return self.mad
 
-    def getMADSignal(self) -> float:
+    def getMADSignal(self) -> SignalSign:
         """
         移動平均差 (Moving Average Devisation = MAD)
         """
-        return float(self.mad_sign_signal.value)
+        return self.mad_sign_signal
 
     def getMIQR(self) -> float:
         """

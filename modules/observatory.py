@@ -13,10 +13,6 @@ class ObservationManager:
         self.price_tick = 1.0  # 呼び値
         self.unit = 100  # 最小取引単位（出来高）
 
-        self.signal_mad_pre = 0.0
-        self.emad_signal_pre = 0.0
-        self.position_reverse = False
-
         # ---------------------------------------------------------------------
         # 調整用係数
         # ---------------------------------------------------------------------
@@ -32,46 +28,12 @@ class ObservationManager:
         # 観測値（特徴量）用リスト
         list_feature = list()
         # ---------------------------------------------------------------------
-        # 1. Position Reverse 反対売買許可フラグ（リセットされる前の状態を渡す）
-        if self.position_reverse:
-            signal_reverse = 1
-        else:
-            signal_reverse = 0
-
-        list_feature.append(signal_reverse)
-        # ---------------------------------------------------------------------
-        # 2. MAΔS+（MAΔ の符号反転シグナル、反対売買、ボラティリティによるエントリ制御）
-        signal_mad = self.provider.getMADSignal()
-
-        if self.provider.position == PositionType.NONE:
-            # ポジション無し
-            if self.position_reverse:
-                """
-                self.position_reverse で反対売買が許可されていて
-                建玉が無い場合は反対売買をして、フラグをリセットする。
-                """
-                signal_mad = self.signal_mad_pre
-                self.signal_mad_pre = 0
-                self.position_reverse = False
-
-            if signal_mad != 0 and self.provider.isLowVolatility():
-                """
-                ボラティリティが小さい時はエントリを禁止
-                """
-                signal_mad = 0
-        else:
-            # ポジション有り
-            if signal_mad != 0:
-                """
-                mad_signal が立った時（クロス時）に建玉を持っている場合は、
-                次のステップでも同じフラグを立てて反対売買を許容する。
-                """
-                self.signal_mad_pre = signal_mad
-                self.position_reverse = True
-
+        # 1. MAΔS+（MAΔ の符号反転シグナル）
+        signal_mad_sign = self.provider.getMADSignal()
+        signal_mad = float(signal_mad_sign.value) # 数値化
         list_feature.append(signal_mad)
         # ---------------------------------------------------------------------
-        # 3. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
+        # 2. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
         if self.provider.isLowVolatility():
             vol_low = 1
         else:
@@ -79,27 +41,19 @@ class ObservationManager:
 
         list_feature.append(vol_low)
         # ---------------------------------------------------------------------
-        # 4. 移動 IQR
+        # 3. 移動 IQR
         miqr = self.provider.miqr
         list_feature.append(miqr)
         # ---------------------------------------------------------------------
-        # 5. ポジション情報
-        if self.provider.position == PositionType.NONE:
-            value_position = 0
-        elif self.provider.position == PositionType.LONG:
-            value_position = 1
-        elif self.provider.position == PositionType.SHORT:
-            value_position = -1
-        else:
-            raise TypeError(f"Unknown PositionType: {self.provider.position}")
-
+        # 4. ポジション情報
+        value_position = float(self.provider.position.value) # 数値化
         list_feature.append(value_position)
         # ---------------------------------------------------------------------
-        # 6. 含損益
+        # 5. 含損益
         profit_unrealized = self.provider.get_profit()
         list_feature.append(profit_unrealized)
         # ---------------------------------------------------------------------
-        # 7. 含損益M（含み損益最大）
+        # 6. 含損益M（含み損益最大）
         profit_unrealized_max = self.provider.profit_max
         list_feature.append(profit_unrealized_max)
         # =====================================================================
@@ -109,7 +63,6 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
-            "反対売買",
             "クロスS",
             "低ボラ",
             "移動IQR",

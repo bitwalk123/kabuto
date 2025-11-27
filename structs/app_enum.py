@@ -21,9 +21,9 @@ class AppMode(Enum):
 
 
 class PositionType(Enum):
+    SHORT = -1
     NONE = 0
     LONG = 1
-    SHORT = 2
 
 
 class SignalSign(Enum):

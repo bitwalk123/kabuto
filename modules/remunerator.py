@@ -89,6 +89,10 @@ class RewardManager:
         return reward
 
     def forceRepay(self) -> float:
+        """
+        建玉の強制返済
+        :return:
+        """
         reward = 0.0
         profit = self.provider.get_profit()
         if self.provider.position == PositionType.LONG:

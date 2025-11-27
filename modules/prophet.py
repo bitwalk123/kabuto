@@ -25,6 +25,7 @@ class Prophet(QMainWindow):
     __license__ = "MIT"
 
     requestObs = Signal()
+    requestForceRepay = Signal()
     requestParams = Signal()
     requestPostProcs = Signal()
     requestResetEnv = Signal()
@@ -146,8 +147,8 @@ class Prophet(QMainWindow):
         return path_excel, code
 
     def plot_obs(self, df_obs: pd.DataFrame):
-        pass
-        #print(df_obs)
+        print(df_obs)
+        #pass
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param
@@ -204,6 +205,8 @@ class Prophet(QMainWindow):
         :return:
         """
         if self.row >= len(self.df):
+            # 建玉があれば強制返済
+            self.requestForceRepay.emit()
             # データフレームの末尾で終了
             print("ティックデータの末尾に達しました。")
             self.finished_trading()
@@ -262,6 +265,7 @@ class Prophet(QMainWindow):
         self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
         self.worker.moveToThread(self.thread)
 
+        self.requestForceRepay.connect(self.worker.forceRepay)
         self.requestObs.connect(self.worker.getObs)
         self.requestParams.connect(self.worker.getParams)
         self.requestPostProcs.connect(self.worker.postProcs)

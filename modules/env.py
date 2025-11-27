@@ -65,6 +65,13 @@ class TradingEnv(gym.Env):
         else:
             raise TypeError(f"Unknown PositionType: {self.provider.position}")
 
+    def forceRepay(self):
+        """
+        建玉の強制返済
+        :return:
+        """
+        self.reward_man.forceRepay()
+
     def getCurrentPosition(self) -> PositionType:
         """
         現在のポジションを返す
