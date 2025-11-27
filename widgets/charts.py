@@ -230,7 +230,7 @@ class ObsChart(ScrollArea):
         fm.fontManager.addfont(res.path_monospace)
         font_prop = fm.FontProperties(fname=res.path_monospace)
         plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 11
+        plt.rcParams["font.size"] = 9
         # ダークモードの設定
         # plt.style.use("dark_background")
 
@@ -242,11 +242,6 @@ class ObsChart(ScrollArea):
             QSizePolicy.Policy.Expanding
         )
         self.canvas.updateGeometry()
-
-        # レイアウトに追加
-        # layout = VBoxLayout()
-        # layout.addWidget(self.canvas)
-        # self.setLayout(layout)
         self.setWidget(self.canvas)
 
         # 軸領域
@@ -255,8 +250,8 @@ class ObsChart(ScrollArea):
         # 余白設定
         self.fig.subplots_adjust(
             left=0.05,
-            right=0.96,
-            top=0.94,
+            right=0.99,
+            top=0.95,
             bottom=0.06,
         )
 
@@ -268,7 +263,14 @@ class ObsChart(ScrollArea):
     def updateData(self, df: pd.DataFrame, title: str = ""):
         self.removeAxes()
         n = len(df.columns)
-        list_height_ratio = [1 for r in range(n)]
+        list_height_ratio = list()
+        for colname in df.columns:
+            if colname == "Price":
+                list_height_ratio.append(2)
+            elif colname == "低ボラ":
+                list_height_ratio.append(0.5)
+            else:
+                list_height_ratio.append(1)
         gs = self.fig.add_gridspec(
             n, 1,
             wspace=0.0, hspace=0.0,
@@ -280,6 +282,25 @@ class ObsChart(ScrollArea):
             ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
             ax[i].grid()
 
+        for i, colname in enumerate(df.columns):
+            if colname == "Price":
+                ax[i].plot(df[colname], linewidth=0.5)
+                self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+            elif colname == "低ボラ":
+                x = df.index
+                y = df[colname]
+                ax[i].fill_between(x, 0, y, where=y == 1.0, color='green', alpha=0.5, interpolate=True)
+            else:
+                ax[i].plot(df[colname], linewidth=0.5)
+
+            ax[i].set_ylabel(colname)
+        ax[0].set_title(title)
+        #plt.tight_layout()
+
+        # 再描画
+        self.canvas.setFixedHeight(len(list_height_ratio) * 100)
+        self.canvas.updateGeometry()
+        self.canvas.draw()
 
 class TrendChart(FigureCanvas):
     """
