@@ -23,7 +23,7 @@ from widgets.statusbars import StatusBar
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.4"
+    __version__ = "0.0.5"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
