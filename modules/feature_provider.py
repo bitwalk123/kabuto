@@ -17,7 +17,7 @@ class FeatureProvider:
         self.PERIOD_MAD_2 = 600
         # 移動範囲用（定数）
         self.PERIOD_MR = 60
-        self.THRESHOLD_MR = 5
+        self.THRESHOLD_MR = 6
         # ロスカット
         self.LOSSCUT = -5
         # ---------------------------------------------------------------------
@@ -168,14 +168,14 @@ class FeatureProvider:
         利確
         :return:
         """
-        if self.profit_max < 5:
-            return TakeProfit.NO
-        else:
-            profit = self.get_profit()
-            if profit < self.profit_max * 0.05:
+        profit = self.get_profit()
+        if 20 < self.profit_max:
+            if profit < self.profit_max * 0.8:
                 return TakeProfit.YES
             else:
                 return TakeProfit.NO
+        else:
+            return TakeProfit.NO
 
     @staticmethod
     def get_datetime(t: float) -> str:
