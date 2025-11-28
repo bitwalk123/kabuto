@@ -183,6 +183,13 @@ class FeatureProvider:
 
         return profit
 
+    def get_profit_max(self) -> float:
+        """
+        最大含み益
+        :return:
+        """
+        return self.profit_max
+
     def getMA(self, period: int) -> float:
         """
         移動平均 (Moving Average = MA)
@@ -256,6 +263,15 @@ class FeatureProvider:
         else:
             return False
 
+    def lossCut(self) -> int:
+        profit = self.get_profit()
+        if -self.LOSSCUT < self.profit_max and profit < 0:
+            return 1
+        elif profit < self.LOSSCUT:
+            return 1
+        else:
+            return 0
+
     def position_close(self) -> float:
         reward = 0
 
@@ -325,18 +341,24 @@ class FeatureProvider:
     def threshold(self) -> float:
         # 最大含み益が小さいときは粘る、大きいときは早めに利確
         # 例: ロジスティック関数で滑らかに変化
-        #K = 0.05
-        K = 0.001
-        C = 100
+        # K = 0.05
+        K = 0.0001
+        C = 50
         return 1.0 - 1.0 / (1.0 + math.exp(-K * (self.profit_max - C)))
 
     def takeProfit(self) -> TakeProfit:
+        """
+        利確
+        :return:
+        """
         if self.profit_max < 5:
             return TakeProfit.NO
         else:
             profit = self.get_profit()
-            cutoff = self.profit_max * self.threshold()
-            return TakeProfit.YES if profit < cutoff else TakeProfit.NO
+            if profit < self.profit_max * 0.2:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
 
     def update(self, ts, price, volume):
         # 最新ティック情報を保持

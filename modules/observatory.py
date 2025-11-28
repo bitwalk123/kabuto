@@ -80,10 +80,7 @@ class ObservationManager:
         list_feature.append(profit_unrealized_max)
         # ---------------------------------------------------------------------
         # 10. ロスカット・プラグ
-        if profit_unrealized < self.provider.LOSSCUT:
-            flag_losscut = 1
-        else:
-            flag_losscut = 0
+        flag_losscut = self.provider.lossCut()
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 11. 利確プラグ
