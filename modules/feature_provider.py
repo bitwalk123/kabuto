@@ -16,10 +16,11 @@ class FeatureProvider:
         self.PERIOD_MAD_1 = 60
         self.PERIOD_MAD_2 = 600
         # 移動範囲用（定数）
-        self.PERIOD_MR = 60
-        self.THRESHOLD_MR = 6
+        self.PERIOD_MR = 30
+        self.THRESHOLD_MR = 5
         # ロスカット
-        self.LOSSCUT = -5
+        self.LOSSCUT_1 = 0
+        self.LOSSCUT_2 = -5
         # ---------------------------------------------------------------------
         # 株価キューの最大値
         self.N_DEQUE_PRICE = self.PERIOD_MAD_2
@@ -156,9 +157,9 @@ class FeatureProvider:
 
     def doesLossCut(self) -> int:
         profit = self.get_profit()
-        if -self.LOSSCUT < self.profit_max and profit < 0:
+        if -self.LOSSCUT_2 < self.profit_max and profit < self.LOSSCUT_1:
             return 1
-        elif profit < self.LOSSCUT:
+        elif profit < self.LOSSCUT_2:
             return 1
         else:
             return 0
