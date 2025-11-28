@@ -17,7 +17,7 @@ class FeatureProvider:
         self.PERIOD_MAD_2 = 600
         # 移動範囲用（定数）
         self.PERIOD_MR = 30
-        self.THRESHOLD_MR = 5
+        self.THRESHOLD_MR = 4
         # ロスカット
         self.LOSSCUT_1 = 0
         self.LOSSCUT_2 = -5
@@ -170,8 +170,18 @@ class FeatureProvider:
         :return:
         """
         profit = self.get_profit()
-        if 20 < self.profit_max:
+        if 50 < self.profit_max:
+            if profit < self.profit_max * 0.9:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif 20 < self.profit_max:
             if profit < self.profit_max * 0.8:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif 10 < self.profit_max:
+            if profit < self.profit_max * 0.3:
                 return TakeProfit.YES
             else:
                 return TakeProfit.NO
