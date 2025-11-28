@@ -272,7 +272,7 @@ class ObsChart(ScrollArea):
         for colname in list_col:
             if colname in ["Price", "MA1"]:
                 list_height_ratio.append(2)
-            elif colname in ["低ボラ", "建玉", "損益M", "ロス"]:
+            elif colname in ["低ボラ", "建玉", "損益M", "ロス", "利確"]:
                 list_height_ratio.append(0.5)
             else:
                 list_height_ratio.append(1)

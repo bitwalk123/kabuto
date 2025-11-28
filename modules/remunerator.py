@@ -100,13 +100,13 @@ class RewardManager:
             # -------------------------------------------------------------
             # 取引明細
             # -------------------------------------------------------------
-            self.provider.add_transaction("売埋（強制返済）", profit)
+            self.provider.transaction_add("売埋（強制返済）", profit)
         elif self.provider.position == PositionType.SHORT:
             # 返済: 売建 (SHORT) → 買埋
             # -------------------------------------------------------------
             # 取引明細
             # -------------------------------------------------------------
-            self.provider.add_transaction("買埋（強制返済）", profit)
+            self.provider.transaction_add("買埋（強制返済）", profit)
         else:
             # ポジション無し
             pass

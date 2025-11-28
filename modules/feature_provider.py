@@ -3,7 +3,6 @@ from collections import deque
 
 import numpy as np
 
-from funcs.technical import EMA, percentile, MovingRange
 from structs.app_enum import SignalSign, PositionType
 
 
@@ -15,20 +14,16 @@ class FeatureProvider:
         # 移動平均差用（定数）
         self.PERIOD_MAD_1 = 60
         self.PERIOD_MAD_2 = 600
-        """
-        # 移動IQR用（定数）
-        self.PERIOD_MIQR = 120
-        self.THRESHOLD_MIQR = 2
-        """
         # 移動範囲用（定数）
         self.PERIOD_MR = 60
         self.THRESHOLD_MR = 5
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100.0
-        # 株価キューの最大値
-        self.N_DEQUE_PRICE = self.PERIOD_MAD_2
         # ロスカット
         self.LOSSCUT = -5
+        # ---------------------------------------------------------------------
+        # 株価キューの最大値
+        self.N_DEQUE_PRICE = self.PERIOD_MAD_2
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 変数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -43,19 +38,8 @@ class FeatureProvider:
         self.mad = None
         self.mad_sign_current = None
         self.mad_sign_signal = None
-        # 指数平滑移動平均差用変数
-        self.emad = None
-        self.emad_sign_current = None
-        self.emad_sign_signal = None
-        """
-        # 移動IQR用変数
-        self.miqr = None
-        """
         # 移動範囲用変数
         self.mr = None
-        # 指数平滑移動平均差用インスタンス
-        self.ema_1 = None
-        self.ema_2 = None
         # 特徴量算出のために保持する変数
         self.price_open = None
         self.cum_pv = None
@@ -94,19 +78,8 @@ class FeatureProvider:
         self.mad = 0
         self.mad_sign_current = SignalSign.ZERO
         self.mad_sign_signal = SignalSign.ZERO
-        # 移動平均差用変数
-        self.emad = 0
-        self.emad_sign_current = SignalSign.ZERO
-        self.emad_sign_signal = SignalSign.ZERO
-        """
-        # 移動IQR用変数
-        self.miqr = 0
-        """
         # 移動範囲用変数
         self.mr = 0
-        # 指数平滑移動平均差用インスタンス
-        self.ema_1 = EMA(self.PERIOD_MAD_1)
-        self.ema_2 = EMA(self.PERIOD_MAD_2)
         # 特徴量算出のために保持する変数
         self.price_open = 0.0  # ザラバの始値
         self.cum_pv = 0.0  # VWAP 用 Price × Volume 累積
@@ -121,7 +94,7 @@ class FeatureProvider:
         # ---------------------------------------------------------------------
         # 取引関連の変数
         # ---------------------------------------------------------------------
-        self.dict_transaction = self.init_transaction()  # 取引明細
+        self.dict_transaction = self.transaction_init()  # 取引明細
         self.position = PositionType.NONE  # ポジション（建玉）
         self.pnl_total = 0.0  # 総損益
         self.price_tick: float = 1.0  # 呼び値
@@ -129,26 +102,9 @@ class FeatureProvider:
         self.profit_max = 0.0  # 含み損益の最大値
         self.unit: float = 1  # 売買単位
 
-    def _calc_emad(self) -> tuple[float, SignalSign]:
-        """
-        指数平滑移動平均差 (Exponential Moving Average Difference = EMAD)
-        :return:
-        """
-        ema_1 = self.ema_1.update(self.price)
-        ema_2 = self.ema_2.update(self.price)
-        emad_new = ema_1 - ema_2
-        if 0 < emad_new:
-            signal_sign_new = SignalSign.POSITIVE
-        elif emad_new < 0:
-            signal_sign_new = SignalSign.NEGATIVE
-        else:
-            signal_sign_new = SignalSign.ZERO
-
-        return emad_new, signal_sign_new
-
     def _calc_mad(self) -> tuple[float, SignalSign]:
         """
-        移動平均差 (Moving Average Difference = MAD)
+        移動平均差 (Moving Average Difference = MAD) の算出
         :return:
         """
         mad_new = self.ma_1 - self.ma_2
@@ -161,31 +117,9 @@ class FeatureProvider:
 
         return mad_new, signal_sign_new
 
-    '''
-    def _calc_miqr(self) -> float:
-        """
-        移動IQR
-        :return:
-        """
-        n_deque = len(self.deque_price)
-        if n_deque < self.PERIOD_MIQR:
-            if n_deque > 0:
-                prices_all = list(self.deque_price)
-                q1 = percentile(prices_all, 0.25)
-                q3 = percentile(prices_all, 0.75)
-                return q3 - q1
-            else:
-                return 0.0
-        else:
-            prices_recent = list(self.deque_price)[-self.PERIOD_MIQR:]
-            q1 = percentile(prices_recent, 0.25)
-            q3 = percentile(prices_recent, 0.75)
-            return q3 - q1
-    '''
-
     def _calc_mr(self) -> float:
         """
-        移動IQR
+        移動範囲, Moving Range の算出
         :return:
         """
         n_deque = len(self.deque_price)
@@ -204,6 +138,10 @@ class FeatureProvider:
             return price_max - price_min
 
     def _calc_vwap(self) -> float:
+        """
+        売買高加重平均価格, Volume Weighted Average Price の算出
+        :return:
+        """
         if self.volume_prev is None:
             diff_volume = 0.0
         else:
@@ -215,19 +153,20 @@ class FeatureProvider:
 
         return self.cum_pv / self.cum_vol if self.cum_vol > 0 else self.price
 
-    def add_transaction(self, transaction: str, profit: float = np.nan):
-        self.dict_transaction["注文日時"].append(self.get_datetime(self.ts))
-        self.dict_transaction["銘柄コード"].append(self.code)
-        self.dict_transaction["売買"].append(transaction)
-        self.dict_transaction["約定単価"].append(self.price)
-        self.dict_transaction["約定数量"].append(self.unit)
-        self.dict_transaction["損益"].append(profit)
-
     @staticmethod
     def get_datetime(t: float) -> str:
+        """
+        タイムスタンプから年月日時刻へ変換（小数点切り捨て）
+        :param t:
+        :return:
+        """
         return str(datetime.datetime.fromtimestamp(int(t)))
 
     def get_profit(self) -> float:
+        """
+        損益計算（含み損益）
+        :return:
+        """
         if self.position == PositionType.LONG:
             # 返済: 買建 (LONG) → 売埋
             profit = self.price - self.price_entry
@@ -235,25 +174,13 @@ class FeatureProvider:
             # 返済: 売建 (SHORT) → 買埋
             profit = self.price_entry - self.price
         else:
-            profit = 0.0  # 実現損益
+            profit = 0.0
 
         # 最大含み益を保持
         if self.profit_max < profit:
             self.profit_max = profit
 
         return profit
-
-    def getEMAD(self) -> float:
-        """
-        移動EMA差 (EMA Devisation = MAD)
-        """
-        return self.emad
-
-    def getEMADSignal(self) -> float:
-        """
-        移動平均差 (Moving Average Devisation = MAD)
-        """
-        return float(self.emad_sign_signal.value)
 
     def getMA(self, period: int) -> float:
         """
@@ -267,9 +194,17 @@ class FeatureProvider:
             return sum(recent_prices) / period
 
     def getMA1(self) -> float:
+        """
+        移動平均 1 の取得
+        :return:
+        """
         return self.ma_1
 
     def getMA2(self) -> float:
+        """
+        移動平均 2 の取得
+        :return:
+        """
         return self.ma_2
 
     def getMAD(self) -> float:
@@ -280,17 +215,10 @@ class FeatureProvider:
 
     def getMADSignal(self) -> SignalSign:
         """
-        移動平均差 (Moving Average Devisation = MAD)
+        移動平均差 (Moving Average Deviation = MAD)
+        上抜け、下抜けシグナル
         """
         return self.mad_sign_signal
-
-    '''
-    def getMIQR(self) -> float:
-        """
-        移動IQR (Moving IQR = MIQR)
-        """
-        return self.miqr
-    '''
 
     def getMR(self) -> float:
         """
@@ -304,22 +232,22 @@ class FeatureProvider:
         """
         return self.price / self.price_open if self.price_open > 0 else 0.0
 
+    def getVWAP(self) -> float:
+        """
+        売買高加重平均価格, Volume Weighted Average Price を取得
+        :return:
+        """
+        return self.vwap
+
     def getVWAPdr(self) -> float:
+        """
+        売買高加重平均価格, Volume Weighted Average Price の乖離度を取得
+        :return:
+        """
         if self.vwap == 0.0:
             return 0.0
         else:
             return (self.price - self.vwap) / self.vwap
-
-    @staticmethod
-    def init_transaction() -> dict:
-        return {
-            "注文日時": [],
-            "銘柄コード": [],
-            "売買": [],
-            "約定単価": [],
-            "約定数量": [],
-            "損益": [],
-        }
 
     def isLowVolatility(self) -> bool:
         if self.getMR() < self.THRESHOLD_MR:
@@ -394,34 +322,39 @@ class FeatureProvider:
             ※ 寄り付き後の株価が送られてくることをシステムが保証している
             """
             self.price_open = price
-
+        # ---------------------------------------------------------------------
+        # ティックデータ
         self.price = float(price)
         self.deque_price.append(float(price))  # キューへの追加
         self.volume = float(volume)
         self.vwap = self._calc_vwap()  # VWAP
-
+        # ---------------------------------------------------------------------
+        # 移動平均
         self.ma_1 = self.getMA(self.PERIOD_MAD_1)
         self.ma_2 = self.getMA(self.PERIOD_MAD_2)
-        self.mad, mad_sign = self._calc_mad()  # 移動平均差
+        self.mad, mad_sign = self._calc_mad()
         if self.mad_sign_current != mad_sign:
             self.mad_sign_signal = mad_sign
         else:
             self.mad_sign_signal = SignalSign.ZERO
         self.mad_sign_current = mad_sign
-        """
-        # 評価保留
-        self.emad, emad_sign = self._calc_emad()  # EMA差
-        if self.emad_sign_current != emad_sign:
-            self.emad_sign_signal = emad_sign
-        else:
-            self.emad_sign_signal = SignalSign.ZERO
-        self.emad_sign_current = emad_sign
-        """
-
-        """
-        self.miqr = self._calc_miqr()  # 移動IQR
-        """
+        # ---------------------------------------------------------------------
+        # 移動範囲
         self.mr = self._calc_mr()
+
+    def transaction_add(self, transaction: str, profit: float = np.nan):
+        """
+        取引明細用データ辞書の更新
+        :param transaction:
+        :param profit:
+        :return:
+        """
+        self.dict_transaction["注文日時"].append(self.get_datetime(self.ts))
+        self.dict_transaction["銘柄コード"].append(self.code)
+        self.dict_transaction["売買"].append(transaction)
+        self.dict_transaction["約定単価"].append(self.price)
+        self.dict_transaction["約定数量"].append(self.unit)
+        self.dict_transaction["損益"].append(profit)
 
     def transaction_close(self, profit):
         """
@@ -430,12 +363,27 @@ class FeatureProvider:
         """
         if self.position == PositionType.LONG:
             # 返済: 買建 (LONG) → 売埋
-            self.add_transaction("売埋", profit)
+            self.transaction_add("売埋", profit)
         elif self.position == PositionType.SHORT:
             # 返済: 売建 (SHORT) → 買埋
-            self.add_transaction("買埋", profit)
+            self.transaction_add("買埋", profit)
         else:
             raise TypeError(f"Unknown PositionType: {self.position}")
+
+    @staticmethod
+    def transaction_init() -> dict:
+        """
+        取引明細用データ辞書の初期化
+        :return:
+        """
+        return {
+            "注文日時": [],
+            "銘柄コード": [],
+            "売買": [],
+            "約定単価": [],
+            "約定数量": [],
+            "損益": [],
+        }
 
     def transaction_open(self):
         """
@@ -443,8 +391,8 @@ class FeatureProvider:
         :return:
         """
         if self.position == PositionType.LONG:
-            self.add_transaction("買建")
+            self.transaction_add("買建")
         elif self.position == PositionType.SHORT:
-            self.add_transaction("売建")
+            self.transaction_add("売建")
         else:
             raise TypeError(f"Unknown PositionType: {self.position}")

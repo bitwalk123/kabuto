@@ -85,7 +85,10 @@ class ObservationManager:
         else:
             flag_losscut = 0
         list_feature.append(flag_losscut)
-
+        # ---------------------------------------------------------------------
+        # 11. 利確プラグ
+        flag_take_profit = 0
+        list_feature.append(flag_take_profit)
         # =====================================================================
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)
@@ -103,6 +106,7 @@ class ObservationManager:
             "含損益",
             "損益M",
             "ロス",
+            "利確",
         ]
 
     def getObsReset(self) -> np.ndarray:
