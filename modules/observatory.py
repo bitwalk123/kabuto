@@ -80,11 +80,11 @@ class ObservationManager:
         list_feature.append(profit_unrealized_max)
         # ---------------------------------------------------------------------
         # 10. ロスカット・プラグ
-        flag_losscut = self.provider.lossCut()
+        flag_losscut = self.provider.doesLossCut()
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 11. 利確プラグ
-        take_profit: TakeProfit = self.provider.takeProfit()
+        take_profit: TakeProfit = self.provider.doesTakeProfit()
         list_feature.append(take_profit.value)
         # =====================================================================
         # 配列にして観測値を返す

@@ -18,13 +18,13 @@ class FeatureProvider:
         # 移動範囲用（定数）
         self.PERIOD_MR = 60
         self.THRESHOLD_MR = 5
-        # 最大取引回数（買建、売建）
-        self.N_TRADE_MAX = 100.0
         # ロスカット
         self.LOSSCUT = -5
         # ---------------------------------------------------------------------
         # 株価キューの最大値
         self.N_DEQUE_PRICE = self.PERIOD_MAD_2
+        # 最大取引回数（買建、売建）
+        self.N_TRADE_MAX = 100
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 変数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -154,6 +154,29 @@ class FeatureProvider:
 
         return self.cum_pv / self.cum_vol if self.cum_vol > 0 else self.price
 
+    def doesLossCut(self) -> int:
+        profit = self.get_profit()
+        if -self.LOSSCUT < self.profit_max and profit < 0:
+            return 1
+        elif profit < self.LOSSCUT:
+            return 1
+        else:
+            return 0
+
+    def doesTakeProfit(self) -> TakeProfit:
+        """
+        利確
+        :return:
+        """
+        if self.profit_max < 5:
+            return TakeProfit.NO
+        else:
+            profit = self.get_profit()
+            if profit < self.profit_max * 0.1:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+
     @staticmethod
     def get_datetime(t: float) -> str:
         """
@@ -263,15 +286,6 @@ class FeatureProvider:
         else:
             return False
 
-    def lossCut(self) -> int:
-        profit = self.get_profit()
-        if -self.LOSSCUT < self.profit_max and profit < 0:
-            return 1
-        elif profit < self.LOSSCUT:
-            return 1
-        else:
-            return 0
-
     def position_close(self) -> float:
         reward = 0
 
@@ -345,20 +359,6 @@ class FeatureProvider:
         K = 0.0001
         C = 50
         return 1.0 - 1.0 / (1.0 + math.exp(-K * (self.profit_max - C)))
-
-    def takeProfit(self) -> TakeProfit:
-        """
-        利確
-        :return:
-        """
-        if self.profit_max < 5:
-            return TakeProfit.NO
-        else:
-            profit = self.get_profit()
-            if profit < self.profit_max * 0.2:
-                return TakeProfit.YES
-            else:
-                return TakeProfit.NO
 
     def update(self, ts, price, volume):
         # 最新ティック情報を保持
