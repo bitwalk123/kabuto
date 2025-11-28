@@ -172,7 +172,7 @@ class FeatureProvider:
             return TakeProfit.NO
         else:
             profit = self.get_profit()
-            if profit < self.profit_max * 0.1:
+            if profit < self.profit_max * 0.05:
                 return TakeProfit.YES
             else:
                 return TakeProfit.NO
