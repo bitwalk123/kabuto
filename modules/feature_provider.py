@@ -313,6 +313,14 @@ class FeatureProvider:
     def resetTradeCounter(self):
         self.n_trade = 0.0  # 取引カウンタ
 
+    def setCode(self, code: str):
+        """
+        銘柄コードの設定
+        :param code:
+        :return:
+        """
+        self.code = code
+
     def update(self, ts, price, volume):
         # 最新ティック情報を保持
         self.ts = ts

@@ -14,7 +14,7 @@ class RewardManager:
         # 特徴量プロバイダ
         self.provider = provider
         # 銘柄コード
-        self.provider.code = code
+        self.provider.setCode(code)
         # ---------------------------------------------------------------------
         # 取引関連
         # ---------------------------------------------------------------------
