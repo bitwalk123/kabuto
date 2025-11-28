@@ -1,4 +1,5 @@
 import datetime
+import math
 from collections import deque
 
 import numpy as np
@@ -321,6 +322,7 @@ class FeatureProvider:
         """
         self.code = code
 
+    """
     def takeProfit(self) -> TakeProfit:
         profit = self.get_profit()
         if self.profit_max < 5:
@@ -357,6 +359,20 @@ class FeatureProvider:
                 return TakeProfit.NO
         else:
             return TakeProfit.YES
+    """
+
+    def threshold(self) -> float:
+        # 最大含み益が小さいときは粘る、大きいときは早めに利確
+        # 例: ロジスティック関数で滑らかに変化
+        return 1.0 - 1.0 / (1.0 + math.exp(-0.05 * (self.profit_max - 50)))
+
+    def takeProfit(self) -> TakeProfit:
+        if self.profit_max < 5:
+            return TakeProfit.NO
+        else:
+            profit = self.get_profit()
+            cutoff = self.profit_max * self.threshold()
+            return TakeProfit.YES if profit < cutoff else TakeProfit.NO
 
     def update(self, ts, price, volume):
         # 最新ティック情報を保持
