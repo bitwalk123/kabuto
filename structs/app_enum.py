@@ -30,3 +30,8 @@ class SignalSign(Enum):
     NEGATIVE = -1
     ZERO = 0
     POSITIVE = 1
+
+
+class TakeProfit(Enum):
+    YES = 1
+    NO = 0

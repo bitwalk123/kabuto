@@ -3,7 +3,7 @@ from collections import deque
 
 import numpy as np
 
-from structs.app_enum import SignalSign, PositionType
+from structs.app_enum import SignalSign, PositionType, TakeProfit
 
 
 class FeatureProvider:
@@ -320,6 +320,43 @@ class FeatureProvider:
         :return:
         """
         self.code = code
+
+    def takeProfit(self) -> TakeProfit:
+        profit = self.get_profit()
+        if self.profit_max < 5:
+            return TakeProfit.NO
+        elif self.profit_max < 10:
+            if profit < self.profit_max * 0.1:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif self.profit_max < 25:
+            if profit < self.profit_max * 0.25:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif self.profit_max < 50:
+            if profit < self.profit_max * 0.5:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif self.profit_max < 100:
+            if profit < self.profit_max * 0.9:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif self.profit_max < 200:
+            if profit < self.profit_max * 0.95:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        elif self.profit_max < 500:
+            if profit < self.profit_max * 0.99:
+                return TakeProfit.YES
+            else:
+                return TakeProfit.NO
+        else:
+            return TakeProfit.YES
 
     def update(self, ts, price, volume):
         # 最新ティック情報を保持

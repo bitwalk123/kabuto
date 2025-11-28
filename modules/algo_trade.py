@@ -23,8 +23,11 @@ class AlgoTrade:
         idx_position = self.list_obs.index("建玉")
         position = PositionType(int(obs[idx_position]))
         # ロスカット
-        idx_losscut = self.list_obs.index("ロス")
-        flag_losscut = int(obs[idx_losscut])
+        idx_take_profit = self.list_obs.index("ロス")
+        flag_losscut = int(obs[idx_take_profit])
+        # 利確フラグ
+        idx_take_profit = self.list_obs.index("利確")
+        flag_take_profit = int(obs[idx_take_profit])
         # ---------------------------------------------------------------------
         # MAΔ の符号反転シグナル 1 の処理
         if signal_mad_1 == SignalSign.ZERO:
@@ -48,6 +51,15 @@ class AlgoTrade:
         # ---------------------------------------------------------------------
         # ロスカット
         if flag_losscut == 1:
+            if action_masks[ActionType.BUY.value] == 1:
+                action = ActionType.BUY.value
+            elif action_masks[ActionType.SELL.value] == 1:
+                action = ActionType.SELL.value
+            else:
+                pass
+        # ---------------------------------------------------------------------
+        # 利確
+        if flag_take_profit == 1:
             if action_masks[ActionType.BUY.value] == 1:
                 action = ActionType.BUY.value
             elif action_masks[ActionType.SELL.value] == 1:

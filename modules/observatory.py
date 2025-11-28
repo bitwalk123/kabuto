@@ -3,7 +3,7 @@ from collections import deque
 import numpy as np
 
 from modules.feature_provider import FeatureProvider
-from structs.app_enum import PositionType
+from structs.app_enum import PositionType, TakeProfit
 
 
 class ObservationManager:
@@ -87,8 +87,8 @@ class ObservationManager:
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 11. 利確プラグ
-        flag_take_profit = 0
-        list_feature.append(flag_take_profit)
+        take_profit: TakeProfit = self.provider.takeProfit()
+        list_feature.append(take_profit.value)
         # =====================================================================
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)
