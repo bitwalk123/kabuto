@@ -84,8 +84,11 @@ class ObservationManager:
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 11. 利確プラグ
-        take_profit: TakeProfit = self.provider.doesTakeProfit()
-        list_feature.append(take_profit.value)
+        if self.provider.doesTakeProfit():
+            flag_take_profit = 1
+        else:
+            flag_take_profit = 0
+        list_feature.append(flag_take_profit)
         # =====================================================================
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32)

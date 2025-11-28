@@ -164,7 +164,8 @@ class FeatureProvider:
         else:
             return 0
 
-    def doesTakeProfit(self) -> TakeProfit:
+    '''
+    def doesTakeProfit(self) -> bool:
         """
         利確
         :return:
@@ -172,21 +173,54 @@ class FeatureProvider:
         profit = self.get_profit()
         if 50 < self.profit_max:
             if profit < self.profit_max * 0.9:
-                return TakeProfit.YES
+                return True
             else:
-                return TakeProfit.NO
+                return False
         elif 20 < self.profit_max:
             if profit < self.profit_max * 0.8:
-                return TakeProfit.YES
+                return True
             else:
-                return TakeProfit.NO
+                return False
         elif 10 < self.profit_max:
             if profit < self.profit_max * 0.3:
-                return TakeProfit.YES
+                return True
             else:
-                return TakeProfit.NO
+                return False
         else:
-            return TakeProfit.NO
+            return False
+    '''
+
+    def beta_ratio(
+            self,
+            x: float,
+            A: float = 33 / 35,  # ≈ 0.942857
+            B: float = 1.836735,
+            C: float = -100 / 14  # ≈ -7.142857
+    ):
+        return A - B / (C + x)
+
+    def take_profit_threshold(
+            self,
+            A: float = 33 / 35,
+            B: float = 1.836735,
+            C: float = -100 / 14
+    ):
+        return self.beta_ratio(self.profit_max, A, B, C) * self.profit_max
+
+    def doesTakeProfit(
+            self,
+            Tmin: float = 10.0,
+            eps_ratio: float = 0.0,
+            A: float = 33 / 35,
+            B: float = 1.836735,
+            C: float = -100 / 14
+    ) -> bool:
+        profit = self.get_profit()
+        if self.profit_max <= Tmin:
+            return False
+        threshold = self.take_profit_threshold(A, B, C)
+        margin = eps_ratio * self.profit_max
+        return profit < (threshold - margin)
 
     @staticmethod
     def get_datetime(t: float) -> str:
