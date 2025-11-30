@@ -205,7 +205,6 @@ class ToolBarProphet(QToolBar):
         hbox.addWidget(rb_all)
 
         rb_doe = RadioButton("doe")
-        rb_doe.setDisabled(True)
         hbox.addWidget(rb_doe)
 
         self.rb_group = rb_group = ButtonGroup()

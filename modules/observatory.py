@@ -56,11 +56,13 @@ class ObservationManager:
         list_feature.append(signal_mad_2)
         # ---------------------------------------------------------------------
         # 5. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
+        """
         if self.provider.isLowVolatility():
             flag_vola_low = 1
         else:
             flag_vola_low = 0
-
+        """
+        flag_vola_low = 0
         list_feature.append(flag_vola_low)
         # ---------------------------------------------------------------------
         # 6. 移動範囲
@@ -80,14 +82,20 @@ class ObservationManager:
         list_feature.append(profit_unrealized_max)
         # ---------------------------------------------------------------------
         # 10. ロスカット・プラグ
+        """
         flag_losscut = self.provider.doesLossCut()
+        """
+        flag_losscut = False
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 11. 利確プラグ
+        """
         if self.provider.doesTakeProfit():
             flag_take_profit = 1
         else:
             flag_take_profit = 0
+        """
+        flag_take_profit = 0
         list_feature.append(flag_take_profit)
         # =====================================================================
         # 配列にして観測値を返す

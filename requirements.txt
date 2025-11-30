@@ -13,6 +13,7 @@ jaraco.collections
 jsonpointer
 jupyterlab
 jupyterlab-code-formatter
+mpl-axes-aligner
 mplfinance
 numpy-typing-compat
 opencv-python
@@ -30,6 +31,7 @@ sb3-contrib
 scipy
 scipy-stubs
 seaborn
+sniffio
 ta
 ta-lib
 tensorboard

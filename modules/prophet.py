@@ -23,7 +23,7 @@ from widgets.statusbars import StatusBar
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.5"
+    __version__ = "0.0.6"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -132,11 +132,27 @@ class Prophet(QMainWindow):
             self.idx_tick = 0
             self.start_mode_all()
         elif mode == AppMode.DOE:
+            """
+            条件が固まるまでの一時的措置
+            """
+            self.list_tick = self.toolbar.getListTicks(reverse=False)
+            self.list_tick = self.list_tick[-1:]
+            self.idx_tick = 0
             self.start_mode_doe()
         else:
             raise TypeError(f"Unknown AppMode: {mode}")
 
     def get_file_code_all(self) -> tuple[str, str]:
+        path_excel = str(
+            os.path.join(
+                self.res.dir_collection,
+                self.list_tick[self.idx_tick]
+            )
+        )
+        code = self.dict_info["code"]
+        return path_excel, code
+
+    def get_file_code_doe(self) -> tuple[str, str]:
         path_excel = str(
             os.path.join(
                 self.res.dir_collection,
@@ -199,6 +215,16 @@ class Prophet(QMainWindow):
         print(f"結果を {path_result} へ保存しました。")
         df_all.to_csv(path_result, index=False)
 
+    def post_procs_doe(self):
+        print("DOE モードの全ループを終了しました。")
+        df_all = pd.DataFrame(self.dict_all)
+        print(df_all)
+        print(f"合計: {df_all['total'].sum(): ,.0f}")
+        datetime_str = get_datetime_str()
+        path_result = os.path.join(self.res.dir_log, f"result_{datetime_str}.csv")
+        print(f"結果を {path_result} へ保存しました。")
+        df_all.to_csv(path_result, index=False)
+
     def send_first_tick(self):
         """
         環境をリセットした後の最初のティックデータ送信
@@ -232,6 +258,10 @@ class Prophet(QMainWindow):
             self.row += 1
 
     def start_mode_all(self):
+        """
+        過去データ全て
+        :return:
+        """
         self.path_excel, self.code = self.get_file_code_all()
         self.idx_tick += 1
         print(f"ティックデータ\t: {self.path_excel}")
@@ -247,7 +277,23 @@ class Prophet(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def start_mode_doe(self):
-        pass
+        """
+        DOE モード
+        :return:
+        """
+        self.path_excel, self.code = self.get_file_code_doe()
+        self.idx_tick += 1
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("Excel ファイルをデータフレームに読み込みました。")
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread()
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def start_mode_single(self):
         print("下記の条件で取引シミュレーションを実施します。")
@@ -330,6 +376,10 @@ class Prophet(QMainWindow):
                 print("次のティックデータに進みます（ALL モード）。")
                 self.start_mode_all()
         elif mode == AppMode.DOE:
-            pass
+            if len(self.list_tick) <= self.idx_tick:
+                self.post_procs_doe()
+            else:
+                print("次のティックデータに進みます（DOE モード）。")
+                self.start_mode_doe()
         else:
             raise TypeError(f"Unknown AppMode: {mode}")
