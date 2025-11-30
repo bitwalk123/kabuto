@@ -202,7 +202,6 @@ class Prophet(QMainWindow):
             self.dict_all["file"].append(os.path.basename(self.path_excel))
             self.dict_all["trade"].append(n_trade)
             self.dict_all["total"].append(total)
-
         if mode == AppMode.DOE:
             # 1. file
             key = "file"
@@ -225,7 +224,6 @@ class Prophet(QMainWindow):
                 self.dict_doe[key].append(value)
             else:
                 self.dict_doe[key] = [value]
-
 
         # スレッドの終了
         self.stop_thread()
