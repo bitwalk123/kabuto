@@ -9,7 +9,6 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import get_excel_sheet
-from funcs.plot import plot_obs_trend
 from funcs.tide import get_datetime_str
 from modules.agent import WorkerAgent
 from modules.win_obs import WinObs
@@ -54,10 +53,30 @@ class Prophet(QMainWindow):
         self.idx_tick = 0
         self.dict_all = {
             "file": [],
+            "code": [],
             "trade": [],
             "total": [],
         }
-        self.dict_doe = dict()
+        self.row_condition = 0
+        self.dict_doe = dict()  # DOE 用
+        self.df_matrix = pd.DataFrame({
+            "PERIOD_MAD_1": [
+                15, 30, 45, 60, 75, 90,
+                15, 30, 45, 60, 75, 90,
+                15, 30, 45, 60, 75, 90,
+                15, 30, 45, 60, 75, 90,
+                15, 30, 45, 60, 75, 90,
+                15, 30, 45, 60, 75, 90,
+            ],
+            "PERIOD_MAD_2": [
+                150, 150, 150, 150, 150, 150,
+                300, 300, 300, 300, 300, 300,
+                450, 450, 450, 450, 450, 450,
+                600, 600, 600, 600, 600, 600,
+                750, 750, 750, 750, 750, 750,
+                900, 900, 900, 900, 900, 900,
+            ],
+        })
 
         # 強化学習モデル用スレッド
         self.thread = None
@@ -137,7 +156,6 @@ class Prophet(QMainWindow):
             条件が固まるまでの一時的措置
             """
             self.list_tick = self.toolbar.getListTicks(reverse=False)
-            self.list_tick = self.list_tick[-1:]
             self.idx_tick = 0
             self.start_mode_doe()
         else:
@@ -200,30 +218,34 @@ class Prophet(QMainWindow):
         mode = self.dict_info["mode"]
         if mode == AppMode.ALL:
             self.dict_all["file"].append(os.path.basename(self.path_excel))
+            self.dict_all["code"].append(self.code)
             self.dict_all["trade"].append(n_trade)
             self.dict_all["total"].append(total)
         if mode == AppMode.DOE:
             # 1. file
             key = "file"
             value = os.path.basename(self.path_excel)
-            if key in self.dict_doe.keys():
-                self.dict_doe[key].append(value)
-            else:
-                self.dict_doe[key] = [value]
-            # 2. trade
+            self.dict_doe.setdefault(key, []).append(value)
+            # 2. code
+            key = "code"
+            value = self.code
+            self.dict_doe.setdefault(key, []).append(value)
+            # 3. trade
             key = "trade"
             value = n_trade
-            if key in self.dict_doe.keys():
-                self.dict_doe[key].append(value)
-            else:
-                self.dict_doe[key] = [value]
-            # 3. total
+            self.dict_doe.setdefault(key, []).append(value)
+            # PERIOD_MAD_1
+            key = "PERIOD_MAD_1"
+            value = self.df_matrix.at[self.row_condition, key]
+            self.dict_doe.setdefault(key, []).append(value)
+            # PERIOD_MAD_2
+            key = "PERIOD_MAD_2"
+            value = self.df_matrix.at[self.row_condition, key]
+            self.dict_doe.setdefault(key, []).append(value)
+            # 4. total
             key = "total"
             value = total
-            if key in self.dict_doe.keys():
-                self.dict_doe[key].append(value)
-            else:
-                self.dict_doe[key] = [value]
+            self.dict_doe.setdefault(key, []).append(value)
 
         # スレッドの終了
         self.stop_thread()
@@ -296,7 +318,7 @@ class Prophet(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # スレッドの開始
-        self.start_thread()
+        self.start_thread(self.code, dict())
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def start_mode_doe(self):
@@ -312,10 +334,13 @@ class Prophet(QMainWindow):
         # Excel ファイルをデータフレームに読み込む
         self.df = get_excel_sheet(self.path_excel, self.code)
         print("Excel ファイルをデータフレームに読み込みました。")
+        dict_param = dict()
+        for key in ["PERIOD_MAD_1", "PERIOD_MAD_2"]:
+            dict_param[key] = int(self.df_matrix.at[self.row_condition, key])
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # スレッドの開始
-        self.start_thread()
+        self.start_thread(self.code, dict_param)
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def start_mode_single(self):
@@ -330,10 +355,10 @@ class Prophet(QMainWindow):
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # スレッドの開始
-        self.start_thread()
+        self.start_thread(self.code, dict())
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
-    def start_thread(self):
+    def start_thread(self, code: str, dict_param: dict):
         """
         スレッドの開始
         :param:
@@ -342,7 +367,7 @@ class Prophet(QMainWindow):
         print("ワーカースレッドを生成・開始します。")
         self.thread = QThread(self)
         # self.worker = WorkerAgent(path_model, True)
-        self.worker = WorkerAgent(True)  # モデルを使わないアルゴリズム取引用
+        self.worker = WorkerAgent(True, code, dict_param)  # モデルを使わないアルゴリズム取引用
         self.worker.moveToThread(self.thread)
 
         self.requestForceRepay.connect(self.worker.forceRepay)
@@ -400,9 +425,13 @@ class Prophet(QMainWindow):
                 self.start_mode_all()
         elif mode == AppMode.DOE:
             if len(self.list_tick) <= self.idx_tick:
+                self.idx_tick = 0
+
+            self.row_condition += 1
+            if len(self.df_matrix) <= self.row_condition:
                 self.post_procs_doe()
             else:
-                print("次のティックデータに進みます（DOE モード）。")
+                print("次の条件に進みます（DOE モード）。")
                 self.start_mode_doe()
         else:
             raise TypeError(f"Unknown AppMode: {mode}")

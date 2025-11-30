@@ -175,7 +175,7 @@ class WorkerAgent(QObject):
     sendParams = Signal(dict)
     sendResults = Signal(dict)
 
-    def __init__(self, autopilot: bool):
+    def __init__(self, autopilot: bool, code: str, dict_param: dict):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.obs = None
@@ -186,7 +186,7 @@ class WorkerAgent(QObject):
         self.df_obs = None
 
         # 学習環境の取得
-        self.env = TradingEnv()
+        self.env = TradingEnv(code, dict_param)
         # モデルのインスタンス
         self.model = AlgoTrade(self.list_obs)
 

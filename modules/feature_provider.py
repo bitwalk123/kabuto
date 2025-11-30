@@ -8,16 +8,27 @@ from structs.app_enum import SignalSign, PositionType, TakeProfit
 
 
 class FeatureProvider:
-    def __init__(self):
+    def __init__(self, dict_param: dict):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 定数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 移動平均差用（定数）
-        self.PERIOD_MAD_1 = 60
-        self.PERIOD_MAD_2 = 600
+        key = "PERIOD_MAD_1"
+        self.PERIOD_MAD_1 = dict_param.get(key, 60)
+        key = "PERIOD_MAD_2"
+        self.PERIOD_MAD_2 = dict_param.get(key, 600)
         # 移動範囲用（定数）
-        self.PERIOD_MR = 30
-        self.THRESHOLD_MR = 4
+        key = "PERIOD_MR"
+        self.PERIOD_MR = dict_param.get(key, 30)
+        key = "THRESHOLD_MR"
+        self.THRESHOLD_MR = dict_param.get(key, 4)
+        print(
+            "パラメータ",
+            self.PERIOD_MAD_1,
+            self.PERIOD_MAD_2,
+            self.PERIOD_MR,
+            self.THRESHOLD_MR,
+        )
         # ロスカット
         self.LOSSCUT_1 = 0
         self.LOSSCUT_2 = -5
@@ -92,6 +103,7 @@ class FeatureProvider:
         self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
         self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
         # キューを定義
+        # print("self.N_DEQUE_PRICE", self.N_DEQUE_PRICE, type(self.N_DEQUE_PRICE))
         self.deque_price = deque(maxlen=self.N_DEQUE_PRICE)  # for MA
         # ---------------------------------------------------------------------
         # 取引関連の変数

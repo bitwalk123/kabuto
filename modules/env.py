@@ -16,7 +16,7 @@ class TradingEnv(gym.Env):
     取引用環境クラス
     """
 
-    def __init__(self, code: str = "7011"):
+    def __init__(self, code: str, dict_param: dict):
         super().__init__()
         # ウォームアップ期間
         self.n_warmup: int = 60
@@ -25,7 +25,7 @@ class TradingEnv(gym.Env):
         self.step_current: int = 0
 
         # 特徴量プロバイダ
-        self.provider = provider = FeatureProvider()
+        self.provider = provider = FeatureProvider(dict_param)
         # 売買管理クラス
         self.reward_man = RewardManager(provider, code)
         # 観測値管理クラス
