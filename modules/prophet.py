@@ -57,6 +57,7 @@ class Prophet(QMainWindow):
             "trade": [],
             "total": [],
         }
+        self.dict_doe = dict()
 
         # 強化学習モデル用スレッド
         self.thread = None
@@ -202,6 +203,30 @@ class Prophet(QMainWindow):
             self.dict_all["trade"].append(n_trade)
             self.dict_all["total"].append(total)
 
+        if mode == AppMode.DOE:
+            # 1. file
+            key = "file"
+            value = os.path.basename(self.path_excel)
+            if key in self.dict_doe.keys():
+                self.dict_doe[key].append(value)
+            else:
+                self.dict_doe[key] = [value]
+            # 2. trade
+            key = "trade"
+            value = n_trade
+            if key in self.dict_doe.keys():
+                self.dict_doe[key].append(value)
+            else:
+                self.dict_doe[key] = [value]
+            # 3. total
+            key = "total"
+            value = total
+            if key in self.dict_doe.keys():
+                self.dict_doe[key].append(value)
+            else:
+                self.dict_doe[key] = [value]
+
+
         # スレッドの終了
         self.stop_thread()
 
@@ -217,13 +242,13 @@ class Prophet(QMainWindow):
 
     def post_procs_doe(self):
         print("DOE モードの全ループを終了しました。")
-        df_all = pd.DataFrame(self.dict_all)
-        print(df_all)
-        print(f"合計: {df_all['total'].sum(): ,.0f}")
+        df_doe = pd.DataFrame(self.dict_doe)
+        print(df_doe)
+        # print(f"合計: {df_doe['total'].sum(): ,.0f}")
         datetime_str = get_datetime_str()
         path_result = os.path.join(self.res.dir_log, f"result_{datetime_str}.csv")
         print(f"結果を {path_result} へ保存しました。")
-        df_all.to_csv(path_result, index=False)
+        df_doe.to_csv(path_result, index=False)
 
     def send_first_tick(self):
         """
