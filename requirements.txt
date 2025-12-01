@@ -28,10 +28,10 @@ pyxdg
 rfc3987-syntax
 rich
 sb3-contrib
-scipy
 scipy-stubs
 seaborn
 sniffio
+statsmodels
 ta
 ta-lib
 tensorboard
