@@ -191,7 +191,7 @@ class Prophet(QMainWindow):
             """
             条件が固まるまでの一時的措置
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-2:]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)
             self.idx_tick = 0
             self.start_mode_doe()
         else:

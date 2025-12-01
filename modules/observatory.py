@@ -56,13 +56,10 @@ class ObservationManager:
         list_feature.append(signal_mad_2)
         # ---------------------------------------------------------------------
         # 5. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
-        """
         if self.provider.isLowVolatility():
             flag_vola_low = 1
         else:
             flag_vola_low = 0
-        """
-        flag_vola_low = 0
         list_feature.append(flag_vola_low)
         # ---------------------------------------------------------------------
         # 6. 移動範囲
