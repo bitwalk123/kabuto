@@ -13,10 +13,10 @@ class FeatureProvider:
         # 定数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 移動平均差用（定数）
-        key = "PERIOD_MAD_1"
-        self.PERIOD_MAD_1 = dict_param.get(key, 60)
-        key = "PERIOD_MAD_2"
-        self.PERIOD_MAD_2 = dict_param.get(key, 600)
+        key = "PERIOD_MA_1"
+        self.PERIOD_MA_1 = dict_param.get(key, 60)
+        key = "PERIOD_MA_2"
+        self.PERIOD_MA_2 = dict_param.get(key, 600)
         # 移動範囲用（定数）
         key = "PERIOD_MR"
         self.PERIOD_MR = dict_param.get(key, 30)
@@ -24,8 +24,8 @@ class FeatureProvider:
         self.THRESHOLD_MR = dict_param.get(key, 4)
         print(
             "パラメータ",
-            self.PERIOD_MAD_1,
-            self.PERIOD_MAD_2,
+            self.PERIOD_MA_1,
+            self.PERIOD_MA_2,
             self.PERIOD_MR,
             self.THRESHOLD_MR,
         )
@@ -34,7 +34,7 @@ class FeatureProvider:
         self.LOSSCUT_2 = -5
         # ---------------------------------------------------------------------
         # 株価キューの最大値
-        self.N_DEQUE_PRICE = self.PERIOD_MAD_2
+        self.N_DEQUE_PRICE = self.PERIOD_MA_2
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -434,8 +434,8 @@ class FeatureProvider:
         self.vwap = self._calc_vwap()  # VWAP
         # ---------------------------------------------------------------------
         # 移動平均
-        self.ma_1 = self.getMA(self.PERIOD_MAD_1)
-        self.ma_2 = self.getMA(self.PERIOD_MAD_2)
+        self.ma_1 = self.getMA(self.PERIOD_MA_1)
+        self.ma_2 = self.getMA(self.PERIOD_MA_2)
         self.mad, mad_sign = self._calc_mad()
         if self.mad_sign_current != mad_sign:
             self.mad_sign_signal = mad_sign

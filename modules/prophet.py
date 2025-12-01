@@ -60,7 +60,7 @@ class Prophet(QMainWindow):
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         self.df_matrix = pd.DataFrame({
-            "PERIOD_MAD_1": [
+            "PERIOD_MA_1": [
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
@@ -71,7 +71,7 @@ class Prophet(QMainWindow):
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
             ],
-            "PERIOD_MAD_2": [
+            "PERIOD_MA_2": [
                 300, 300, 300, 600, 600, 600, 900, 900, 900,
                 300, 300, 300, 600, 600, 600, 900, 900, 900,
                 300, 300, 300, 600, 600, 600, 900, 900, 900,
@@ -107,8 +107,8 @@ class Prophet(QMainWindow):
         })
         """
         self.df_matrix = pd.DataFrame({
-            "PERIOD_MAD_1": [30, 60],
-            "PERIOD_MAD_2": [300, 300],
+            "PERIOD_MA_1": [30, 60],
+            "PERIOD_MA_2": [300, 300],
             "PERIOD_MR": [15, 15],
             "THRESHOLD_MR": [1, 1],
         })
@@ -191,7 +191,7 @@ class Prophet(QMainWindow):
             """
             条件が固まるまでの一時的措置
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-2:]
             self.idx_tick = 0
             self.start_mode_doe()
         else:
@@ -270,12 +270,12 @@ class Prophet(QMainWindow):
             key = "trade"
             value = n_trade
             self.dict_doe.setdefault(key, []).append(value)
-            # PERIOD_MAD_1
-            key = "PERIOD_MAD_1"
+            # PERIOD_MA_1
+            key = "PERIOD_MA_1"
             value = self.df_matrix.at[self.row_condition, key]
             self.dict_doe.setdefault(key, []).append(value)
-            # PERIOD_MAD_2
-            key = "PERIOD_MAD_2"
+            # PERIOD_MA_2
+            key = "PERIOD_MA_2"
             value = self.df_matrix.at[self.row_condition, key]
             self.dict_doe.setdefault(key, []).append(value)
             # PERIOD_MR
@@ -379,7 +379,7 @@ class Prophet(QMainWindow):
         self.df = get_excel_sheet(self.path_excel, self.code)
         print("Excel ファイルをデータフレームに読み込みました。")
         dict_param = dict()
-        for key in ["PERIOD_MAD_1", "PERIOD_MAD_2", "PERIOD_MR", "THRESHOLD_MR"]:
+        for key in ["PERIOD_MA_1", "PERIOD_MA_2", "PERIOD_MR", "THRESHOLD_MR"]:
             dict_param[key] = int(self.df_matrix.at[self.row_condition, key])
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_

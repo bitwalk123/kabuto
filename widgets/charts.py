@@ -148,8 +148,8 @@ class TickChart(Chart):
     def updateData(self, df: pd.DataFrame, dict_param: dict, title: str):
         # トレンドライン（株価と指標）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
-        period_mad_1 = dict_param["PERIOD_MAD_1"]
-        period_mad_2 = dict_param["PERIOD_MAD_2"]
+        period_mad_1 = dict_param["PERIOD_MA_1"]
+        period_mad_2 = dict_param["PERIOD_MA_2"]
         period_mr = dict_param["PERIOD_MR"]
         threshold_miqr = dict_param["THRESHOLD_MR"]
         colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
