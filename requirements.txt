@@ -28,6 +28,7 @@ pyxdg
 rfc3987-syntax
 rich
 sb3-contrib
+scikit-learn
 scipy-stubs
 seaborn
 sniffio
