@@ -136,11 +136,13 @@ class TickChart(Chart):
         # タイムスタンプへ時差を加算用（Asia/Tokyo)
         self.tz = 9. * 60 * 60
 
-        self.clearPlot()
+        self.removeAxes()
 
-    def clearPlot(self):
-        self.ax.cla()
-        self.ax2.cla()
+    def removeAxes(self):
+        self.ax.remove()
+        self.ax2.remove()
+        self.ax = self.figure.add_subplot(111)
+        self.ax2 = self.ax.twinx()
         self.ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%H:%M")
         )
@@ -162,8 +164,7 @@ class TickChart(Chart):
         ser_miqr = df[colname_mr]
 
         # 消去
-        self.ax.cla()
-        self.ax2.cla()
+        self.removeAxes()
 
         # プロット (y)
         lns1 = self.ax.plot(ser_price, color="lightgray", linewidth=0.5, linestyle="solid", label="Price")

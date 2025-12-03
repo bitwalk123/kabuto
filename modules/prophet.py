@@ -48,7 +48,9 @@ class Prophet(QMainWindow):
 
         self.code = ''
         self.path_excel = ''
-        # ALL モードで実行するティックデータのリスト
+        """
+        ALL, DOE モードで実行するティックデータのリスト
+        """
         self.list_tick = []
         self.idx_tick = 0
         self.dict_all = {
@@ -57,6 +59,10 @@ class Prophet(QMainWindow):
             "trade": [],
             "total": [],
         }
+        """
+        DOE 用
+        """
+        self.name_doe = "doe-1"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         self.df_matrix = pd.DataFrame({
@@ -188,6 +194,9 @@ class Prophet(QMainWindow):
             self.idx_tick = 0
             self.start_mode_all()
         elif mode == AppMode.DOE:
+            """
+            ティックファイル・リスト
+            """
             self.list_tick = self.toolbar.getListTicks(reverse=False)
             self.idx_tick = 0
             self.start_mode_doe()
@@ -302,14 +311,29 @@ class Prophet(QMainWindow):
         df_all.to_csv(path_result, index=False)
 
     def post_procs_doe(self):
-        print("DOE モードの全ループを終了しました。")
+        print("DOE モード")
+        name_tick = self.list_tick[self.idx_tick]
+        print(f"{name_tick} / {self.code} で DOE ループを終了しました。")
         df_doe = pd.DataFrame(self.dict_doe)
         print(df_doe)
-        # print(f"合計: {df_doe['total'].sum(): ,.0f}")
-        datetime_str = get_datetime_str()
-        path_result = os.path.join(self.res.dir_log, f"result_{datetime_str}.csv")
+        name_tick_without_ext = os.path.splitext(os.path.basename(name_tick))[0]
+        path_result = os.path.join(
+            self.res.dir_output,
+            self.name_doe,
+            self.code,
+            f"{name_tick_without_ext}.csv"
+        )
         print(f"結果を {path_result} へ保存しました。")
         df_doe.to_csv(path_result, index=False)
+
+        if len(self.list_tick) - 1 <= self.idx_tick:
+            print(f"対象のティックファイル全てで全ループを終了しました。")
+        else:
+            self.idx_tick += 1
+            self.row_condition = 0
+            self.dict_doe = dict()
+            # 新たなティックファイルで DOE ループ
+            self.start_mode_doe()
 
     def send_first_tick(self):
         """
@@ -368,7 +392,6 @@ class Prophet(QMainWindow):
         :return:
         """
         self.path_excel, self.code = self.get_file_code_doe()
-        self.idx_tick += 1
         print(f"ティックデータ\t: {self.path_excel}")
         print(f"銘柄コード\t: {self.code}")
 
@@ -465,14 +488,11 @@ class Prophet(QMainWindow):
                 print("次のティックデータに進みます（ALL モード）。")
                 self.start_mode_all()
         elif mode == AppMode.DOE:
-            if len(self.list_tick) <= self.idx_tick:
-                self.idx_tick = 0
-                self.row_condition += 1
-
-            if len(self.df_matrix) <= self.row_condition:
+            if len(self.df_matrix) - 1 <= self.row_condition:
                 self.post_procs_doe()
             else:
                 print("次の条件に進みます（DOE モード）。")
+                self.row_condition += 1
                 self.start_mode_doe()
         else:
             raise TypeError(f"Unknown AppMode: {mode}")
