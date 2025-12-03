@@ -197,7 +197,7 @@ class Prophet(QMainWindow):
             """
             ティックファイル・リスト
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-20:-10]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-26:-25]
             self.idx_tick = 0
             self.start_mode_doe()
         else:
@@ -227,6 +227,16 @@ class Prophet(QMainWindow):
         path_excel = self.dict_info["path_excel"]
         code = self.dict_info["code"]
         return path_excel, code
+
+    def get_file_output(self, file_excel) -> str:
+        file_body_without_ext = os.path.splitext(os.path.basename(file_excel))[0]
+        path_result = os.path.join(
+            self.res.dir_output,
+            self.name_doe,
+            self.code,
+            f"{file_body_without_ext}.csv"
+        )
+        return path_result
 
     def plot_obs(self, df_obs: pd.DataFrame):
         df_obs.index = pd.to_datetime(
@@ -312,17 +322,11 @@ class Prophet(QMainWindow):
 
     def post_procs_doe(self):
         print("DOE モード")
-        name_tick = self.list_tick[self.idx_tick]
-        print(f"{name_tick} / {self.code} で DOE ループを終了しました。")
+        file_excel = self.list_tick[self.idx_tick]
+        print(f"{file_excel} / {self.code} で DOE ループを終了しました。")
         df_doe = pd.DataFrame(self.dict_doe)
         print(df_doe)
-        name_tick_without_ext = os.path.splitext(os.path.basename(name_tick))[0]
-        path_result = os.path.join(
-            self.res.dir_output,
-            self.name_doe,
-            self.code,
-            f"{name_tick_without_ext}.csv"
-        )
+        path_result = self.get_file_output(file_excel)
         print(f"結果を {path_result} へ保存しました。")
         df_doe.to_csv(path_result, index=False)
 
