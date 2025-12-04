@@ -197,7 +197,7 @@ class Prophet(QMainWindow):
             """
             ティックファイル・リスト
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-40:-26]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             self.idx_tick = 0
             self.start_mode_doe()
         else:
