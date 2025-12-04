@@ -62,9 +62,11 @@ class Prophet(QMainWindow):
         """
         DOE 用
         """
-        self.name_doe = "doe-1"
+        #self.name_doe = "doe-1"
+        self.name_doe = "doe-2"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
+        """
         self.df_matrix = pd.DataFrame({
             "PERIOD_MA_1": [
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
@@ -111,6 +113,8 @@ class Prophet(QMainWindow):
                 7, 7, 7, 7, 7, 7, 7, 7, 7,
             ],
         })
+        """
+
         """
         self.df_matrix = pd.DataFrame({
             "PERIOD_MA_1": [30, 60],
