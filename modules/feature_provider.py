@@ -12,6 +12,9 @@ class FeatureProvider:
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 定数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        print("パラメータ")
+        for key in dict_param.keys():
+            print(f"{key} : {dict_param[key]}")
         # 移動平均差用（定数）
         key = "PERIOD_MA_1"
         self.PERIOD_MA_1 = dict_param.get(key, 60)
@@ -22,6 +25,7 @@ class FeatureProvider:
         self.PERIOD_MR = dict_param.get(key, 30)
         key = "THRESHOLD_MR"
         self.THRESHOLD_MR = dict_param.get(key, 4)
+        """
         print(
             "パラメータ",
             self.PERIOD_MA_1,
@@ -29,6 +33,7 @@ class FeatureProvider:
             self.PERIOD_MR,
             self.THRESHOLD_MR,
         )
+        """
         # ロスカット
         self.LOSSCUT_1 = 0
         self.LOSSCUT_2 = -5

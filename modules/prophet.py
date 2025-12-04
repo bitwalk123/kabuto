@@ -1,4 +1,5 @@
 import datetime
+import gc
 import logging
 import os
 from time import perf_counter
@@ -62,11 +63,13 @@ class Prophet(QMainWindow):
         """
         DOE 用
         """
-        #self.name_doe = "doe-1"
+        # self.name_doe = "doe-1"
         self.name_doe = "doe-2"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         """
+        # doe-1
+        self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2", "PERIOD_MR", "THRESHOLD_MR"]
         self.df_matrix = pd.DataFrame({
             "PERIOD_MA_1": [
                 30, 60, 90, 30, 60, 90, 30, 60, 90,
@@ -114,6 +117,25 @@ class Prophet(QMainWindow):
             ],
         })
         """
+        # doe-2
+        self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2", "THRESHOLD_MR"]
+        self.df_matrix = pd.DataFrame({
+            "PERIOD_MA_1": [
+                60, 90, 120, 60, 90, 120, 60, 90, 120,
+                60, 90, 120, 60, 90, 120, 60, 90, 120,
+                60, 90, 120, 60, 90, 120, 60, 90, 120,
+            ],
+            "PERIOD_MA_2": [
+                300, 300, 300, 600, 600, 600, 900, 900, 900,
+                300, 300, 300, 600, 600, 600, 900, 900, 900,
+                300, 300, 300, 600, 600, 600, 900, 900, 900,
+            ],
+            "THRESHOLD_MR": [
+                3, 3, 3, 3, 3, 3, 3, 3, 3,
+                5, 5, 5, 5, 5, 5, 5, 5, 5,
+                7, 7, 7, 7, 7, 7, 7, 7, 7,
+            ],
+        })
 
         """
         self.df_matrix = pd.DataFrame({
@@ -199,6 +221,7 @@ class Prophet(QMainWindow):
             self.start_mode_all()
         elif mode == AppMode.DOE:
             """
+            ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
             self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
@@ -290,10 +313,12 @@ class Prophet(QMainWindow):
             key = "trade"
             value = n_trade
             self.dict_doe.setdefault(key, []).append(value)
-            # PERIOD_MA_1
-            key = "PERIOD_MA_1"
-            value = self.df_matrix.at[self.row_condition, key]
-            self.dict_doe.setdefault(key, []).append(value)
+
+            # Experiment Factors
+            for key in self.factor_doe:
+                value = self.df_matrix.at[self.row_condition, key]
+                self.dict_doe.setdefault(key, []).append(value)
+            '''
             # PERIOD_MA_2
             key = "PERIOD_MA_2"
             value = self.df_matrix.at[self.row_condition, key]
@@ -306,6 +331,8 @@ class Prophet(QMainWindow):
             key = "THRESHOLD_MR"
             value = self.df_matrix.at[self.row_condition, key]
             self.dict_doe.setdefault(key, []).append(value)
+            '''
+
             # 4. total
             key = "total"
             value = total
@@ -407,7 +434,7 @@ class Prophet(QMainWindow):
         self.df = get_excel_sheet(self.path_excel, self.code)
         print("Excel ファイルをデータフレームに読み込みました。")
         dict_param = dict()
-        for key in ["PERIOD_MA_1", "PERIOD_MA_2", "PERIOD_MR", "THRESHOLD_MR"]:
+        for key in self.factor_doe:
             dict_param[key] = int(self.df_matrix.at[self.row_condition, key])
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -485,6 +512,7 @@ class Prophet(QMainWindow):
             self.thread = None
 
         print("\nスレッドを終了しました。")
+        gc.collect()  # 念の為 GC
 
         mode = self.dict_info["mode"]
         if mode == AppMode.SINGLE:
