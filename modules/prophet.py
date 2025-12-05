@@ -64,7 +64,8 @@ class Prophet(QMainWindow):
         DOE 用
         """
         # self.name_doe = "doe-1"
-        self.name_doe = "doe-2"
+        # self.name_doe = "doe-2"
+        self.name_doe = "doe-3"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         """
@@ -116,7 +117,6 @@ class Prophet(QMainWindow):
                 7, 7, 7, 7, 7, 7, 7, 7, 7,
             ],
         })
-        """
         # doe-2
         self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2", "THRESHOLD_MR"]
         self.df_matrix = pd.DataFrame({
@@ -136,15 +136,25 @@ class Prophet(QMainWindow):
                 7, 7, 7, 7, 7, 7, 7, 7, 7,
             ],
         })
-
         """
+        # doe-3
+        self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2"]
         self.df_matrix = pd.DataFrame({
-            "PERIOD_MA_1": [30, 60],
-            "PERIOD_MA_2": [300, 300],
-            "PERIOD_MR": [15, 15],
-            "THRESHOLD_MR": [1, 1],
+            "PERIOD_MA_1": [
+                50, 70, 90, 110, 130,
+                50, 70, 90, 110, 130,
+                50, 70, 90, 110, 130,
+                50, 70, 90, 110, 130,
+                50, 70, 90, 110, 130,
+            ],
+            "PERIOD_MA_2": [
+                200, 200, 200, 200, 200,
+                400, 400, 400, 400, 400,
+                600, 600, 600, 600, 600,
+                800, 800, 800, 800, 800,
+                1000, 1000, 1000, 1000, 1000,
+            ],
         })
-        """
 
         # 強化学習モデル用スレッド
         self.thread = None
@@ -358,8 +368,12 @@ class Prophet(QMainWindow):
         df_doe = pd.DataFrame(self.dict_doe)
         print(df_doe)
         path_result = self.get_file_output(file_excel)
-        print(f"結果を {path_result} へ保存しました。")
+        # 　ディレクトリが存在していなかったら作成
+        path_dir = os.path.dirname(path_result)
+        if not os.path.isdir(path_dir):
+            os.makedirs(path_dir)
         df_doe.to_csv(path_result, index=False)
+        print(f"結果を {path_result} へ保存しました。")
 
         if len(self.list_tick) - 1 <= self.idx_tick:
             print(f"対象のティックファイル全てで全ループを終了しました。")
