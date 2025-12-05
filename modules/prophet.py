@@ -7,7 +7,7 @@ from time import perf_counter
 import pandas as pd
 from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QApplication
 
 from funcs.ios import get_excel_sheet
 from funcs.tide import get_datetime_str
@@ -512,7 +512,8 @@ class Prophet(QMainWindow):
             self.thread = None
 
         print("\nスレッドを終了しました。")
-        gc.collect()  # 念の為 GC
+        QApplication.processEvents()  # Qt の deleteLater を実行させる
+        gc.collect()  # Python 側の孤立オブジェクトを回収
 
         mode = self.dict_info["mode"]
         if mode == AppMode.SINGLE:
