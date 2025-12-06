@@ -66,7 +66,8 @@ class Prophet(QMainWindow):
         # self.name_doe = "doe-1"
         # self.name_doe = "doe-2"
         # self.name_doe = "doe-3"
-        self.name_doe = "doe-4"
+        # self.name_doe = "doe-4"
+        self.name_doe = "doe-5"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         """
@@ -155,7 +156,6 @@ class Prophet(QMainWindow):
                 1000, 1000, 1000, 1000, 1000,
             ],
         })
-        """
         # doe-4
         self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2"]
         self.df_matrix = pd.DataFrame({
@@ -172,6 +172,25 @@ class Prophet(QMainWindow):
                 700, 700, 700, 700, 700,
                 800, 800, 800, 800, 800,
                 900, 900, 900, 900, 900,
+            ],
+        })
+        """
+        # doe-5
+        self.factor_doe = ["PERIOD_MA_1", "PERIOD_MA_2"]
+        self.df_matrix = pd.DataFrame({
+            "PERIOD_MA_1": [
+                30, 60, 90, 120, 150,
+                30, 60, 90, 120, 150,
+                30, 60, 90, 120, 150,
+                30, 60, 90, 120, 150,
+                30, 60, 90, 120, 150,
+            ],
+            "PERIOD_MA_2": [
+                300, 300, 300, 300, 300,
+                400, 400, 400, 400, 400,
+                500, 500, 500, 500, 500,
+                600, 600, 600, 600, 600,
+                700, 700, 700, 700, 700,
             ],
         })
 
