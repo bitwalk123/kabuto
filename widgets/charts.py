@@ -105,8 +105,7 @@ class MplChart(FigureCanvas):
         self.fig.canvas.draw()
 
     def removeAxes(self):
-        axs = self.fig.axes
-        for ax in axs:
+        for ax in list(self.fig.axes):
             ax.remove()
 
 
@@ -257,8 +256,17 @@ class ObsChart(ScrollArea):
         )
 
     def removeAxes(self):
-        axs = self.fig.axes
-        for ax in axs:
+        """
+        axs = list(self.fig.axes) が「安全」な理由は：
+        - ax.remove() が self.fig.axes を変更する
+        - 元リストを走査しながら変更するとバグ・例外・不整合が起きる
+        - コピーしたリストを使えば、ループ中に元リストが変わっても問題ない
+        - 全ての Axes を確実に削除できる
+
+        つまり、「元のリストを変更しながらループしない」ための防御策です。
+        :return:
+        """
+        for ax in list(self.fig.axes):
             ax.remove()
 
     def updateData(self, df: pd.DataFrame, title: str = ""):
