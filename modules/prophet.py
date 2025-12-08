@@ -2,6 +2,7 @@ import datetime
 import gc
 import logging
 import os
+import sys
 from time import perf_counter
 
 import pandas as pd
@@ -303,7 +304,7 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             self.idx_tick = 0
             self.start_mode_doe()
         else:
