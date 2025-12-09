@@ -29,5 +29,5 @@ class WinObs(MainWindow):
         statusbar.addWidget(navbar)
         self.setStatusBar(statusbar)
 
-    def draw(self, df: pd.DataFrame, title: str = ""):
-        self.chart.updateData(df, title)
+    def draw(self, df: pd.DataFrame, dict_param: dict, title: str = ""):
+        self.chart.updateData(df, dict_param, title)

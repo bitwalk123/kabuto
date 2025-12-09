@@ -14,6 +14,7 @@ from structs.res import AppRes
 from widgets.buttons import RadioButton, ButtonGroup
 from widgets.combos import ComboBox
 from widgets.containers import PadH, FrameSunken
+from widgets.dialog import DlgParam
 from widgets.labels import LCDTime, Label
 from widgets.layouts import HBoxLayout
 
@@ -153,8 +154,10 @@ class ToolBarProphet(QToolBar):
         self.res = res
         self.dir_collection = self.res.dir_collection
 
+        self.dlg = None
+
         action_start = QAction(
-            QIcon(os.path.join(res.dir_image, 'play.png')),
+            QIcon(os.path.join(res.dir_image, "play.png")),
             "処例開始",
             self
         )
@@ -182,6 +185,14 @@ class ToolBarProphet(QToolBar):
         combo_code.setToolTip("銘柄コード一覧")
         combo_code.addItems(self.get_list_code())
         self.addWidget(combo_code)
+
+        action_setting = QAction(
+            QIcon(os.path.join(res.dir_image, "setting.png")),
+            "銘柄別設定",
+            self
+        )
+        action_setting.triggered.connect(self.on_setting)
+        self.addAction(action_setting)
 
         self.addSeparator()
 
@@ -225,6 +236,9 @@ class ToolBarProphet(QToolBar):
         action_debug.triggered.connect(self.on_debug)
         self.addAction(action_debug)
 
+    def get_code(self) -> str:
+        return self.combo_code.currentText()
+
     def get_list_code(self) -> list[str]:
         """
         銘柄コード一覧の取得
@@ -246,7 +260,7 @@ class ToolBarProphet(QToolBar):
         dict_info["path_excel"] = path_excel
 
         # 銘柄コード
-        dict_info["code"] = self.combo_code.currentText()
+        dict_info["code"] = self.get_code()
 
         # 処理モード single/all/doe
         rb = self.rb_group.checkedButton()
@@ -272,6 +286,13 @@ class ToolBarProphet(QToolBar):
 
     def on_debug(self):
         self.clickedDebug.emit()
+
+    def on_setting(self):
+        code = self.get_code()
+        file_setting = os.path.join(self.res.dir_conf, f"{code}.json")
+
+        self.dlg = DlgParam(self.res, code)
+        self.dlg.show()
 
     def on_start(self):
         self.clickedPlay.emit()

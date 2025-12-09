@@ -34,8 +34,8 @@ class Chart(Widget):
         # plt.style.use("dark_background")
 
         # Figure オブジェクト
-        self.figure = Figure()
-        self.canvas = FigureCanvas(self.figure)
+        self.fig = Figure()
+        self.canvas = FigureCanvas(self.fig)
         self.canvas.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding
@@ -48,7 +48,7 @@ class Chart(Widget):
         self.setLayout(layout)
 
         # 軸領域
-        self.ax = self.figure.add_subplot(111)
+        self.ax = self.fig.add_subplot(111)
 
 
 class MplChart(FigureCanvas):
@@ -114,6 +114,16 @@ class ChartNavigation(NavigationToolbar):
         super().__init__(chart)
 
 
+def get_param_string(dict_param: dict) -> str:
+    param = (
+        f"PERIOD_MA_1 = {dict_param['PERIOD_MA_1']} / "
+        f"PERIOD_MA_2 = {dict_param['PERIOD_MA_2']} / "
+        f"PERIOD_MR = {dict_param['PERIOD_MR']} / "
+        f"THRESHOLD_MR = {dict_param['THRESHOLD_MR']}"
+    )
+    return param
+
+
 class TickChart(Chart):
     """
     ティックチャート用
@@ -123,10 +133,10 @@ class TickChart(Chart):
         super().__init__(res)
         self.ax2 = self.ax.twinx()
         # 余白設定
-        self.figure.subplots_adjust(
+        self.fig.subplots_adjust(
             left=0.05,
             right=0.96,
-            top=0.94,
+            top=0.92,
             bottom=0.06,
         )
         plt.rcParams['font.size'] = 14
@@ -140,7 +150,7 @@ class TickChart(Chart):
     def removeAxes(self):
         self.ax.remove()
         self.ax2.remove()
-        self.ax = self.figure.add_subplot(111)
+        self.ax = self.fig.add_subplot(111)
         self.ax2 = self.ax.twinx()
         self.ax.xaxis.set_major_formatter(
             mdates.DateFormatter("%H:%M")
@@ -149,18 +159,18 @@ class TickChart(Chart):
     def updateData(self, df: pd.DataFrame, dict_param: dict, title: str):
         # トレンドライン（株価と指標）
         df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
-        period_mad_1 = dict_param["PERIOD_MA_1"]
-        period_mad_2 = dict_param["PERIOD_MA_2"]
+        period_ma_1 = dict_param["PERIOD_MA_1"]
+        period_ma_2 = dict_param["PERIOD_MA_2"]
         period_mr = dict_param["PERIOD_MR"]
-        threshold_miqr = dict_param["THRESHOLD_MR"]
-        colname_ma_1, colname_ma_2 = calc_ma(df, period_mad_1, period_mad_2)
+        threshold_mr = dict_param["THRESHOLD_MR"]
+        colname_ma_1, colname_ma_2 = calc_ma(df, period_ma_1, period_ma_2)
         colname_mr = calc_mr(df, period_mr)
 
         # プロット用データ
         ser_price = df["Price"]
         ser_ma_1 = df[colname_ma_1]
         ser_ma_2 = df[colname_ma_2]
-        ser_miqr = df[colname_mr]
+        ser_mr = df[colname_mr]
 
         # 消去
         self.removeAxes()
@@ -174,6 +184,7 @@ class TickChart(Chart):
         self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
         self.ax.grid(True, lw=0.5)
         self.ax.set_title(title)
+
         # y 軸調整
         y_min, y_max = self.ax.get_ylim()
         y_min_2 = 2 * y_min - y_max
@@ -187,12 +198,12 @@ class TickChart(Chart):
         self.ax.set_ylabel(f"{self.space}Price [JPY]")
 
         # プロット (y2)
-        lns4 = self.ax2.plot(ser_miqr, color="C2", linewidth=0.75, linestyle="solid", label=colname_mr)
-        x = ser_miqr.index
-        y = ser_miqr.values
+        lns4 = self.ax2.plot(ser_mr, color="C2", linewidth=0.75, linestyle="solid", label=colname_mr)
+        x = ser_mr.index
+        y = ser_mr.values
         self.ax2.fill_between(
             x, 0, 1,
-            where=y < threshold_miqr,
+            where=y < threshold_mr,
             color='black',
             alpha=0.05,
             transform=self.ax2.get_xaxis_transform()
@@ -214,6 +225,9 @@ class TickChart(Chart):
         labs = [l.get_label() for l in lns]
         self.ax.legend(lns, labs, bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.25, fontsize=7)
         # self.ax.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.5, fontsize=7)
+
+        # パラメータ情報
+        self.fig.suptitle(get_param_string(dict_param), fontsize=7)
 
         # 再描画
         self.canvas.draw()
@@ -251,7 +265,7 @@ class ObsChart(ScrollArea):
         self.fig.subplots_adjust(
             left=0.05,
             right=0.99,
-            top=0.95,
+            top=0.953,
             bottom=0.06,
         )
 
@@ -269,7 +283,7 @@ class ObsChart(ScrollArea):
         for ax in list(self.fig.axes):
             ax.remove()
 
-    def updateData(self, df: pd.DataFrame, title: str = ""):
+    def updateData(self, df: pd.DataFrame, dict_param: dict, title: str = ""):
         self.removeAxes()
         list_height_ratio = list()
         list_col = list(df.columns)
@@ -329,6 +343,9 @@ class ObsChart(ScrollArea):
 
         # チャートのタイトル
         ax[0].set_title(title)
+
+        # パラメータ情報
+        self.fig.suptitle(get_param_string(dict_param), fontsize=7)
 
         # 再描画
         self.canvas.setFixedHeight(len(list_height_ratio) * 100)

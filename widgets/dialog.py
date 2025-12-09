@@ -5,9 +5,12 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
+from widgets.entries import EntryRight
 from widgets.labels import (
     Label,
     LabelLeft,
+    LabelRaised,
+    LabelRaisedLeft,
     LabelRight,
     PlainTextEdit,
 )
@@ -84,3 +87,47 @@ class DlgAboutThis(QDialog):
         layout.addWidget(bbox, r, 0, 1, 3)
 
         layout.setColumnStretch(1, 1)
+
+
+class DlgParam(QDialog):
+    def __init__(self, res: AppRes, code: str):
+        super().__init__()
+        self.res = res
+        self.code = code
+
+        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle(f"パラメータ ({code})")
+
+        self.setStyleSheet("QDialog {font-family: monospace;}")
+
+        layout = GridLayout()
+        self.setLayout(layout)
+
+        r = 0
+        lab_head_0 = LabelRaised("パラメータ")
+        layout.addWidget(lab_head_0, r, 0)
+
+        lab_head_1 = LabelRaised("設定値")
+        layout.addWidget(lab_head_1, r, 1)
+
+        r += 1
+        lab_param_1 = LabelRaisedLeft("PERIOD_MA_1")
+        layout.addWidget(lab_param_1, r, 0)
+
+        self.obj_period_ma_1 = ent_param_1 = EntryRight()
+        layout.addWidget(ent_param_1, r, 1)
+
+        r += 1
+        lab_param_2 = LabelRaisedLeft("PERIOD_MA_2")
+        layout.addWidget(lab_param_2, r, 0)
+
+        self.obj_period_ma_2 = ent_param_2 = EntryRight()
+        layout.addWidget(ent_param_2, r, 1)
+
+        r += 1
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        layout.addWidget(bbox, r, 0, 1, 2)

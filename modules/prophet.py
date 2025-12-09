@@ -304,7 +304,7 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-4:-3]
             """
             self.list_tick = []
             """
@@ -354,7 +354,7 @@ class Prophet(QMainWindow):
         )
         title = f"{os.path.basename(self.path_excel)}, {self.code}"
         cols = [l for l in df_obs.columns if l not in ["Timestamp", "Volume"]]
-        self.win_obj.draw(df_obs[cols], title)
+        self.win_obj.draw(df_obs[cols], self.dict_param, title)
 
     def plot_tick(self, dict_param: dict):
         self.dict_param = dict_param
