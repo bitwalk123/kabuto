@@ -304,7 +304,7 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-4:-3]
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             """
             self.list_tick = []
             """
