@@ -244,7 +244,7 @@ class ToolBarProphet(QToolBar):
         銘柄コード一覧の取得
         :return:
         """
-        list_code = ["7011"]
+        list_code = ["7011", "8306"]
         return list_code
 
     def getInfo(self) -> dict:
