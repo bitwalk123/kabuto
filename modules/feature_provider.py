@@ -17,9 +17,9 @@ class FeatureProvider:
             print(f"{key} : {dict_param[key]}")
         # 移動平均差用（定数）
         key = "PERIOD_MA_1"
-        self.PERIOD_MA_1 = dict_param.get(key, 60)
+        self.PERIOD_MA_1 = dict_param.get(key, 75)
         key = "PERIOD_MA_2"
-        self.PERIOD_MA_2 = dict_param.get(key, 780)
+        self.PERIOD_MA_2 = dict_param.get(key, 540)
         # 移動範囲用（定数）
         key = "PERIOD_MR"
         self.PERIOD_MR = dict_param.get(key, 30)
