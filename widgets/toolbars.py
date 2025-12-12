@@ -14,7 +14,7 @@ from structs.res import AppRes
 from widgets.buttons import RadioButton, ButtonGroup
 from widgets.combos import ComboBox
 from widgets.containers import PadH, FrameSunken
-from widgets.dialog import DlgParam
+from widgets.dialogs import DlgParam
 from widgets.labels import LCDTime, Label
 from widgets.layouts import HBoxLayout
 
