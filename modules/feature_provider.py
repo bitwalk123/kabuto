@@ -24,8 +24,8 @@ class FeatureProvider:
         key = "PERIOD_MR"
         self.PERIOD_MR = dict_param.get(key, 30)
         key = "THRESHOLD_MR"
-        self.THRESHOLD_MR = dict_param.get(key, 7)
-        # self.THRESHOLD_MR = dict_param.get(key, 3.5) # 8306 の呼び値は 0.5
+        # self.THRESHOLD_MR = dict_param.get(key, 7)
+        self.THRESHOLD_MR = dict_param.get(key, 3.5)  # 8306 の呼び値は 0.5
         """
         print(
             "パラメータ",
