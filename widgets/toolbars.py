@@ -158,7 +158,7 @@ class ToolBarProphet(QToolBar):
 
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, "play.png")),
-            "処例開始",
+            "処理開始",
             self
         )
         action_start.triggered.connect(self.on_start)
@@ -188,7 +188,7 @@ class ToolBarProphet(QToolBar):
 
         action_setting = QAction(
             QIcon(os.path.join(res.dir_image, "setting.png")),
-            "銘柄別設定",
+            "パラメータ設定",
             self
         )
         action_setting.triggered.connect(self.on_setting)
