@@ -5,6 +5,24 @@ import openpyxl
 import pandas as pd
 
 
+def is_sheet_exists(path_excel: str, sheet: str) -> bool:
+    """
+    指定したExcelファイルに指定したシートが存在するかどうか確認
+    :param path_excel:
+    :param sheet:
+    :return:
+    """
+    if os.path.isfile(path_excel):
+        wb = pd.ExcelFile(path_excel)
+        list_sheet = wb.sheet_names
+        if sheet in list_sheet:
+            return True
+        else:
+            return False
+    else:
+        return False
+
+
 def get_excel_sheet(path_excel: str, sheet: str) -> pd.DataFrame:
     """
     指定したExcelファイルの指定したシートをデータフレームに読み込む
