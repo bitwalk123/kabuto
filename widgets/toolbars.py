@@ -154,8 +154,7 @@ class ToolBarProphet(QToolBar):
         super().__init__()
         self.res = res
         self.dir_collection = self.res.dir_collection
-
-        self.dlg = None
+        self.dict_param = dict()
 
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, "play.png")),
@@ -263,6 +262,9 @@ class ToolBarProphet(QToolBar):
         # 銘柄コード
         dict_info["code"] = self.get_code()
 
+        # パラメータ
+        dict_info["param"] = self.dict_param
+
         # 処理モード single/all/doe
         rb = self.rb_group.checkedButton()
         mode = rb.text()
@@ -296,10 +298,14 @@ class ToolBarProphet(QToolBar):
     def on_setting(self):
         code = self.get_code()
         json_setting = os.path.join(self.res.dir_conf, f"{code}.json")
-        # print(json_setting)
         dict_setting = self.get_setting(json_setting)
-        self.dlg = DlgParam(self.res, code, dict_setting)
-        self.dlg.show()
+        dlg = DlgParam(self.res, code, dict_setting)
+        if dlg.exec():
+            print('OK ボタンがクリックされました。')
+            self.dict_param = dlg.getParam()
+            print(self.dict_param)
+        else:
+            print('Cancel ボタンがクリックされました。')
 
     def on_start(self):
         self.clickedPlay.emit()

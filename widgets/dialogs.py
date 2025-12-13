@@ -226,3 +226,11 @@ class DlgParam(QDialog):
         bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
         bbox.accepted.connect(self.accept)
         layout.addWidget(bbox, r, 0, 1, 2)
+
+    def getParam(self) -> dict:
+        dict_param = dict()
+        dict_param["PERIOD_MA_1"] = float(self.obj_period_ma_1.text())
+        dict_param["PERIOD_MA_2"] = float(self.obj_period_ma_2.text())
+        dict_param["PERIOD_MR"] = float(self.obj_period_mr.text())
+        dict_param["THRESHOLD_MR"] = float(self.obj_threshold_mr.text())
+        return dict_param
