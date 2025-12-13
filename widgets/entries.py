@@ -1,4 +1,5 @@
 from PySide6.QtCore import QMargins, Qt
+from PySide6.QtGui import QDoubleValidator
 from PySide6.QtWidgets import QLineEdit
 
 
@@ -60,7 +61,10 @@ class EntryRight(Entry):
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
-class EntryRightNarrow(EntryRight):
+class EntryFloat(EntryRight):
     def __init__(self, *args):
         super().__init__(*args)
         self.setMinimumWidth(50)
+        validator = QDoubleValidator()
+        validator.setNotation(QDoubleValidator.Notation.StandardNotation)
+        self.setValidator(validator)
