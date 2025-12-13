@@ -6,7 +6,10 @@ class Entry(QLineEdit):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLineEdit {font-family: monospace;}
+            QLineEdit {
+                font-family: monospace;
+                background-color: white;
+            }
         """)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
@@ -55,3 +58,9 @@ class EntryRight(Entry):
         super().__init__(*args)
         self.setMinimumWidth(100)
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+
+class EntryRightNarrow(EntryRight):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setMinimumWidth(50)

@@ -1,16 +1,18 @@
 import os
 
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtGui import QPixmap, QIcon
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
-from widgets.entries import EntryRight
+from widgets.entries import EntryRightNarrow
 from widgets.labels import (
     Label,
     LabelLeft,
+    LabelRaised,
+    LabelRaisedLeft,
     LabelRight,
-    PlainTextEdit, LabelRaised, LabelRaisedLeft,
+    PlainTextEdit,
 )
 from widgets.layouts import GridLayout
 
@@ -160,10 +162,11 @@ class DlgAboutThis2(QDialog):
 
 
 class DlgParam(QDialog):
-    def __init__(self, res: AppRes, code: str):
+    def __init__(self, res: AppRes, code: str, dict_setting: dict):
         super().__init__()
         self.res = res
         self.code = code
+        self.dict_setting = dict_setting
 
         icon = QIcon(os.path.join(res.dir_image, "setting.png"))
         self.setWindowIcon(icon)
@@ -182,31 +185,39 @@ class DlgParam(QDialog):
         layout.addWidget(lab_head_1, r, 1)
 
         r += 1
-        lab_param_1 = LabelRaisedLeft("PERIOD_MA_1")
+        param = "PERIOD_MA_1"
+        lab_param_1 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_1, r, 0)
 
-        self.obj_period_ma_1 = ent_param_1 = EntryRight()
+        value_str = str(dict_setting[param])
+        self.obj_period_ma_1 = ent_param_1 = EntryRightNarrow(value_str)
         layout.addWidget(ent_param_1, r, 1)
 
         r += 1
-        lab_param_2 = LabelRaisedLeft("PERIOD_MA_2")
+        param = "PERIOD_MA_2"
+        lab_param_2 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_2, r, 0)
 
-        self.obj_period_ma_2 = ent_param_2 = EntryRight()
+        value_str = str(dict_setting[param])
+        self.obj_period_ma_2 = ent_param_2 = EntryRightNarrow(value_str)
         layout.addWidget(ent_param_2, r, 1)
 
         r += 1
-        lab_param_3 = LabelRaisedLeft("PERIOD_MR")
+        param = "PERIOD_MR"
+        lab_param_3 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_3, r, 0)
 
-        self.obj_period_mr = ent_param_3 = EntryRight()
+        value_str = str(dict_setting[param])
+        self.obj_period_mr = ent_param_3 = EntryRightNarrow(value_str)
         layout.addWidget(ent_param_3, r, 1)
 
         r += 1
-        lab_param_4 = LabelRaisedLeft("THRESHOLD_MR")
+        param = "THRESHOLD_MR"
+        lab_param_4 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_4, r, 0)
 
-        self.obj_threshold_mr = ent_param_4 = EntryRight()
+        value_str = str(dict_setting[param])
+        self.obj_threshold_mr = ent_param_4 = EntryRightNarrow(value_str)
         layout.addWidget(ent_param_4, r, 1)
 
         r += 1

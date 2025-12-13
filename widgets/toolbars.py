@@ -1,4 +1,5 @@
 import datetime
+import json
 import os
 
 from PySide6.QtCore import Signal
@@ -284,14 +285,20 @@ class ToolBarProphet(QToolBar):
         list_tick = sorted(os.listdir(self.dir_collection), reverse=reverse)
         return list_tick
 
+    def get_setting(self, json_setting: str) -> dict:
+        with open(json_setting) as f:
+            dict_setting = json.load(f)
+        return dict_setting
+
     def on_debug(self):
         self.clickedDebug.emit()
 
     def on_setting(self):
         code = self.get_code()
-        file_setting = os.path.join(self.res.dir_conf, f"{code}.json")
-
-        self.dlg = DlgParam(self.res, code)
+        json_setting = os.path.join(self.res.dir_conf, f"{code}.json")
+        # print(json_setting)
+        dict_setting = self.get_setting(json_setting)
+        self.dlg = DlgParam(self.res, code, dict_setting)
         self.dlg.show()
 
     def on_start(self):
