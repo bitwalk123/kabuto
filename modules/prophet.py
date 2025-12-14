@@ -292,6 +292,7 @@ class Prophet(QMainWindow):
         """
         # 選択されたモデルと過去ティックデータ、銘柄コードを取得
         self.dict_info = self.toolbar.getInfo()
+        self.dict_param = self.dict_info["param"]
         mode = self.dict_info["mode"]
         if mode == AppMode.SINGLE:
             self.start_mode_single()
@@ -367,7 +368,7 @@ class Prophet(QMainWindow):
         self.win_obj.draw(df_obs[cols], self.dict_param, title)
 
     def plot_tick(self, dict_param: dict):
-        self.dict_param = dict_param
+        # self.dict_param = dict_param
         # ティックデータのプロット
         title = f"{os.path.basename(self.path_excel)}, {self.code}"
         self.win_tick.draw(self.df, dict_param, title)

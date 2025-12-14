@@ -260,10 +260,11 @@ class ToolBarProphet(QToolBar):
         dict_info["path_excel"] = path_excel
 
         # 銘柄コード
-        dict_info["code"] = self.get_code()
+        code = self.get_code()
+        dict_info["code"] = code
 
         # パラメータ
-        dict_info["param"] = self.dict_param
+        dict_info["param"] = self.get_setting(code)
 
         # 処理モード single/all/doe
         rb = self.rb_group.checkedButton()
@@ -287,8 +288,9 @@ class ToolBarProphet(QToolBar):
         list_tick = sorted(os.listdir(self.dir_collection), reverse=reverse)
         return list_tick
 
-    def get_setting(self, json_setting: str) -> dict:
-        with open(json_setting) as f:
+    def get_setting(self, code: str) -> dict:
+        path_json_setting = os.path.join(self.res.dir_conf, f"{code}.json")
+        with open(path_json_setting) as f:
             dict_setting = json.load(f)
         return dict_setting
 
@@ -297,13 +299,13 @@ class ToolBarProphet(QToolBar):
 
     def on_setting(self):
         code = self.get_code()
-        json_setting = os.path.join(self.res.dir_conf, f"{code}.json")
-        dict_setting = self.get_setting(json_setting)
+        dict_setting = self.get_setting(code)
         dlg = DlgParam(self.res, code, dict_setting)
         if dlg.exec():
             print('OK ボタンがクリックされました。')
-            self.dict_param = dlg.getParam()
-            print(self.dict_param)
+            dict_param = dlg.getParam()
+            self.save_setting(code, dict_param)
+            print(dict_param)
         else:
             print('Cancel ボタンがクリックされました。')
 
@@ -312,6 +314,11 @@ class ToolBarProphet(QToolBar):
 
     def on_update(self):
         self.clickedUpdate.emit()
+
+    def save_setting(self, code: str, dict_param: dict):
+        path_json_setting = os.path.join(self.res.dir_conf, f"{code}.json")
+        with open(path_json_setting, "w") as f:
+            json.dump(dict_param, f, indent=2)
 
 
 class ToolBarTransaction(QToolBar):
