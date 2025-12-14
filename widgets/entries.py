@@ -1,5 +1,5 @@
 from PySide6.QtCore import QMargins, Qt
-from PySide6.QtGui import QDoubleValidator
+from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import QLineEdit
 
 
@@ -66,5 +66,20 @@ class EntryFloat(EntryRight):
         super().__init__(*args)
         self.setMinimumWidth(50)
         validator = QDoubleValidator()
+        # 科学技術表記（指数表記）を許可しない
         validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         self.setValidator(validator)
+
+    def getValue(self) -> float:
+        return float(self.text())
+
+
+class EntryInt(EntryRight):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setMinimumWidth(50)
+        validator = QIntValidator()
+        self.setValidator(validator)
+
+    def getValue(self) -> int:
+        return int(self.text())

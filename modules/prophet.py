@@ -278,52 +278,6 @@ class Prophet(QMainWindow):
         # 処理した観測値をリクエスト
         self.requestObs.emit()
 
-    def on_debug(self):
-        """
-        機能確認用
-        :return:
-        """
-        pass
-
-    def on_start(self):
-        """
-        スタートボタンがクリックされた時の処理
-        :return:
-        """
-        # 選択されたモデルと過去ティックデータ、銘柄コードを取得
-        self.dict_info = self.toolbar.getInfo()
-        self.dict_param = self.dict_info["param"]
-        mode = self.dict_info["mode"]
-        if mode == AppMode.SINGLE:
-            self.start_mode_single()
-        elif mode == AppMode.ALL:
-            self.list_tick = self.toolbar.getListTicks(reverse=False)
-            self.idx_tick = 0
-            self.start_mode_all()
-        elif mode == AppMode.DOE:
-            """
-            ■■■ DOE 用 ■■■
-            ティックファイル・リスト
-            """
-            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
-            """
-            self.list_tick = ['ticks_20251104.xlsx', 'ticks_20251105.xlsx', 'ticks_20251106.xlsx',
-                              'ticks_20251107.xlsx', 'ticks_20251110.xlsx', 'ticks_20251111.xlsx',
-                              'ticks_20251112.xlsx', 'ticks_20251113.xlsx', 'ticks_20251114.xlsx',
-                              'ticks_20251117.xlsx', 'ticks_20251118.xlsx', 'ticks_20251119.xlsx',
-                              'ticks_20251120.xlsx', 'ticks_20251121.xlsx', 'ticks_20251125.xlsx',
-                              'ticks_20251126.xlsx', 'ticks_20251127.xlsx', 'ticks_20251128.xlsx',
-                              'ticks_20251201.xlsx', 'ticks_20251202.xlsx', 'ticks_20251203.xlsx',
-                              'ticks_20251204.xlsx', 'ticks_20251205.xlsx', 'ticks_20251208.xlsx',
-                              'ticks_20251209.xlsx', 'ticks_20251210.xlsx', 'ticks_20251211.xlsx',
-                              'ticks_20251212.xlsx']
-            """
-
-            self.idx_tick = 0
-            self.start_mode_doe()
-        else:
-            raise TypeError(f"Unknown AppMode: {mode}")
-
     def get_file_code_all(self) -> tuple[str, str]:
         path_excel = str(
             os.path.join(
@@ -358,6 +312,107 @@ class Prophet(QMainWindow):
             f"{file_body_without_ext}.csv"
         )
         return path_result
+
+    def on_debug(self):
+        """
+        機能確認用
+        :return:
+        """
+        pass
+
+    def on_start(self):
+        """
+        スタートボタンがクリックされた時の処理
+        :return:
+        """
+        # 選択されたモデルと過去ティックデータ、銘柄コードを取得
+        self.dict_info = self.toolbar.getInfo()
+        self.dict_param = self.dict_info["param"]
+        mode = self.dict_info["mode"]
+        if mode == AppMode.SINGLE:
+            self.on_start_mode_single()
+        elif mode == AppMode.ALL:
+            self.list_tick = self.toolbar.getListTicks(reverse=False)
+            self.idx_tick = 0
+            self.on_start_mode_all()
+        elif mode == AppMode.DOE:
+            """
+            ■■■ DOE 用 ■■■
+            ティックファイル・リスト
+            """
+            self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
+            """
+            self.list_tick = ['ticks_20251104.xlsx', 'ticks_20251105.xlsx', 'ticks_20251106.xlsx',
+                              'ticks_20251107.xlsx', 'ticks_20251110.xlsx', 'ticks_20251111.xlsx',
+                              'ticks_20251112.xlsx', 'ticks_20251113.xlsx', 'ticks_20251114.xlsx',
+                              'ticks_20251117.xlsx', 'ticks_20251118.xlsx', 'ticks_20251119.xlsx',
+                              'ticks_20251120.xlsx', 'ticks_20251121.xlsx', 'ticks_20251125.xlsx',
+                              'ticks_20251126.xlsx', 'ticks_20251127.xlsx', 'ticks_20251128.xlsx',
+                              'ticks_20251201.xlsx', 'ticks_20251202.xlsx', 'ticks_20251203.xlsx',
+                              'ticks_20251204.xlsx', 'ticks_20251205.xlsx', 'ticks_20251208.xlsx',
+                              'ticks_20251209.xlsx', 'ticks_20251210.xlsx', 'ticks_20251211.xlsx',
+                              'ticks_20251212.xlsx']
+            """
+
+            self.idx_tick = 0
+            self.on_start_mode_doe()
+        else:
+            raise TypeError(f"Unknown AppMode: {mode}")
+
+    def on_start_mode_all(self):
+        """
+        過去データ全て
+        :return:
+        """
+        self.path_excel, self.code = self.get_file_code_all()
+        self.idx_tick += 1
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("Excel ファイルをデータフレームに読み込みました。")
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread(self.code, self.dict_param)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def on_start_mode_doe(self):
+        """
+        DOE モード
+        :return:
+        """
+        self.path_excel, self.code = self.get_file_code_doe()
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("Excel ファイルをデータフレームに読み込みました。")
+        #dict_param = self.dict_param
+        for key in self.factor_doe:
+            self.dict_param[key] = int(self.df_matrix.at[self.row_condition, key])
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread(self.code, self.dict_param)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+
+    def on_start_mode_single(self):
+        print("下記の条件で取引シミュレーションを実施します。")
+        self.path_excel, self.code = self.get_file_code_single()
+        print(f"ティックデータ\t: {self.path_excel}")
+        print(f"銘柄コード\t: {self.code}")
+
+        # Excel ファイルをデータフレームに読み込む
+        self.df = get_excel_sheet(self.path_excel, self.code)
+        print("Excel ファイルをデータフレームに読み込みました。")
+
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # スレッドの開始
+        self.start_thread(self.code, self.dict_param)
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def plot_obs(self, df_obs: pd.DataFrame):
         df_obs.index = pd.to_datetime(
@@ -466,7 +521,7 @@ class Prophet(QMainWindow):
             self.row_condition = 0
             self.dict_doe = dict()
             # 新たなティックファイルで DOE ループ
-            self.start_mode_doe()
+            self.on_start_mode_doe()
 
     def send_first_tick(self):
         """
@@ -499,61 +554,6 @@ class Prophet(QMainWindow):
             self.sendTradeData.emit(ts, price, volume)
             # 行位置をインクリメント
             self.row += 1
-
-    def start_mode_all(self):
-        """
-        過去データ全て
-        :return:
-        """
-        self.path_excel, self.code = self.get_file_code_all()
-        self.idx_tick += 1
-        print(f"ティックデータ\t: {self.path_excel}")
-        print(f"銘柄コード\t: {self.code}")
-
-        # Excel ファイルをデータフレームに読み込む
-        self.df = get_excel_sheet(self.path_excel, self.code)
-        print("Excel ファイルをデータフレームに読み込みました。")
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # スレッドの開始
-        self.start_thread(self.code, dict())
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-
-    def start_mode_doe(self):
-        """
-        DOE モード
-        :return:
-        """
-        self.path_excel, self.code = self.get_file_code_doe()
-        print(f"ティックデータ\t: {self.path_excel}")
-        print(f"銘柄コード\t: {self.code}")
-
-        # Excel ファイルをデータフレームに読み込む
-        self.df = get_excel_sheet(self.path_excel, self.code)
-        print("Excel ファイルをデータフレームに読み込みました。")
-        dict_param = dict()
-        for key in self.factor_doe:
-            dict_param[key] = int(self.df_matrix.at[self.row_condition, key])
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # スレッドの開始
-        self.start_thread(self.code, dict_param)
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-
-    def start_mode_single(self):
-        print("下記の条件で取引シミュレーションを実施します。")
-        self.path_excel, self.code = self.get_file_code_single()
-        print(f"ティックデータ\t: {self.path_excel}")
-        print(f"銘柄コード\t: {self.code}")
-
-        # Excel ファイルをデータフレームに読み込む
-        self.df = get_excel_sheet(self.path_excel, self.code)
-        print("Excel ファイルをデータフレームに読み込みました。")
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # スレッドの開始
-        self.start_thread(self.code, dict())
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def start_thread(self, code: str, dict_param: dict):
         """
@@ -621,13 +621,13 @@ class Prophet(QMainWindow):
                 self.post_procs_all()
             else:
                 print("次のティックデータに進みます（ALL モード）。")
-                self.start_mode_all()
+                self.on_start_mode_all()
         elif mode == AppMode.DOE:
             if len(self.df_matrix) - 1 <= self.row_condition:
                 self.post_procs_doe()
             else:
                 print("次の条件に進みます（DOE モード）。")
                 self.row_condition += 1
-                self.start_mode_doe()
+                self.on_start_mode_doe()
         else:
             raise TypeError(f"Unknown AppMode: {mode}")

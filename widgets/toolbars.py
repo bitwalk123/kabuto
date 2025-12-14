@@ -154,7 +154,7 @@ class ToolBarProphet(QToolBar):
         super().__init__()
         self.res = res
         self.dir_collection = self.res.dir_collection
-        self.dict_param = dict()
+        # self.dict_param = dict()
 
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, "play.png")),

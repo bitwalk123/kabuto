@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import QDialog, QDialogButtonBox
 
 from structs.res import AppRes
-from widgets.entries import EntryFloat
+from widgets.entries import EntryFloat, EntryInt
 from widgets.labels import (
     Label,
     LabelLeft,
@@ -190,7 +190,7 @@ class DlgParam(QDialog):
         layout.addWidget(lab_param_1, r, 0)
 
         value_str = str(dict_setting[param])
-        self.obj_period_ma_1 = ent_param_1 = EntryFloat(value_str)
+        self.obj_period_ma_1 = ent_param_1 = EntryInt(value_str)
         layout.addWidget(ent_param_1, r, 1)
 
         r += 1
@@ -199,7 +199,7 @@ class DlgParam(QDialog):
         layout.addWidget(lab_param_2, r, 0)
 
         value_str = str(dict_setting[param])
-        self.obj_period_ma_2 = ent_param_2 = EntryFloat(value_str)
+        self.obj_period_ma_2 = ent_param_2 = EntryInt(value_str)
         layout.addWidget(ent_param_2, r, 1)
 
         r += 1
@@ -208,7 +208,7 @@ class DlgParam(QDialog):
         layout.addWidget(lab_param_3, r, 0)
 
         value_str = str(dict_setting[param])
-        self.obj_period_mr = ent_param_3 = EntryFloat(value_str)
+        self.obj_period_mr = ent_param_3 = EntryInt(value_str)
         layout.addWidget(ent_param_3, r, 1)
 
         r += 1
@@ -229,8 +229,8 @@ class DlgParam(QDialog):
 
     def getParam(self) -> dict:
         dict_param = dict()
-        dict_param["PERIOD_MA_1"] = float(self.obj_period_ma_1.text())
-        dict_param["PERIOD_MA_2"] = float(self.obj_period_ma_2.text())
-        dict_param["PERIOD_MR"] = float(self.obj_period_mr.text())
-        dict_param["THRESHOLD_MR"] = float(self.obj_threshold_mr.text())
+        dict_param["PERIOD_MA_1"] = self.obj_period_ma_1.getValue()
+        dict_param["PERIOD_MA_2"] = self.obj_period_ma_2.getValue()
+        dict_param["PERIOD_MR"] = self.obj_period_mr.getValue()
+        dict_param["THRESHOLD_MR"] = self.obj_threshold_mr.getValue()
         return dict_param

@@ -2,5 +2,5 @@
   "PERIOD_MA_1": 75,
   "PERIOD_MA_2": 540,
   "PERIOD_MR": 30,
-  "THRESHOLD_MR": 7
+  "THRESHOLD_MR": 7.0
 }
