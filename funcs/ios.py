@@ -4,6 +4,8 @@ import os
 import openpyxl
 import pandas as pd
 
+from structs.res import AppRes
+
 
 def is_sheet_exists(path_excel: str, sheet: str) -> bool:
     """
@@ -64,6 +66,19 @@ def load_excel(excel_path) -> dict:
     return dict_sheet
 
 
+def load_setting(res: AppRes, code: str) -> dict:
+    """
+    銘柄コード指定で設定用 JSON ファイルのロード
+    :param res:
+    :param code:
+    :return:
+    """
+    path_json_setting = os.path.join(res.dir_conf, f"{code}.json")
+    with open(path_json_setting) as f:
+        dict_setting = json.load(f)
+    return dict_setting
+
+
 def save_dataframe_to_excel(name_excel: str, dict_df: dict):
     with pd.ExcelWriter(name_excel) as writer:
         for name_sheet in dict_df.keys():
@@ -80,3 +95,16 @@ def read_contents_from_json(file_json) -> dict:
 def save_contents_to_json(file_json: str, dict_psar: dict):
     with open(file_json, "w") as f:
         json.dump(dict_psar, f)
+
+
+def save_setting(res: AppRes, code: str, dict_param: dict):
+    """
+    銘柄コード指定で設定用パラメータを保存
+    :param res:
+    :param code:
+    :param dict_param:
+    :return:
+    """
+    path_json_setting = os.path.join(res.dir_conf, f"{code}.json")
+    with open(path_json_setting, "w") as f:
+        json.dump(dict_param, f, indent=2)
