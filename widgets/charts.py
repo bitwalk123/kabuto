@@ -258,9 +258,6 @@ class ObsChart(ScrollArea):
         self.canvas.updateGeometry()
         self.setWidget(self.canvas)
 
-        # 軸領域
-        self.ax = self.fig.add_subplot(111)
-
         # 余白設定
         self.fig.subplots_adjust(
             left=0.05,
