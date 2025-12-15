@@ -2,7 +2,6 @@ import datetime
 import gc
 import logging
 import os
-import tracemalloc
 from time import perf_counter
 
 import pandas as pd
@@ -38,8 +37,6 @@ class Prophet(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        # メモリーリークをチェック
-        tracemalloc.start()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res = AppRes()
         self.df = None
@@ -609,12 +606,6 @@ class Prophet(QMainWindow):
         print("\nスレッドを終了しました。")
         QApplication.processEvents()  # Qt の deleteLater を実行させる
         gc.collect()  # Python 側の孤立オブジェクトを回収
-
-        # メモリーリークをチェック
-        snapshot = tracemalloc.take_snapshot()
-        top_stats = snapshot.statistics('lineno')
-        for stat in top_stats[:10]:
-            print(stat)
 
         mode = self.dict_info["mode"]
         if mode == AppMode.SINGLE:
