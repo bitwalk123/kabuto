@@ -52,8 +52,8 @@ class Trader(QMainWindow):
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # ウィンドウのサイズ制約
-        self.setMinimumWidth(1200)
-        self.setFixedHeight(300)
+        # self.setMinimumWidth(1200)
+        # self.setFixedHeight(300)
 
         # ---------------------------------------------------------------------
         # 右側のドック
@@ -99,13 +99,17 @@ class Trader(QMainWindow):
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
+        self.requestResetEnv.connect(self.worker.resetEnv)
         self.sendTradeData.connect(self.worker.addData)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
+        self.worker.completedResetEnv.connect(self.reset_env_completed)
         self.worker.notifyAction.connect(self.on_action)
 
         # スレッドの開始
         self.thread.start()
+        # エージェント環境のリセット → リセット終了で処理開始
+        self.requestResetEnv.emit()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
@@ -132,17 +136,22 @@ class Trader(QMainWindow):
 
     def on_action(self, action: int, position: PositionType):
         action_enum = ActionType(action)
+        print(action_enum, position)
         if action_enum == ActionType.BUY:
             if position == PositionType.NONE:
+                # 建玉がなければ買建
                 self.dock.doBuy()
-            elif position == PositionType.LONG:
+            elif position == PositionType.SHORT:
+                # 売建（ショート）であれば返済
                 self.dock.doRepay()
             else:
                 self.logger.error(f"{__name__}: trade rule violation!")
         elif action_enum == ActionType.SELL:
             if position == PositionType.NONE:
+                # 建玉がなければ売建
                 self.dock.doSell()
-            elif position == PositionType.SHORT:
+            elif position == PositionType.LONG:
+                # 買建（ロング）であれば返済
                 self.dock.doRepay()
             else:
                 self.logger.error(f"{__name__}: trade rule violation!")
@@ -150,6 +159,14 @@ class Trader(QMainWindow):
             pass
         else:
             self.logger.error(f"{__name__}: unknown action type {action_enum}!")
+
+    def reset_env_completed(self):
+        """
+        環境をリセット済
+        :return:
+        """
+        msg = f"{__name__}: 銘柄コード {self.code} 用の環境がリセットされました。"
+        self.logger.info(msg)
 
     def setLastCloseLine(self, price_close: float):
         """
