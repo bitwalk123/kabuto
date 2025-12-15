@@ -136,13 +136,12 @@ class Trader(QMainWindow):
 
     def on_action(self, action: int, position: PositionType):
         action_enum = ActionType(action)
-        print(action_enum, position)
         if action_enum == ActionType.BUY:
             if position == PositionType.NONE:
                 # 建玉がなければ買建
                 self.dock.doBuy()
             elif position == PositionType.SHORT:
-                # 売建（ショート）であれば返済
+                # 売建（ショート）であれば（買って）返済
                 self.dock.doRepay()
             else:
                 self.logger.error(f"{__name__}: trade rule violation!")
@@ -151,7 +150,7 @@ class Trader(QMainWindow):
                 # 建玉がなければ売建
                 self.dock.doSell()
             elif position == PositionType.LONG:
-                # 買建（ロング）であれば返済
+                # 買建（ロング）であれば（売って）返済
                 self.dock.doRepay()
             else:
                 self.logger.error(f"{__name__}: trade rule violation!")
