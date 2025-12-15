@@ -23,6 +23,7 @@ pandas-stubs
 pip-chill
 pip-review
 pygame
+pyqtgraph
 pyside6
 pyxdg
 rfc3987-syntax
