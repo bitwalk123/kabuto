@@ -350,12 +350,17 @@ class ObsChart(ScrollArea):
         self.canvas.draw()
 
 
-class TrendChart(FigureCanvas):
+class TrendChart(Widget):
     """
     リアルタイム用トレンドチャート
     """
 
     def __init__(self, res: AppRes):
+        super().__init__()
+        # ウィンドウのサイズ制約
+        self.setMinimumWidth(1000)
+        self.setFixedHeight(300)
+
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
         font_prop = fm.FontProperties(fname=res.path_monospace)
@@ -365,12 +370,22 @@ class TrendChart(FigureCanvas):
         plt.style.use("dark_background")
 
         # Figure オブジェクト
-        self.figure = Figure()
+        self.fig = Figure()
+        self.canvas = FigureCanvas(self.fig)
+        self.canvas.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
         # 余白設定
-        self.figure.subplots_adjust(left=0.075, right=0.99, top=0.9, bottom=0.08)
-        super().__init__(self.figure)
+        self.fig.subplots_adjust(left=0.075, right=0.99, top=0.9, bottom=0.08)
+        self.canvas.updateGeometry()
 
-        self.ax = self.figure.add_subplot(111)
+        # レイアウトに追加
+        layout = VBoxLayout()
+        layout.addWidget(self.canvas)
+        self.setLayout(layout)
+
+        self.ax = self.fig.add_subplot(111)
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.grid(True, lw=0.5)
 
@@ -380,7 +395,7 @@ class TrendChart(FigureCanvas):
         # y軸のみオートスケール
         self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
         # 再描画
-        self.draw_idle()
+        self.canvas.draw_idle()
 
     def setTitle(self, title: str):
         self.ax.set_title(title)

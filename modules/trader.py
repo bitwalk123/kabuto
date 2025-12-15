@@ -86,10 +86,13 @@ class Trader(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
         self.thread = QThread(self)
+
         # 学習済みモデルのパス
-        path_model = get_trained_ppo_model_path(res, code)
+        # path_model = get_trained_ppo_model_path(res, code)
+
         # AutoPilot フラグ
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
+
         # 銘柄コード別設定ファイルの取得
         dict_setting = load_setting(res, code)
 
@@ -117,9 +120,19 @@ class Trader(QMainWindow):
         self.notifyAutoPilotStatus.emit(state)
 
     def closeEvent(self, event: QCloseEvent):
-        # self.worker.stop()
-        # self.thread.quit()
-        # self.thread.wait()
+        if self.thread is not None:
+            self.thread.quit()
+            self.thread.wait()
+
+        if self.worker is not None:
+            self.worker.deleteLater()
+            self.worker = None
+
+        if self.thread is not None:
+            self.thread.deleteLater()
+            self.thread = None
+
+        self.logger.info(f"{__name__}: スレッドを終了しました。")
         event.accept()
 
     def getTimePrice(self) -> pd.DataFrame:
@@ -206,13 +219,16 @@ class Trader(QMainWindow):
         self.y_data[self.count_data] = price
         self.v_data[self.count_data] = volume
         self.count_data += 1
+
         # ---------------------------------------------------------------------
         # 株価トレンド線
         # ---------------------------------------------------------------------
         self.trend_line.set_xdata(self.x_data[0:self.count_data])
         self.trend_line.set_ydata(self.y_data[0:self.count_data])
 
+        # ---------------------------------------------------------------------
         # 再描画
+        # ---------------------------------------------------------------------
         self.chart.reDraw()
 
     def setTimeAxisRange(self, ts_start, ts_end):
