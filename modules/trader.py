@@ -6,6 +6,7 @@ from PySide6.QtCore import Signal, QThread, Qt
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
+from funcs.ios import load_setting
 from funcs.models import get_trained_ppo_model_path
 from widgets.charts import TrendChart
 from modules.dock import DockTrader
@@ -88,11 +89,21 @@ class Trader(QMainWindow):
         path_model = get_trained_ppo_model_path(res, code)
         # AutoPilot フラグ
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
-        self.worker = WorkerAgent(path_model, flag_autopilot)
+        # 銘柄コード別設定ファイルの取得
+        dict_setting = load_setting(res, code)
+
+        # ワーカースレッドの生成
+        self.worker = WorkerAgent(flag_autopilot, code, dict_setting)
         self.worker.moveToThread(self.thread)
+
+        # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
         self.sendTradeData.connect(self.worker.addData)
+
+        # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
         self.worker.notifyAction.connect(self.on_action)
+
+        # スレッドの開始
         self.thread.start()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_

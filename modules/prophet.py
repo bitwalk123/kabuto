@@ -13,6 +13,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication
 from funcs.ios import get_excel_sheet
 from funcs.tide import get_datetime_str
 from modules.agent import WorkerAgent
+from modules.kabuto import Kabuto
 from modules.win_obs import WinObs
 from widgets.toolbars import ToolBarProphet
 from structs.app_enum import AppMode
@@ -24,7 +25,7 @@ from widgets.statusbars import StatusBar
 
 class Prophet(QMainWindow):
     __app_name__ = "Prophet"
-    __version__ = "0.0.7"
+    __version__ = Kabuto.__version__
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -569,6 +570,7 @@ class Prophet(QMainWindow):
         self.worker = WorkerAgent(True, code, dict_param)  # モデルを使わないアルゴリズム取引用
         self.worker.moveToThread(self.thread)
 
+        # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.requestForceRepay.connect(self.worker.forceRepay)
         self.requestObs.connect(self.worker.getObs)
         self.requestParams.connect(self.worker.getParams)
@@ -576,6 +578,7 @@ class Prophet(QMainWindow):
         self.requestResetEnv.connect(self.worker.resetEnv)
         self.sendTradeData.connect(self.worker.addData)
 
+        # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
         self.worker.completedResetEnv.connect(self.send_first_tick)
         self.worker.completedTrading.connect(self.finished_trading)
         self.worker.readyNext.connect(self.send_one_tick)
@@ -583,6 +586,7 @@ class Prophet(QMainWindow):
         self.worker.sendParams.connect(self.plot_tick)
         self.worker.sendResults.connect(self.post_procs)
 
+        # スレッドの開始
         self.thread.start()
 
         # 必要なパラメータをエージェント側から取得してティックデータのチャートを作成

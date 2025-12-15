@@ -17,11 +17,11 @@ from PySide6.QtWidgets import QMainWindow
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
-from modules.dialog import DlgAboutThis
 from modules.dock import DockTrader
 from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
+from widgets.dialogs import DlgAboutThis
 from widgets.statusbars import StatusBar
 from widgets.toolbars import ToolBar
 from modules.trader import Trader
@@ -33,7 +33,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.14.0"
+    __version__ = "0.0.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
