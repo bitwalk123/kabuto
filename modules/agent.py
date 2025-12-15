@@ -178,15 +178,17 @@ class WorkerAgent(QObject):
     def __init__(self, autopilot: bool, code: str, dict_param: dict):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.autopilot = autopilot
+
         self.obs = None
         self.done = False
-        self.autopilot = autopilot
 
         self.list_obs = list()
         self.df_obs = None
 
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
+
         # モデルのインスタンス
         self.model = AlgoTrade(self.list_obs)
 

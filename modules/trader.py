@@ -18,6 +18,7 @@ from structs.res import AppRes
 class Trader(QMainWindow):
     notifyAutoPilotStatus = Signal(bool)
     sendTradeData = Signal(float, float, float)
+    requestResetEnv = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
