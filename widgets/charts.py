@@ -380,7 +380,6 @@ class TrendChart(FigureCanvas):
         # y軸のみオートスケール
         self.ax.autoscale_view(scalex=False, scaley=True)  # X軸は固定、Y軸は自動
         # 再描画
-        # self.draw()
         self.draw_idle()
 
     def setTitle(self, title: str):
