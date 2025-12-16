@@ -10,7 +10,7 @@ class HBoxLayout(QHBoxLayout):
     def __init__(self):
         super().__init__()
         self.setAlignment(
-            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignHCenter
+            Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft
         )
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setSpacing(0)

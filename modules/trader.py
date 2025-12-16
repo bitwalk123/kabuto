@@ -1,18 +1,16 @@
 import logging
 
-import numpy as np
 import pandas as pd
 from PySide6.QtCore import Signal, QThread, Qt
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.ios import load_setting
-from funcs.models import get_trained_ppo_model_path
-from widgets.charts import TrendChart
 from modules.dock import DockTrader
 from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
+from widgets.graphs import TrendGraph
 
 
 class Trader(QMainWindow):
@@ -27,33 +25,16 @@ class Trader(QMainWindow):
         self.code = code
 
         # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
-        self.tz = 9. * 60 * 60
+        # self.tz = 9. * 60 * 60
 
-        #######################################################################
-        # データ点を追加する毎に再描画するので、あらかじめ配列を確保し、
-        # スライスでデータを渡すようにして、なるべく描画以外の処理を減らす。
-        #
-
-        # 最大データ点数（昼休みを除く 9:00 - 15:30 まで　1 秒間隔のデータ数）
-        self.max_data_points = 19800
-
-        # データ領域の確保
-        self.x_data = np.empty(self.max_data_points, dtype=pd.Timestamp)
-        self.y_data = np.empty(self.max_data_points, dtype=np.float64)
-        self.v_data = np.empty(self.max_data_points, dtype=np.float64)
-
-        # データ点用のカウンター
-        self.count_data = 0
-
-        #
-        #######################################################################
+        # ティックデータ
+        self.list_x = list()
+        self.list_y = list()
+        self.list_v = list()
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # ウィンドウのサイズ制約
-        # self.setMinimumWidth(1200)
-        # self.setFixedHeight(300)
 
         # ---------------------------------------------------------------------
         # 右側のドック
@@ -65,23 +46,8 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        self.chart = chart = TrendChart(res)
-        self.setCentralWidget(chart)
-
-        # 最新の株価
-        self.latest_point, = self.chart.ax.plot(
-            [], [],
-            marker='x',
-            markersize=7,
-            color='#fc8'
-        )
-
-        # トレンドライン（株価）
-        self.trend_line, = self.chart.ax.plot(
-            [], [],
-            color='lightgray',
-            linewidth=0.5
-        )
+        self.trend = trend = TrendGraph()
+        self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 強化学習モデル用スレッド
@@ -140,11 +106,10 @@ class Trader(QMainWindow):
         保持している時刻、株価情報をデータフレームで返す。
         :return:
         """
-        # タイムスタンプ の Time 列は self.tz を考慮
         return pd.DataFrame({
-            "Time": [t.timestamp() - self.tz for t in self.x_data[0: self.count_data]],
-            "Price": self.y_data[0: self.count_data],
-            "Volume": self.v_data[0: self.count_data],
+            "Time": self.list_x,
+            "Price": self.list_y,
+            "Volume": self.list_v,
         })
 
     def on_action(self, action: int, position: PositionType):
@@ -186,7 +151,7 @@ class Trader(QMainWindow):
         :param price_close:
         :return:
         """
-        self.chart.ax.axhline(y=price_close, color="red", linewidth=0.75)
+        self.trend.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
     def setTradeData(self, ts: float, price: float, volume: float):
         """
@@ -197,39 +162,17 @@ class Trader(QMainWindow):
         :return:
         """
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 ティックデータを送るシグナル
+        # ティックデータを送るシグナル
         self.sendTradeData.emit(ts, price, volume)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # ---------------------------------------------------------------------
-        # ts（タイムスタンプ）から、Matplotlib 用の値＝タイムスタンプ（時差込み）に変換
-        # ---------------------------------------------------------------------
-        x = pd.Timestamp(ts + self.tz, unit='s')
+        # リストに保持
+        self.list_x.append(ts)
+        self.list_y.append(price)
+        self.list_v.append(volume)
 
-        # ---------------------------------------------------------------------
-        # 最新の株価
-        # ---------------------------------------------------------------------
-        self.latest_point.set_xdata([x])
-        self.latest_point.set_ydata([price])
-
-        # ---------------------------------------------------------------------
-        # 配列に保持
-        # ---------------------------------------------------------------------
-        self.x_data[self.count_data] = x
-        self.y_data[self.count_data] = price
-        self.v_data[self.count_data] = volume
-        self.count_data += 1
-
-        # ---------------------------------------------------------------------
         # 株価トレンド線
-        # ---------------------------------------------------------------------
-        self.trend_line.set_xdata(self.x_data[0:self.count_data])
-        self.trend_line.set_ydata(self.y_data[0:self.count_data])
-
-        # ---------------------------------------------------------------------
-        # 再描画
-        # ---------------------------------------------------------------------
-        self.chart.reDraw()
+        self.trend.setLine(self.list_x, self.list_y)
 
     def setTimeAxisRange(self, ts_start, ts_end):
         """
@@ -240,10 +183,7 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        pad_left = 5. * 60  # チャート左側の余白（５分）
-        dt_start = pd.Timestamp(ts_start + self.tz - pad_left, unit='s')
-        dt_end = pd.Timestamp(ts_end + self.tz, unit='s')
-        self.chart.ax.set_xlim(dt_start, dt_end)
+        self.trend.setXRange(ts_start, ts_end)
 
     def setChartTitle(self, title: str):
         """
@@ -251,4 +191,4 @@ class Trader(QMainWindow):
         :param title:
         :return:
         """
-        self.chart.setTitle(title)
+        self.trend.setTrendTitle(title)

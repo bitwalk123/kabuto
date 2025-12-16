@@ -1,3 +1,4 @@
+import numpy as np
 import pyqtgraph as pg
 from PySide6.QtGui import QFont
 from pyqtgraph import DateAxisItem
@@ -18,7 +19,7 @@ class TrendGraph(pg.PlotWidget):
         )
         # ウィンドウのサイズ制約
         self.setMinimumWidth(1000)
-        self.setFixedHeight(200)
+        self.setFixedHeight(250)
 
         # マウス操作無効化
         self.setMouseEnabled(x=False, y=False)
@@ -26,15 +27,26 @@ class TrendGraph(pg.PlotWidget):
         self.setMenuEnabled(False)
 
         # フォント設定
-        font = QFont()
-        font.setStyleHint(QFont.StyleHint.Monospace)
-        font.setPointSize(10)
+        font_small = QFont()
+        font_small.setStyleHint(QFont.StyleHint.Monospace)
+        font_small.setPointSize(9)
+        self.getAxis('bottom').setStyle(tickFont=font_small)
+        self.getAxis('left').setStyle(tickFont=font_small)
 
-        self.getAxis('bottom').setStyle(tickFont=font)
-        self.getAxis('left').setStyle(tickFont=font)
+        # プロットアイテム
+        self.plot_item = plot_item = self.getPlotItem()
 
-        plot_item = self.getPlotItem()
         # グリッド
         plot_item.showGrid(x=True, y=True, alpha=0.5)
         # 高速化オプション
         plot_item.setClipToView(True)
+
+        # 折れ線
+        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.75))
+
+    def setLine(self, x, y):
+        self.line.setData(x, y)
+
+    def setTrendTitle(self, title: str):
+        html = f"<span style='font-size: 9pt; font-family: monospace;'>{title}</span>"
+        self.setTitle(html)
