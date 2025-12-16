@@ -340,33 +340,10 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
-            """
             self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             """
-            self.list_tick = ['ticks_20250902.xlsx', 'ticks_20250903.xlsx', 'ticks_20250904.xlsx',
-                              'ticks_20250905.xlsx', 'ticks_20250908.xlsx', 'ticks_20250909.xlsx',
-                              'ticks_20250910.xlsx', 'ticks_20250911.xlsx', 'ticks_20250912.xlsx',
-                              'ticks_20250916.xlsx', 'ticks_20250917.xlsx', 'ticks_20250918.xlsx',
-                              'ticks_20250919.xlsx', 'ticks_20250922.xlsx', 'ticks_20250924.xlsx',
-                              'ticks_20250925.xlsx', 'ticks_20250926.xlsx', 'ticks_20250929.xlsx',
-                              'ticks_20250930.xlsx', 'ticks_20251001.xlsx', 'ticks_20251002.xlsx',
-                              'ticks_20251003.xlsx', 'ticks_20251006.xlsx', 'ticks_20251007.xlsx',
-                              'ticks_20251008.xlsx', 'ticks_20251009.xlsx', 'ticks_20251010.xlsx',
-                              'ticks_20251014.xlsx', 'ticks_20251015.xlsx', 'ticks_20251016.xlsx',
-                              'ticks_20251017.xlsx', 'ticks_20251020.xlsx', 'ticks_20251021.xlsx',
-                              'ticks_20251022.xlsx', 'ticks_20251023.xlsx', 'ticks_20251024.xlsx',
-                              'ticks_20251027.xlsx', 'ticks_20251028.xlsx', 'ticks_20251029.xlsx',
-                              'ticks_20251030.xlsx', 'ticks_20251031.xlsx', 'ticks_20251104.xlsx',
-                              'ticks_20251105.xlsx', 'ticks_20251106.xlsx', 'ticks_20251107.xlsx',
-                              'ticks_20251110.xlsx', 'ticks_20251111.xlsx', 'ticks_20251112.xlsx',
-                              'ticks_20251113.xlsx', 'ticks_20251114.xlsx', 'ticks_20251117.xlsx',
-                              'ticks_20251118.xlsx', 'ticks_20251119.xlsx', 'ticks_20251120.xlsx',
-                              'ticks_20251121.xlsx', 'ticks_20251125.xlsx', 'ticks_20251126.xlsx',
-                              'ticks_20251127.xlsx', 'ticks_20251128.xlsx', 'ticks_20251201.xlsx',
-                              'ticks_20251202.xlsx', 'ticks_20251203.xlsx', 'ticks_20251204.xlsx',
-                              'ticks_20251205.xlsx', 'ticks_20251208.xlsx', 'ticks_20251209.xlsx',
-                              'ticks_20251210.xlsx', 'ticks_20251211.xlsx', 'ticks_20251212.xlsx',
-                              'ticks_20251215.xlsx', 'ticks_20251216.xlsx']
+            self.list_tick = []
+            """
 
             self.idx_tick = 0
             self.on_start_mode_doe()
