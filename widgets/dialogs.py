@@ -28,11 +28,12 @@ class DlgAboutThis(QDialog):
             name_icon: str = "kabuto.png",
     ):
         super().__init__()
+        self.setContentsMargins(QMargins(5, 5, 5, 5))
+        self.setStyleSheet("QDialog {font-family: monospace;}")
 
         icon = QIcon(os.path.join(res.dir_image, "about.png"))
         self.setWindowIcon(icon)
         self.setWindowTitle("このアプリについて")
-        self.setStyleSheet("QDialog {font-family: monospace;}")
 
         layout = GridLayout()
         self.setLayout(layout)
@@ -74,9 +75,11 @@ class DlgAboutThis(QDialog):
 
         r += 1
         lab_desc = PlainTextEdit()
-        msg = "これはデイトレード用アプリです。\n" \
-              "楽天証券が提供している取引ツール MARKET SPEED II RSS に対して、" \
-              "Python の xlwings のパッケージを利用してやりとりをします。"
+        msg = (
+            "これはデイトレード用アプリです。\n"
+            "Python の xlwings パッケージを利用して、MARKET SPEED II RSS とやりとりをします。\n"
+            "MARKET SPEED II RSS は、Microsoftの表計算ソフト Excel にアドインして利用できるトレーディングツールです。"
+        )
         lab_desc.setPlainText(msg)
         lab_desc.setReadOnly(True)
         layout.addWidget(lab_desc, r, 0, 1, 3)
@@ -87,6 +90,11 @@ class DlgAboutThis(QDialog):
         layout.addWidget(bbox, r, 0, 1, 3)
 
         layout.setColumnStretch(1, 1)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 表示後の最終サイズを固定
+        self.setFixedSize(self.size())
 
 
 class DlgParam(QDialog):
@@ -162,3 +170,8 @@ class DlgParam(QDialog):
         dict_param["PERIOD_MR"] = self.obj_period_mr.getValue()
         dict_param["THRESHOLD_MR"] = self.obj_threshold_mr.getValue()
         return dict_param
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 表示後の最終サイズを固定
+        self.setFixedSize(self.size())
