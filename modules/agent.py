@@ -8,7 +8,7 @@ from stable_baselines3.common.logger import configure
 
 from modules.algo_trade import AlgoTrade
 from modules.env import TrainingEnv, TradingEnv
-from structs.app_enum import ActionType, PositionType, SignalSign
+from structs.app_enum import ActionType, PositionType
 
 
 class MaskablePPOAgent:
