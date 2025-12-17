@@ -10,6 +10,7 @@ class Entry(QLineEdit):
             QLineEdit {
                 font-family: monospace;
                 background-color: white;
+                color: black;
             }
         """)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
