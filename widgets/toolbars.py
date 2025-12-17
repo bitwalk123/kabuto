@@ -31,13 +31,13 @@ class ToolBar(QToolBar):
         super().__init__()
         self.res = res
 
-        self.code_default = "7011" # デフォルトの銘柄コード
+        self.code_default = "7011"  # デフォルトの銘柄コード
 
         # デバッグ（レビュー）モード時のみ
         if res.debug:
             # Excel ファイルを開く
             action_open = QAction(
-                QIcon(os.path.join(res.dir_image, 'excel.png')),
+                QIcon(os.path.join(res.dir_image, "excel.png")),
                 "Excel ファイルを開く",
                 self
             )
@@ -48,7 +48,7 @@ class ToolBar(QToolBar):
 
             # タイマー開始
             action_play = QAction(
-                QIcon(os.path.join(res.dir_image, 'play.png')),
+                QIcon(os.path.join(res.dir_image, "play.png")),
                 "タイマー開始",
                 self
             )
@@ -57,7 +57,7 @@ class ToolBar(QToolBar):
 
             # タイマー停止
             action_stop = QAction(
-                QIcon(os.path.join(res.dir_image, 'stop.png')),
+                QIcon(os.path.join(res.dir_image, "stop.png")),
                 "タイマー停止",
                 self
             )
@@ -66,7 +66,7 @@ class ToolBar(QToolBar):
 
         # 取引履歴
         self.action_transaction = action_transaction = QAction(
-            QIcon(os.path.join(res.dir_image, 'transaction.png')),
+            QIcon(os.path.join(res.dir_image, "transaction.png")),
             "取引履歴",
             self
         )
@@ -113,11 +113,10 @@ class ToolBar(QToolBar):
         )
         if excel_path == "":
             return
-        else:
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 Excel ファイルが選択されたことの通知
-            self.selectedExcelFile.emit(excel_path)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Excel ファイルが選択されたことの通知
+        self.selectedExcelFile.emit(excel_path)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_stop(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -155,7 +154,6 @@ class ToolBarProphet(QToolBar):
         super().__init__()
         self.res = res
         self.dir_collection = self.res.dir_collection
-        # self.dict_param = dict()
 
         action_start = QAction(
             QIcon(os.path.join(res.dir_image, "play.png")),
