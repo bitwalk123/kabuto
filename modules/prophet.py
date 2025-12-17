@@ -340,10 +340,22 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
+            """
             self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             """
-            self.list_tick = []
-            """
+            self.list_tick = ['ticks_20251022.xlsx', 'ticks_20251023.xlsx', 'ticks_20251024.xlsx',
+                              'ticks_20251027.xlsx', 'ticks_20251028.xlsx', 'ticks_20251029.xlsx',
+                              'ticks_20251030.xlsx', 'ticks_20251031.xlsx', 'ticks_20251104.xlsx',
+                              'ticks_20251105.xlsx', 'ticks_20251106.xlsx', 'ticks_20251107.xlsx',
+                              'ticks_20251110.xlsx', 'ticks_20251111.xlsx', 'ticks_20251112.xlsx',
+                              'ticks_20251113.xlsx', 'ticks_20251114.xlsx', 'ticks_20251117.xlsx',
+                              'ticks_20251118.xlsx', 'ticks_20251119.xlsx', 'ticks_20251120.xlsx',
+                              'ticks_20251121.xlsx', 'ticks_20251125.xlsx', 'ticks_20251126.xlsx',
+                              'ticks_20251127.xlsx', 'ticks_20251128.xlsx', 'ticks_20251201.xlsx',
+                              'ticks_20251202.xlsx', 'ticks_20251203.xlsx', 'ticks_20251204.xlsx',
+                              'ticks_20251205.xlsx', 'ticks_20251208.xlsx', 'ticks_20251209.xlsx',
+                              'ticks_20251210.xlsx', 'ticks_20251211.xlsx', 'ticks_20251212.xlsx',
+                              'ticks_20251215.xlsx', 'ticks_20251216.xlsx', 'ticks_20251217.xlsx']
 
             self.idx_tick = 0
             self.on_start_mode_doe()
