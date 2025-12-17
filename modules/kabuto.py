@@ -6,11 +6,12 @@ import pandas as pd
 from PySide6.QtCore import (
     QThread,
     QTimer,
-    Signal, Qt,
+    Qt,
+    Signal,
 )
 from PySide6.QtGui import (
     QCloseEvent,
-    QIcon, QPalette,
+    QIcon,
 )
 from PySide6.QtWidgets import QMainWindow, QSizePolicy
 
@@ -27,7 +28,7 @@ from widgets.toolbars import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction
 from structs.res import AppRes
-from widgets.containers import Widget, ScrollArea
+from widgets.containers import ScrollArea, Widget
 from widgets.layouts import VBoxLayout
 
 
