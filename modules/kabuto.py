@@ -193,13 +193,21 @@ class Kabuto(QMainWindow):
             if self.thread.isRunning():
                 self.requestStopProcess.emit()
                 time.sleep(1)
-                if self.worker:
-                    self.worker.stop()
-                    self.logger.info(f"{__name__}: deleted self.worker.")
-                if self.thread:
-                    self.thread.quit()
-                    self.thread.wait()
-                    self.logger.info(f"{__name__}: deleted self.thread.")
+
+            if self.thread is not None:
+                self.thread.quit()
+                self.thread.wait()
+                self.logger.info(f"{__name__}: deleted self.thread.")
+
+            if self.worker is not None:
+                self.worker.deleteLater()
+                self.worker = None
+                self.logger.info(f"{__name__}: deleted self.worker.")
+
+            if self.thread is not None:
+                self.thread.deleteLater()
+                self.thread = None
+
         except RuntimeError as e:
             self.logger.error(f"{__name__}: error at termination: {e}")
 
