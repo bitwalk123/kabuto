@@ -43,6 +43,20 @@ def get_excel_sheet(path_excel: str, sheet: str) -> pd.DataFrame:
         return pd.DataFrame()
 
 
+def get_sheets_in_excel(path_excel: str) -> list:
+    """
+    指定したExcelファイルのワークシート名のリストを返す
+    :param path_excel:
+    :return:
+    """
+    if os.path.isfile(path_excel):
+        wb = pd.ExcelFile(path_excel)
+        return sorted(wb.sheet_names)
+    else:
+        print(f"{path_excel} is not found!")
+        return list()
+
+
 def load_excel(excel_path) -> dict:
     """
     excel_path で指定された Excel ファイルの読み込み

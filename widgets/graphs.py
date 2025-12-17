@@ -1,7 +1,8 @@
-import numpy as np
 import pyqtgraph as pg
 from PySide6.QtGui import QFont
 from pyqtgraph import DateAxisItem
+
+from structs.res import AppRes
 
 
 class CustomYAxisItem(pg.AxisItem):
@@ -10,16 +11,15 @@ class CustomYAxisItem(pg.AxisItem):
 
 
 class TrendGraph(pg.PlotWidget):
-    def __init__(self):
+    def __init__(self, res:AppRes):
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         super().__init__(
             axisItems={'bottom': axis_bottom, 'left': axis_left},
             enableMenu=False
         )
-        # ウィンドウのサイズ制約
-        self.setMinimumWidth(1000)
-        self.setFixedHeight(250)
+        # ウィンドウのサイズ制約（高さのみ）
+        self.setFixedHeight(res.trend_height)
 
         # マウス操作無効化
         self.setMouseEnabled(x=False, y=False)

@@ -26,7 +26,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     else:
         # _________________________________________________________________
         # ［デバッグ用］Excel のファイル名より日付情報を抽出
-        pattern = re.compile(r".*tick_([0-9]{4})([0-9]{2})([0-9]{2}).*\.xlsx")
+        pattern = re.compile(r".+_([0-9]{4})([0-9]{2})([0-9]{2}).*\.xlsx")
         m = pattern.match(excel_path)
         if m:
             year = int(m.group(1))

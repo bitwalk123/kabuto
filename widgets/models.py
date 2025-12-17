@@ -33,7 +33,7 @@ class ModelTransaction(QAbstractTableModel):
     def data(self, index: QModelIndex, role=Qt.ItemDataRole):
         """Override method from QAbstractTableModel
 
-        Return list_data cell from the pandas DataFrame
+        Return list_item cell from the pandas DataFrame
         """
         if not index.isValid():
             return None
@@ -68,7 +68,7 @@ class ModelTransaction(QAbstractTableModel):
     def headerData(self, section: int, orientation: Qt.Orientation, role: int = ...) -> Any:
         """Override method from QAbstractTableModel
 
-        Return dataframe index as vertical header list_data and columns as horizontal header list_data.
+        Return dataframe index as vertical header list_item and columns as horizontal header list_item.
         """
         if role == Qt.ItemDataRole.DisplayRole:
             if orientation == Qt.Orientation.Horizontal:

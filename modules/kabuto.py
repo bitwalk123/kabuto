@@ -10,9 +10,9 @@ from PySide6.QtCore import (
 )
 from PySide6.QtGui import (
     QCloseEvent,
-    QIcon,
+    QIcon, QPalette,
 )
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QSizePolicy
 
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
@@ -27,7 +27,7 @@ from widgets.toolbars import ToolBar
 from modules.trader import Trader
 from modules.trans import WinTransaction
 from structs.res import AppRes
-from widgets.containers import Widget
+from widgets.containers import Widget, ScrollArea
 from widgets.layouts import VBoxLayout
 
 
@@ -105,6 +105,8 @@ class Kabuto(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # self.setMinimumWidth(1500)
+        # self.setMinimumHeight(400)
 
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "kabuto.png")))
@@ -134,8 +136,13 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # メイン・ウィジェット
         # ---------------------------------------------------------------------
+        sa = ScrollArea()
+        sa.setMinimumWidth(res.trend_width)
+        sa.setMinimumHeight(res.trend_height)
+        self.setCentralWidget(sa)
+
         base = Widget()
-        self.setCentralWidget(base)
+        sa.setWidget(base)
         self.layout = layout = VBoxLayout()
         base.setLayout(layout)
 

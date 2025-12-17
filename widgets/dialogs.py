@@ -2,7 +2,7 @@ import os
 
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtWidgets import QDialog, QDialogButtonBox
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
 
 from structs.res import AppRes
 from widgets.entries import EntryFloat, EntryInt
@@ -15,6 +15,7 @@ from widgets.labels import (
     PlainTextEdit,
 )
 from widgets.layouts import GridLayout
+from widgets.listviews import CheckList
 
 
 class DlgAboutThis(QDialog):
@@ -95,6 +96,29 @@ class DlgAboutThis(QDialog):
         super().showEvent(event)
         # 表示後の最終サイズを固定
         self.setFixedSize(self.size())
+
+
+class DlgCodeSel(QDialog):
+    def __init__(self, list_code: list, row_default: int=0):
+        super().__init__()
+        self.setWindowTitle("銘柄コード一覧")
+
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        self.clist = clist = CheckList()
+        clist.addItems(list_code, row_default)
+        layout.addWidget(clist)
+
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        layout.addWidget(bbox)
+
+    def getSelected(self) -> list:
+        return self.clist.getSelected()
 
 
 class DlgParam(QDialog):

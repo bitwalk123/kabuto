@@ -46,7 +46,7 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        self.trend = trend = TrendGraph()
+        self.trend = trend = TrendGraph(res)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -60,7 +60,10 @@ class Trader(QMainWindow):
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
 
         # 銘柄コード別設定ファイルの取得
-        dict_setting = load_setting(res, code)
+        try:
+            dict_setting = load_setting(res, code)
+        except FileNotFoundError:
+            dict_setting = res.setting_default
 
         # ワーカースレッドの生成
         self.worker = WorkerAgent(flag_autopilot, code, dict_setting)

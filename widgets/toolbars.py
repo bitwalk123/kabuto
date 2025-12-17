@@ -31,6 +31,8 @@ class ToolBar(QToolBar):
         super().__init__()
         self.res = res
 
+        self.code_default = "7011" # デフォルトの銘柄コード
+
         # デバッグ（レビュー）モード時のみ
         if res.debug:
             # Excel ファイルを開く
@@ -106,7 +108,7 @@ class ToolBar(QToolBar):
         excel_path, _ = QFileDialog.getOpenFileName(
             self,
             "Open File",
-            self.res.dir_excel,
+            self.res.dir_collection,
             "Excel File (*.xlsx)"
         )
         if excel_path == "":

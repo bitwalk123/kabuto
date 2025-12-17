@@ -16,6 +16,6 @@ def get_default_psar_params() -> dict:
     # for Smoothing Spline
     dict_psar["power_lam"]: int = 6  # Lambda for smoothing spline
     dict_psar["n_smooth_min"]: int = 60  # dead time (min) at start up
-    dict_psar["n_smooth_max"]: int = 600  # maximum list_data for smoothing
+    dict_psar["n_smooth_max"]: int = 600  # maximum list_item for smoothing
 
     return dict_psar

@@ -29,7 +29,7 @@ def add_realtime_data(timestamp, price, volume):
         # 最大点数に達した場合の処理（例: エラーログ、一番古いデータを上書き、あるいは何もせず無視）
         # デイトレードであれば、セッションが終了する、あるいは新しい日/セッションが始まるまで待つ
         # などのロジックが必要になるかもしれません。
-        # print("Warning: Maximum list_data points reached. No more list_data added.")
+        # print("Warning: Maximum list_item points reached. No more list_item added.")
         pass # 今回は単純に無視する例
 
 # シミュレーションの実行例

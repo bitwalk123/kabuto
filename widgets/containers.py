@@ -1,11 +1,12 @@
-from PySide6.QtCore import QMargins, Signal
+from PySide6.QtCore import QMargins, Signal, Qt
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (
     QFrame,
     QMainWindow,
+    QScrollArea,
     QSizePolicy,
     QTabWidget,
-    QWidget, QScrollArea,
+    QWidget, QAbstractScrollArea,
 )
 
 from structs.res import AppRes
@@ -222,8 +223,17 @@ class PanelOption(QFrame):
     def setAutoPilotEnabled(self, state: bool = True):
         self.autopilot.setChecked(state)
 
+
 class ScrollArea(QScrollArea):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setWidgetResizable(True)
+        self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    """
+    def sizeHint(self):
+        if self.widget():
+            return self.widget().sizeHint()
+        return super().sizeHint()
+    """

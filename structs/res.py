@@ -6,6 +6,10 @@ from PySide6.QtWidgets import QStyle, QWidget
 
 
 class AppRes:
+    # トレンドチャートの幅、高さ
+    trend_width = 1200
+    trend_height = 250
+
     dir_collection = 'collection'
     dir_conf = 'conf'
     dir_excel = 'excel'
@@ -24,6 +28,14 @@ class AppRes:
     excel_portfolio = "portfolio.xlsm"
 
     debug = False
+
+    # デフォルトのパラメータ設定
+    setting_default = {
+        "PERIOD_MA_1": 60,
+        "PERIOD_MA_2": 600,
+        "PERIOD_MR": 30,
+        "THRESHOLD_MR": 7.0
+    }
 
     tse = 'https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls'
 
