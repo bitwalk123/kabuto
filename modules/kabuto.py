@@ -6,7 +6,7 @@ import pandas as pd
 from PySide6.QtCore import (
     QThread,
     QTimer,
-    Signal,
+    Signal, Qt,
 )
 from PySide6.QtGui import (
     QCloseEvent,
@@ -33,7 +33,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.0.9"
+    __version__ = "0.1.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -86,6 +86,10 @@ class Kabuto(QMainWindow):
         self.trader: Trader | None = None
         # インスタンスを保持する辞書
         self.dict_trader = dict()
+        # 銘柄コードの全リスト
+        self.list_code = list()
+        # 選択した銘柄コードのリスト
+        self.list_code_selected = list()
 
         # ---------------------------------------------------------------------
         # 取引履歴
@@ -142,8 +146,15 @@ class Kabuto(QMainWindow):
         self.setCentralWidget(sa)
 
         base = Widget()
+        base.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed
+        )
         sa.setWidget(base)
         self.layout = layout = VBoxLayout()
+        layout.setAlignment(
+            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
+        )
         base.setLayout(layout)
 
         # ---------------------------------------------------------------------
@@ -195,11 +206,10 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
+    def create_trader(self, dict_name: dict, dict_lastclose: dict):
         """
         銘柄数分の Trader インスタンスの生成
         （リアルタイム・モード、デバッグ・モード共通）
-        :param list_code:
         :param dict_name:
         :param dict_lastclose:
         :return:
@@ -210,10 +220,10 @@ class Kabuto(QMainWindow):
         self.dict_trader = dict()
 
         # 銘柄数分の Trader および Ticker インスタンスの生成
-        for code in list_code:
+        for code in self.list_code_selected:
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Trader インスタンスの生成
-            # 主にチャート表示用
+            # 主にチャート表示用（選択された銘柄コードのみ）
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             self.trader = trader = Trader(self.res, code)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
@@ -325,10 +335,11 @@ class Kabuto(QMainWindow):
         :param dict_lastclose:
         :return:
         """
+        self.list_code = list_code
         # ---------------------------------------------------------------------
         # 銘柄数分の Trader インスタンスの生成
         # ---------------------------------------------------------------------
-        self.create_trader(list_code, dict_name, dict_lastclose)
+        self.create_trader(dict_name, dict_lastclose)
 
         if self.res.debug:
             # -----------------------------------------------------------------
@@ -425,15 +436,16 @@ class Kabuto(QMainWindow):
         :param dict_total:
         :return:
         """
-        for code in dict_data.keys():
-            x, y, vol = dict_data[code]
-            trader: Trader = self.dict_trader[code]
-            trader.setTradeData(x, y, vol)
+        for code in self.list_code_selected:
+            if code in dict_data.keys():
+                x, y, vol = dict_data[code]
+                trader: Trader = self.dict_trader[code]
+                trader.setTradeData(x, y, vol)
 
-            # 銘柄単位の現在株価および含み益と収益を更新
-            trader.dock.setPrice(y)
-            trader.dock.setProfit(dict_profit[code])
-            trader.dock.setTotal(dict_total[code])
+                # 銘柄単位の現在株価および含み益と収益を更新
+                trader.dock.setPrice(y)
+                trader.dock.setProfit(dict_profit[code])
+                trader.dock.setTotal(dict_total[code])
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（Acquire 用）
@@ -510,12 +522,14 @@ class Kabuto(QMainWindow):
     # デバッグ（レビュー）用メソッド
     #
     ###########################################################################
-    def on_create_thread_review(self, excel_path: str):
+    def on_create_thread_review(self, excel_path: str, list_code_selected: list):
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
         :return:
         """
+        self.list_code_selected = list_code_selected
+
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         self.dict_ts = get_intraday_timestamp(excel_path)
         # ---------------------------------------------------------------------

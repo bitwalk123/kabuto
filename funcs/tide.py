@@ -36,6 +36,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
             year = 1970
             month = 1
             day = 1
+            print("正規表現にマッチしませんでした！")
 
     dt_start = datetime.datetime(year, month, day, hour=9, minute=0)
     dt_end_1h = datetime.datetime(year, month, day, hour=11, minute=30)

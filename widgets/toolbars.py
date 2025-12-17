@@ -4,18 +4,24 @@ import os
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
+    QDialog,
     QFileDialog,
     QStyle,
     QToolBar,
 )
 
-from funcs.ios import load_setting, save_setting
+from funcs.ios import (
+    get_sheets_in_excel,
+    load_setting,
+    save_setting,
+)
+from funcs.tse import get_ticker_name_list
 from structs.app_enum import AppMode
 from structs.res import AppRes
-from widgets.buttons import RadioButton, ButtonGroup
+from widgets.buttons import ButtonGroup, RadioButton
 from widgets.combos import ComboBox
-from widgets.containers import PadH, FrameSunken
-from widgets.dialogs import DlgParam
+from widgets.containers import FrameSunken, PadH
+from widgets.dialogs import DlgCodeSel, DlgParam
 from widgets.labels import LCDTime, Label
 from widgets.layouts import HBoxLayout
 
@@ -25,7 +31,7 @@ class ToolBar(QToolBar):
     clickedPlay = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
-    selectedExcelFile = Signal(str)
+    selectedExcelFile = Signal(str, list)
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -105,17 +111,32 @@ class ToolBar(QToolBar):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_select_excel(self):
-        excel_path, _ = QFileDialog.getOpenFileName(
+        # 読み込むティックデータ（Excel ファイル）
+        path_excel, _ = QFileDialog.getOpenFileName(
             self,
             "Open File",
             self.res.dir_collection,
             "Excel File (*.xlsx)"
         )
-        if excel_path == "":
+        if path_excel == "":
             return
+
+        # 対象の Excel ファイルのシート一覧
+        list_code = get_sheets_in_excel(path_excel)
+        # 銘柄コードに対応する銘柄名の取得
+        dict_ticker = get_ticker_name_list(list_code)
+        # 「銘柄名 (銘柄コード)」の文字列リスト
+        list_ticker = [f"{dict_ticker[code]} ({code})" for code in dict_ticker.keys()]
+        # デフォルトの銘柄コードの要素のインデックス
+        idx_default = list_code.index(self.code_default)
+        # シミュレーション対象の銘柄を選択するダイアログ
+        dlg = DlgCodeSel(list_ticker, idx_default)
+        if dlg.exec() == QDialog.DialogCode.Accepted:
+            list_code_selected = [list_code[r] for r in dlg.getSelected()]
+
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 Excel ファイルが選択されたことの通知
-        self.selectedExcelFile.emit(excel_path)
+        self.selectedExcelFile.emit(path_excel, list_code_selected)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_stop(self):

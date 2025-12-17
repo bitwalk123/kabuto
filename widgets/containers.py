@@ -229,7 +229,7 @@ class ScrollArea(QScrollArea):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setWidgetResizable(True)
-        self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
+        #self.setSizeAdjustPolicy(QAbstractScrollArea.SizeAdjustPolicy.AdjustToContents)
         self.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
     """
     def sizeHint(self):
