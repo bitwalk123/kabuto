@@ -143,7 +143,7 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         sa = ScrollArea()
         sa.setMinimumWidth(res.trend_width)
-        sa.setMinimumHeight(res.trend_height)
+        sa.setMinimumHeight(res.trend_height + 2)
         self.setCentralWidget(sa)
 
         base = Widget()

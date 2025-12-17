@@ -195,8 +195,10 @@ class WorkerAgent(QObject):
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
         if self.done:
-            # 取引終了（念の為）
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 取引終了（念の為）
             self.completedTrading.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         else:
             # ティックデータをデータフレームへ追加
             row = len(self.df_obs)
@@ -215,7 +217,7 @@ class WorkerAgent(QObject):
                 position: PositionType = self.env.getCurrentPosition()
                 if ActionType(action) != ActionType.HOLD:
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    # 売買アクションを通知するシグナル（HOLD の時は通知しない）
+                    # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
                     self.notifyAction.emit(action, position)
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -231,16 +233,22 @@ class WorkerAgent(QObject):
             if terminated:
                 print("terminated フラグが立ちました。")
                 self.done = True
-                # 取引終了
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                # 🧿 取引終了
                 self.completedTrading.emit()
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             elif truncated:
                 print("truncated フラグが立ちました。")
                 self.done = True
-                # 取引終了
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                # 🧿 取引終了
                 self.completedTrading.emit()
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             else:
-                # 次のアクション受け入れ準備完了
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                # 🧿 次のアクション受け入れ準備完了
                 self.readyNext.emit()
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def forceRepay(self):
@@ -253,10 +261,8 @@ class WorkerAgent(QObject):
     @Slot()
     def getParams(self):
         dict_param = self.env.getParams()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # テクニカル指標などのパラメータ取得
         self.sendParams.emit(dict_param)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def postProcs(self):
@@ -278,8 +284,10 @@ class WorkerAgent(QObject):
         for colname in list_colname:
             dict_colname[colname] = []
         self.df_obs = pd.DataFrame(dict_colname)
-
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 環境のリセット環境を通知
         self.completedResetEnv.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot(bool)
     def setAutoPilotStatus(self, state: bool):

@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+from PySide6.QtCore import QMargins
 from PySide6.QtGui import QFont
 from pyqtgraph import DateAxisItem
 
@@ -11,7 +12,7 @@ class CustomYAxisItem(pg.AxisItem):
 
 
 class TrendGraph(pg.PlotWidget):
-    def __init__(self, res:AppRes):
+    def __init__(self, res: AppRes):
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         super().__init__(
@@ -20,6 +21,7 @@ class TrendGraph(pg.PlotWidget):
         )
         # ウィンドウのサイズ制約（高さのみ）
         self.setFixedHeight(res.trend_height)
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         # マウス操作無効化
         self.setMouseEnabled(x=False, y=False)
