@@ -1,3 +1,5 @@
+import logging
+
 import pyqtgraph as pg
 import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
@@ -14,6 +16,7 @@ class CustomYAxisItem(pg.AxisItem):
 
 class TrendGraph(pg.PlotWidget):
     def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
+        self.logger = logging.getLogger(__name__)
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         super().__init__(
@@ -93,4 +96,5 @@ class TrendGraph(pg.PlotWidget):
 
         # Export to PNG file
         exporter.export(path_img)
-        print(f"チャートが {path_img} に保存されました。")
+        self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
+

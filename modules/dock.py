@@ -12,6 +12,7 @@ class DockTrader(DockWidget):
     clickedBuy = Signal(str, float, str)
     clickedSell = Signal(str, float, str)
     clickedRepay = Signal(str, float, str)
+    clickedSave = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__(code)
@@ -45,6 +46,7 @@ class DockTrader(DockWidget):
         # オプションパネル
         # ---------------------------------------------------------------------
         self.option = option = PanelOption(res, code)
+        option.clickedSave.connect(self.on_save)
         self.layout.addWidget(option)
 
     def doBuy(self) -> bool:
@@ -130,6 +132,12 @@ class DockTrader(DockWidget):
         self.clickedSell.emit(
             self.code, self.price.getValue(), note
         )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_save(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 保存ボタンがクリックされたことを通知
+        self.clickedSave.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def setPrice(self, price: float):

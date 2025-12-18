@@ -1,4 +1,5 @@
 import logging
+import os
 
 import pandas as pd
 from PySide6.QtCore import Signal, QThread, Qt
@@ -23,6 +24,7 @@ class Trader(QMainWindow):
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.code = code
+        self.dict_ts = dict_ts
 
         # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
         # self.tz = 9. * 60 * 60
@@ -51,6 +53,7 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
         self.dock.option.changedAutoPilotStatus.connect(self.changedAutoPilotStatus)
+        self.dock.clickedSave.connect(self.on_save)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -144,6 +147,11 @@ class Trader(QMainWindow):
             pass
         else:
             self.logger.error(f"{__name__}: unknown action type {action_enum}!")
+
+    def on_save(self):
+        file_img = f"{self.dict_ts['datetime_str']}_{self.code}_trend.png"
+        path_img = os.path.join(self.res.dir_output, file_img)
+        self.trend.save(path_img)
 
     def on_technicals(self, dict_technicals: dict):
         self.list_ts.append(dict_technicals["ts"])

@@ -1,4 +1,4 @@
-from PySide6.QtCore import QMargins, Signal, Qt
+from PySide6.QtCore import QMargins, Qt, Signal
 from PySide6.QtGui import QPalette
 from PySide6.QtWidgets import (
     QFrame,
@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
     QScrollArea,
     QSizePolicy,
     QTabWidget,
-    QWidget, QAbstractScrollArea,
+    QWidget,
 )
 
 from structs.res import AppRes

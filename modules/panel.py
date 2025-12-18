@@ -4,11 +4,11 @@ from PySide6.QtWidgets import QFrame
 from structs.res import AppRes
 from widgets.buttons import (
     TradeButton,
-    ToggleButtonAutoPilot,
+    ToggleButtonAutoPilot, ButtonSave,
 )
 from widgets.containers import (
     IndicatorBuySell,
-    Widget,
+    Widget, PadH,
 )
 from widgets.layouts import (
     GridLayout,
@@ -97,6 +97,7 @@ class PanelTrading(Widget):
 
 class PanelOption(QFrame):
     changedAutoPilotStatus = Signal(bool)
+    clickedSave = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -110,10 +111,19 @@ class PanelOption(QFrame):
         layout = HBoxLayout()
         self.setLayout(layout)
 
+        # オートパイロット（自動売買）
         self.autopilot = autopilot = ToggleButtonAutoPilot(res)
         autopilot.setChecked(True)  # デフォルトで ON
         autopilot.toggled.connect(self.toggledAutoPilot)
         layout.addWidget(autopilot)
+
+        pad = PadH()
+        layout.addWidget(pad)
+
+        # チャートの保存
+        but_save = ButtonSave(res)
+        but_save.clicked.connect(self.clickedSave.emit)
+        layout.addWidget(but_save)
 
     def isAutoPilotEnabled(self) -> bool:
         return self.autopilot.isChecked()
