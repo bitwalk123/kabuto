@@ -207,7 +207,7 @@ class WorkerAgent(QObject):
             self.df_obs.at[row, "Price"] = price
             self.df_obs.at[row, "Volume"] = volume
             # ティックデータから観測値を取得
-            obs = self.env.getObservation(ts, price, volume)
+            obs, dict_technicals = self.env.getObservation(ts, price, volume)
             # 現在の行動マスクを取得
             masks = self.env.action_masks()
             # モデルによる行動予測
@@ -223,10 +223,9 @@ class WorkerAgent(QObject):
 
             # -----------------------------------------------------------------
             # プロット用テクニカル指標
-            dict_tech = {"ts": ts, "ma_1": float(obs[0]), "ma_2": float(obs[1])}
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 テクニカル指標を通知するシグナル
-            self.sendTechnicals.emit(dict_tech)
+            self.sendTechnicals.emit(dict_technicals)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             # -----------------------------------------------------------------

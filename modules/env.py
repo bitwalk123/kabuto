@@ -100,7 +100,7 @@ class TradingEnv(gym.Env):
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.provider.dict_transaction)
 
-    def getObservation(self, ts: float, price: float, volume: float) -> np.ndarray:
+    def getObservation(self, ts: float, price: float, volume: float) -> tuple[np.ndarray, dict]:
         """
         観測値を取得（リアルタイム用）
         ティックデータから観測値を算出（デバッグ用）
@@ -111,8 +111,8 @@ class TradingEnv(gym.Env):
         """
         self.provider.update(ts, price, volume)
         # 観測値
-        obs = self.obs_man.getObs()
-        return obs
+        obs, dict_technicals = self.obs_man.getObs()
+        return obs, dict_technicals
 
     def getObsList(self) -> list:
         return self.obs_man.getObsList()
@@ -221,7 +221,7 @@ class TrainingEnv(TradingEnv):
         # t, price, volume = self._get_tick()
         self.provider.update(*self._get_tick())
         # モデルへ渡す観測値を取得
-        obs = self.obs_man.getObs()
+        obs, _ = self.obs_man.getObs()
         # step（行位置）をインクリメント
         self.step_current += 1
 

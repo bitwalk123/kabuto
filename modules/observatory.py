@@ -25,19 +25,24 @@ class ObservationManager:
         観測量の数 (self.n_feature) は、評価によって頻繁に変動するので、
         コンストラクタでダミー（空）処理を実行して数を自律的に把握できるようにする。
         """
-        self.n_feature = len(self.getObs())
+        self.n_feature = len(self.getObs()[0])
 
-    def getObs(self) -> np.ndarray:
+    def getObs(self) -> tuple[np.ndarray, dict]:
         # 観測値（特徴量）用リスト
         list_feature = list()
+        # プロット用生データ
+        dict_technicals = dict()
+        dict_technicals["ts"] = self.provider.ts
         # ---------------------------------------------------------------------
         # 0. MA1（移動平均 1）
         ma_1 = self.provider.getMA1()
         list_feature.append(ma_1)
+        dict_technicals["ma_1"] = float(ma_1)
         # ---------------------------------------------------------------------
         # 1. MA2（移動平均 2）
         ma_2 = self.provider.getMA2()
         list_feature.append(ma_2)
+        dict_technicals["ma_2"] = float(ma_2)
         # ---------------------------------------------------------------------
         # 2. MAΔS1（MAΔ の符号反転シグナル）
         signal_mad_sign = self.provider.getMADSignal()
@@ -94,7 +99,7 @@ class ObservationManager:
         list_feature.append(flag_take_profit)
         # =====================================================================
         # 配列にして観測値を返す
-        return np.array(list_feature, dtype=np.float32)
+        return np.array(list_feature, dtype=np.float32), dict_technicals
 
     @staticmethod
     def getObsList() -> list:
@@ -113,5 +118,5 @@ class ObservationManager:
         ]
 
     def getObsReset(self) -> np.ndarray:
-        obs = self.getObs()  # 引数無しで呼んだ場合、ダミーの観測値が返る
+        obs, _ = self.getObs()  # 引数無しで呼んだ場合、ダミーの観測値が返る
         return obs
