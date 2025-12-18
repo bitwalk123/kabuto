@@ -26,7 +26,7 @@ from widgets.dialogs import DlgAboutThis
 from widgets.statusbars import StatusBar
 from widgets.toolbars import ToolBar
 from modules.trader import Trader
-from modules.trans import WinTransaction
+from modules.win_transaction import WinTransaction
 from structs.res import AppRes
 from widgets.containers import ScrollArea, Widget
 from widgets.layouts import VBoxLayout
