@@ -342,13 +342,7 @@ class Prophet(QMainWindow):
             """
             self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             """
-            self.list_tick = ['ticks_20251121.xlsx', 'ticks_20251125.xlsx', 'ticks_20251126.xlsx',
-                              'ticks_20251127.xlsx', 'ticks_20251128.xlsx', 'ticks_20251201.xlsx',
-                              'ticks_20251202.xlsx', 'ticks_20251203.xlsx', 'ticks_20251204.xlsx',
-                              'ticks_20251205.xlsx', 'ticks_20251208.xlsx', 'ticks_20251209.xlsx',
-                              'ticks_20251210.xlsx', 'ticks_20251211.xlsx', 'ticks_20251212.xlsx',
-                              'ticks_20251215.xlsx', 'ticks_20251216.xlsx', 'ticks_20251217.xlsx',
-                              'ticks_20251218.xlsx']
+            self.list_tick = []
             """
 
             self.idx_tick = 0
