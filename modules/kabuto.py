@@ -259,7 +259,7 @@ class Kabuto(QMainWindow):
         n = len(self.list_code_selected)
         if self.res.trend_n_max < n:
             n = self.res.trend_n_max
-        self.area_chart.setFixedHeight(self.res.trend_height * n + 2)
+        self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
 
     def force_closing_position(self):
         self.logger.info(f"{__name__} 売買を強制終了します。")
