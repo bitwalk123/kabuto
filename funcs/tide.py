@@ -55,6 +55,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dict_ts["end"] = dt_end.timestamp()
     # 日付文字列
     dict_ts["datetime_str"] = f"{year:04}{month:02}{day:02}"
+    dict_ts["datetime_str_2"] = f"{year:04}-{month:02}-{day:02}"
 
     return dict_ts
 

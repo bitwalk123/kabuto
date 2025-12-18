@@ -1,4 +1,5 @@
 import pyqtgraph as pg
+import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
 from PySide6.QtGui import QFont
 from pyqtgraph import DateAxisItem
@@ -12,7 +13,7 @@ class CustomYAxisItem(pg.AxisItem):
 
 
 class TrendGraph(pg.PlotWidget):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         super().__init__(
@@ -23,12 +24,28 @@ class TrendGraph(pg.PlotWidget):
         self.setFixedHeight(res.trend_height)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
+        # x軸範囲
+        self.setXRange(dict_ts["start"], dict_ts["end"])
+
+        # フッター（日付と設定パラメータ）
+        msg_footer = (
+            f"DATE = {dict_ts['datetime_str_2']} / "
+            f"PERIOD_MA_1 = {dict_setting['PERIOD_MA_1']} / "
+            f"PERIOD_MA_2 = {dict_setting['PERIOD_MA_2']} / "
+            f"PERIOD_MR = {dict_setting['PERIOD_MR']} / "
+            f"THRESHOLD_MR = {dict_setting['THRESHOLD_MR']}"
+        )
+        self.setLabel(
+            axis="bottom",
+            text=f'<span style="font-family: monospace; font-size: 7pt;">{msg_footer}</span>'
+        )
+
         # マウス操作無効化
         self.setMouseEnabled(x=False, y=False)
         self.hideButtons()
         self.setMenuEnabled(False)
 
-        # フォント設定
+        # 軸のフォント設定
         font_small = QFont()
         font_small.setStyleHint(QFont.StyleHint.Monospace)
         font_small.setPointSize(9)
@@ -37,7 +54,6 @@ class TrendGraph(pg.PlotWidget):
 
         # プロットアイテム
         self.plot_item = plot_item = self.getPlotItem()
-
         # グリッド
         plot_item.showGrid(x=True, y=True, alpha=0.5)
         # 高速化オプション
@@ -60,3 +76,21 @@ class TrendGraph(pg.PlotWidget):
     def setTrendTitle(self, title: str):
         html = f"<span style='font-size: 9pt; font-family: monospace;'>{title}</span>"
         self.setTitle(html)
+
+    def save(self, path_img):
+        """
+        チャートをイメージに保存
+        https://pyqtgraph.readthedocs.io/en/latest/user_guide/exporting.html
+        :param path_img:
+        :return:
+        """
+        # Create an exporter for the widget's scene
+        # Note: For PlotWidget, you use widget.scene() or widget.plotItem
+        exporter = pg.exporters.ImageExporter(self.scene())
+
+        # Optional: Set export parameters like width/height (adjust as needed)
+        # exporter.parameters()['width'] = 1000
+
+        # Export to PNG file
+        exporter.export(path_img)
+        print(f"チャートが {path_img} に保存されました。")

@@ -232,7 +232,7 @@ class Kabuto(QMainWindow):
             # Trader インスタンスの生成
             # 主にチャート表示用（選択された銘柄コードのみ）
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-            self.trader = trader = Trader(self.res, code)
+            self.trader = trader = Trader(self.res, code, self.dict_ts)
             # Dock の売買ボタンのクリック・シグナルを直接ハンドリング
             trader.dock.clickedBuy.connect(self.on_buy)
             trader.dock.clickedRepay.connect(self.on_repay)
@@ -244,8 +244,8 @@ class Kabuto(QMainWindow):
             # 「銘柄名　(code)」をタイトルにして設定し直し
             trader.setChartTitle(f"{dict_name[code]} ({code})")
 
-            # 当日ザラ場時間
-            trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
+            # 当日ザラ場時間（x軸の範囲設定）
+            #trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
 
             # 前日終値
             # if dict_lastclose[code] > 0:

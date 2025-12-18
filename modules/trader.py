@@ -18,7 +18,7 @@ class Trader(QMainWindow):
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
 
-    def __init__(self, res: AppRes, code: str):
+    def __init__(self, res: AppRes, code: str, dict_ts: dict):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -32,9 +32,15 @@ class Trader(QMainWindow):
         self.list_y = list()
         self.list_v = list()
         # テクニカル指標
-        self.list_ts = list() # self.list_x と同一になってしまうかもしれない
+        self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
         self.list_ma_1 = list()
         self.list_ma_2 = list()
+
+        # 銘柄コード別設定ファイルの取得
+        try:
+            dict_setting = load_setting(res, code)
+        except FileNotFoundError:
+            dict_setting = res.setting_default
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -50,7 +56,7 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャートインスタンス (FigureCanvas)
         # ---------------------------------------------------------------------
-        self.trend = trend = TrendGraph(res)
+        self.trend = trend = TrendGraph(res, dict_ts, dict_setting)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -62,12 +68,6 @@ class Trader(QMainWindow):
 
         # AutoPilot フラグ
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
-
-        # 銘柄コード別設定ファイルの取得
-        try:
-            dict_setting = load_setting(res, code)
-        except FileNotFoundError:
-            dict_setting = res.setting_default
 
         # ワーカースレッドの生成
         self.worker = WorkerAgent(flag_autopilot, code, dict_setting)
@@ -155,7 +155,6 @@ class Trader(QMainWindow):
             self.list_ma_1,
             self.list_ma_2
         )
-
 
     def reset_env_completed(self):
         """
