@@ -174,6 +174,7 @@ class WorkerAgent(QObject):
     sendObs = Signal(pd.DataFrame)
     sendParams = Signal(dict)
     sendResults = Signal(dict)
+    sendTechnicals = Signal(dict)
 
     def __init__(self, autopilot: bool, code: str, dict_param: dict):
         super().__init__()
@@ -211,7 +212,6 @@ class WorkerAgent(QObject):
             masks = self.env.action_masks()
             # モデルによる行動予測
             action, _states = self.model.predict(obs, action_masks=masks)
-
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
                 position: PositionType = self.env.getCurrentPosition()
@@ -220,6 +220,14 @@ class WorkerAgent(QObject):
                     # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
                     self.notifyAction.emit(action, position)
                     # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+            # -----------------------------------------------------------------
+            # プロット用テクニカル指標
+            dict_tech = {"ts": ts, "ma_1": float(obs[0]), "ma_2": float(obs[1])}
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 テクニカル指標を通知するシグナル
+            self.sendTechnicals.emit(dict_tech)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             # -----------------------------------------------------------------
             # obs をデータフレームへ追加

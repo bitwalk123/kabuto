@@ -44,10 +44,18 @@ class TrendGraph(pg.PlotWidget):
         plot_item.setClipToView(True)
 
         # 折れ線
-        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.75))
+        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
+        # 移動平均線 1
+        self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#0f0", width=0.75))
+        # 移動平均線 2
+        self.ma_2: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#faf", width=1))
 
-    def setLine(self, x, y):
-        self.line.setData(x, y)
+    def setLine(self, line_x, line_y):
+        self.line.setData(line_x, line_y)
+
+    def setTechnicals(self, line_ts, line_ma_1, line_ma_2):
+        self.ma_1.setData(line_ts, line_ma_1)
+        self.ma_2.setData(line_ts, line_ma_2)
 
     def setTrendTitle(self, title: str):
         html = f"<span style='font-size: 9pt; font-family: monospace;'>{title}</span>"

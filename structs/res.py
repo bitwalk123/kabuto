@@ -9,6 +9,7 @@ class AppRes:
     # トレンドチャートの幅、高さ
     trend_width = 1200
     trend_height = 250
+    trend_n_max = 3 # ビューに表示できるチャートの数
 
     dir_collection = 'collection'
     dir_conf = 'conf'

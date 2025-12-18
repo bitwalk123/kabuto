@@ -34,7 +34,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.0"
+    __version__ = "0.1.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -141,9 +141,7 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # メイン・ウィジェット
         # ---------------------------------------------------------------------
-        sa = ScrollArea()
-        sa.setMinimumWidth(res.trend_width)
-        sa.setMinimumHeight(res.trend_height + 2)
+        self.area_chart = sa = ScrollArea()
         self.setCentralWidget(sa)
 
         base = Widget()
@@ -255,6 +253,13 @@ class Kabuto(QMainWindow):
 
             # 配置
             self.layout.addWidget(trader)
+
+        # チャートエリアの面積を更新
+        self.area_chart.setMinimumWidth(self.res.trend_width)
+        n = len(self.list_code_selected)
+        if self.res.trend_n_max < n:
+            n = self.res.trend_n_max
+        self.area_chart.setFixedHeight(self.res.trend_height * n + 2)
 
     def force_closing_position(self):
         self.logger.info(f"{__name__} 売買を強制終了します。")

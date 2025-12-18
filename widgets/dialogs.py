@@ -78,8 +78,10 @@ class DlgAboutThis(QDialog):
         lab_desc = PlainTextEdit()
         msg = (
             "これはデイトレード用アプリです。\n"
-            "Python の xlwings パッケージを利用して、MARKET SPEED II RSS とやりとりをします。\n"
-            "MARKET SPEED II RSS は、Microsoftの表計算ソフト Excel にアドインして利用できるトレーディングツールです。"
+            "Python の xlwings パッケージを利用して、"
+            "Excel シート (MARKET SPEED II RSS) とやりとりをします。\n"
+            "MARKET SPEED II RSS は、Microsoftの表計算ソフト Excel の"
+            "アドインとして利用できるトレーディングツールです。"
         )
         lab_desc.setPlainText(msg)
         lab_desc.setReadOnly(True)

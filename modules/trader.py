@@ -31,6 +31,10 @@ class Trader(QMainWindow):
         self.list_x = list()
         self.list_y = list()
         self.list_v = list()
+        # テクニカル指標
+        self.list_ts = list() # self.list_x と同一になってしまうかもしれない
+        self.list_ma_1 = list()
+        self.list_ma_2 = list()
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -75,6 +79,7 @@ class Trader(QMainWindow):
         self.sendTradeData.connect(self.worker.addData)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
+        self.worker.sendTechnicals.connect(self.on_technicals)
         self.worker.completedResetEnv.connect(self.reset_env_completed)
         self.worker.notifyAction.connect(self.on_action)
 
@@ -139,6 +144,18 @@ class Trader(QMainWindow):
             pass
         else:
             self.logger.error(f"{__name__}: unknown action type {action_enum}!")
+
+    def on_technicals(self, dict_technicals: dict):
+        self.list_ts.append(dict_technicals["ts"])
+        self.list_ma_1.append(dict_technicals["ma_1"])
+        self.list_ma_2.append(dict_technicals["ma_2"])
+        # テクニカル指標
+        self.trend.setTechnicals(
+            self.list_ts,
+            self.list_ma_1,
+            self.list_ma_2
+        )
+
 
     def reset_env_completed(self):
         """
