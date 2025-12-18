@@ -340,7 +340,6 @@ class Prophet(QMainWindow):
             ■■■ DOE 用 ■■■
             ティックファイル・リスト
             """
-            """
             self.list_tick = self.toolbar.getListTicks(reverse=False)[-1:]
             """
             self.list_tick = ['ticks_20251121.xlsx', 'ticks_20251125.xlsx', 'ticks_20251126.xlsx',
@@ -350,6 +349,7 @@ class Prophet(QMainWindow):
                               'ticks_20251210.xlsx', 'ticks_20251211.xlsx', 'ticks_20251212.xlsx',
                               'ticks_20251215.xlsx', 'ticks_20251216.xlsx', 'ticks_20251217.xlsx',
                               'ticks_20251218.xlsx']
+            """
 
             self.idx_tick = 0
             self.on_start_mode_doe()
