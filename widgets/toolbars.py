@@ -133,11 +133,10 @@ class ToolBar(QToolBar):
         dlg = DlgCodeSel(list_ticker, idx_default)
         if dlg.exec() == QDialog.DialogCode.Accepted:
             list_code_selected = [list_code[r] for r in dlg.getSelected()]
-
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 Excel ファイルが選択されたことの通知
-        self.selectedExcelFile.emit(path_excel, list_code_selected)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 Excel ファイルが選択されたことの通知
+            self.selectedExcelFile.emit(path_excel, list_code_selected)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_stop(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
