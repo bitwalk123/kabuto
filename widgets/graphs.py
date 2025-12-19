@@ -3,10 +3,10 @@ import logging
 import pyqtgraph as pg
 import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
-from PySide6.QtGui import QFont
 from pyqtgraph import DateAxisItem
 
 from structs.res import AppRes
+from widgets.misc import TickFont
 
 
 class CustomYAxisItem(pg.AxisItem):
@@ -23,45 +23,16 @@ class TrendGraph(pg.PlotWidget):
             axisItems={'bottom': axis_bottom, 'left': axis_left},
             enableMenu=False
         )
+        self.dict_ts = dict_ts
+        self.dict_setting = dict_setting
+
         # ウィンドウのサイズ制約（高さのみ）
         self.setFixedHeight(res.trend_height)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         # プロットアイテム
-        self.plot_item = plot_item = self.getPlotItem()
-
-        # x軸範囲
-        plot_item.setXRange(dict_ts["start"], dict_ts["end"])
-
-        # フッター（日付と設定パラメータ）
-        msg_footer = (
-            f"DATE = {dict_ts['datetime_str_2']} / "
-            f"PERIOD_MA_1 = {dict_setting['PERIOD_MA_1']} / "
-            f"PERIOD_MA_2 = {dict_setting['PERIOD_MA_2']} / "
-            f"PERIOD_MR = {dict_setting['PERIOD_MR']} / "
-            f"THRESHOLD_MR = {dict_setting['THRESHOLD_MR']}"
-        )
-        plot_item.setLabel(
-            axis="bottom",
-            text=f'<span style="font-family: monospace; font-size: 7pt;">{msg_footer}</span>'
-        )
-
-        # マウス操作無効化
-        plot_item.setMouseEnabled(x=False, y=False)
-        plot_item.hideButtons()
-        plot_item.setMenuEnabled(False)
-
-        # 軸のフォント設定
-        font_small = QFont()
-        font_small.setStyleHint(QFont.StyleHint.Monospace)
-        font_small.setPointSize(9)
-        plot_item.getAxis('bottom').setStyle(tickFont=font_small)
-        plot_item.getAxis('left').setStyle(tickFont=font_small)
-
-        # グリッド
-        plot_item.showGrid(x=True, y=True, alpha=0.5)
-        # 高速化オプション
-        plot_item.setClipToView(True)
+        self.plot_item = self.getPlotItem()
+        self.config_plot_item()
 
         # 折れ線
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
@@ -69,6 +40,53 @@ class TrendGraph(pg.PlotWidget):
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#0f0", width=0.75))
         # 移動平均線 2
         self.ma_2: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#faf", width=1))
+
+    def config_plot_item(self):
+        """
+        プロットアイテムの設定
+        :param dict_ts:
+        :param dict_setting:
+        :return:
+        """
+        # _____________________________________________________________________
+        # x軸範囲（ザラ場時間に固定）
+        self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
+
+        # _____________________________________________________________________
+        # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
+        msg_footer = (
+            f"DATE = {self.dict_ts['datetime_str_2']} / "
+            f"PERIOD_MA_1 = {self.dict_setting['PERIOD_MA_1']} / "
+            f"PERIOD_MA_2 = {self.dict_setting['PERIOD_MA_2']} / "
+            f"PERIOD_MR = {self.dict_setting['PERIOD_MR']} / "
+            f"THRESHOLD_MR = {self.dict_setting['THRESHOLD_MR']}"
+        )
+        self.plot_item.setLabel(
+            axis="bottom",
+            text=f'<span style="font-family: monospace; font-size: 7pt;">{msg_footer}</span>'
+        )
+        # x軸の余白を設定
+        self.plot_item.getAxis('bottom').setHeight(25)
+
+        # _____________________________________________________________________
+        # 軸のフォント設定
+        font_small = TickFont()
+        self.plot_item.getAxis('bottom').setStyle(tickFont=font_small)
+        self.plot_item.getAxis('left').setStyle(tickFont=font_small)
+
+        # _____________________________________________________________________
+        # グリッド
+        self.plot_item.showGrid(x=True, y=True, alpha=0.5)
+
+        # _____________________________________________________________________
+        # マウス操作無効化
+        self.plot_item.setMouseEnabled(x=False, y=False)
+        self.plot_item.hideButtons()
+        self.plot_item.setMenuEnabled(False)
+
+        # _____________________________________________________________________
+        # 高速化オプション
+        self.plot_item.setClipToView(True)
 
     def setLine(self, line_x, line_y):
         self.line.setData(line_x, line_y)
