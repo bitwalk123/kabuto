@@ -2,7 +2,11 @@ import os
 
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QIcon, QPixmap
-from PySide6.QtWidgets import QDialog, QDialogButtonBox, QVBoxLayout
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QFileDialog,
+)
 
 from structs.res import AppRes
 from widgets.entries import EntryFloat, EntryInt
@@ -14,7 +18,7 @@ from widgets.labels import (
     LabelRight,
     PlainTextEdit,
 )
-from widgets.layouts import GridLayout
+from widgets.layouts import GridLayout, VBoxLayout
 from widgets.listviews import CheckList
 
 
@@ -101,11 +105,11 @@ class DlgAboutThis(QDialog):
 
 
 class DlgCodeSel(QDialog):
-    def __init__(self, list_code: list, row_default: int=0):
+    def __init__(self, list_code: list, row_default: int = 0):
         super().__init__()
         self.setWindowTitle("銘柄コード一覧")
 
-        layout = QVBoxLayout()
+        layout = VBoxLayout()
         self.setLayout(layout)
 
         self.clist = clist = CheckList()
@@ -201,3 +205,11 @@ class DlgParam(QDialog):
         super().showEvent(event)
         # 表示後の最終サイズを固定
         self.setFixedSize(self.size())
+
+
+class DlgTickFileSel(QFileDialog):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setOption(QFileDialog.Option.DontUseNativeDialog)
+        self.setDefaultSuffix("xlsx")
+        self.setDirectory(res.dir_collection)

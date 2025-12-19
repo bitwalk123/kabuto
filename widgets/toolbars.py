@@ -21,7 +21,7 @@ from structs.res import AppRes
 from widgets.buttons import ButtonGroup, RadioButton
 from widgets.combos import ComboBox
 from widgets.containers import FrameSunken, PadH
-from widgets.dialogs import DlgCodeSel, DlgParam
+from widgets.dialogs import DlgCodeSel, DlgParam, DlgTickFileSel
 from widgets.labels import LCDTime, Label
 from widgets.layouts import HBoxLayout
 
@@ -111,14 +111,11 @@ class ToolBar(QToolBar):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_select_excel(self):
-        # 読み込むティックデータ（Excel ファイル）
-        path_excel, _ = QFileDialog.getOpenFileName(
-            self,
-            "Open File",
-            self.res.dir_collection,
-            "Excel File (*.xlsx)"
-        )
-        if path_excel == "":
+        # ティックデータ（Excel ファイル）の選択ダイアログ
+        dlg_file = DlgTickFileSel(self.res)
+        if dlg_file.exec():
+            path_excel = dlg_file.selectedFiles()[0]
+        else:
             return
 
         # 対象の Excel ファイルのシート一覧
@@ -130,9 +127,9 @@ class ToolBar(QToolBar):
         # デフォルトの銘柄コードの要素のインデックス
         idx_default = list_code.index(self.code_default)
         # シミュレーション対象の銘柄を選択するダイアログ
-        dlg = DlgCodeSel(list_ticker, idx_default)
-        if dlg.exec() == QDialog.DialogCode.Accepted:
-            list_code_selected = [list_code[r] for r in dlg.getSelected()]
+        dlg_code = DlgCodeSel(list_ticker, idx_default)
+        if dlg_code.exec() == QDialog.DialogCode.Accepted:
+            list_code_selected = [list_code[r] for r in dlg_code.getSelected()]
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 Excel ファイルが選択されたことの通知
             self.selectedExcelFile.emit(path_excel, list_code_selected)
