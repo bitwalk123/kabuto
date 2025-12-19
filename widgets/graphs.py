@@ -66,7 +66,10 @@ class TrendGraph(pg.PlotWidget):
         )
         self.plot_item.setLabel(
             axis="bottom",
-            text=f'<span style="font-family: monospace; font-size: 7pt;">{msg_footer}</span>'
+            text=(
+                '<span style="font-family: monospace; font-size: 7pt;">'
+                f'{msg_footer}</span>'
+            )
         )
         # x軸の余白を設定
         self.plot_item.getAxis('bottom').setHeight(25)
@@ -96,9 +99,8 @@ class TrendGraph(pg.PlotWidget):
 
     def setTrendTitle(self, title: str):
         html = (
-            "<span style='font-size: 9pt; font-family: monospace;'>"
-            f"{title}"
-            "</span>"
+            '<span style="font-size: 9pt; font-family: monospace;">'
+            f'{title}</span>'
         )
         self.setTitle(html)
 
