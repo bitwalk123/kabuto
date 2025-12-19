@@ -17,24 +17,28 @@ class CustomYAxisItem(pg.AxisItem):
 class TrendGraph(pg.PlotWidget):
     def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
         self.logger = logging.getLogger(__name__)
+        self.dict_ts = dict_ts
+        self.dict_setting = dict_setting
+
+        # ---------------------------------------------------------------------
+        # 軸の設定
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         super().__init__(
             axisItems={'bottom': axis_bottom, 'left': axis_left},
             enableMenu=False
         )
-        self.dict_ts = dict_ts
-        self.dict_setting = dict_setting
-
+        # ---------------------------------------------------------------------
         # ウィンドウのサイズ制約（高さのみ）
         self.setFixedHeight(res.trend_height)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-
+        # ---------------------------------------------------------------------
         # プロットアイテム
         self.plot_item = self.getPlotItem()
         self.config_plot_item()
-
+        # ---------------------------------------------------------------------
         # 折れ線
+        # 株価
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#0f0", width=0.75))
@@ -48,11 +52,10 @@ class TrendGraph(pg.PlotWidget):
         :param dict_setting:
         :return:
         """
-        # _____________________________________________________________________
+        # ---------------------------------------------------------------------
         # x軸範囲（ザラ場時間に固定）
         self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
-
-        # _____________________________________________________________________
+        # ---------------------------------------------------------------------
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         msg_footer = (
             f"DATE = {self.dict_ts['datetime_str_2']} / "
@@ -67,24 +70,20 @@ class TrendGraph(pg.PlotWidget):
         )
         # x軸の余白を設定
         self.plot_item.getAxis('bottom').setHeight(25)
-
-        # _____________________________________________________________________
+        # ---------------------------------------------------------------------
         # 軸のフォント設定
-        font_small = TickFont()
-        self.plot_item.getAxis('bottom').setStyle(tickFont=font_small)
-        self.plot_item.getAxis('left').setStyle(tickFont=font_small)
-
-        # _____________________________________________________________________
+        font_tick = TickFont()
+        self.plot_item.getAxis('bottom').setStyle(tickFont=font_tick)
+        self.plot_item.getAxis('left').setStyle(tickFont=font_tick)
+        # ---------------------------------------------------------------------
         # グリッド
         self.plot_item.showGrid(x=True, y=True, alpha=0.5)
-
-        # _____________________________________________________________________
+        # ---------------------------------------------------------------------
         # マウス操作無効化
         self.plot_item.setMouseEnabled(x=False, y=False)
         self.plot_item.hideButtons()
         self.plot_item.setMenuEnabled(False)
-
-        # _____________________________________________________________________
+        # ---------------------------------------------------------------------
         # 高速化オプション
         self.plot_item.setClipToView(True)
 
@@ -96,10 +95,14 @@ class TrendGraph(pg.PlotWidget):
         self.ma_2.setData(line_ts, line_ma_2)
 
     def setTrendTitle(self, title: str):
-        html = f"<span style='font-size: 9pt; font-family: monospace;'>{title}</span>"
+        html = (
+            "<span style='font-size: 9pt; font-family: monospace;'>"
+            f"{title}"
+            "</span>"
+        )
         self.setTitle(html)
 
-    def save(self, path_img):
+    def save(self, path_img: str):
         """
         チャートをイメージに保存
         https://pyqtgraph.readthedocs.io/en/latest/user_guide/exporting.html
