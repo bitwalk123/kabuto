@@ -27,8 +27,11 @@ class TrendGraph(pg.PlotWidget):
         self.setFixedHeight(res.trend_height)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
+        # プロットアイテム
+        self.plot_item = plot_item = self.getPlotItem()
+
         # x軸範囲
-        self.setXRange(dict_ts["start"], dict_ts["end"])
+        plot_item.setXRange(dict_ts["start"], dict_ts["end"])
 
         # フッター（日付と設定パラメータ）
         msg_footer = (
@@ -38,25 +41,23 @@ class TrendGraph(pg.PlotWidget):
             f"PERIOD_MR = {dict_setting['PERIOD_MR']} / "
             f"THRESHOLD_MR = {dict_setting['THRESHOLD_MR']}"
         )
-        self.setLabel(
+        plot_item.setLabel(
             axis="bottom",
             text=f'<span style="font-family: monospace; font-size: 7pt;">{msg_footer}</span>'
         )
 
         # マウス操作無効化
-        self.setMouseEnabled(x=False, y=False)
-        self.hideButtons()
-        self.setMenuEnabled(False)
+        plot_item.setMouseEnabled(x=False, y=False)
+        plot_item.hideButtons()
+        plot_item.setMenuEnabled(False)
 
         # 軸のフォント設定
         font_small = QFont()
         font_small.setStyleHint(QFont.StyleHint.Monospace)
         font_small.setPointSize(9)
-        self.getAxis('bottom').setStyle(tickFont=font_small)
-        self.getAxis('left').setStyle(tickFont=font_small)
+        plot_item.getAxis('bottom').setStyle(tickFont=font_small)
+        plot_item.getAxis('left').setStyle(tickFont=font_small)
 
-        # プロットアイテム
-        self.plot_item = plot_item = self.getPlotItem()
         # グリッド
         plot_item.showGrid(x=True, y=True, alpha=0.5)
         # 高速化オプション
@@ -97,4 +98,3 @@ class TrendGraph(pg.PlotWidget):
         # Export to PNG file
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
-
