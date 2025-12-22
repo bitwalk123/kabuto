@@ -263,19 +263,27 @@ class WorkerAgent(QObject):
 
     @Slot()
     def getObs(self):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 観測値を通知
         self.sendObs.emit(self.df_obs)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def getParams(self):
         dict_param = self.env.getParams()
-        # テクニカル指標などのパラメータ取得
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 テクニカル指標などのパラメータ取得
         self.sendParams.emit(dict_param)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def postProcs(self):
         dict_result = dict()
         dict_result["transaction"] = self.env.getTransaction()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 売買履歴を通知
         self.sendResults.emit(dict_result)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def resetEnv(self):
@@ -300,3 +308,68 @@ class WorkerAgent(QObject):
     def setAutoPilotStatus(self, state: bool):
         self.autopilot = state
         self.logger.info(f"{__name__}: autopilot is set to {state}.")
+
+
+class CronAgent:
+    def __init__(self, code: str):
+        self.logger = logging.getLogger(__name__)
+        self.code = code
+
+        self.env = None
+        self.model = None
+
+        self.list_obs = list()
+
+    def run(self, dict_param: dict, df: pd.DataFrame) -> tuple[int, float]:
+        # 学習環境の取得
+        self.env = TradingEnv(self.code, dict_param)
+
+        # モデルのインスタンス
+        self.model = AlgoTrade(self.list_obs)
+
+        self.resetEnv()
+        n_row = len(df)
+        for r in range(n_row):
+            ts = df.iloc[r]["Time"]
+            price = df.iloc[r]["Price"]
+            volume = df.iloc[r]["Volume"]
+            if self.addData(ts, price, volume):
+                break
+
+        df_transaction = self.env.getTransaction()
+
+        print(df_transaction)
+        n_trade = len(df_transaction)
+        total = df_transaction['損益'].sum()
+        print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
+
+        return n_trade, total
+
+    def addData(self, ts: float, price: float, volume: float) -> bool:
+        # ティックデータから観測値を取得
+        obs, dict_technicals = self.env.getObservation(ts, price, volume)
+        # 現在の行動マスクを取得
+        masks = self.env.action_masks()
+        # モデルによる行動予測
+        action, _states = self.model.predict(obs, action_masks=masks)
+        reward, terminated, truncated, info = self.env.step(action)
+        if terminated:
+            print("terminated フラグが立ちました。")
+            return True
+        elif truncated:
+            print("truncated フラグが立ちました。")
+            return True
+        else:
+            return False
+
+    def resetEnv(self):
+        # 環境のリセット
+        obs, _ = self.env.reset()
+
+        list_colname = ["Timestamp", "Price", "Volume"]
+        self.list_obs.clear()
+        self.list_obs.extend(self.env.getObsList())
+        list_colname.extend(self.list_obs)
+        dict_colname = dict()
+        for colname in list_colname:
+            dict_colname[colname] = []

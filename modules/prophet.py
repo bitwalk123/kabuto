@@ -69,7 +69,7 @@ class Prophet(QMainWindow):
         # self.name_doe = "doe-3"
         # self.name_doe = "doe-4"
         # self.name_doe = "doe-5"
-        self.name_doe = "doe-6a"
+        self.name_doe = "doe-6b"
         self.row_condition = 0
         self.dict_doe = dict()  # DOE 用
         """
