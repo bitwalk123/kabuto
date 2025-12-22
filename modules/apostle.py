@@ -14,6 +14,7 @@ class Apostle:
 
     def __init__(self):
         self.res = AppRes()
+        self.dict_doe = None
         self.name_doe = "doe-7"
         self.code = code = "7011"
         self.agent = CronAgent(code)
@@ -46,12 +47,6 @@ class Apostle:
                 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200, 1200,
             ],
         })
-        self.dict_doe = {
-            "file": [],
-            "code": [],
-            "trade": [],
-            "total": [],
-        }
 
     def add_condition_result(self, row_condition: int, path_excel: str, n_trade: int, total: float):
         # file
@@ -93,6 +88,7 @@ class Apostle:
             name_dir = os.path.join(self.res.dir_collection, path_excel)
             df = get_excel_sheet(name_dir, self.code)
 
+            self.dict_doe = dict()
             for row_condition in range(len(self.df_matrix)):
                 for key in self.factor_doe:
                     dict_setting[key] = int(self.df_matrix.at[row_condition, key])
