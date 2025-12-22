@@ -89,7 +89,7 @@ class Apostle:
         files = sorted(os.listdir(self.res.dir_collection))
         dict_setting = load_setting(self.res, self.code)
 
-        for path_excel in files[-1:]:
+        for path_excel in files:
             name_dir = os.path.join(self.res.dir_collection, path_excel)
             df = get_excel_sheet(name_dir, self.code)
 
