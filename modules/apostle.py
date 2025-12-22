@@ -13,7 +13,7 @@ class Apostle:
     """
 
     def __init__(self):
-        self.res = res = AppRes()
+        self.res = AppRes()
         self.name_doe = "doe-7"
         self.code = code = "7011"
         self.agent = CronAgent(code)
@@ -86,7 +86,7 @@ class Apostle:
         return path_result
 
     def run(self):
-        files = sorted(os.listdir(self.res.dir_collection))[-1:]
+        files = sorted(os.listdir(self.res.dir_collection))
         dict_setting = load_setting(self.res, self.code)
 
         for path_excel in files[-1:]:
