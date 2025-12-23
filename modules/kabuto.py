@@ -441,9 +441,10 @@ class Kabuto(QMainWindow):
         # 取引明細の保存
         html_trans = f"{self.dict_ts["datetime_str"]}.html"
         path_trans = os.path.join(self.res.dir_transaction, html_trans)
+        # 取引明細を HTML（リスト）へ変換
         list_html = conv_transaction_df2html(df)
         with open(path_trans, mode='w') as f:
-            f.write('\n'.join(list_html))
+            f.write('\n'.join(list_html)) # リストを改行文字で連結
         self.logger.info(f"取引明細を {path_trans} に保存しました。")
 
         # インスタンス変数に取引明細を保持
