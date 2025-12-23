@@ -113,11 +113,9 @@ class TrendGraph(pg.PlotWidget):
         """
         # Create an exporter for the widget's scene
         # Note: For PlotWidget, you use widget.scene() or widget.plotItem
-        #exporter = pg.exporters.ImageExporter(self.scene())
         exporter = pg.exporters.ImageExporter(self.plot_item)
         # Optional: Set export parameters like width/height (adjust as needed)
         # exporter.parameters()['width'] = 1000
-        exporter.parameters()['width'] = 1200
 
         # Export to PNG file
         exporter.export(path_img)
