@@ -13,6 +13,7 @@ class AppRes:
 
     dir_collection = 'collection'
     dir_conf = 'conf'
+    dir_doe = 'doe'
     dir_excel = 'excel'
     dir_font = 'fonts'
     dir_image = 'images'
