@@ -83,4 +83,4 @@ class Apostle:
                 os.makedirs(path_dir)
             # 結果を出力
             df_doe.to_csv(path_result, index=False)
-            print(f"結果を {path_result} へ保存しました。")
+            print(f"結果が {path_result} に保存されました。")

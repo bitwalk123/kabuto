@@ -445,7 +445,7 @@ class Kabuto(QMainWindow):
         list_html = conv_transaction_df2html(df)
         with open(path_trans, mode='w') as f:
             f.write('\n'.join(list_html)) # リストを改行文字で連結
-        self.logger.info(f"{__name__}: 取引明細を {path_trans} に保存しました。")
+        self.logger.info(f"{__name__}: 取引明細が {path_trans} に保存されました。")
 
         # インスタンス変数に取引明細を保持
         self.df_transaction = df
