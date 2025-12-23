@@ -60,24 +60,27 @@ class Apostle:
         files = sorted(os.listdir(self.res.dir_collection))[-1:]
         dict_setting = load_setting(self.res, self.code)
 
-        for path_excel in files:
-            name_dir = os.path.join(self.res.dir_collection, path_excel)
-            df = get_excel_sheet(name_dir, self.code)
+        for excel in files:
+            path_excel = os.path.join(self.res.dir_collection, excel)
+            code = self.code  # シート名からループを回す仕様に変更予定
+            # 指定したシート (= code) を読み込む
+            df = get_excel_sheet(path_excel, code)
 
             self.dict_doe = dict()
             for row_condition in range(len(self.df_matrix)):
                 for key in self.factor_doe:
                     dict_setting[key] = int(self.df_matrix.at[row_condition, key])
                 n_trade, total = self.agent.run(dict_setting, df)
-                self.add_condition_result(row_condition, path_excel, n_trade, total)
+                self.add_condition_result(row_condition, excel, n_trade, total)
 
             df_doe = pd.DataFrame(self.dict_doe)
             print()
             print(df_doe)
-            path_result = self.get_file_output(path_excel)
+            path_result = self.get_file_output(excel)
             # 　ディレクトリが存在していなかったら作成
             path_dir = os.path.dirname(path_result)
             if not os.path.isdir(path_dir):
                 os.makedirs(path_dir)
+            # 結果を出力
             df_doe.to_csv(path_result, index=False)
             print(f"結果を {path_result} へ保存しました。")
