@@ -443,8 +443,8 @@ class Kabuto(QMainWindow):
         path_trans = os.path.join(self.res.dir_transaction, html_trans)
         # 取引明細を HTML（リスト）へ変換
         list_html = conv_transaction_df2html(df)
-        with open(path_trans, mode='w') as f:
-            f.write('\n'.join(list_html)) # リストを改行文字で連結
+        with open(path_trans, mode="w", encoding="utf_8") as f:
+            f.write('\n'.join(list_html))  # リストを改行文字で連結
         self.logger.info(f"{__name__}: 取引明細が {path_trans} に保存されました。")
 
         # インスタンス変数に取引明細を保持
