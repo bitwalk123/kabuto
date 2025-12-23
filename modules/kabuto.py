@@ -439,14 +439,12 @@ class Kabuto(QMainWindow):
         print("合計損益", df["損益"].sum())
 
         # 取引明細の保存
-        path_transaction = os.path.join(
-            self.res.dir_transaction,
-            f"{self.dict_ts["datetime_str"]}.html"
-        )
+        html_trans = f"{self.dict_ts["datetime_str"]}.html"
+        path_trans = os.path.join(self.res.dir_transaction, html_trans)
         list_html = conv_transaction_df2html(df)
-        with open(path_transaction, mode='w') as f:
+        with open(path_trans, mode='w') as f:
             f.write('\n'.join(list_html))
-        self.logger.info(f"取引明細を {path_transaction} に保存しました。")
+        self.logger.info(f"取引明細を {path_trans} に保存しました。")
 
         # インスタンス変数に取引明細を保持
         self.df_transaction = df
