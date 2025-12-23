@@ -117,7 +117,7 @@ class TrendGraph(pg.PlotWidget):
         exporter = pg.exporters.ImageExporter(self.plot_item)
         # Optional: Set export parameters like width/height (adjust as needed)
         # exporter.parameters()['width'] = 1000
-        exporter.parameters()['width'] = 600
+        exporter.parameters()['width'] = 1200
 
         # Export to PNG file
         exporter.export(path_img)
