@@ -15,6 +15,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QMainWindow, QSizePolicy
 
+from funcs.conv import conv_transaction_df2html
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
@@ -34,7 +35,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.2"
+    __version__ = "0.1.3"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -245,7 +246,7 @@ class Kabuto(QMainWindow):
             trader.setChartTitle(f"{dict_name[code]} ({code})")
 
             # 当日ザラ場時間（x軸の範囲設定）
-            #trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
+            # trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
 
             # 前日終値
             # if dict_lastclose[code] > 0:
@@ -433,10 +434,21 @@ class Kabuto(QMainWindow):
         :param df:
         :return:
         """
+        # 取引明細を標準出力
         print(df)
         print("合計損益", df["損益"].sum())
 
-        # インスタンス変数に保存
+        # 取引明細の保存
+        path_transaction = os.path.join(
+            self.res.dir_transaction,
+            f"{self.dict_ts["datetime_str"]}.html"
+        )
+        list_html = conv_transaction_df2html(df)
+        with open(path_transaction, mode='w') as f:
+            f.write('\n'.join(list_html))
+        self.logger.info(f"取引明細を {path_transaction} に保存しました。")
+
+        # インスタンス変数に取引明細を保持
         self.df_transaction = df
 
         # ツールバーの「取引履歴」ボタンを Enabled にする
