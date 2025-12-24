@@ -166,6 +166,9 @@ class Trader(QMainWindow):
             self.list_ma_2
         )
 
+    def on_trading_completed(self):
+        self.logger.info("取引が終了しました。")
+
     def reset_env_completed(self):
         """
         環境をリセット済
