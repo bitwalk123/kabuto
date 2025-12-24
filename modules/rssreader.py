@@ -1,5 +1,6 @@
 # Windows 固有のライブラリ
 import logging
+import os
 import sys
 import time
 
@@ -7,7 +8,10 @@ import pandas as pd
 import xlwings as xw
 from PySide6.QtCore import QObject, Signal
 
+from funcs.ios import save_dataframe_to_excel
+from funcs.tide import get_date_str_today
 from modules.posman import PositionManager
+from structs.res import AppRes
 
 if sys.platform == "win32":
     from pywintypes import com_error
@@ -24,14 +28,17 @@ class RSSReaderWorker(QObject):
     notifyCurrentPrice = Signal(dict, dict, dict)
     # 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
+    # ティックデータ保存の終了を通知
+    saveCompleted = Signal(bool)
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
-    def __init__(self, excel_path: str):
+    def __init__(self, res: AppRes):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.res = res
+        self.excel_path = res.excel_collector
         self._running = True
-        self.excel_path = excel_path
 
         # ---------------------------------------------------------------------
         # xlwings のインスタンス
@@ -53,6 +60,7 @@ class RSSReaderWorker(QObject):
         self.cell_bottom = "------"
         self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
+        self.dict_name = dict()  # 銘柄名
         self.dict_df = dict()  # 銘柄別データフレーム
 
         # Excel の列情報
@@ -89,7 +97,7 @@ class RSSReaderWorker(QObject):
         #
         #######################################################################
 
-        dict_name = dict()  # 銘柄名
+        # dict_name = dict()  # 銘柄名
         dict_lastclose = dict()  # 銘柄別前日終値
 
         row = 1
@@ -106,7 +114,7 @@ class RSSReaderWorker(QObject):
                 self.dict_row[code] = row
 
                 # 銘柄名
-                dict_name[code] = self.sheet[row, self.col_name].value
+                self.dict_name[code] = self.sheet[row, self.col_name].value
 
                 # 前日の終値の横線
                 dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
@@ -124,7 +132,7 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
-            self.list_code, dict_name, dict_lastclose
+            self.list_code, self.dict_name, dict_lastclose
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -140,8 +148,8 @@ class RSSReaderWorker(QObject):
         dict_data = dict()
         dict_profit = dict()
         dict_total = dict()
-        for i, code in enumerate(self.list_code):
-            row = i + 1
+        for code in self.list_code:
+            row_excel = self.dict_row[code]
             # Excel シートから株価情報を取得
             for attempt in range(self.max_retries):
                 ###############################################################
@@ -151,8 +159,8 @@ class RSSReaderWorker(QObject):
                 try:
                     ts = time.time()
                     # Excelシートから株価データを取得
-                    price = self.sheet[row, self.col_price].value
-                    volume = self.sheet[row, self.col_volume].value
+                    price = self.sheet[row_excel, self.col_price].value
+                    volume = self.sheet[row_excel, self.col_volume].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
                         dict_data[code] = [ts, price, volume]
@@ -183,6 +191,46 @@ class RSSReaderWorker(QObject):
         # 🧿 現在時刻と株価を通知
         self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # ティックデータを保持
+        for code in self.list_code:
+            df = self.dict_df[code]
+            row = len(df)
+            ts, price, volume = dict_data[code]
+            df.at[row, "Time"] = ts
+            df.at[row, "Price"] = price
+            df.at[row, "Volume"] = volume
+            # print(code, ticker, ts, price)
+
+    def saveDataFrame(self):
+        # 保存するファイル名
+        date_str = get_date_str_today()
+        name_excel = os.path.join(
+            self.res.dir_collection,
+            f"ticks_{date_str}.xlsx"
+        )
+        # 念のため、空のデータでないか確認して空でなければ保存
+        r = 0
+        for code in self.list_code:
+            df = self.dict_df[code]
+            r += len(df)
+        if r == 0:
+            # すべてのデータフレームの行数が 0 の場合は保存しない。
+            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            flag = False
+        else:
+            # ティックデータの保存処理
+            try:
+                save_dataframe_to_excel(name_excel, self.dict_df)
+                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+                flag = True
+            except ValueError as e:
+                self.logger.error(f"{__name__} error occurred!: {e}")
+                flag = False
+
+        # ----------------------------
+        # 🧿 保存の終了を通知
+        self.saveCompleted.emit(flag)
+        # ----------------------------
 
     def stop(self):
         self._running = False

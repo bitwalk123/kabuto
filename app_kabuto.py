@@ -16,16 +16,6 @@ def gen_parser_for_app_cmdline_options() -> argparse.ArgumentParser:
     # パーサーを作成
     parser = argparse.ArgumentParser(description="アプリケーションの起動")
 
-    # 使用するRSS用Excelファイル（デフォルト: targets.xlsm）
-    # † RSS = Realtime Spread Sheet
-    parser.add_argument(
-        "-xl", "--excel",
-        dest="excel_path",
-        type=str,
-        default="targets.xlsm",
-        help="使用するRSS用Excelファイル（デフォルト: targets.xlsm）"
-    )
-
     # デバッグモード用フラグ
     parser.add_argument(
         "-d", "--debug",
@@ -62,7 +52,7 @@ def main():
     # QApplication は sys.argv を処理するので、そのまま引数を渡すのが一般的。
     app = QApplication(sys.argv)
 
-    win = Kabuto(args.excel_path, debug)
+    win = Kabuto(debug)
     win.show()
     sys.exit(app.exec())
 

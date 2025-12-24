@@ -55,7 +55,7 @@ class Kabuto(QMainWindow):
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal()
 
-    def __init__(self, excel_path: str, debug: bool = True):
+    def __init__(self, debug: bool = True):
         super().__init__()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res = AppRes()
@@ -170,7 +170,7 @@ class Kabuto(QMainWindow):
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
             # RSS用Excelファイルを指定してxlwingsを利用するスレッド
-            self.on_create_thread(excel_path)
+            self.on_create_thread()
 
     def closeEvent(self, event: QCloseEvent):
         """
@@ -294,15 +294,14 @@ class Kabuto(QMainWindow):
             "kabuto.png",
         ).exec()
 
-    def on_create_thread(self, excel_path: str):
+    def on_create_thread(self):
         """
         リアルタイム用ティックデータ取得スレッドの生成
-        :param excel_path:
         :return:
         """
         # ---------------------------------------------------------------------
         # 00. リアルタイム用データ取得インスタンスの生成
-        self.worker = RSSReaderWorker(excel_path)
+        self.worker = RSSReaderWorker(self.res)
         self.worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
         # 01. データ読み込み済みの通知（レビュー用のみ）
@@ -362,6 +361,8 @@ class Kabuto(QMainWindow):
             # -----------------------------------------------------------------
             self.logger.info(f"{__name__}: ready to review!")
         else:
+            for code in list_code:
+                print(code, dict_name[code])
             # -----------------------------------------------------------------
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
