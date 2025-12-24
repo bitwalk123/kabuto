@@ -2,7 +2,8 @@ import os
 
 import pandas as pd
 
-from funcs.ios import load_setting, get_excel_sheet
+from funcs.ios import get_excel_sheet
+from funcs.setting import load_setting
 from modules.agent import CronAgent
 from structs.res import AppRes
 

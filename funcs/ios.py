@@ -80,19 +80,6 @@ def load_excel(excel_path) -> dict:
     return dict_sheet
 
 
-def load_setting(res: AppRes, code: str) -> dict:
-    """
-    銘柄コード指定で設定用 JSON ファイルのロード
-    :param res:
-    :param code:
-    :return:
-    """
-    path_json_setting = os.path.join(res.dir_conf, f"{code}.json")
-    with open(path_json_setting) as f:
-        dict_setting = json.load(f)
-    return dict_setting
-
-
 def save_dataframe_to_excel(name_excel: str, dict_df: dict):
     with pd.ExcelWriter(name_excel) as writer:
         for name_sheet in dict_df.keys():

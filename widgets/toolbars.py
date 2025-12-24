@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QDialog,
@@ -12,9 +12,9 @@ from PySide6.QtWidgets import (
 
 from funcs.ios import (
     get_sheets_in_excel,
-    load_setting,
     save_setting,
 )
+from funcs.setting import get_default_setting, load_setting
 from funcs.tse import get_ticker_name_list
 from structs.app_enum import AppMode
 from structs.res import AppRes
@@ -189,6 +189,7 @@ class ToolBarProphet(QToolBar):
         self.combo_tick = combo_tick = ComboBox()
         combo_tick.setToolTip("ティックデータ一覧")
         combo_tick.addItems(self.getListTicks())
+        combo_tick.currentTextChanged.connect(self.on_file_changed)
         self.addWidget(combo_tick)
 
         self.addSeparator()
@@ -199,7 +200,6 @@ class ToolBarProphet(QToolBar):
 
         self.combo_code = combo_code = ComboBox()
         combo_code.setToolTip("銘柄コード一覧")
-        combo_code.addItems(self.get_list_code())
         self.addWidget(combo_code)
 
         action_setting = QAction(
@@ -252,16 +252,22 @@ class ToolBarProphet(QToolBar):
         action_debug.triggered.connect(self.on_debug)
         self.addAction(action_debug)
 
+        # GUI が確定された後に処理
+        QTimer.singleShot(0, self.on_file_changed)
+
     def get_code(self) -> str:
         return self.combo_code.currentText()
 
-    def get_list_code(self) -> list[str]:
+    def get_list_code(self):
         """
         銘柄コード一覧の取得
         :return:
         """
-        list_code = ["7011", "8306"]
-        return list_code
+        excel = self.combo_tick.currentText()
+        path_excel = os.path.join(self.res.dir_collection, excel)
+        list_code = get_sheets_in_excel(path_excel)
+        self.combo_code.clear()
+        self.combo_code.addItems(list_code)
 
     def getInfo(self) -> dict:
         """
@@ -279,7 +285,7 @@ class ToolBarProphet(QToolBar):
         code = self.get_code()
         dict_info["code"] = code
 
-        # パラメータ
+        # 銘柄コード別設定ファイルの取得
         dict_info["param"] = load_setting(self.res, code)
 
         # 処理モード single/all/doe
@@ -307,8 +313,13 @@ class ToolBarProphet(QToolBar):
     def on_debug(self):
         self.clickedDebug.emit()
 
+    def on_file_changed(self, *args):
+        self.get_list_code()
+
     def on_setting(self):
         code = self.get_code()
+
+        # 銘柄コード別設定ファイルの取得
         dict_setting = load_setting(self.res, code)
         dlg = DlgParam(self.res, code, dict_setting)
         if dlg.exec():

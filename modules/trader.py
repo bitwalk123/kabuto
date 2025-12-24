@@ -10,7 +10,7 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
-from funcs.ios import load_setting
+from funcs.setting import get_default_setting, load_setting
 from modules.dock import DockTrader
 from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType
@@ -43,10 +43,7 @@ class Trader(QMainWindow):
         self.list_ma_2 = list()
 
         # 銘柄コード別設定ファイルの取得
-        try:
-            dict_setting = load_setting(res, code)
-        except FileNotFoundError:
-            dict_setting = res.setting_default
+        dict_setting = load_setting(res, code)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
