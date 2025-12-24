@@ -7,8 +7,8 @@ from PySide6.QtCore import QTimer
 from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import QMainWindow
 
-from modules.collector import StockCollector
 from structs.res import AppRes
+from vein.collector import StockCollector
 from widgets.toolbars import ToolBarVein
 
 

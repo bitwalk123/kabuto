@@ -2,13 +2,17 @@ import logging
 import os
 
 import pandas as pd
-from PySide6.QtCore import Signal, QThread, Qt
+from PySide6.QtCore import (
+    QThread,
+    Qt,
+    Signal,
+)
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
-from funcs.ios import load_setting
+from funcs.setting import load_setting
+from modules.agent import WorkerAgentRT
 from modules.dock import DockTrader
-from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 from widgets.graphs import TrendGraph
@@ -39,10 +43,7 @@ class Trader(QMainWindow):
         self.list_ma_2 = list()
 
         # 銘柄コード別設定ファイルの取得
-        try:
-            dict_setting = load_setting(res, code)
-        except FileNotFoundError:
-            dict_setting = res.setting_default
+        dict_setting = load_setting(res, code)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -73,7 +74,7 @@ class Trader(QMainWindow):
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
 
         # ワーカースレッドの生成
-        self.worker = WorkerAgent(flag_autopilot, code, dict_setting)
+        self.worker = WorkerAgentRT(flag_autopilot, code, dict_setting)
         self.worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
@@ -82,9 +83,10 @@ class Trader(QMainWindow):
         self.sendTradeData.connect(self.worker.addData)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
-        self.worker.sendTechnicals.connect(self.on_technicals)
         self.worker.completedResetEnv.connect(self.reset_env_completed)
+        self.worker.completedTrading.connect(self.on_trading_completed)
         self.worker.notifyAction.connect(self.on_action)
+        self.worker.sendTechnicals.connect(self.on_technicals)
 
         # スレッドの開始
         self.thread.start()
@@ -163,6 +165,9 @@ class Trader(QMainWindow):
             self.list_ma_1,
             self.list_ma_2
         )
+
+    def on_trading_completed(self):
+        self.logger.info("取引が終了しました。")
 
     def reset_env_completed(self):
         """

@@ -48,8 +48,6 @@ class TrendGraph(pg.PlotWidget):
     def config_plot_item(self):
         """
         プロットアイテムの設定
-        :param dict_ts:
-        :param dict_setting:
         :return:
         """
         # ---------------------------------------------------------------------
