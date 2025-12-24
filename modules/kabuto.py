@@ -349,18 +349,20 @@ class Kabuto(QMainWindow):
         :param dict_lastclose:
         :return:
         """
-        self.list_code = list_code
-        # ---------------------------------------------------------------------
-        # 銘柄数分の Trader インスタンスの生成
-        # ---------------------------------------------------------------------
-        self.create_trader(dict_name, dict_lastclose)
-
         if self.res.debug:
+            self.list_code = list_code
+            # -----------------------------------------------------------------
+            # 銘柄数分の Trader インスタンスの生成
+            # -----------------------------------------------------------------
+            self.create_trader(dict_name, dict_lastclose)
             # -----------------------------------------------------------------
             # デバッグの場合はスタート・ボタンがクリックされるまでは待機
             # -----------------------------------------------------------------
             self.logger.info(f"{__name__}: ready to review!")
         else:
+            # 現在のところ銘柄を固定
+            self.list_code = ["7011"]
+            self.create_trader(dict_name, dict_lastclose)
             for code in list_code:
                 print(code, dict_name[code])
             # -----------------------------------------------------------------
