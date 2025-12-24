@@ -21,8 +21,8 @@ class Apostle:
         self.factor_doe = list(self.df_matrix.columns)
         self.dict_doe = None
 
-        # self.code = code = "7011"
-        self.code = code = "8306"
+        self.code = code = "7011"
+        # self.code = code = "8306"
         self.agent = CronAgent(code)
 
     def add_condition_result(self, row_condition: int, path_excel: str, n_trade: int, total: float):
