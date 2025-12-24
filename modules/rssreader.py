@@ -16,7 +16,7 @@ if sys.platform == "win32":
 class RSSReaderWorker(QObject):
     """
     【Windows 専用】
-    楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取る処理をするワーカースレッド
+    楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取るワーカースレッド
     """
     # 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict, dict)
@@ -53,6 +53,7 @@ class RSSReaderWorker(QObject):
         self.cell_bottom = "------"
         self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
+        self.dict_df = dict()  # 銘柄別データフレーム
 
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
@@ -109,6 +110,13 @@ class RSSReaderWorker(QObject):
 
                 # 前日の終値の横線
                 dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
+
+                # 銘柄別に空のデータフレームを準備
+                self.dict_df[code] = pd.DataFrame({
+                    "Time": list(),
+                    "Price": list(),
+                    "Volume": list(),
+                })
 
                 # 行番号のインクリメント
                 row += 1

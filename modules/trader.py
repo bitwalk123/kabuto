@@ -10,9 +10,9 @@ from PySide6.QtCore import (
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
-from funcs.setting import get_default_setting, load_setting
+from funcs.setting import load_setting
+from modules.agent import WorkerAgentRT
 from modules.dock import DockTrader
-from modules.agent import WorkerAgent
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 from widgets.graphs import TrendGraph
@@ -74,7 +74,7 @@ class Trader(QMainWindow):
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
 
         # ワーカースレッドの生成
-        self.worker = WorkerAgent(flag_autopilot, code, dict_setting)
+        self.worker = WorkerAgentRT(flag_autopilot, code, dict_setting)
         self.worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
@@ -83,9 +83,10 @@ class Trader(QMainWindow):
         self.sendTradeData.connect(self.worker.addData)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
-        self.worker.sendTechnicals.connect(self.on_technicals)
         self.worker.completedResetEnv.connect(self.reset_env_completed)
+        self.worker.completedTrading.connect(self.on_trading_completed)
         self.worker.notifyAction.connect(self.on_action)
+        self.worker.sendTechnicals.connect(self.on_technicals)
 
         # スレッドの開始
         self.thread.start()
