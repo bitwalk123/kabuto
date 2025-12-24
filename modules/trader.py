@@ -2,7 +2,11 @@ import logging
 import os
 
 import pandas as pd
-from PySide6.QtCore import Signal, QThread, Qt
+from PySide6.QtCore import (
+    QThread,
+    Qt,
+    Signal,
+)
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 

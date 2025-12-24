@@ -8,7 +8,7 @@ from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_trained_ppo_model_path
 from funcs.tide import get_datetime_str
-from modules.agent import MaskablePPOAgent
+from modules.agent_sb3 import MaskablePPOAgent
 from structs.res import AppRes
 
 if __name__ == "__main__":

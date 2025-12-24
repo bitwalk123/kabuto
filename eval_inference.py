@@ -9,7 +9,7 @@ import pandas as pd
 from funcs.commons import get_collection_path
 from funcs.ios import get_excel_sheet
 from funcs.models import get_ppo_model_path
-from modules.agent import MaskablePPOAgent
+from modules.agent_sb3 import MaskablePPOAgent
 from structs.res import AppRes
 
 FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
