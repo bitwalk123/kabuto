@@ -21,7 +21,7 @@ class Apostle:
         self.factor_doe = list(self.df_matrix.columns)
         self.dict_doe = None
 
-        #self.code = code = "7011"
+        # self.code = code = "7011"
         self.code = code = "8306"
         self.agent = CronAgent(code)
 
@@ -47,23 +47,34 @@ class Apostle:
             value = self.df_matrix.at[row_condition, key]
             self.dict_doe.setdefault(key, []).append(value)
 
-    def get_file_output(self, file_excel) -> str:
+    def get_file_output(self, file_excel: str, code: str) -> str:
         file_body_without_ext = os.path.splitext(os.path.basename(file_excel))[0]
         path_result = os.path.join(
             self.res.dir_output,
             self.name_doe,
-            self.code,
+            code,
             f"{file_body_without_ext}.csv"
         )
         return path_result
 
     def run(self):
-        files = sorted(os.listdir(self.res.dir_collection))[-1:]
+        files = sorted(os.listdir(self.res.dir_collection))
         dict_setting = load_setting(self.res, self.code)
 
         for excel in files:
             path_excel = os.path.join(self.res.dir_collection, excel)
             code = self.code  # シート名からループを回す仕様に変更予定
+
+            # 結果の出力先（予め、結果が存在するかどうかを確認する）
+            path_result = self.get_file_output(excel, code)
+            # 　ディレクトリが存在していなかったら作成
+            path_dir = os.path.dirname(path_result)
+            if not os.path.isdir(path_dir):
+                os.makedirs(path_dir)
+            # ファイルが存在していればスキップ
+            if os.path.exists(path_result):
+                continue
+
             # 指定したシート (= code) を読み込む
             df = get_excel_sheet(path_excel, code)
 
@@ -77,11 +88,6 @@ class Apostle:
             df_doe = pd.DataFrame(self.dict_doe)
             print()
             print(df_doe)
-            path_result = self.get_file_output(excel)
-            # 　ディレクトリが存在していなかったら作成
-            path_dir = os.path.dirname(path_result)
-            if not os.path.isdir(path_dir):
-                os.makedirs(path_dir)
             # 結果を出力
             df_doe.to_csv(path_result, index=False)
             print(f"結果が {path_result} に保存されました。")
