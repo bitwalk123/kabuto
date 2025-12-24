@@ -175,7 +175,10 @@ class CronAgent:
         # モデルのインスタンス
         self.model = AlgoTrade(self.list_obs)
 
+        # 環境のリセット
         self.resetEnv()
+
+        # データフレームの行数分のループ
         n_row = len(df)
         for r in range(n_row):
             ts = df.iloc[r]["Time"]
