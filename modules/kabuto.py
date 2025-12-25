@@ -301,44 +301,50 @@ class Kabuto(QMainWindow):
         """
         # ---------------------------------------------------------------------
         # 00. リアルタイム用データ取得インスタンスの生成
-        self.worker = RSSReaderWorker(self.res)
-        self.worker.moveToThread(self.thread)
+        self.worker = worker = RSSReaderWorker(self.res)
+        worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
         # 01. データ読み込み済みの通知（レビュー用のみ）
-        # （なし）
+        # リアルタイム用には本機能なし
         # =====================================================================
         # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
         # ---------------------------------------------------------------------
         # 03. 初期化処理は主に xlwings 関連処理
-        self.requestWorkerInit.connect(self.worker.initWorker)
+        self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
         # 04. 売買ポジション処理用のメソッドへキューイング
-        self.requestPositionOpen.connect(self.worker.posman.openPosition)
-        self.requestPositionClose.connect(self.worker.posman.closePosition)
+        self.requestPositionOpen.connect(worker.posman.openPosition)
+        self.requestPositionClose.connect(worker.posman.closePosition)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
-        self.requestTransactionResult.connect(self.worker.getTransactionResult)
+        self.requestTransactionResult.connect(worker.getTransactionResult)
         # ---------------------------------------------------------------------
         # 06. 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
+        self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
-        # 07. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
-        self.requestStopProcess.connect(self.worker.stopProcess)
+        # 07. データフレームを保存するメソッドへキューイング
+        self.requestSaveDataFrame.connect(worker.saveDataFrame)
+        # ---------------------------------------------------------------------
+        # 08. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
+        self.requestStopProcess.connect(worker.stopProcess)
         # =====================================================================
-        # 08. 初期化後の銘柄情報を通知
-        self.worker.notifyTickerN.connect(self.on_create_trader)
+        # 10. 初期化後の銘柄情報を通知
+        worker.notifyTickerN.connect(self.on_create_trader)
         # ---------------------------------------------------------------------
-        # 09. タイマーで現在時刻と株価を通知
-        self.worker.notifyCurrentPrice.connect(self.on_update_data)
+        # 11. タイマーで現在時刻と株価を通知
+        worker.notifyCurrentPrice.connect(self.on_update_data)
         # ---------------------------------------------------------------------
-        # 10. 取引結果を通知
-        self.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        # 12. 取引結果を通知
+        worker.notifyTransactionResult.connect(self.on_transaction_result)
         # ---------------------------------------------------------------------
-        # 11. スレッド終了関連
-        self.worker.threadFinished.connect(self.on_thread_finished)
+        # 13. データフレームを保存終了を通知
+        worker.saveCompleted.connect(self.on_save_completed)
+        # ---------------------------------------------------------------------
+        # 19. スレッド終了関連
+        worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
-        # 12. スレッドを開始
+        # 20. スレッドを開始
         self.thread.start()
 
     def on_create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
@@ -398,14 +404,22 @@ class Kabuto(QMainWindow):
             self.timer.stop()
             self.logger.info(f"{__name__}: timer stopped!")
             # ティックデータの保存
-            self.save_regular_tick_data()
+            # self.save_regular_tick_data()
             # 取引結果を取得
             self.requestTransactionResult.emit()
+            # 収集したデータの保存
+            self.requestSaveDataFrame.emit()
         else:
             pass
 
         # ツールバーの時刻を更新
         self.toolbar.updateTime(self.ts_system)
+
+    def on_save_completed(self, state: bool):
+        if state:
+            self.logger.info("ティック・データを正常に保存しました。")
+        else:
+            self.logger.info("ティック・データを正常に保存できませんでした。")
 
     def on_show_transaction(self):
         """
@@ -513,6 +527,7 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # ティックデータの保存処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    '''
     def save_regular_tick_data(self):
         """
         通常データの保存処理（当日日付のついた定型ファイル名）
@@ -552,6 +567,7 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__} tick date is saved to {name_excel}.")
         except ValueError as e:
             self.logger.error(f"{__name__} error occurred!: {e}")
+    '''
 
     ###########################################################################
     #
@@ -570,44 +586,50 @@ class Kabuto(QMainWindow):
         self.dict_ts = get_intraday_timestamp(excel_path)
         # ---------------------------------------------------------------------
         # 00. デバッグ/レビュー用データ取得インスタンスの生成
-        self.worker = ExcelReviewWorker(excel_path)
-        self.worker.moveToThread(self.thread)
+        self.worker = worker = ExcelReviewWorker(excel_path)
+        worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
         # 01. データ読み込み済みの通知（レビュー用のみ）
-        self.worker.notifyDataReady.connect(self.set_data_ready_status)
+        worker.notifyDataReady.connect(self.set_data_ready_status)
         # =====================================================================
         # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
         # ---------------------------------------------------------------------
         # 03. 初期化処理は指定された Excel ファイルの読み込み
-        self.requestWorkerInit.connect(self.worker.initWorker)
+        self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
         # 04. 売買ポジション処理用のメソッドへキューイング
-        self.requestPositionOpen.connect(self.worker.posman.openPosition)
-        self.requestPositionClose.connect(self.worker.posman.closePosition)
+        self.requestPositionOpen.connect(worker.posman.openPosition)
+        self.requestPositionClose.connect(worker.posman.closePosition)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
-        self.requestTransactionResult.connect(self.worker.getTransactionResult)
+        self.requestTransactionResult.connect(worker.getTransactionResult)
         # ---------------------------------------------------------------------
         # 06. 現在株価を取得するメソッドへキューイング。
-        self.requestCurrentPrice.connect(self.worker.readCurrentPrice)
+        self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
-        # 07. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
-        self.requestStopProcess.connect(self.worker.stopProcess)
+        # 07. データフレームを保存するメソッドへキューイング
+        # デバッグ（レビュー）用では本機能なし
+        # ---------------------------------------------------------------------
+        # 08. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
+        self.requestStopProcess.connect(worker.stopProcess)
         # =====================================================================
-        # 08. 初期化後の銘柄情報を通知
-        self.worker.notifyTickerN.connect(self.on_create_trader)
+        # 10. 初期化後の銘柄情報を通知
+        worker.notifyTickerN.connect(self.on_create_trader)
         # ---------------------------------------------------------------------
-        # 09. タイマーで現在時刻と株価を通知
-        self.worker.notifyCurrentPrice.connect(self.on_update_data)
+        # 11. タイマーで現在時刻と株価を通知
+        worker.notifyCurrentPrice.connect(self.on_update_data)
         # ---------------------------------------------------------------------
-        # 10. 取引結果を通知
-        self.worker.notifyTransactionResult.connect(self.on_transaction_result)
+        # 12. 取引結果を通知
+        worker.notifyTransactionResult.connect(self.on_transaction_result)
         # ---------------------------------------------------------------------
-        # 11. スレッド終了関連
-        self.worker.threadFinished.connect(self.on_thread_finished)
+        # 13. データフレームを保存終了を通知
+        # デバッグ（レビュー）用では本機能なし
+        # ---------------------------------------------------------------------
+        # 19. スレッド終了関連
+        worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
-        # 12. スレッドを開始
+        # 20. スレッドを開始
         self.thread.start()
 
     def on_request_data_review(self):
