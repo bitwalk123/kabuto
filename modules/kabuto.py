@@ -466,8 +466,14 @@ class Kabuto(QMainWindow):
         :param dict_total:
         :return:
         """
+        # 受け取った瞬間にコピー
+        # 受け取った辞書はスレッド側で使い回しているため
+        dict_data = dict_data.copy()
+        dict_profit = dict_profit.copy()
+        dict_total = dict_total.copy()
+
         for code in self.list_code_selected:
-            if code in dict_data.keys():
+            if code in dict_data:
                 x, y, vol = dict_data[code]
                 trader: Trader = self.dict_trader[code]
                 trader.setTradeData(x, y, vol)

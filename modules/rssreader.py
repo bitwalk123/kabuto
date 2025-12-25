@@ -54,6 +54,11 @@ class RSSReaderWorker(QObject):
         # COM エラーが発生するため、リトライできるようにしている。
         self.max_retries = 3  # 最大リトライ回数
         self.retry_delay = 0.1  # リトライ間の遅延（秒）
+
+        # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
+        self.dict_data = dict()
+        self.dict_profit = dict()
+        self.dict_total = dict()
         # ---------------------------------------------------------------------
 
         # Excel ワークシート情報
@@ -145,9 +150,9 @@ class RSSReaderWorker(QObject):
         :param ts:
         :return:
         """
-        dict_data = dict()
-        dict_profit = dict()
-        dict_total = dict()
+        self.dict_data.clear()
+        self.dict_profit.clear()
+        self.dict_total.clear()
         for code in self.list_code:
             row_excel = self.dict_row[code]
             # Excel シートから株価情報を取得
@@ -157,15 +162,14 @@ class RSSReaderWorker(QObject):
                 # COM エラーが発生するため、リトライできるようにしている。
                 # -------------------------------------------------------------
                 try:
-                    ts = time.time()
                     # Excelシートから株価データを取得
                     price = self.sheet[row_excel, self.col_price].value
                     volume = self.sheet[row_excel, self.col_volume].value
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
-                        dict_data[code] = [ts, price, volume]
-                        dict_profit[code] = self.posman.getProfit(code, price)
-                        dict_total[code] = self.posman.getTotal(code)
+                        self.dict_data[code] = (ts, price, volume)  # tuple の方が高速で軽い！
+                        self.dict_profit[code] = self.posman.getProfit(code, price)
+                        self.dict_total[code] = self.posman.getTotal(code)
                     break
                 except com_error as e:
                     # ---------------------------------------------------------
@@ -189,19 +193,18 @@ class RSSReaderWorker(QObject):
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
+        self.notifyCurrentPrice.emit(
+            self.dict_data, self.dict_profit, self.dict_total
+        )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータをまとめて保持
         for code in self.list_code:
             df = self.dict_df[code]
             row = len(df)
             # 寄っていない場合はデータが無い銘柄コードがある！
-            if code in dict_data.keys():
-                ts, price, volume = dict_data[code]
-                df.at[row, "Time"] = ts
-                df.at[row, "Price"] = price
-                df.at[row, "Volume"] = volume
-                # print(code, ticker, ts, price)
+            if code in self.dict_data:
+                ts, price, volume = self.dict_data[code]
+                df.loc[row] = [ts, price, volume]
 
     def saveDataFrame(self):
         # 保存するファイル名
