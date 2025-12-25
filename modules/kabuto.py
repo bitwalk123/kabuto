@@ -35,7 +35,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.4"
+    __version__ = "0.1.5"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -96,24 +96,26 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # 取引履歴
         # ---------------------------------------------------------------------
+        # 取引明細用データフレーム
         self.df_transaction = None
+        # 取引明細用ダイアログ・インスタンス
         self.win_transaction: WinTransaction | None = None
 
+        # ---------------------------------------------------------------------
+        # 時刻関連
+        # ---------------------------------------------------------------------
         # システム時刻（タイムスタンプ形式）
         self.ts_system = 0
-
         # ザラ場の開始時間などのタイムスタンプ取得（本日分）
         self.dict_ts = get_intraday_timestamp()
 
+        # ---------------------------------------------------------------------
         # 取引が終了したかどうかのフラグ
         self.finished_trading = False
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # self.setMinimumWidth(1500)
-        # self.setMinimumHeight(400)
-
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
@@ -609,7 +611,7 @@ class Kabuto(QMainWindow):
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
         # 07. データフレームを保存するメソッドへキューイング
-        # デバッグ（レビュー）用では本機能なし
+        # デバッグ/レビュー用では本機能なし
         # ---------------------------------------------------------------------
         # 08. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
         self.requestStopProcess.connect(worker.stopProcess)
@@ -624,7 +626,7 @@ class Kabuto(QMainWindow):
         worker.notifyTransactionResult.connect(self.on_transaction_result)
         # ---------------------------------------------------------------------
         # 13. データフレームを保存終了を通知
-        # デバッグ（レビュー）用では本機能なし
+        # デバッグ/レビュー用では本機能なし
         # ---------------------------------------------------------------------
         # 19. スレッド終了関連
         worker.threadFinished.connect(self.on_thread_finished)
