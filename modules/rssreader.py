@@ -23,7 +23,7 @@ class RSSReaderWorker(QObject):
     楽天証券のマーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取るワーカースレッド
     """
     # 銘柄名（リスト）の通知
-    notifyTickerN = Signal(list, dict, dict)
+    notifyTickerN = Signal(list, dict)
     # ティックデータを通知
     notifyCurrentPrice = Signal(dict, dict, dict)
     # 取引結果のデータフレームを通知
@@ -103,7 +103,7 @@ class RSSReaderWorker(QObject):
         #######################################################################
 
         # dict_name = dict()  # 銘柄名
-        dict_lastclose = dict()  # 銘柄別前日終値
+        # dict_lastclose = dict()  # 銘柄別前日終値
 
         row = 1
         flag_loop = True
@@ -122,7 +122,7 @@ class RSSReaderWorker(QObject):
                 self.dict_name[code] = self.sheet[row, self.col_name].value
 
                 # 前日の終値の横線
-                dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
+                # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
 
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[code] = pd.DataFrame({
@@ -136,9 +136,7 @@ class RSSReaderWorker(QObject):
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
-        self.notifyTickerN.emit(
-            self.list_code, self.dict_name, dict_lastclose
-        )
+        self.notifyTickerN.emit(self.list_code, self.dict_name)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ポジション・マネージャの初期化

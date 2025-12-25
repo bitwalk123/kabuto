@@ -16,7 +16,6 @@ from PySide6.QtGui import (
 from PySide6.QtWidgets import QMainWindow, QSizePolicy
 
 from funcs.conv import conv_transaction_df2html
-from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_intraday_timestamp
 from funcs.uis import clear_boxlayout
 from modules.dock import DockTrader
@@ -216,12 +215,11 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} stopped and closed.")
         event.accept()
 
-    def create_trader(self, dict_name: dict, dict_lastclose: dict):
+    def create_trader(self, dict_name: dict):
         """
         銘柄数分の Trader インスタンスの生成
         （リアルタイム・モード、デバッグ・モード共通）
         :param dict_name:
-        :param dict_lastclose:
         :return:
         """
         # 配置済みの Trader インスタンスを消去
@@ -349,12 +347,11 @@ class Kabuto(QMainWindow):
         # 20. スレッドを開始
         self.thread.start()
 
-    def on_create_trader(self, list_code: list, dict_name: dict, dict_lastclose: dict):
+    def on_create_trader(self, list_code: list, dict_name: dict):
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_code:
         :param dict_name:
-        :param dict_lastclose:
         :return:
         """
         self.list_code = list_code
@@ -362,7 +359,7 @@ class Kabuto(QMainWindow):
             # -----------------------------------------------------------------
             # 銘柄数分の Trader インスタンスの生成
             # -----------------------------------------------------------------
-            self.create_trader(dict_name, dict_lastclose)
+            self.create_trader(dict_name)
             # -----------------------------------------------------------------
             # デバッグの場合はスタート・ボタンがクリックされるまでは待機
             # -----------------------------------------------------------------
@@ -374,7 +371,7 @@ class Kabuto(QMainWindow):
 
             # 現在のところ銘柄を固定
             self.list_code_selected = ["7011"]
-            self.create_trader(dict_name, dict_lastclose)
+            self.create_trader(dict_name)
             # -----------------------------------------------------------------
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
@@ -407,10 +404,13 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__}: timer stopped!")
             # ティックデータの保存
             # self.save_regular_tick_data()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 取引結果を取得
             self.requestTransactionResult.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 収集したデータの保存
             self.requestSaveDataFrame.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         else:
             pass
 
@@ -580,6 +580,7 @@ class Kabuto(QMainWindow):
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
+        :param list_code_selected:
         :return:
         """
         self.list_code_selected = list_code_selected

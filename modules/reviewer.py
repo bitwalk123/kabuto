@@ -13,7 +13,7 @@ class ExcelReviewWorker(QObject):
     Excel 形式の過去データを読み込むスレッドワーカー
     """
     # 銘柄名（リスト）通知シグナル
-    notifyTickerN = Signal(list, dict, dict)
+    notifyTickerN = Signal(list, dict)
 
     # データ読み込み済み
     notifyDataReady = Signal(bool)
@@ -72,15 +72,17 @@ class ExcelReviewWorker(QObject):
         # 銘柄コードから銘柄名を取得
         dict_name = get_ticker_name_list(self.list_code)
 
+        """
         # デバッグ・モードでは、現在のところは前日終値を 0 とする
         dict_lastclose = dict()
         for code in self.list_code:
             dict_lastclose[code] = 0
+        """
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
         self.notifyTickerN.emit(
-            self.list_code, dict_name, dict_lastclose
+            self.list_code, dict_name
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
