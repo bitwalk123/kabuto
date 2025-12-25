@@ -349,8 +349,8 @@ class Kabuto(QMainWindow):
         :param dict_lastclose:
         :return:
         """
+        self.list_code = list_code
         if self.res.debug:
-            self.list_code = list_code
             # -----------------------------------------------------------------
             # 銘柄数分の Trader インスタンスの生成
             # -----------------------------------------------------------------
@@ -360,11 +360,13 @@ class Kabuto(QMainWindow):
             # -----------------------------------------------------------------
             self.logger.info(f"{__name__}: ready to review!")
         else:
-            # 現在のところ銘柄を固定
-            self.list_code = ["7011"]
-            self.create_trader(dict_name, dict_lastclose)
+            # Excel から読み取った銘柄を標準出力（デバッグ用途）
             for code in list_code:
                 print(code, dict_name[code])
+
+            # 現在のところ銘柄を固定
+            self.list_code_selected = ["7011"]
+            self.create_trader(dict_name, dict_lastclose)
             # -----------------------------------------------------------------
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
@@ -464,8 +466,14 @@ class Kabuto(QMainWindow):
         :param dict_total:
         :return:
         """
+        # 受け取った瞬間にコピー
+        # 受け取った辞書はスレッド側で使い回しているため
+        dict_data = dict_data.copy()
+        dict_profit = dict_profit.copy()
+        dict_total = dict_total.copy()
+
         for code in self.list_code_selected:
-            if code in dict_data.keys():
+            if code in dict_data:
                 x, y, vol = dict_data[code]
                 trader: Trader = self.dict_trader[code]
                 trader.setTradeData(x, y, vol)
