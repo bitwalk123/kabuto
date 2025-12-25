@@ -191,15 +191,17 @@ class RSSReaderWorker(QObject):
         # 🧿 現在時刻と株価を通知
         self.notifyCurrentPrice.emit(dict_data, dict_profit, dict_total)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # ティックデータを保持
+        # ティックデータをまとめて保持
         for code in self.list_code:
             df = self.dict_df[code]
             row = len(df)
-            ts, price, volume = dict_data[code]
-            df.at[row, "Time"] = ts
-            df.at[row, "Price"] = price
-            df.at[row, "Volume"] = volume
-            # print(code, ticker, ts, price)
+            # 寄っていない場合はデータが無い銘柄コードがある！
+            if code in dict_data.keys():
+                ts, price, volume = dict_data[code]
+                df.at[row, "Time"] = ts
+                df.at[row, "Price"] = price
+                df.at[row, "Volume"] = volume
+                # print(code, ticker, ts, price)
 
     def saveDataFrame(self):
         # 保存するファイル名
