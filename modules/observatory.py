@@ -82,10 +82,7 @@ class ObservationManager:
         list_feature.append(profit_unrealized_max)
         # ---------------------------------------------------------------------
         # 9. ロスカット・プラグ
-        """
         flag_losscut = self.provider.doesLossCut()
-        """
-        flag_losscut = False
         list_feature.append(flag_losscut)
         # ---------------------------------------------------------------------
         # 10. 利確プラグ

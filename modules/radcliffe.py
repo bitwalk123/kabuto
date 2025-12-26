@@ -15,19 +15,22 @@ class Radcliffe:
     def __init__(self):
         self.res = res = AppRes()
 
-        # プレフックス
-        self.prefix = "por"
+        # 実験名
+        self.doe = doe = "por"
+        # self.doe = doe = "lc_50"
 
         # 対象銘柄
-        # self.code = code = "7011"
+        self.code = code = "7011"
         # self.code = code = "7203"
-        self.code = code = "8306"
+        # self.code = code = "8306"
 
         # 銘柄別の設定を読み込む
         self.dict_setting = load_setting(self.res, code)
 
         self.dir_transaction = dir_transaction = os.path.join(
-            res.dir_transaction, code
+            res.dir_transaction,
+            code,
+            doe,
         )
         os.makedirs(dir_transaction, exist_ok=True)
 
@@ -45,11 +48,10 @@ class Radcliffe:
             df_transaction = self.agent.getTransaction()
             print(df_transaction)
             date_str = get_date_str_from_file(excel)
-            file_transaction = f"{self.prefix}_{date_str}.csv"
+            file_transaction = f"{self.doe}_{date_str}.csv"
             out_transaction = os.path.join(
                 self.dir_transaction,
                 file_transaction
             )
             df_transaction.to_csv(out_transaction, index=False)
             print(f"{out_transaction} に保存しました。")
-

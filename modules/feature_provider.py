@@ -15,17 +15,24 @@ class FeatureProvider:
         print("パラメータ")
         for key in dict_param.keys():
             print(f"{key} : {dict_param[key]}")
+        # ---------------------------------------------------------------------
         # 移動平均差用（定数）
         key = "PERIOD_MA_1"
         self.PERIOD_MA_1 = dict_param.get(key, 60)
         key = "PERIOD_MA_2"
         self.PERIOD_MA_2 = dict_param.get(key, 780)
+        # ---------------------------------------------------------------------
         # 移動範囲用（定数）
         key = "PERIOD_MR"
         self.PERIOD_MR = dict_param.get(key, 30)
         key = "THRESHOLD_MR"
         self.THRESHOLD_MR = dict_param.get(key, 7)
         # self.THRESHOLD_MR = dict_param.get(key, 3.5)  # 8306 の呼び値は 0.5
+        # ---------------------------------------------------------------------
+        # ロスカット・レベル
+        key = "LOSSCUT_1"
+        self.LOSSCUT_1 = dict_param.get(key, -1.0e8)
+        # ---------------------------------------------------------------------
         """
         print(
             "パラメータ",
@@ -35,9 +42,6 @@ class FeatureProvider:
             self.THRESHOLD_MR,
         )
         """
-        # ロスカット
-        self.LOSSCUT_1 = 0
-        self.LOSSCUT_2 = -5
         # ---------------------------------------------------------------------
         # 株価キューの最大値
         self.N_DEQUE_PRICE = self.PERIOD_MA_2
@@ -175,9 +179,7 @@ class FeatureProvider:
 
     def doesLossCut(self) -> int:
         profit = self.get_profit()
-        if -self.LOSSCUT_2 < self.profit_max and profit < self.LOSSCUT_1:
-            return 1
-        elif profit < self.LOSSCUT_2:
+        if profit < self.LOSSCUT_1:
             return 1
         else:
             return 0
