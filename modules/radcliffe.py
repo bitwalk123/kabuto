@@ -19,9 +19,9 @@ class Radcliffe:
         self.prefix = "por"
 
         # 対象銘柄
-        self.code = code = "7011"
+        # self.code = code = "7011"
         # self.code = code = "7203"
-        # self.code = code = "8306"
+        self.code = code = "8306"
 
         # 銘柄別の設定を読み込む
         self.dict_setting = load_setting(self.res, code)
