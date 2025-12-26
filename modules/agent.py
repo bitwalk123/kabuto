@@ -300,9 +300,8 @@ class CronAgent:
             if self.addData(ts, price, volume):
                 break
 
-        df_transaction = self.env.getTransaction()
-
-        print(df_transaction)
+        df_transaction = self.getTransaction()
+        # print(df_transaction)
         n_trade = len(df_transaction)
         total = df_transaction['損益'].sum()
         print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
@@ -325,6 +324,9 @@ class CronAgent:
             return True
         else:
             return False
+
+    def getTransaction(self) -> pd.DataFrame:
+        return self.env.getTransaction()
 
     def resetEnv(self):
         # 環境のリセット
