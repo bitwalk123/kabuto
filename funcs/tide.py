@@ -7,9 +7,28 @@ def conv_datetime_from_timestamp(ts) -> str:
     return f"{dt.year:04}-{dt.month:02}-{dt.day:02} {dt.hour:02}:{dt.minute:02}:{dt.second:02}"
 
 
+def get_date_str_from_file(file: str) -> str:
+    """
+    ファイル名から日付文字列を返す関数
+    :param file:
+    :return:
+    """
+    pattern = re.compile(r".+_(\d{8})\..+")
+    if m := pattern.match(file):
+        return m.group(1)
+    else:
+        return "1970-01-01"
+
+
 def get_date_str_today() -> str:
     dt = datetime.datetime.now()
     return f"{dt.year:04}{dt.month:02}{dt.day:02}"
+
+
+def get_datetime_str() -> str:
+    global datetime_str
+    dt = datetime.datetime.now()
+    return f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
 
 
 def get_intraday_timestamp(excel_path: str = "") -> dict:
@@ -58,9 +77,3 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dict_ts["datetime_str_2"] = f"{year:04}-{month:02}-{day:02}"
 
     return dict_ts
-
-
-def get_datetime_str() -> str:
-    global datetime_str
-    dt = datetime.datetime.now()
-    return f"{dt.year:04d}{dt.month:02d}{dt.day:02d}{dt.hour:02d}{dt.minute:02d}{dt.second:02d}"
