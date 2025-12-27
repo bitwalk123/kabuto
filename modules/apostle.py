@@ -27,9 +27,9 @@ class Apostle:
         self.dict_doe = None
 
         # 対象銘柄
-        self.code = code = "7011"
+        # self.code = code = "7011"
         # self.code = code = "7203"
-        # self.code = code = "8306"
+        self.code = code = "8306"
 
         # GUI 無しエージェントのインスタンス
         self.agent = CronAgent(code)
