@@ -155,7 +155,7 @@ class DlgParam(QDialog):
         lab_param_1 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_1, r, 0)
 
-        value_str = str(dict_setting[param])
+        value_str = str(dict_setting.get(param, 60))
         self.obj_period_ma_1 = ent_param_1 = EntryInt(value_str)
         layout.addWidget(ent_param_1, r, 1)
 
@@ -164,7 +164,7 @@ class DlgParam(QDialog):
         lab_param_2 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_2, r, 0)
 
-        value_str = str(dict_setting[param])
+        value_str = str(dict_setting.get(param, 600))
         self.obj_period_ma_2 = ent_param_2 = EntryInt(value_str)
         layout.addWidget(ent_param_2, r, 1)
 
@@ -173,7 +173,7 @@ class DlgParam(QDialog):
         lab_param_3 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_3, r, 0)
 
-        value_str = str(dict_setting[param])
+        value_str = str(dict_setting.get(param, 30))
         self.obj_period_mr = ent_param_3 = EntryInt(value_str)
         layout.addWidget(ent_param_3, r, 1)
 
@@ -182,9 +182,18 @@ class DlgParam(QDialog):
         lab_param_4 = LabelRaisedLeft(param)
         layout.addWidget(lab_param_4, r, 0)
 
-        value_str = str(dict_setting[param])
+        value_str = str(dict_setting.get(param, 7))
         self.obj_threshold_mr = ent_param_4 = EntryFloat(value_str)
         layout.addWidget(ent_param_4, r, 1)
+
+        r += 1
+        param = "LOSSCUT_1"
+        lab_param_5 = LabelRaisedLeft(param)
+        layout.addWidget(lab_param_5, r, 0)
+
+        value_str = str(dict_setting.get(param, -1.0e8))
+        self.obj_losscut_1 = ent_param_5 = EntryFloat(value_str)
+        layout.addWidget(ent_param_5, r, 1)
 
         r += 1
         bbox = QDialogButtonBox()
@@ -199,6 +208,7 @@ class DlgParam(QDialog):
         dict_param["PERIOD_MA_2"] = self.obj_period_ma_2.getValue()
         dict_param["PERIOD_MR"] = self.obj_period_mr.getValue()
         dict_param["THRESHOLD_MR"] = self.obj_threshold_mr.getValue()
+        dict_param["LOSSCUT_1"] = self.obj_losscut_1.getValue()
         return dict_param
 
     def showEvent(self, event):

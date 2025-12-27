@@ -10,7 +10,8 @@ def get_default_setting() -> dict:
         "PERIOD_MA_1": 60,
         "PERIOD_MA_2": 600,
         "PERIOD_MR": 30,
-        "THRESHOLD_MR": 7.0
+        "THRESHOLD_MR": 7.0,
+        "LOSSCUT_1": -1.0e8,
     }
 
 
