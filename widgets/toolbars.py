@@ -40,8 +40,6 @@ class ToolBar(QToolBar):
         super().__init__()
         self.res = res
 
-        self.code_default = "7011"  # デフォルトの銘柄コード
-
         # デバッグ（レビュー）モード時のみ
         if res.debug:
             # Excel ファイルを開く
@@ -128,11 +126,11 @@ class ToolBar(QToolBar):
         # 対象の Excel ファイルのシート一覧
         list_code = get_sheets_in_excel(path_excel)
         # 銘柄コードに対応する銘柄名の取得
-        dict_ticker = get_ticker_name_list(list_code)
+        dict_name = get_ticker_name_list(list_code)
         # 「銘柄名 (銘柄コード)」の文字列リスト
-        list_ticker = [f"{dict_ticker[code]} ({code})" for code in dict_ticker.keys()]
+        list_ticker = [f"{dict_name[code]} ({code})" for code in dict_name.keys()]
         # デフォルトの銘柄コードの要素のインデックス
-        idx_default = list_code.index(self.code_default)
+        idx_default = list_code.index(self.res.code_default)
         # シミュレーション対象の銘柄を選択するダイアログ
         dlg_code = DlgCodeSel(self.res, list_ticker, idx_default)
         if dlg_code.exec() == QDialog.DialogCode.Accepted:
