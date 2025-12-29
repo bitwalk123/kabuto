@@ -1,7 +1,7 @@
 from collections import deque
 
-import numpy as np
 import pandas as pd
+from scipy.stats import iqr
 
 
 def calc_vwap(df: pd.DataFrame):
@@ -121,10 +121,80 @@ class EMA:
 class MovingRange:
     def __init__(self, window_size: int):
         self.window_size = window_size
-        self.que_data = deque(maxlen=window_size)
+        self.queue_data = deque(maxlen=window_size)
 
     def update(self, value: float) -> float:
         # 新しい値を追加
-        self.que_data.append(value)
+        self.queue_data.append(value)
         # 移動範囲 (max - min) を返す
-        return max(self.que_data) - min(self.que_data)
+        return max(self.queue_data) - min(self.queue_data)
+
+
+class PriceChangeBinary:
+    def __init__(self, window_size: int):
+        """
+        window_size: 直近何個の価格変化イベントを保持するか
+        """
+        self.window_size = window_size
+        self.events = deque(maxlen=window_size)
+        self.last_price = None
+
+    def update(self, price):
+        if self.last_price is None:
+            self.last_price = price
+            return 0
+
+        # diff = 0 → 0、diff != 0 → 1
+        event = 1 if price != self.last_price else 0
+        self.events.append(event)
+
+        self.last_price = price
+
+        # ボラティリティ = 直近 window_size 個の変化イベント数
+        return sum(self.events)
+
+
+class PriceChangeMedian:
+    def __init__(self, window_size: int):
+        """
+        window_size: 直近何個の価格変化イベントを保持するか
+        """
+        self.window_size = window_size
+        self.events = deque(maxlen=window_size)
+        self.last_price = None
+
+    def update(self, price):
+        if self.last_price is None:
+            self.last_price = price
+            return 0
+
+        event = abs(price - self.last_price)
+        self.events.append(event)
+
+        self.last_price = price
+
+        return iqr(self.events)
+
+
+class PriceChangeClipped:
+    def __init__(self, window_size=30, clip=1.0):
+        """
+        window_size: 直近何個の価格変化イベントを保持するか
+        clip: 1 回の変化量の最大値（スパイク抑制）
+        """
+        self.window_size = window_size
+        self.clip = clip
+        self.events = deque(maxlen=window_size)
+        self.last_price = None
+
+    def update(self, price):
+        if self.last_price is None:
+            self.last_price = price
+            return 0
+
+        diff = abs(price - self.last_price)
+        clipped = min(diff, self.clip)
+        self.events.append(clipped)
+
+        self.last_price = price
+        return sum(self.events)
