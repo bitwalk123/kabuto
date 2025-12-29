@@ -27,6 +27,9 @@ from widgets.layouts import HBoxLayout
 
 
 class ToolBar(QToolBar):
+    """
+    Kabuto 本体のツールバー
+    """
     clickedAbout = Signal()
     clickedPlay = Signal()
     clickedStop = Signal()
@@ -111,6 +114,10 @@ class ToolBar(QToolBar):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_select_excel(self):
+        """
+        ティックデータを保持した Excel ファイルの選択
+        :return:
+        """
         # ティックデータ（Excel ファイル）の選択ダイアログ
         dlg_file = DlgTickFileSel(self.res)
         if dlg_file.exec():

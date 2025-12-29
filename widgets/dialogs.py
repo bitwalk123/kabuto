@@ -220,6 +220,7 @@ class DlgParam(QDialog):
 class DlgTickFileSel(QFileDialog):
     def __init__(self, res: AppRes):
         super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "excel.png")))
         self.setOption(QFileDialog.Option.DontUseNativeDialog)
         self.setDefaultSuffix("xlsx")
         self.setDirectory(res.dir_collection)
