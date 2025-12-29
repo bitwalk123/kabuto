@@ -27,15 +27,15 @@ class Apostle:
         self.dict_doe = None
 
         # 対象銘柄
-        self.code = code = "7011"
-        # self.code = code = "7203"
-        # self.code = code = "8306"
+        self.list_code = ["7011", "8306"]
 
         # GUI 無しエージェントのインスタンス
-        self.agent = CronAgent(code)
+        self.agent = None
+        # self.agent = CronAgent(code)
 
     def add_condition_result(
             self,
+            code: str,
             row_condition: int,
             path_excel: str,
             n_trade: int,
@@ -47,7 +47,7 @@ class Apostle:
         self.dict_doe.setdefault(key, []).append(value)
         # code
         key = "code"
-        value = self.code
+        value = code
         self.dict_doe.setdefault(key, []).append(value)
         # trade
         key = "trade"
@@ -100,7 +100,7 @@ class Apostle:
             for key in self.factor_doe:
                 dict_setting[key] = int(self.df_matrix.at[row_condition, key])
             n_trade, total = self.agent.run(dict_setting, df)
-            self.add_condition_result(row_condition, path_excel, n_trade, total)
+            self.add_condition_result(code, row_condition, path_excel, n_trade, total)
 
         df_doe = pd.DataFrame(self.dict_doe)
         print()
@@ -116,5 +116,6 @@ class Apostle:
         for excel in files:
             path_excel = os.path.join(self.res.dir_collection, excel)
 
-            for code in [self.code]:  # シート名からループを回す仕様に変更予定
+            for code in self.list_code:  # シート名からループを回す仕様に変更予定
+                self.agent = CronAgent(code)
                 self.main_loop(path_excel, code)
