@@ -11,6 +11,8 @@ class AppRes:
     trend_height = 250
     trend_n_max = 3 # ビューに表示できるチャートの数
 
+    code_default = "7011"  # デフォルトの銘柄コード
+
     dir_collection = 'collection'
     dir_conf = 'conf'
     dir_doe = 'doe'

@@ -60,7 +60,8 @@ class TrendGraph(pg.PlotWidget):
             f"PERIOD_MA_1 = {self.dict_setting['PERIOD_MA_1']} / "
             f"PERIOD_MA_2 = {self.dict_setting['PERIOD_MA_2']} / "
             f"PERIOD_MR = {self.dict_setting['PERIOD_MR']} / "
-            f"THRESHOLD_MR = {self.dict_setting['THRESHOLD_MR']}"
+            f"THRESHOLD_MR = {self.dict_setting['THRESHOLD_MR']} / "
+            f"LOSSCUT_1 = {self.dict_setting['LOSSCUT_1']}"
         )
         self.plot_item.setLabel(
             axis="bottom",
