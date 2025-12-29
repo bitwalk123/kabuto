@@ -13,16 +13,17 @@ from PySide6.QtGui import (
     QCloseEvent,
     QIcon,
 )
-from PySide6.QtWidgets import QMainWindow, QSizePolicy
+from PySide6.QtWidgets import QMainWindow, QSizePolicy, QDialog
 
 from funcs.conv import conv_transaction_df2html
 from funcs.tide import get_intraday_timestamp
+from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.dock import DockTrader
 from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
-from widgets.dialogs import DlgAboutThis
+from widgets.dialogs import DlgAboutThis, DlgCodeSel
 from widgets.statusbars import StatusBar
 from widgets.toolbars import ToolBar
 from modules.trader import Trader
@@ -34,7 +35,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.5"
+    __version__ = "0.1.6"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -366,17 +367,27 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__}: ready to review!")
         else:
             # Excel から読み取った銘柄を標準出力（デバッグ用途）
+            self.logger.info(f"{__name__}: ティックデータ収集銘柄一覧")
             for code in list_code:
-                print(code, dict_name[code])
+                self.logger.info(f"{__name__}: {code}, {dict_name[code]}")
 
-            # 現在のところ銘柄を固定
-            self.list_code_selected = ["7011"]
-            self.create_trader(dict_name)
-            # -----------------------------------------------------------------
-            # リアルタイムの場合はここでタイマーを開始
-            # -----------------------------------------------------------------
-            self.timer.start()
-            self.logger.info(f"{__name__}: timer started!")
+            # 銘柄コードに対応する銘柄名の取得
+            dict_name = get_ticker_name_list(list_code)
+            # 「銘柄名 (銘柄コード)」の文字列リスト
+            list_ticker = [f"{dict_name[code]} ({code})" for code in dict_name.keys()]
+            # デフォルトの銘柄コードの要素のインデックス
+            idx_default = list_code.index(self.res.code_default)
+            # シミュレーション対象の銘柄を選択するダイアログ
+            dlg_code = DlgCodeSel(self.res, list_ticker, idx_default)
+            if dlg_code.exec() == QDialog.DialogCode.Accepted:
+                # 選択された銘柄のみデータ収集＋自動売買する。他はデータ収集のみ
+                self.list_code_selected = [list_code[r] for r in dlg_code.getSelected()]
+                self.create_trader(dict_name)
+                # -----------------------------------------------------------------
+                # リアルタイムの場合はここでタイマーを開始
+                # -----------------------------------------------------------------
+                self.timer.start()
+                self.logger.info(f"{__name__}: timer started!")
 
     def on_request_data(self):
         """

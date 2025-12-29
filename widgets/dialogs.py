@@ -105,8 +105,9 @@ class DlgAboutThis(QDialog):
 
 
 class DlgCodeSel(QDialog):
-    def __init__(self, list_code: list, row_default: int = 0):
+    def __init__(self,res, list_code: list, row_default: int = 0):
         super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "check.png")))
         self.setWindowTitle("銘柄コード一覧")
 
         layout = VBoxLayout()
@@ -220,6 +221,7 @@ class DlgParam(QDialog):
 class DlgTickFileSel(QFileDialog):
     def __init__(self, res: AppRes):
         super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "excel.png")))
         self.setOption(QFileDialog.Option.DontUseNativeDialog)
         self.setDefaultSuffix("xlsx")
         self.setDirectory(res.dir_collection)
