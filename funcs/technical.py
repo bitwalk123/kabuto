@@ -176,25 +176,32 @@ class PriceChangeMedian:
         return iqr(self.events)
 
 
-class PriceChangeClipped:
-    def __init__(self, window_size=30, clip=1.0):
+class CappedPriceMovement:
+    def __init__(self, window_size: int = 30, clip: float = 1.0):
         """
         window_size: 直近何個の価格変化イベントを保持するか
         clip: 1 回の変化量の最大値（スパイク抑制）
         """
         self.window_size = window_size
         self.clip = clip
-        self.events = deque(maxlen=window_size)
+        self.events = deque()
+        self.sum_events = 0.0
         self.last_price = None
 
-    def update(self, price):
+    def update(self, price) -> float:
         if self.last_price is None:
             self.last_price = price
-            return 0
+            return 0.0
 
         diff = abs(price - self.last_price)
         clipped = min(diff, self.clip)
-        self.events.append(clipped)
 
+        self.events.append(clipped)
+        self.sum_events += clipped
         self.last_price = price
-        return sum(self.events)
+
+        if len(self.events) > self.window_size:
+            removed = self.events.popleft()
+            self.sum_events -= removed
+
+        return self.sum_events
