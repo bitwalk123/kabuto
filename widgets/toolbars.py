@@ -134,7 +134,7 @@ class ToolBar(QToolBar):
         # デフォルトの銘柄コードの要素のインデックス
         idx_default = list_code.index(self.code_default)
         # シミュレーション対象の銘柄を選択するダイアログ
-        dlg_code = DlgCodeSel(list_ticker, idx_default)
+        dlg_code = DlgCodeSel(self.res, list_ticker, idx_default)
         if dlg_code.exec() == QDialog.DialogCode.Accepted:
             list_code_selected = [list_code[r] for r in dlg_code.getSelected()]
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
