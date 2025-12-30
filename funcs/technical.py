@@ -190,13 +190,11 @@ class PriceChangeMedian:
 
 
 class CappedPriceMovement:
-    def __init__(self, window_size: int = 30, clip: float = 1.0):
+    def __init__(self, window_size: int = 30):
         """
         window_size: 直近何個の価格変化イベントを保持するか
-        clip: 1 回の変化量の最大値（スパイク抑制）
         """
         self.window_size = window_size
-        self.clip = clip
         self.events = deque()
         self.sum_events = 0.0
         self.last_price = None
