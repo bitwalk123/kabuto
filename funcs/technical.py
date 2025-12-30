@@ -118,6 +118,19 @@ class EMA:
         return self.ema
 
 
+class MovingAverage:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue_data = deque(maxlen=window_size)
+
+    def update(self, value: float) -> float:
+        # 新しい値を追加
+        self.queue_data.append(value)
+
+        # 移動平均を返す
+        return sum(self.queue_data) / len(self.queue_data)
+
+
 class MovingRange:
     def __init__(self, window_size: int):
         self.window_size = window_size
