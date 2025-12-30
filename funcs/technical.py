@@ -193,15 +193,14 @@ class CappedPriceMovement:
             self.last_price = price
             return 0.0
 
-        diff = abs(price - self.last_price)
-        clipped = min(diff, self.clip)
+        diff = price - self.last_price
 
-        self.events.append(clipped)
-        self.sum_events += clipped
+        self.events.append(diff)
+        self.sum_events += diff
         self.last_price = price
 
         if len(self.events) > self.window_size:
             removed = self.events.popleft()
             self.sum_events -= removed
 
-        return self.sum_events
+        return abs(self.sum_events)
