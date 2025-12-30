@@ -15,6 +15,17 @@ def get_default_setting() -> dict:
     }
 
 
+def get_trend_footer(dict_ts: dict, dict_setting: dict) -> str:
+    return (
+        f"DATE = {dict_ts['datetime_str_2']} / "
+        f"PERIOD_MA_1 = {dict_setting['PERIOD_MA_1']} / "
+        f"PERIOD_MA_2 = {dict_setting['PERIOD_MA_2']} / "
+        f"PERIOD_MR = {dict_setting['PERIOD_MR']} / "
+        f"THRESHOLD_MR = {dict_setting['THRESHOLD_MR']} / "
+        f"LOSSCUT_1 = {dict_setting['LOSSCUT_1']}"
+    )
+
+
 def load_setting(res: AppRes, code: str) -> dict:
     """
     銘柄コード指定で設定用 JSON ファイルのロード
@@ -29,4 +40,3 @@ def load_setting(res: AppRes, code: str) -> dict:
         return dict_setting
     else:
         return get_default_setting()
-

@@ -61,3 +61,5 @@ def get_sources_for_collection(dir_path: str) -> list:
     """
     list_excel = glob.glob(os.path.join(dir_path, "ticks_*.xlsx"))
     return sorted(list_excel)
+
+

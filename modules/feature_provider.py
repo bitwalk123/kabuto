@@ -33,16 +33,6 @@ class FeatureProvider:
         key = "LOSSCUT_1"
         self.LOSSCUT_1 = dict_param.get(key, -1.0e8)
         # ---------------------------------------------------------------------
-        """
-        print(
-            "パラメータ",
-            self.PERIOD_MA_1,
-            self.PERIOD_MA_2,
-            self.PERIOD_MR,
-            self.THRESHOLD_MR,
-        )
-        """
-        # ---------------------------------------------------------------------
         # 株価キューの最大値
         self.N_DEQUE_PRICE = self.PERIOD_MA_2
         # 最大取引回数（買建、売建）
