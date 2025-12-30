@@ -57,11 +57,11 @@ class TrendGraph(pg.PlotWidget):
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         msg_footer = (
             f"DATE = {self.dict_ts['datetime_str_2']} / "
-            f"PERIOD_MA_1 = {self.dict_setting['PERIOD_MA_1']} / "
-            f"PERIOD_MA_2 = {self.dict_setting['PERIOD_MA_2']} / "
-            f"PERIOD_MR = {self.dict_setting['PERIOD_MR']} / "
-            f"THRESHOLD_MR = {self.dict_setting['THRESHOLD_MR']} / "
-            f"LOSSCUT_1 = {self.dict_setting['LOSSCUT_1']}"
+            f"PERIOD_MA_1 = {self.dict_setting.get('PERIOD_MA_1', 60)} / "
+            f"PERIOD_MA_2 = {self.dict_setting.get('PERIOD_MA_2', 600)} / "
+            f"PERIOD_MR = {self.dict_setting.get('PERIOD_MR', 30)} / "
+            f"THRESHOLD_MR = {self.dict_setting.get('THRESHOLD_MR', 7)} / "
+            f"LOSSCUT_1 = {self.dict_setting.get('LOSSCUT_1', -1.0e8)}"
         )
         self.plot_item.setLabel(
             axis="bottom",
