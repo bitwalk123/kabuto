@@ -35,7 +35,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.1.8"
+    __version__ = "0.2.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -64,12 +64,12 @@ class Kabuto(QMainWindow):
         # NORMAL / DEBUG モード固有の設定
         if debug:
             # DEBUG モード
-            self.logger.info(f"{__name__}: executed as DEBUG mode!")
+            self.logger.info(f"{__name__}: デバッグモードで起動しました。")
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
             self.flag_data_ready = False
         else:
             # NORMAL モード
-            self.logger.info(f"{__name__}: executed as NORMAL mode!")
+            self.logger.info(f"{__name__}: 通常モードで起動しました。")
             self.timer_interval = 1000  # タイマー間隔（ミリ秒）
         #
         #######################################################################
@@ -173,7 +173,7 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: timer stopped.")
+            self.logger.info(f"{__name__}: タイマーを停止しました。")
         # ---------------------------------------------------------------------
         # self.thread スレッドの削除
         # ---------------------------------------------------------------------
@@ -185,20 +185,20 @@ class Kabuto(QMainWindow):
             if self.thread is not None:
                 self.thread.quit()
                 self.thread.wait()
-                self.logger.info(f"{__name__}: deleted self.thread.")
+                self.logger.info(f"{__name__}: スレッド self.thread を削除しました。")
 
             if self.worker is not None:
                 self.worker.deleteLater()
                 self.worker = None
-                self.logger.info(f"{__name__}: deleted self.worker.")
+                self.logger.info(f"{__name__}: ワーカー self.worker を削除しました。")
 
             if self.thread is not None:
                 self.thread.deleteLater()
                 self.thread = None
         except RuntimeError as e:
-            self.logger.error(f"{__name__}: error at termination: {e}")
+            self.logger.error(f"{__name__}: 終了時にエラー発生: {e}")
         # ---------------------------------------------------------------------
-        self.logger.info(f"{__name__} stopped and closed.")
+        self.logger.info(f"{__name__} 停止して閉じました。")
         event.accept()
 
     def create_trader(self, dict_name: dict):
@@ -346,7 +346,7 @@ class Kabuto(QMainWindow):
             # -----------------------------------------------------------------
             # デバッグの場合はスタート・ボタンがクリックされるまでは待機
             # -----------------------------------------------------------------
-            self.logger.info(f"{__name__}: ready to review!")
+            self.logger.info(f"{__name__}: レビューの準備ができました。")
             return
 
         # ---------------------------------------------------------------------
@@ -380,7 +380,7 @@ class Kabuto(QMainWindow):
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
             self.timer.start()
-            self.logger.info(f"{__name__}: timer started!")
+            self.logger.info(f"{__name__}: タイマーを開始しました。。")
 
     def on_request_data(self):
         """
@@ -405,7 +405,7 @@ class Kabuto(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["ca"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"{__name__}: timer stopped!")
+            self.logger.info(f"{__name__}: タイマーを停止しました。")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 取引結果を取得
             self.requestTransactionResult.emit()
@@ -440,16 +440,16 @@ class Kabuto(QMainWindow):
         :return:
         """
         if result:
-            self.logger.info(f"{__name__}: thread stopped normally.")
+            self.logger.info(f"{__name__}: スレッドが正常終了しました。")
         else:
-            self.logger.error(f"{__name__}: thread stopped abnormally.")
+            self.logger.error(f"{__name__}: スレッドが異常終了しました。")
         # タイマーの停止
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: timer stopped")
+            self.logger.info(f"{__name__}: タイマーを停止しました。")
 
     def on_ticker_ready(self, code: str):
-        self.logger.info(f"{__name__}: thread for {code} is ready.")
+        self.logger.info(f"{__name__}: 銘柄コード {code} のスレッドの準備ができました。")
 
     def on_transaction_result(self, df: pd.DataFrame):
         """
@@ -612,7 +612,7 @@ class Kabuto(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["end"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"{__name__}: timer stopped!")
+            self.logger.info(f"{__name__}: タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
 
@@ -628,7 +628,7 @@ class Kabuto(QMainWindow):
             self.ts_system = self.dict_ts["start"]
             # タイマー開始
             self.timer.start()
-            self.logger.info(f"{__name__}: timer started!")
+            self.logger.info(f"{__name__}: タイマーを開始しました。")
 
     def on_review_stop(self):
         """
@@ -637,12 +637,12 @@ class Kabuto(QMainWindow):
         """
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: timer stopped!")
+            self.logger.info(f"{__name__}: タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
 
     def set_data_ready_status(self, state: bool):
         self.flag_data_ready = state
         self.logger.info(
-            f"{__name__}: now, data ready flag becomes {state}!"
+            f"{__name__}: データ準備完了フラグが {state} になりました。"
         )

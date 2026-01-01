@@ -1,7 +1,9 @@
 import argparse
 import sys
 
-from PySide6.QtWidgets import QApplication
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QApplication, QSplashScreen
 
 from funcs.logs import setup_logging
 from modules.kabuto import Kabuto
@@ -52,8 +54,16 @@ def main():
     # QApplication は sys.argv を処理するので、そのまま引数を渡すのが一般的。
     app = QApplication(sys.argv)
 
+    splash_pix = QPixmap("splash_image.png")
+    splash = QSplashScreen(splash_pix, Qt.WindowType.WindowStaysOnTopHint)
+    splash.show()
+    app.processEvents()
+
     win = Kabuto(debug)
     win.show()
+
+    splash.finish(win)
+
     sys.exit(app.exec())
 
 
