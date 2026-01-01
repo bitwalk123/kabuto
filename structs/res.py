@@ -9,7 +9,7 @@ class AppRes:
     # トレンドチャートの幅、高さ
     trend_width = 1200
     trend_height = 250
-    trend_n_max = 3 # ビューに表示できるチャートの数
+    trend_n_max = 3  # ビューに表示できるチャートの数
 
     code_default = "7011"  # デフォルトの銘柄コード
 

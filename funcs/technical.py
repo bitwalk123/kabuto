@@ -118,6 +118,19 @@ class EMA:
         return self.ema
 
 
+class MovingAverage:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue_data = deque(maxlen=window_size)
+
+    def update(self, value: float) -> float:
+        # 新しい値を追加
+        self.queue_data.append(value)
+
+        # 移動平均を返す
+        return sum(self.queue_data) / len(self.queue_data)
+
+
 class MovingRange:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -176,14 +189,13 @@ class PriceChangeMedian:
         return iqr(self.events)
 
 
-class CappedPriceMovement:
-    def __init__(self, window_size: int = 30, clip: float = 1.0):
+'''
+class CappedTrendAccumulator:
+    def __init__(self, window_size: int):
         """
         window_size: 直近何個の価格変化イベントを保持するか
-        clip: 1 回の変化量の最大値（スパイク抑制）
         """
         self.window_size = window_size
-        self.clip = clip
         self.events = deque()
         self.sum_events = 0.0
         self.last_price = None
@@ -193,15 +205,46 @@ class CappedPriceMovement:
             self.last_price = price
             return 0.0
 
-        diff = abs(price - self.last_price)
-        clipped = min(diff, self.clip)
+        diff = price - self.last_price
 
-        self.events.append(clipped)
-        self.sum_events += clipped
+        self.events.append(diff)
+        self.sum_events += diff
         self.last_price = price
 
         if len(self.events) > self.window_size:
             removed = self.events.popleft()
             self.sum_events -= removed
 
-        return self.sum_events
+        return abs(self.sum_events)
+'''
+
+
+class CappedTrendAccumulator:
+    def __init__(self, window_size: int, cap: float = 2.0):
+        """
+        window_size: 直近何個の価格変化イベントを保持するか
+        cap: 1イベントあたりの最大変化量（スパイク除去用）
+        """
+        self.window_size = window_size
+        self.cap = cap
+        self.events = deque()
+        self.sum_events = 0.0
+        self.last_price = None
+
+    def update(self, price) -> float:
+        if self.last_price is None:
+            self.last_price = price
+            return 0.0
+
+        diff = price - self.last_price
+        clipped_diff = max(min(diff, self.cap), -self.cap)
+
+        self.events.append(clipped_diff)
+        self.sum_events += clipped_diff
+        self.last_price = price
+
+        if len(self.events) > self.window_size:
+            removed = self.events.popleft()
+            self.sum_events -= removed
+
+        return abs(self.sum_events)

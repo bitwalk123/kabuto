@@ -33,16 +33,6 @@ class FeatureProvider:
         key = "LOSSCUT_1"
         self.LOSSCUT_1 = dict_param.get(key, -1.0e8)
         # ---------------------------------------------------------------------
-        """
-        print(
-            "パラメータ",
-            self.PERIOD_MA_1,
-            self.PERIOD_MA_2,
-            self.PERIOD_MR,
-            self.THRESHOLD_MR,
-        )
-        """
-        # ---------------------------------------------------------------------
         # 株価キューの最大値
         self.N_DEQUE_PRICE = self.PERIOD_MA_2
         # 最大取引回数（買建、売建）
@@ -131,15 +121,15 @@ class FeatureProvider:
         移動平均差 (Moving Average Difference = MAD) の算出
         :return:
         """
-        mad_new = self.ma_1 - self.ma_2
-        if 0 < mad_new:
-            signal_sign_new = SignalSign.POSITIVE
-        elif mad_new < 0:
-            signal_sign_new = SignalSign.NEGATIVE
+        mad = self.ma_1 - self.ma_2
+        if 0 < mad:
+            signal_sign = SignalSign.POSITIVE
+        elif mad < 0:
+            signal_sign = SignalSign.NEGATIVE
         else:
-            signal_sign_new = SignalSign.ZERO
+            signal_sign = SignalSign.ZERO
 
-        return mad_new, signal_sign_new
+        return mad, signal_sign
 
     def _calc_mr(self) -> float:
         """
@@ -183,32 +173,6 @@ class FeatureProvider:
             return 1
         else:
             return 0
-
-    '''
-    def doesTakeProfit(self) -> bool:
-        """
-        利確
-        :return:
-        """
-        profit = self.get_profit()
-        if 50 < self.profit_max:
-            if profit < self.profit_max * 0.9:
-                return True
-            else:
-                return False
-        elif 20 < self.profit_max:
-            if profit < self.profit_max * 0.8:
-                return True
-            else:
-                return False
-        elif 10 < self.profit_max:
-            if profit < self.profit_max * 0.3:
-                return True
-            else:
-                return False
-        else:
-            return False
-    '''
 
     def beta_ratio(
             self,

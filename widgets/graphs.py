@@ -5,6 +5,7 @@ import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
 from pyqtgraph import DateAxisItem
 
+from funcs.setting import get_trend_footer
 from structs.res import AppRes
 from widgets.misc import TickFont
 
@@ -55,19 +56,12 @@ class TrendGraph(pg.PlotWidget):
         self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
         # ---------------------------------------------------------------------
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
-        msg_footer = (
-            f"DATE = {self.dict_ts['datetime_str_2']} / "
-            f"PERIOD_MA_1 = {self.dict_setting['PERIOD_MA_1']} / "
-            f"PERIOD_MA_2 = {self.dict_setting['PERIOD_MA_2']} / "
-            f"PERIOD_MR = {self.dict_setting['PERIOD_MR']} / "
-            f"THRESHOLD_MR = {self.dict_setting['THRESHOLD_MR']} / "
-            f"LOSSCUT_1 = {self.dict_setting['LOSSCUT_1']}"
-        )
+        footer = get_trend_footer(self.dict_ts, self.dict_setting)
         self.plot_item.setLabel(
             axis="bottom",
             text=(
                 '<span style="font-family: monospace; font-size: 7pt;">'
-                f'{msg_footer}</span>'
+                f'{footer}</span>'
             )
         )
         # x軸の余白を設定
