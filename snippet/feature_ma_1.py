@@ -11,45 +11,45 @@ class RealTimeDMA:
     """
 
     def __init__(self, period_1=60, period_2=540, slope_window=5, threshold=0.05):
-        self.ma_1 = MovingAverage(window_size=period_1)
-        self.ma_2 = MovingAverage(window_size=period_2)
+        self.obj_ma1 = MovingAverage(window_size=period_1)
+        self.obj_ma2 = MovingAverage(window_size=period_2)
         # ---------------------------------------------------------------------
-        self.prev_dma = None
-        self.prev_ma_1 = None
+        self.dma_prev = None
+        self.ma1_prev = None
         # ---------------------------------------------------------------------
         self.slope_buf = deque(maxlen=slope_window)
         self.threshold = threshold
 
     def update(self, price):
-        ma_1 = self.ma_1.update(price)
-        ma_2 = self.ma_2.update(price)
+        ma1 = self.obj_ma1.update(price)
+        ma2 = self.obj_ma2.update(price)
         # ---------------------------------------------------------------------
         # 初期化段階
         # ただし、MovingAverage は None を返さない仕様なので不要かも
-        if ma_1 is None or ma_2 is None:
+        if ma1 is None or ma2 is None:
             return None
         # ---------------------------------------------------------------------
         # DMA, delta MA
-        dma = ma_1 - ma_2
+        dma = ma1 - ma2
         # ---------------------------------------------------------------------
         # クロス判定
-        if self.prev_dma is None:
+        if self.dma_prev is None:
             cross = 0
         else:
-            if self.prev_dma < 0 and dma > 0:
+            if self.dma_prev < 0 < dma:
                 cross = +1
-            elif self.prev_dma > 0 and dma < 0:
+            elif dma < self.dma_prev < 0:
                 cross = -1
             else:
                 cross = 0
-        self.prev_dma = dma
+        self.dma_prev = dma
         # ---------------------------------------------------------------------
         # 傾き（diff → rolling mean）
-        if self.prev_ma_1 is None:
+        if self.ma1_prev is None:
             diff_ma1 = 0.0
         else:
-            diff_ma1 = ma_1 - self.prev_ma_1
-        self.prev_ma_1 = ma_1
+            diff_ma1 = ma1 - self.ma1_prev
+        self.ma1_prev = ma1
         self.slope_buf.append(diff_ma1)
         slope_ma1 = sum(self.slope_buf) / len(self.slope_buf)
         # ---------------------------------------------------------------------
@@ -60,8 +60,8 @@ class RealTimeDMA:
         entry = (cross != 0) and strong_slope
         # ---------------------------------------------------------------------
         return {
-            "MA1": ma_1,
-            "MA2": ma_2,
+            "MA1": ma1,
+            "MA2": ma2,
             "DMA": dma,
             "Cross": cross,
             "Slope_MA1": slope_ma1,

@@ -73,7 +73,7 @@ class MaskablePPOAgent:
         truncated = False
         while not (terminated or truncated):
             action_masks = env.action_masks()
-            action, _states = model.predict(obs, action_masks=action_masks)
+            action, _states = model.predict(obs, masks=action_masks)
             obs, reward, terminated, truncated, info = env.step(action)
             # 観測値トレンド成用
             self.results["obs"].append(obs)
@@ -120,7 +120,7 @@ class WorkerAgentSB3(QObject):
             # 現在の行動マスクを取得
             masks = self.env.action_masks()
             # モデルによる行動予測
-            action, _states = self.model.predict(obs, action_masks=masks)
+            action, _states = self.model.predict(obs, masks=masks)
 
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:

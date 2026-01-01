@@ -1,5 +1,3 @@
-from collections import deque
-
 import numpy as np
 
 from modules.feature_provider import FeatureProvider
@@ -10,16 +8,6 @@ class ObservationManager:
         # 特徴量プロバイダ
         self.provider = provider
 
-        # 取引用係数
-        self.price_tick = 1.0  # 呼び値
-        self.unit = 100  # 最小取引単位（出来高）
-
-        # キュー
-        self.deque_signal_mad = deque(maxlen=2)
-        # ---------------------------------------------------------------------
-        # 調整用係数
-        # ---------------------------------------------------------------------
-
         """
         観測量（特徴量）数の取得
         観測量の数 (self.n_feature) は、評価によって頻繁に変動するので、
@@ -28,92 +16,38 @@ class ObservationManager:
         self.n_feature = len(self.getObs()[0])
 
     def getObs(self) -> tuple[np.ndarray, dict]:
+        # プロット用生データ
+        dict_technicals = {
+            "ts": self.provider.ts,  # タイムsタンプ
+            "ma1": self.provider.getMA1(),  # MA1（移動平均 1）
+            "ma2": self.provider.getMA2(),  # MA2（移動平均 2）
+            "profit": self.provider.get_profit(),  # 含損益
+            "profit_max": self.provider.profit_max,  # 最大含み損益
+        }
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 観測値（特徴量）用リスト
         list_feature = list()
-        # プロット用生データ
-        dict_technicals = dict()
-        dict_technicals["ts"] = self.provider.ts
         # ---------------------------------------------------------------------
-        # 0. MA1（移動平均 1）
-        ma_1 = self.provider.getMA1()
-        list_feature.append(ma_1)
-        dict_technicals["ma_1"] = float(ma_1)
+        # 0. 移動平均のクロスシグナル（なし: 0、あり: 1）
+        list_feature.append(self.provider.getCrossSignal())
         # ---------------------------------------------------------------------
-        # 1. MA2（移動平均 2）
-        ma_2 = self.provider.getMA2()
-        list_feature.append(ma_2)
-        dict_technicals["ma_2"] = float(ma_2)
+        # 1. クロスシグナル強度 (なし/弱: 0、強: 1)
+        list_feature.append(self.provider.getCrossSignalStrength())
         # ---------------------------------------------------------------------
-        # 2. MAΔS1（MAΔ の符号反転シグナル）
-        signal_mad_sign = self.provider.getMADSignal()
-        signal_mad_1 = float(signal_mad_sign.value)  # 数値化
-        self.deque_signal_mad.append(signal_mad_1)
-        list_feature.append(signal_mad_1)
-        # ---------------------------------------------------------------------
-        # 3. MAΔS2（MAΔ の符号反転シグナル）ひとつ前
-        # ---------------------------------------------------------------------
-        if len(self.deque_signal_mad) > 1:
-            signal_mad_2 = self.deque_signal_mad[-2]
-        else:
-            signal_mad_2 = 0.0
-        list_feature.append(signal_mad_2)
-        # ---------------------------------------------------------------------
-        # 4. Low Volatility Flag - ボラティリティがしきい値より低ければフラグを立てる
-        if self.provider.isLowVolatility():
-            flag_vola_low = 1
-        else:
-            flag_vola_low = 0
-        list_feature.append(flag_vola_low)
-        # ---------------------------------------------------------------------
-        # 5. 移動範囲
-        mr = self.provider.mr
-        list_feature.append(mr)
-        # ---------------------------------------------------------------------
-        # 6. ポジション情報
-        value_position = float(self.provider.position.value)  # 数値化
-        list_feature.append(value_position)
-        # ---------------------------------------------------------------------
-        # 7. 含損益
-        profit_unrealized = self.provider.get_profit()
-        list_feature.append(profit_unrealized)
-        # ---------------------------------------------------------------------
-        # 8. 含損益M（含み損益最大）
-        profit_unrealized_max = self.provider.profit_max
-        list_feature.append(profit_unrealized_max)
-        # ---------------------------------------------------------------------
-        # 9. ロスカット・プラグ
-        flag_losscut = self.provider.doesLossCut()
-        list_feature.append(flag_losscut)
-        # ---------------------------------------------------------------------
-        # 10. 利確プラグ
-        """
-        if self.provider.doesTakeProfit():
-            flag_take_profit = 1
-        else:
-            flag_take_profit = 0
-        """
-        flag_take_profit = 0
-        list_feature.append(flag_take_profit)
-        # =====================================================================
+        # 2. ポジション情報
+        list_feature.append(float(self.provider.position.value))
+        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 配列にして観測値を返す
         return np.array(list_feature, dtype=np.float32), dict_technicals
 
     @staticmethod
     def getObsList() -> list:
         return [
-            "MA1",
-            "MA2",
-            "クロスS1",
-            "クロスS2",
-            "低ボラ",
-            "MR",
+            "クロス",
+            "クロ強",
             "建玉",
-            "含損益",
-            "損益M",
-            "ロス",
-            "利確",
         ]
 
     def getObsReset(self) -> np.ndarray:
-        obs, _ = self.getObs()  # 引数無しで呼んだ場合、ダミーの観測値が返る
+        obs, _ = self.getObs()
         return obs
