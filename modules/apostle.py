@@ -18,7 +18,7 @@ class Apostle:
 
         # ---------------------------------------------------------------------
         # DOE
-        self.name_doe = "doe-8"
+        self.name_doe = "doe-9a"
         # ---------------------------------------------------------------------
         # DOE 水準表を読み込む
         path_doe = os.path.join(self.res.dir_doe, f"{self.name_doe}.csv")
@@ -27,7 +27,7 @@ class Apostle:
         self.dict_doe = None
 
         # 対象銘柄
-        self.list_code = ["7011", "8306"]
+        self.list_code = ["7011"]
 
         # GUI 無しエージェントのインスタンス
         self.agent = None
