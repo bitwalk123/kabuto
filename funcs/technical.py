@@ -122,13 +122,54 @@ class MovingAverage:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.queue_data = deque(maxlen=window_size)
+        self.value_ma: float = 0
+
+    def clear(self):
+        self.queue_data.clear()
+
+    def getValue(self) -> float:
+        # 移動平均を返す
+        return self.value_ma
 
     def update(self, value: float) -> float:
         # 新しい値を追加
         self.queue_data.append(value)
-
+        self.value_ma = sum(self.queue_data) / len(self.queue_data)
         # 移動平均を返す
-        return sum(self.queue_data) / len(self.queue_data)
+        return self.value_ma
+
+
+class SimpleSlope:
+    """
+    SimpleSlope:
+    値の差分（diff）を rolling mean で平滑化した slope を逐次計算する軽量クラス。
+    """
+
+    def __init__(self, window_size: int):
+        self.slope = None
+        self.value_prev = None
+        self.queue_data = deque(maxlen=window_size)
+
+    def clear(self):
+        self.queue_data.clear()
+
+    def getSlope(self) -> float:
+        # 移動平均を返す
+        return self.slope
+
+    def update(self, value) -> float:
+        # 初回
+        if self.value_prev is None:
+            diff = 0.0
+        else:
+            diff = value - self.value_prev
+
+        self.value_prev = value
+        self.queue_data.append(diff)
+
+        # slope = diff の rolling mean
+        self.slope = sum(self.queue_data) / len(self.queue_data)
+        return self.slope
 
 
 class MovingRange:
@@ -187,36 +228,6 @@ class PriceChangeMedian:
         self.last_price = price
 
         return iqr(self.events)
-
-
-'''
-class CappedTrendAccumulator:
-    def __init__(self, window_size: int):
-        """
-        window_size: 直近何個の価格変化イベントを保持するか
-        """
-        self.window_size = window_size
-        self.events = deque()
-        self.sum_events = 0.0
-        self.last_price = None
-
-    def update(self, price) -> float:
-        if self.last_price is None:
-            self.last_price = price
-            return 0.0
-
-        diff = price - self.last_price
-
-        self.events.append(diff)
-        self.sum_events += diff
-        self.last_price = price
-
-        if len(self.events) > self.window_size:
-            removed = self.events.popleft()
-            self.sum_events -= removed
-
-        return abs(self.sum_events)
-'''
 
 
 class CappedTrendAccumulator:

@@ -56,7 +56,7 @@ class WorkerAgent(QObject):
             # 現在の行動マスクを取得
             masks = self.env.action_masks()
             # モデルによる行動予測
-            action, _states = self.model.predict(obs, action_masks=masks)
+            action, _states = self.model.predict(obs, masks=masks)
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
                 position: PositionType = self.env.getCurrentPosition()
@@ -198,7 +198,7 @@ class WorkerAgentRT(QObject):
             masks = self.env.action_masks()
 
             # モデルによる行動予測
-            action, _states = self.model.predict(obs, action_masks=masks)
+            action, _states = self.model.predict(obs, masks=masks)
 
             # self.autopilot フラグが立っていればアクションとポジションを通知
             if self.autopilot:
@@ -314,7 +314,7 @@ class CronAgent:
         # 現在の行動マスクを取得
         masks = self.env.action_masks()
         # モデルによる行動予測
-        action, _states = self.model.predict(obs, action_masks=masks)
+        action, _states = self.model.predict(obs, masks=masks)
         reward, terminated, truncated, info = self.env.step(action)
         if terminated:
             print("terminated フラグが立ちました。")

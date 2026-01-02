@@ -108,7 +108,7 @@ class RSSReaderWorker(QObject):
         row = 1
         flag_loop = True
         while flag_loop:
-            code = self.sheet[row, self.col_code].value
+            code = self.sheet[row, self.col_code].value_ma
             if code == self.cell_bottom:
                 flag_loop = False
             else:
@@ -119,10 +119,10 @@ class RSSReaderWorker(QObject):
                 self.dict_row[code] = row
 
                 # 銘柄名
-                self.dict_name[code] = self.sheet[row, self.col_name].value
+                self.dict_name[code] = self.sheet[row, self.col_name].value_ma
 
                 # 前日の終値の横線
-                # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
+                # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value_ma
 
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[code] = pd.DataFrame({
@@ -161,8 +161,8 @@ class RSSReaderWorker(QObject):
                 # -------------------------------------------------------------
                 try:
                     # Excelシートから株価データを取得
-                    price = self.sheet[row_excel, self.col_price].value
-                    volume = self.sheet[row_excel, self.col_volume].value
+                    price = self.sheet[row_excel, self.col_price].value_ma
+                    volume = self.sheet[row_excel, self.col_volume].value_ma
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
                         self.dict_data[code] = (ts, price, volume)  # tuple の方が高速で軽い！

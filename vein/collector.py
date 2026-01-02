@@ -78,7 +78,7 @@ class StockCollectorWorker(QObject):
         row = 1
         flag_loop = True
         while flag_loop:
-            ticker = self.sheet[row, self.col_code].value
+            ticker = self.sheet[row, self.col_code].value_ma
             if ticker == self.cell_bottom:
                 flag_loop = False
             else:
@@ -89,7 +89,7 @@ class StockCollectorWorker(QObject):
                 self.dict_row[ticker] = row
 
                 # 銘柄名
-                self.dict_name[ticker] = self.sheet[row, self.col_name].value
+                self.dict_name[ticker] = self.sheet[row, self.col_name].value_ma
 
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[ticker] = pd.DataFrame({
@@ -120,8 +120,8 @@ class StockCollectorWorker(QObject):
                 try:
                     ts = time.time()
                     # Excelシートから株価データを取得
-                    price = self.sheet[row_excel, self.col_price].value
-                    volume = self.sheet[row_excel, self.col_volume].value
+                    price = self.sheet[row_excel, self.col_price].value_ma
+                    volume = self.sheet[row_excel, self.col_volume].value_ma
                     if price > 0:
                         # ここでもタイムスタンプを時刻に採用する
                         df.at[row, "Time"] = ts

@@ -118,7 +118,7 @@ class PortfolioWorker(QObject):
         code = ""
         for attempt in range(self.max_retries):
             try:
-                val = self.sheet[row, self.col_code].value
+                val = self.sheet[row, self.col_code].value_ma
                 code = get_code_as_string(val)
                 break
             except com_error as e:
@@ -144,7 +144,7 @@ class PortfolioWorker(QObject):
         name = ""
         for attempt in range(self.max_retries):
             try:
-                val = self.sheet[row, self.col_name].value
+                val = self.sheet[row, self.col_name].value_ma
                 name = unicodedata.normalize('NFKC', val)
                 break
             except com_error as e:

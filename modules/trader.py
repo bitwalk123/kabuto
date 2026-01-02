@@ -157,8 +157,8 @@ class Trader(QMainWindow):
 
     def on_technicals(self, dict_technicals: dict):
         self.list_ts.append(dict_technicals["ts"])
-        self.list_ma_1.append(dict_technicals["ma_1"])
-        self.list_ma_2.append(dict_technicals["ma_2"])
+        self.list_ma_1.append(dict_technicals["ma1"])
+        self.list_ma_2.append(dict_technicals["ma2"])
         # テクニカル指標
         self.trend.setTechnicals(
             self.list_ts,
