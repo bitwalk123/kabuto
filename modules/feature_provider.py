@@ -26,7 +26,10 @@ class FeatureProvider:
         self.PERIOD_SLOPE: int = dict_param.get(key, 5)
         # 4. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
-        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.05)
+        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.1)
+        # 5. 単純ロスカットの閾値 1
+        key = "LOSSCUT_1"
+        self.LOSSCUT_1: float = dict_param.get(key, -25.0)
         # ---------------------------------------------------------------------
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100
@@ -46,6 +49,8 @@ class FeatureProvider:
         self.cross = 0
         self.cross_pre = 0
         self.cross_strong = False
+        # ロスカット
+        self.losscut_1 = False
         # 始値
         self.price_open = None
         # カウンタ関連
@@ -83,6 +88,8 @@ class FeatureProvider:
         self.cross = 0
         self.cross_pre = 0
         self.cross_strong = False
+        # ロスカット
+        self.losscut_1 = False
         # 始値
         self.price_open: float = 0  # ザラバの始値
         # カウンタ関連
@@ -156,6 +163,9 @@ class FeatureProvider:
         :return:
         """
         return 1 if self.cross_strong else 0
+
+    def getLosscut1(self) -> float:
+        return 1 if self.losscut_1 else 0
 
     def getMA1(self) -> float:
         """
@@ -279,6 +289,9 @@ class FeatureProvider:
             # 角度の強さ（atan 不要）
             slope_diff = abs(slope1 - slope2)
             self.cross_strong = slope_diff > self.THRESHOLD_SLOPE
+        # ---------------------------------------------------------------------
+        # ロスカット 1（単純ロスカット）
+        self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
 
     def transaction_add(self, transaction: str, profit: float = np.nan):
         """
