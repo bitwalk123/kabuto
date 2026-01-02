@@ -26,7 +26,7 @@ class FeatureProvider:
         self.PERIOD_SLOPE: int = dict_param.get(key, 5)
         # 4. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
-        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.01)
+        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.05)
         # ---------------------------------------------------------------------
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100
