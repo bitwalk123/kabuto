@@ -44,6 +44,7 @@ class FeatureProvider:
         self.obj_slope2 = SimpleSlope(window_size=self.PERIOD_SLOPE)
         self.div_ma_prev = None
         self.cross = 0
+        self.cross_pre = 0
         self.cross_strong = False
         # 始値
         self.price_open = None
@@ -80,6 +81,7 @@ class FeatureProvider:
         self.obj_slope2.clear()
         self.div_ma_prev = None
         self.cross = 0
+        self.cross_pre = 0
         self.cross_strong = False
         # 始値
         self.price_open: float = 0  # ザラバの始値
@@ -134,12 +136,19 @@ class FeatureProvider:
         """
         return self.profit_max
 
-    def getCrossSignal(self) -> float:
+    def getCrossSignal1(self) -> float:
         """
-        クロスシグナル（0: なし、1: あり）
+        クロスシグナル（-1, 0, 1）
         :return:
         """
-        return 0 if self.cross == 0 else 1
+        return float(self.cross)
+
+    def getCrossSignal2(self) -> float:
+        """
+        クロスシグナル（-1, 0, 1）
+        :return:
+        """
+        return float(self.cross_pre)
 
     def getCrossSignalStrength(self) -> float:
         """
@@ -245,6 +254,7 @@ class FeatureProvider:
         div_ma = ma1 - ma2
         # ---------------------------------------------------------------------
         # クロス判定
+        self.cross_pre = self.cross
         if self.div_ma_prev is None:
             self.cross = 0
         else:
@@ -258,16 +268,17 @@ class FeatureProvider:
         # ---------------------------------------------------------------------
         # クロスの角度（強度）判定
         if self.cross == 0:
-            self.cross_strong = False
+            if self.cross_pre == 0:
+                self.cross_strong = False
+            else:
+                slope1 = self.obj_slope1.update(ma1)
+                self.cross_strong = slope1 > self.THRESHOLD_SLOPE
         else:
             slope1 = self.obj_slope1.update(ma1)
-            """
             slope2 = self.obj_slope2.update(ma2)
             # 角度の強さ（atan 不要）
             slope_diff = abs(slope1 - slope2)
             self.cross_strong = slope_diff > self.THRESHOLD_SLOPE
-            """
-            self.cross_strong = slope1 > self.THRESHOLD_SLOPE
 
     def transaction_add(self, transaction: str, profit: float = np.nan):
         """

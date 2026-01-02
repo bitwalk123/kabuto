@@ -28,13 +28,16 @@ class ObservationManager:
         # 観測値（特徴量）用リスト
         list_feature = list()
         # ---------------------------------------------------------------------
-        # 0. 移動平均のクロスシグナル（なし: 0、あり: 1）
-        list_feature.append(self.provider.getCrossSignal())
+        # 0. 移動平均のクロスシグナル 1（なし: 0、あり: 1）
+        list_feature.append(self.provider.getCrossSignal1())
         # ---------------------------------------------------------------------
-        # 1. クロスシグナル強度 (なし/弱: 0、強: 1)
+        # 1. 移動平均のクロスシグナル 2（なし: 0、あり: 1）
+        list_feature.append(self.provider.getCrossSignal2())
+        # ---------------------------------------------------------------------
+        # 2. クロスシグナル強度 (なし/弱: 0、強: 1)
         list_feature.append(self.provider.getCrossSignalStrength())
         # ---------------------------------------------------------------------
-        # 2. ポジション情報
+        # 3. ポジション情報
         list_feature.append(float(self.provider.position.value))
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 配列にして観測値を返す
@@ -43,7 +46,8 @@ class ObservationManager:
     @staticmethod
     def getObsList() -> list:
         return [
-            "クロス",
+            "クロスS1",
+            "クロスS2",
             "クロ強",
             "建玉",
         ]
