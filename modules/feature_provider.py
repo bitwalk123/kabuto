@@ -26,7 +26,7 @@ class FeatureProvider:
         self.PERIOD_SLOPE: int = dict_param.get(key, 5)
         # 4. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
-        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.1)
+        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.05)
         # 5. 単純ロスカットの閾値 1
         key = "LOSSCUT_1"
         self.LOSSCUT_1: float = dict_param.get(key, -25.0)
@@ -285,10 +285,14 @@ class FeatureProvider:
                 self.cross_strong = slope1 > self.THRESHOLD_SLOPE
         else:
             slope1 = self.obj_slope1.update(ma1)
+            """
             slope2 = self.obj_slope2.update(ma2)
             # 角度の強さ（atan 不要）
             slope_diff = abs(slope1 - slope2)
             self.cross_strong = slope_diff > self.THRESHOLD_SLOPE
+            """
+            self.cross_strong = slope1 > self.THRESHOLD_SLOPE
+
         # ---------------------------------------------------------------------
         # ロスカット 1（単純ロスカット）
         self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
