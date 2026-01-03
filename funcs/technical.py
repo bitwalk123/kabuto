@@ -175,16 +175,39 @@ class SimpleSlope:
 class MovingRange:
     def __init__(self, window_size: int):
         self.window_size = window_size
-        self.queue_data = deque(maxlen=window_size)
+        self.data = deque()
+        self.max_q = deque()  # 単調減少キュー（先頭が最大）
+        self.min_q = deque()  # 単調増加キュー（先頭が最小）
 
     def clear(self):
-        self.queue_data.clear()
+        self.data.clear()
+        self.max_q.clear()
+        self.min_q.clear()
 
     def update(self, value: float) -> float:
         # 新しい値を追加
-        self.queue_data.append(value)
-        # 移動範囲 (max - min) を返す
-        return max(self.queue_data) - min(self.queue_data)
+        self.data.append(value)
+
+        # --- 最大値キュー更新 ---
+        while self.max_q and self.max_q[-1] < value:
+            self.max_q.pop()
+        self.max_q.append(value)
+
+        # --- 最小値キュー更新 ---
+        while self.min_q and self.min_q[-1] > value:
+            self.min_q.pop()
+        self.min_q.append(value)
+
+        # 古い値を削除（window_size を超えたら）
+        if len(self.data) > self.window_size:
+            old = self.data.popleft()
+            if old == self.max_q[0]:
+                self.max_q.popleft()
+            if old == self.min_q[0]:
+                self.min_q.popleft()
+
+        # 移動範囲を返す
+        return self.max_q[0] - self.min_q[0]
 
 
 class PriceChangeBinary:
