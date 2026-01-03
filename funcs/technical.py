@@ -177,6 +177,9 @@ class MovingRange:
         self.window_size = window_size
         self.queue_data = deque(maxlen=window_size)
 
+    def clear(self):
+        self.queue_data.clear()
+
     def update(self, value: float) -> float:
         # 新しい値を追加
         self.queue_data.append(value)
