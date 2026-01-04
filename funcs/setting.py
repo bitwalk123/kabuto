@@ -7,10 +7,10 @@ from structs.res import AppRes
 def get_default_setting() -> dict:
     # デフォルトのパラメータ設定
     return {
-        "PERIOD_MA_1": 180,
-        "PERIOD_MA_2": 300,
+        "PERIOD_MA_1": 60,
+        "PERIOD_MA_2": 600,
         "PERIOD_SLOPE": 5,
-        "THRESHOLD_SLOPE": 0.5,  # doe-9b
+        "THRESHOLD_SLOPE": 1.5,  # doe-9c
         "LOSSCUT_1": -25,
     }
 
