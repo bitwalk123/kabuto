@@ -8,8 +8,8 @@ Usage:
 This trainer is tuned to learn reasonably fast on the provided environment:
  - actor-critic MLP with layer norm-ish initialization
  - GAE (lambda=0.95), gamma=0.99
- - PPO clipping (eps=0.2), value_ma loss coef=0.5, entropy coef=0.01
- - advantage normalization, value_ma target clipping
+ - PPO clipping (eps=0.2), value loss coef=0.5, entropy coef=0.01
+ - advantage normalization, value target clipping
  - uses full-episode rollouts (one episode = full file) and performs multiple PPO epochs per episode
 
 Notes:
