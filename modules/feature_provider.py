@@ -263,6 +263,9 @@ class FeatureProvider:
         # 2つの移動平均の乖離度
         div_ma = ma1 - ma2
         # ---------------------------------------------------------------------
+        # MA1 の傾き
+        slope1 = self.obj_slope1.update(ma1)
+        # ---------------------------------------------------------------------
         # クロス判定
         self.cross_pre = self.cross
         if self.div_ma_prev is None:
@@ -281,16 +284,8 @@ class FeatureProvider:
             if self.cross_pre == 0:
                 self.cross_strong = False
             else:
-                slope1 = self.obj_slope1.update(ma1)
                 self.cross_strong = slope1 > self.THRESHOLD_SLOPE
         else:
-            slope1 = self.obj_slope1.update(ma1)
-            """
-            slope2 = self.obj_slope2.update(ma2)
-            # 角度の強さ（atan 不要）
-            slope_diff = abs(slope1 - slope2)
-            self.cross_strong = slope_diff > self.THRESHOLD_SLOPE
-            """
             self.cross_strong = slope1 > self.THRESHOLD_SLOPE
 
         # ---------------------------------------------------------------------

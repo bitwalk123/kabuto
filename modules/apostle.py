@@ -18,7 +18,7 @@ class Apostle:
 
         # ---------------------------------------------------------------------
         # DOE
-        self.name_doe = "doe-9c"
+        self.name_doe = "doe-10"
         # ---------------------------------------------------------------------
         # DOE 水準表を読み込む
         path_doe = os.path.join(self.res.dir_doe, f"{self.name_doe}.csv")
