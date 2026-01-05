@@ -9,6 +9,9 @@ class AlgoTrade:
     def __init__(self, list_obs: list):
         self.list_obs = list_obs
 
+    def getListObs(self) -> list:
+        return self.list_obs
+
     def predict(self, obs, masks) -> tuple[int, dict]:
         # 0. クロスシグナル 1
         idx_cross_1 = self.list_obs.index("クロスS1")

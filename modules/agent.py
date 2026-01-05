@@ -5,6 +5,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 
 from modules.algo_trade import AlgoTrade
 from modules.env import TradingEnv
+from modules.posman import PositionManager
 from structs.app_enum import ActionType, PositionType
 
 
@@ -276,20 +277,20 @@ class CronAgent:
         self.logger = logging.getLogger(__name__)
         self.code = code
 
-        self.env = None
-        self.model = None
-
+        # モデルのインスタンス
         self.list_obs = list()
+        self.model = AlgoTrade(self.list_obs)
+
+        self.posman = PositionManager()
+        self.posman.initPosition([code])
 
     def run(self, dict_param: dict, df: pd.DataFrame) -> tuple[int, float]:
         # 学習環境の取得
         self.env = TradingEnv(self.code, dict_param)
 
-        # モデルのインスタンス
-        self.model = AlgoTrade(self.list_obs)
-
         # 環境のリセット
         self.resetEnv()
+        print(self.model.getListObs())
 
         # データフレームの行数分のループ
         n_row = len(df)
@@ -301,7 +302,7 @@ class CronAgent:
                 break
 
         df_transaction = self.getTransaction()
-        # print(df_transaction)
+        print(df_transaction)
         n_trade = len(df_transaction)
         total = df_transaction['損益'].sum()
         print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
@@ -311,10 +312,34 @@ class CronAgent:
     def addData(self, ts: float, price: float, volume: float) -> bool:
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume)
+
         # 現在の行動マスクを取得
         masks = self.env.action_masks()
+
         # モデルによる行動予測
         action, _states = self.model.predict(obs, masks=masks)
+
+        # self.autopilot フラグが立っていればアクションとポジションを通知
+        # if self.autopilot:
+        position: PositionType = self.env.getCurrentPosition()
+        if ActionType(action) != ActionType.HOLD:
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
+            # self.notifyAction.emit(action, position)
+            self.on_action(ts, price, action, position)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        # -----------------------------------------------------------------
+        # プロット用テクニカル指標
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 テクニカル指標を通知するシグナル
+        # self.sendTechnicals.emit(dict_technicals)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+        # -----------------------------------------------------------------
+        # アクションによる環境の状態更新
+        # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
+        # -----------------------------------------------------------------
         reward, terminated, truncated, info = self.env.step(action)
         if terminated:
             print("terminated フラグが立ちました。")
@@ -326,7 +351,32 @@ class CronAgent:
             return False
 
     def getTransaction(self) -> pd.DataFrame:
-        return self.env.getTransaction()
+        return self.posman.getTransactionResult()
+
+    def on_action(self, ts: float, price: float, action: int, position: PositionType):
+        action_enum = ActionType(action)
+        if action_enum == ActionType.BUY:
+            if position == PositionType.NONE:
+                # 建玉がなければ買建
+                self.posman.openPosition(self.code, ts, price, action_enum)
+            elif position == PositionType.SHORT:
+                # 売建（ショート）であれば（買って）返済
+                self.posman.closePosition(self.code, ts, price)
+            else:
+                self.logger.error(f"{__name__}: trade rule violation!")
+        elif action_enum == ActionType.SELL:
+            if position == PositionType.NONE:
+                # 建玉がなければ売建
+                self.posman.openPosition(self.code, ts, price, action_enum)
+            elif position == PositionType.LONG:
+                # 買建（ロング）であれば（売って）返済
+                self.posman.closePosition(self.code, ts, price)
+            else:
+                self.logger.error(f"{__name__}: trade rule violation!")
+        elif action_enum == ActionType.HOLD:
+            pass
+        else:
+            self.logger.error(f"{__name__}: unknown action type {action_enum}!")
 
     def resetEnv(self):
         # 環境のリセット
@@ -335,6 +385,7 @@ class CronAgent:
         list_colname = ["Timestamp", "Price", "Volume"]
         self.list_obs.clear()
         self.list_obs.extend(self.env.getObsList())
+
         list_colname.extend(self.list_obs)
         dict_colname = dict()
         for colname in list_colname:
