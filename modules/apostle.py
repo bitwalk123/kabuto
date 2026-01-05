@@ -111,7 +111,7 @@ class Apostle:
         print(f"結果が {path_result} に保存されました。")
 
     def run(self):
-        files = sorted(os.listdir(self.res.dir_collection))
+        files = sorted(os.listdir(self.res.dir_collection))[-1:]
 
         for excel in files:
             path_excel = os.path.join(self.res.dir_collection, excel)
