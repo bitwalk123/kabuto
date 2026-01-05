@@ -1,8 +1,10 @@
 import logging
+from collections import defaultdict
 
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
+from funcs.tide import conv_datetime_from_timestamp
 from modules.algo_trade import AlgoTrade
 from modules.env import TradingEnv
 from modules.posman import PositionManager
@@ -289,13 +291,15 @@ class CronAgent:
         # 環境クラス
         self.env: TradingEnv | None = None
 
-    def run(self, dict_param: dict, df: pd.DataFrame) -> tuple[int, float]:
+        # 取引内容
+        self.dict_list_tech = defaultdict(list)
+
+    def run(self, dict_param: dict, df: pd.DataFrame):
         # 環境の定義
         self.env = TradingEnv(self.code, dict_param)
 
         # 環境のリセット
         self.resetEnv()
-        print(self.model.getListObs())
 
         # データフレームの行数分のループ
         n_row = len(df)
@@ -305,15 +309,6 @@ class CronAgent:
             volume = df.iloc[r]["Volume"]
             if self.addData(ts, price, volume):
                 break
-
-        df_transaction = self.getTransaction()
-        print("\n【取引明細】")
-        print(df_transaction)
-        n_trade = len(df_transaction)
-        total = df_transaction['損益'].sum()
-        print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
-
-        return n_trade, total
 
     def addData(self, ts: float, price: float, volume: float) -> bool:
         # ティックデータから観測値を取得
@@ -340,7 +335,8 @@ class CronAgent:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 テクニカル指標を通知するシグナル
         # self.sendTechnicals.emit(dict_technicals)
-        print(dict_technicals)
+        for key, value in dict_technicals.items():
+            self.dict_list_tech[key].append(value)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # -----------------------------------------------------------------
@@ -356,6 +352,11 @@ class CronAgent:
             return True
         else:
             return False
+
+    def getTechnicals(self) -> pd.DataFrame:
+        df = pd.DataFrame(self.dict_list_tech)
+        df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
+        return df
 
     def getTransaction(self) -> pd.DataFrame:
         return self.posman.getTransactionResult()
