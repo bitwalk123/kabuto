@@ -167,8 +167,8 @@ class SimpleSlope:
         self.value_prev = value
         self.queue_data.append(diff)
 
-        # slope = diff の rolling mean
-        self.slope = sum(self.queue_data) / len(self.queue_data)
+        # slope = diff の rolling mean の絶対値
+        self.slope = abs(sum(self.queue_data) / len(self.queue_data))
         return self.slope
 
 

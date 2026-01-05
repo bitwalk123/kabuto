@@ -7,29 +7,29 @@ from structs.app_enum import PositionType
 
 
 class FeatureProvider:
-    def __init__(self, dict_param: dict):
+    def __init__(self, dict_setting: dict):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 定数
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         print("パラメータ")
-        for key in dict_param.keys():
-            print(f"{key} : {dict_param[key]}")
+        for key in dict_setting.keys():
+            print(f"{key} : {dict_setting[key]}")
         # ---------------------------------------------------------------------
         # 1. MA_1 移動平均期間
         key = "PERIOD_MA_1"
-        self.PERIOD_MA_1: int = dict_param.get(key, 60)
+        self.PERIOD_MA_1: int = dict_setting.get(key, 60)
         # 2. MA_2 移動平均期間
         key = "PERIOD_MA_2"
-        self.PERIOD_MA_2: int = dict_param.get(key, 600)
+        self.PERIOD_MA_2: int = dict_setting.get(key, 600)
         # 3. MA_1 の傾き（軽い平滑化期間）
         key = "PERIOD_SLOPE"
-        self.PERIOD_SLOPE: int = dict_param.get(key, 5)
+        self.PERIOD_SLOPE: int = dict_setting.get(key, 5)
         # 4. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
-        self.THRESHOLD_SLOPE: float = dict_param.get(key, 0.5)  # doe-9a
+        self.THRESHOLD_SLOPE: float = dict_setting.get(key, 1.0)  # doe-10
         # 5. 単純ロスカットの閾値 1
         key = "LOSSCUT_1"
-        self.LOSSCUT_1: float = dict_param.get(key, -25.0)
+        self.LOSSCUT_1: float = dict_setting.get(key, -25.0)
         # ---------------------------------------------------------------------
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100
@@ -181,6 +181,9 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getSlope1(self) -> float:
+        return self.obj_slope1.getSlope()
+
     def getTimestamp(self) -> float:
         return self.ts
 
@@ -263,7 +266,7 @@ class FeatureProvider:
         # 2つの移動平均の乖離度
         div_ma = ma1 - ma2
         # ---------------------------------------------------------------------
-        # MA1 の傾き
+        # MA1 の傾き（絶対値）
         slope1 = self.obj_slope1.update(ma1)
         # ---------------------------------------------------------------------
         # クロス判定

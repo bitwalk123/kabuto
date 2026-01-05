@@ -273,19 +273,24 @@ class CronAgent:
     cron で実行できる GUI を利用しないエージェント
     """
 
-    def __init__(self, code: str):
+    def __init__(self, code: str, dict_ts: dict):
         self.logger = logging.getLogger(__name__)
         self.code = code
+        self.dict_ts = dict_ts
 
         # モデルのインスタンス
         self.list_obs = list()
         self.model = AlgoTrade(self.list_obs)
 
+        # ポジション・マネージャ
         self.posman = PositionManager()
         self.posman.initPosition([code])
 
+        # 環境クラス
+        self.env: TradingEnv | None = None
+
     def run(self, dict_param: dict, df: pd.DataFrame) -> tuple[int, float]:
-        # 学習環境の取得
+        # 環境の定義
         self.env = TradingEnv(self.code, dict_param)
 
         # 環境のリセット
@@ -302,6 +307,7 @@ class CronAgent:
                 break
 
         df_transaction = self.getTransaction()
+        print("\n【取引明細】")
         print(df_transaction)
         n_trade = len(df_transaction)
         total = df_transaction['損益'].sum()
@@ -334,6 +340,7 @@ class CronAgent:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 テクニカル指標を通知するシグナル
         # self.sendTechnicals.emit(dict_technicals)
+        print(dict_technicals)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # -----------------------------------------------------------------
