@@ -14,14 +14,6 @@ class AlgoTrade:
         self.idx_losscut_1 = None
         self.idx_position = None
 
-    def updateObs(self, list_obs_label):
-        self.list_obs_label = list_obs_label
-        self.idx_cross_1 = self.list_obs_label.index("クロスS1")
-        self.idx_cross_2 = self.list_obs_label.index("クロスS2")
-        self.idx_strength = self.list_obs_label.index("クロ強")
-        self.idx_losscut_1 = self.list_obs_label.index("ロス1")
-        self.idx_position = self.list_obs_label.index("建玉")
-
     def getListObs(self) -> list:
         return self.list_obs_label
 
@@ -92,3 +84,11 @@ class AlgoTrade:
                 action = ActionType.HOLD.value
         # ---------------------------------------------------------------------
         return action, {}
+
+    def updateObs(self, list_obs_label):
+        self.list_obs_label = list_obs_label
+        self.idx_cross_1 = self.list_obs_label.index("クロスS1")
+        self.idx_cross_2 = self.list_obs_label.index("クロスS2")
+        self.idx_strength = self.list_obs_label.index("クロ強")
+        self.idx_losscut_1 = self.list_obs_label.index("ロス1")
+        self.idx_position = self.list_obs_label.index("建玉")

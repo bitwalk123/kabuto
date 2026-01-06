@@ -141,8 +141,6 @@ class WorkerAgent(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        # self.list_obs.clear()
-        # self.list_obs.extend(self.env.getObsList())
         self.list_obs_label = None
         self.list_obs_label = self.env.getObsList()
         self.model.updateObs(self.list_obs_label)
