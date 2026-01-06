@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 
 
@@ -19,6 +20,17 @@ def get_date_str_from_file(file: str) -> str:
     else:
         return "1970-01-01"
 
+def get_year_date_str_from_file(file: str) -> str:
+    """
+    ファイル名から日付文字列を返す関数
+    :param file:
+    :return:
+    """
+    pattern = re.compile(r".+_(\d{4})(\d{4})\..+")
+    if m := pattern.match(file):
+        return os.path.join(m.group(1), m.group(2))
+    else:
+        return os.path.join("1970", "0101")
 
 def get_date_str_today() -> str:
     dt = datetime.datetime.now()
