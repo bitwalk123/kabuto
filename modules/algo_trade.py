@@ -6,28 +6,36 @@ class AlgoTrade:
     強化学習モデルの代わりに、自作のアルゴリズムで取引するクラス
     """
 
-    def __init__(self, list_obs_label: list):
+    def __init__(self):
+        self.list_obs_label = None
+        self.idx_cross_1 = None
+        self.idx_cross_2 = None
+        self.idx_strength = None
+        self.idx_losscut_1 = None
+        self.idx_position = None
+
+    def updateObs(self, list_obs_label):
         self.list_obs_label = list_obs_label
+        self.idx_cross_1 = self.list_obs_label.index("クロスS1")
+        self.idx_cross_2 = self.list_obs_label.index("クロスS2")
+        self.idx_strength = self.list_obs_label.index("クロ強")
+        self.idx_losscut_1 = self.list_obs_label.index("ロス1")
+        self.idx_position = self.list_obs_label.index("建玉")
 
     def getListObs(self) -> list:
         return self.list_obs_label
 
     def predict(self, obs, masks) -> tuple[int, dict]:
         # 0. クロスシグナル 1
-        idx_cross_1 = self.list_obs_label.index("クロスS1")
-        cross_1 = SignalSign(int(obs[idx_cross_1]))
+        cross_1 = SignalSign(int(obs[self.idx_cross_1]))
         # 1. クロスシグナル 2
-        idx_cross_2 = self.list_obs_label.index("クロスS2")
-        cross_2 = SignalSign(int(obs[idx_cross_2]))
+        cross_2 = SignalSign(int(obs[self.idx_cross_2]))
         # 2. クロスシグナル強度
-        idx_strength = self.list_obs_label.index("クロ強")
-        strength = int(obs[idx_strength])
+        strength = int(obs[self.idx_strength])
         # 3. ロスカット 1
-        idx_losscut_1 = self.list_obs_label.index("ロス1")
-        losscut_1 = int(obs[idx_losscut_1])
+        losscut_1 = int(obs[self.idx_losscut_1])
         # 4. ポジション（建玉）
-        idx_position = self.list_obs_label.index("建玉")
-        position = PositionType(int(obs[idx_position]))
+        position = PositionType(int(obs[self.idx_position]))
         # ---------------------------------------------------------------------
         # シグナルの処理
         # ---------------------------------------------------------------------

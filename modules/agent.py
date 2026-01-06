@@ -33,14 +33,14 @@ class WorkerAgent(QObject):
         self.obs = None
         self.done = False
 
-        self.list_obs = list()
+        self.list_obs_label = list()
         self.df_obs = None
 
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
 
         # モデルのインスタンス
-        self.model = AlgoTrade(self.list_obs)
+        self.model = AlgoTrade()
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -79,7 +79,7 @@ class WorkerAgent(QObject):
 
             # -----------------------------------------------------------------
             # obs をデータフレームへ追加
-            for col, val in zip(self.list_obs, obs):
+            for col, val in zip(self.list_obs_label, obs):
                 self.df_obs.at[row, col] = val
             # -----------------------------------------------------------------
             # アクションによる環境の状態更新
@@ -141,9 +141,13 @@ class WorkerAgent(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs.clear()
-        self.list_obs.extend(self.env.getObsList())
-        list_colname.extend(self.list_obs)
+        # self.list_obs.clear()
+        # self.list_obs.extend(self.env.getObsList())
+        self.list_obs_label = None
+        self.list_obs_label = self.env.getObsList()
+        self.model.updateObs(self.list_obs_label)
+
+        list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []
@@ -183,13 +187,14 @@ class WorkerAgentRT(QObject):
 
         self.obs = None
         self.done = False
+        self.df_obs = None
 
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
 
         # モデルのインスタンス
         self.list_obs_label = list()
-        self.model = AlgoTrade(self.list_obs_label)
+        self.model = AlgoTrade()
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -252,8 +257,11 @@ class WorkerAgentRT(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs_label.clear()
-        self.list_obs_label.extend(self.env.getObsList())
+        # self.list_obs_label.clear()
+        # self.list_obs_label.extend(self.env.getObsList())
+        self.list_obs_label = None
+        self.list_obs_label = self.env.getObsList()
+        self.model.updateObs(self.list_obs_label)
         list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
@@ -281,8 +289,9 @@ class CronAgent:
         self.ts_end = dict_ts["end"]
 
         # モデルのインスタンス
+        self.df_obs = None
         self.list_obs_label = list()
-        self.model = AlgoTrade(self.list_obs_label)
+        self.model = AlgoTrade()
 
         self.list_ts = list()
         self.list_obs = list()
@@ -415,10 +424,14 @@ class CronAgent:
         obs, _ = self.env.reset()
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs_label.clear()
-        self.list_obs_label.extend(self.env.getObsList())
+        # self.list_obs_label.clear()
+        # self.list_obs_label.extend(self.env.getObsList())
+        self.list_obs_label = None
+        self.list_obs_label = self.env.getObsList()
+        self.model.updateObs(self.list_obs_label)
 
         list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []
+        self.df_obs = pd.DataFrame(dict_colname)
