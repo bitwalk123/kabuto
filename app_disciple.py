@@ -1,12 +1,17 @@
 from funcs.logs import setup_logging
+from funcs.setting import load_setting
 from modules.disciple import Disciple
+from structs.res import AppRes
 
 if __name__ == "__main__":
     main_logger = setup_logging()
+    res = AppRes()
+
     excel = "ticks_20260105.xlsx"
     code = "7011"
+    dict_setting = load_setting(res, code)
 
-    app = Disciple(excel, code)
+    app = Disciple(excel, code, dict_setting)
     app.run()
 
     # 取引明細

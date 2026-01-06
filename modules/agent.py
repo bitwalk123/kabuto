@@ -278,7 +278,7 @@ class CronAgent:
     def __init__(self, code: str, dict_ts: dict):
         self.logger = logging.getLogger(__name__)
         self.code = code
-        self.dict_ts = dict_ts
+        self.ts_end = dict_ts["end"]
 
         # モデルのインスタンス
         self.list_obs = list()
@@ -306,6 +306,8 @@ class CronAgent:
         price = 0
         for row in df.itertuples():
             ts = row.Time
+            if self.ts_end < ts:
+                break
             price = row.Price
             volume = row.Volume
             if self.addData(ts, price, volume):
