@@ -37,5 +37,6 @@ class Disciple:
         total = df_transaction["損益"].sum()
         print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/株")
 
+        print("\nテクニカル指標")
         df_technical = self.agent.getTechnicals()
         print(df_technical)
