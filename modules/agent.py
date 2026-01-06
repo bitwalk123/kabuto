@@ -1,8 +1,11 @@
 import logging
+from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
+from funcs.tide import conv_datetime_from_timestamp
 from modules.algo_trade import AlgoTrade
 from modules.env import TradingEnv
 from modules.posman import PositionManager
@@ -181,13 +184,12 @@ class WorkerAgentRT(QObject):
         self.obs = None
         self.done = False
 
-        self.list_obs = list()
-
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
 
         # モデルのインスタンス
-        self.model = AlgoTrade(self.list_obs)
+        self.list_obs_label = list()
+        self.model = AlgoTrade(self.list_obs_label)
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -250,9 +252,9 @@ class WorkerAgentRT(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs.clear()
-        self.list_obs.extend(self.env.getObsList())
-        list_colname.extend(self.list_obs)
+        self.list_obs_label.clear()
+        self.list_obs_label.extend(self.env.getObsList())
+        list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []
@@ -276,11 +278,14 @@ class CronAgent:
     def __init__(self, code: str, dict_ts: dict):
         self.logger = logging.getLogger(__name__)
         self.code = code
-        self.dict_ts = dict_ts
+        self.ts_end = dict_ts["end"]
 
         # モデルのインスタンス
+        self.list_obs_label = list()
+        self.model = AlgoTrade(self.list_obs_label)
+
+        self.list_ts = list()
         self.list_obs = list()
-        self.model = AlgoTrade(self.list_obs)
 
         # ポジション・マネージャ
         self.posman = PositionManager()
@@ -289,35 +294,36 @@ class CronAgent:
         # 環境クラス
         self.env: TradingEnv | None = None
 
-    def run(self, dict_param: dict, df: pd.DataFrame) -> tuple[int, float]:
+        # 取引内容
+        self.dict_list_tech = defaultdict(list)
+
+    def run(self, dict_param: dict, df: pd.DataFrame):
         # 環境の定義
         self.env = TradingEnv(self.code, dict_param)
 
         # 環境のリセット
         self.resetEnv()
-        print(self.model.getListObs())
 
         # データフレームの行数分のループ
-        n_row = len(df)
-        for r in range(n_row):
-            ts = df.iloc[r]["Time"]
-            price = df.iloc[r]["Price"]
-            volume = df.iloc[r]["Volume"]
+        ts = 0
+        price = 0
+        for row in df.itertuples():
+            ts = row.Time
+            if self.ts_end < ts:
+                break
+            price = row.Price
+            volume = row.Volume
             if self.addData(ts, price, volume):
                 break
 
-        df_transaction = self.getTransaction()
-        print("\n【取引明細】")
-        print(df_transaction)
-        n_trade = len(df_transaction)
-        total = df_transaction['損益'].sum()
-        print(f"取引回数 : {n_trade} 回, 一株当りの損益 : {total} 円")
-
-        return n_trade, total
+        # ポジション解消
+        self.forceClosePosition(ts, price)
 
     def addData(self, ts: float, price: float, volume: float) -> bool:
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume)
+        self.list_ts.append(ts)
+        self.list_obs.append(obs)
 
         # 現在の行動マスクを取得
         masks = self.env.action_masks()
@@ -340,7 +346,8 @@ class CronAgent:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 テクニカル指標を通知するシグナル
         # self.sendTechnicals.emit(dict_technicals)
-        print(dict_technicals)
+        for key, value in dict_technicals.items():
+            self.dict_list_tech[key].append(value)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # -----------------------------------------------------------------
@@ -356,6 +363,18 @@ class CronAgent:
             return True
         else:
             return False
+
+    def getObservations(self) -> pd.DataFrame:
+        df = pd.DataFrame(np.array(self.list_obs))
+        df.columns = self.list_obs_label
+        df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in self.list_ts]
+        return df
+
+    def getTechnicals(self) -> pd.DataFrame:
+        df = pd.DataFrame(self.dict_list_tech)
+        # インデックスを日付形式に変換
+        df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
+        return df
 
     def getTransaction(self) -> pd.DataFrame:
         return self.posman.getTransactionResult()
@@ -385,15 +404,21 @@ class CronAgent:
         else:
             self.logger.error(f"{__name__}: unknown action type {action_enum}!")
 
+    def forceClosePosition(self, ts: float, price: float):
+        position: PositionType = self.env.getCurrentPosition()
+        if position != PositionType.NONE:
+            # ポジションがあれば返済
+            self.posman.closePosition(self.code, ts, price)
+
     def resetEnv(self):
         # 環境のリセット
         obs, _ = self.env.reset()
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs.clear()
-        self.list_obs.extend(self.env.getObsList())
+        self.list_obs_label.clear()
+        self.list_obs_label.extend(self.env.getObsList())
 
-        list_colname.extend(self.list_obs)
+        list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []

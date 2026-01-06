@@ -1,5 +1,7 @@
 import os
 
+import pandas as pd
+
 from funcs.ios import get_excel_sheet
 from funcs.setting import load_setting
 from funcs.tide import get_intraday_timestamp
@@ -14,18 +16,26 @@ class Disciple:
     取引シミュレーションを実行
     """
 
-    def __init__(self):
+    def __init__(self, excel: str, code: str, dict_setting: dict):
         self.res = res = AppRes()
-        self.code = code = "7011"
-        excel = "ticks_20260105.xlsx"
         self.path_excel = os.path.join(res.dir_collection, excel)
+        self.code = code
+        self.dict_setting = dict_setting
 
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         dict_ts = get_intraday_timestamp(self.path_excel)
-
+        # cron 用エージェントのインスタンス生成
         self.agent = CronAgent(code, dict_ts)
 
     def run(self):
-        dict_setting = load_setting(self.res, self.code)
         df = get_excel_sheet(self.path_excel, self.code)
-        n_trade, total = self.agent.run(dict_setting, df)
+        self.agent.run(self.dict_setting, df)
+
+    def getObservations(self) -> pd.DataFrame:
+        return self.agent.getObservations()
+
+    def getTechnicals(self) -> pd.DataFrame:
+        return self.agent.getTechnicals()
+
+    def getTransaction(self) -> pd.DataFrame:
+        return self.agent.getTransaction()
