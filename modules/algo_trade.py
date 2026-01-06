@@ -28,99 +28,59 @@ class AlgoTrade:
         # 4. ポジション（建玉）
         idx_position = self.list_obs_label.index("建玉")
         position = PositionType(int(obs[idx_position]))
-
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # ---------------------------------------------------------------------
         # シグナルの処理
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        """
-        クロスシグナル cross_1 は建玉の有無にかかわらず適用を試みる
-        """
-        if cross_1 == SignalSign.POSITIVE:
-            if position == PositionType.NONE:
-                # エントリ
-                if strength and masks[ActionType.BUY.value] == 1:
-                    action = ActionType.BUY.value
-                else:
-                    action = ActionType.HOLD.value
-            elif position == PositionType.LONG:
-                if masks[ActionType.SELL.value] == 1:
-                    action = ActionType.SELL.value
-                else:
-                    action = ActionType.HOLD.value
-            elif position == PositionType.SHORT:
-                if masks[ActionType.BUY.value] == 1:
-                    action = ActionType.BUY.value
-                else:
-                    action = ActionType.HOLD.value
-            else:
-                raise TypeError(f"Unknown PositionType: {position}")
-        elif cross_1 == SignalSign.NEGATIVE:
-            if position == PositionType.NONE:
-                # エントリ
-                if strength and masks[ActionType.SELL.value] == 1:
-                    action = ActionType.SELL.value
-                else:
-                    action = ActionType.HOLD.value
-            elif position == PositionType.LONG:
-                if masks[ActionType.SELL.value] == 1:
-                    action = ActionType.SELL.value
-                else:
-                    action = ActionType.HOLD.value
-            elif position == PositionType.SHORT:
-                if masks[ActionType.BUY.value] == 1:
-                    action = ActionType.BUY.value
-                else:
-                    action = ActionType.HOLD.value
-            else:
-                raise TypeError(f"Unknown PositionType: {position}")
-        else:
-            """
-            クロスシグナル cross_2 は建玉が無い時のみに適用を試みる
-            """
-            if cross_2 == SignalSign.POSITIVE:
-                if position == PositionType.NONE:
-                    # エントリ
-                    if strength and masks[ActionType.BUY.value] == 1:
-                        action = ActionType.BUY.value
-                    else:
-                        action = ActionType.HOLD.value
-                elif position == PositionType.LONG:
-                    action = ActionType.HOLD.value
-                elif position == PositionType.SHORT:
-                    action = ActionType.HOLD.value
-                else:
-                    raise TypeError(f"Unknown PositionType: {position}")
-            elif cross_2 == SignalSign.NEGATIVE:
-                if position == PositionType.NONE:
-                    # エントリ
-                    if strength and masks[ActionType.SELL.value] == 1:
-                        action = ActionType.SELL.value
-                    else:
-                        action = ActionType.HOLD.value
-                elif position == PositionType.LONG:
-                    action = ActionType.HOLD.value
-                elif position == PositionType.SHORT:
-                    action = ActionType.HOLD.value
-                else:
-                    raise TypeError(f"Unknown PositionType: {position}")
-            else:
-                """
-                ログカット 1（単純ロスカット）
-                """
-                if losscut_1:
-                    if position == PositionType.LONG:
-                        if masks[ActionType.SELL.value] == 1:
-                            action = ActionType.SELL.value
-                        else:
-                            action = ActionType.HOLD.value
-                    elif position == PositionType.SHORT:
-                        if masks[ActionType.BUY.value] == 1:
-                            action = ActionType.BUY.value
-                        else:
-                            action = ActionType.HOLD.value
-                    else:
-                        action = ActionType.HOLD.value
-                else:
-                    action = ActionType.HOLD.value
+        # ---------------------------------------------------------------------
+        # 1. cross_1（建玉の有無に関係なく適用）
+        if cross_1 in (SignalSign.POSITIVE, SignalSign.NEGATIVE):
+            # エントリ方向の決定
+            action_entry = (
+                ActionType.BUY.value if cross_1 == SignalSign.POSITIVE else ActionType.SELL.value
+            )
+            action_exit = (
+                ActionType.SELL.value if position == PositionType.LONG else ActionType.BUY.value
+            )
 
+            if position == PositionType.NONE:
+                # エントリ
+                if strength and masks[action_entry] == 1:
+                    action = action_entry
+                else:
+                    action = ActionType.HOLD.value
+            elif position in (PositionType.LONG, PositionType.SHORT):
+                # エグジット
+                if masks[action_exit] == 1:
+                    action = action_exit
+                else:
+                    action = ActionType.HOLD.value
+            else:
+                raise TypeError(f"Unknown PositionType: {position}")
+        # ---------------------------------------------------------------------
+        # 2. cross_2（建玉が無い時のみ適用）
+        elif cross_2 in (SignalSign.POSITIVE, SignalSign.NEGATIVE):
+
+            if position == PositionType.NONE:
+                action_entry = (
+                    ActionType.BUY.value if cross_2 == SignalSign.POSITIVE else ActionType.SELL.value
+                )
+
+                if strength and masks[action_entry] == 1:
+                    action = action_entry
+                else:
+                    action = ActionType.HOLD.value
+            else:
+                action = ActionType.HOLD.value
+        # ---------------------------------------------------------------------
+        # 3. losscut_1（単純ロスカット）
+        else:
+            if losscut_1:
+                if position == PositionType.LONG:
+                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
+                elif position == PositionType.SHORT:
+                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
+                else:
+                    action = ActionType.HOLD.value
+            else:
+                action = ActionType.HOLD.value
+        # ---------------------------------------------------------------------
         return action, {}
