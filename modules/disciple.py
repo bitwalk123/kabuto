@@ -31,6 +31,9 @@ class Disciple:
         df = get_excel_sheet(self.path_excel, self.code)
         self.agent.run(self.dict_setting, df)
 
+    def getObservations(self) -> pd.DataFrame:
+        return self.agent.getObservations()
+
     def getTechnicals(self) -> pd.DataFrame:
         return self.agent.getTechnicals()
 

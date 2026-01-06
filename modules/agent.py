@@ -1,6 +1,7 @@
 import logging
 from collections import defaultdict
 
+import numpy as np
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
@@ -183,13 +184,12 @@ class WorkerAgentRT(QObject):
         self.obs = None
         self.done = False
 
-        self.list_obs = list()
-
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
 
         # モデルのインスタンス
-        self.model = AlgoTrade(self.list_obs)
+        self.list_obs_label = list()
+        self.model = AlgoTrade(self.list_obs_label)
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -252,9 +252,9 @@ class WorkerAgentRT(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs.clear()
-        self.list_obs.extend(self.env.getObsList())
-        list_colname.extend(self.list_obs)
+        self.list_obs_label.clear()
+        self.list_obs_label.extend(self.env.getObsList())
+        list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []
@@ -281,8 +281,11 @@ class CronAgent:
         self.ts_end = dict_ts["end"]
 
         # モデルのインスタンス
+        self.list_obs_label = list()
+        self.model = AlgoTrade(self.list_obs_label)
+
+        self.list_ts = list()
         self.list_obs = list()
-        self.model = AlgoTrade(self.list_obs)
 
         # ポジション・マネージャ
         self.posman = PositionManager()
@@ -319,6 +322,8 @@ class CronAgent:
     def addData(self, ts: float, price: float, volume: float) -> bool:
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume)
+        self.list_ts.append(ts)
+        self.list_obs.append(obs)
 
         # 現在の行動マスクを取得
         masks = self.env.action_masks()
@@ -358,6 +363,12 @@ class CronAgent:
             return True
         else:
             return False
+
+    def getObservations(self) -> pd.DataFrame:
+        df = pd.DataFrame(np.array(self.list_obs))
+        df.columns = self.list_obs_label
+        df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in self.list_ts]
+        return df
 
     def getTechnicals(self) -> pd.DataFrame:
         df = pd.DataFrame(self.dict_list_tech)
@@ -404,10 +415,10 @@ class CronAgent:
         obs, _ = self.env.reset()
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        self.list_obs.clear()
-        self.list_obs.extend(self.env.getObsList())
+        self.list_obs_label.clear()
+        self.list_obs_label.extend(self.env.getObsList())
 
-        list_colname.extend(self.list_obs)
+        list_colname.extend(self.list_obs_label)
         dict_colname = dict()
         for colname in list_colname:
             dict_colname[colname] = []

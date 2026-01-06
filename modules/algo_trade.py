@@ -6,27 +6,27 @@ class AlgoTrade:
     強化学習モデルの代わりに、自作のアルゴリズムで取引するクラス
     """
 
-    def __init__(self, list_obs: list):
-        self.list_obs = list_obs
+    def __init__(self, list_obs_label: list):
+        self.list_obs_label = list_obs_label
 
     def getListObs(self) -> list:
-        return self.list_obs
+        return self.list_obs_label
 
     def predict(self, obs, masks) -> tuple[int, dict]:
         # 0. クロスシグナル 1
-        idx_cross_1 = self.list_obs.index("クロスS1")
+        idx_cross_1 = self.list_obs_label.index("クロスS1")
         cross_1 = SignalSign(int(obs[idx_cross_1]))
         # 1. クロスシグナル 2
-        idx_cross_2 = self.list_obs.index("クロスS2")
+        idx_cross_2 = self.list_obs_label.index("クロスS2")
         cross_2 = SignalSign(int(obs[idx_cross_2]))
         # 2. クロスシグナル強度
-        idx_strength = self.list_obs.index("クロ強")
+        idx_strength = self.list_obs_label.index("クロ強")
         strength = int(obs[idx_strength])
         # 3. ロスカット 1
-        idx_losscut_1 = self.list_obs.index("ロス1")
+        idx_losscut_1 = self.list_obs_label.index("ロス1")
         losscut_1 = int(obs[idx_losscut_1])
         # 4. ポジション（建玉）
-        idx_position = self.list_obs.index("建玉")
+        idx_position = self.list_obs_label.index("建玉")
         position = PositionType(int(obs[idx_position]))
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -56,7 +56,8 @@ class AlgoTrade:
                 raise TypeError(f"Unknown PositionType: {position}")
         elif cross_1 == SignalSign.NEGATIVE:
             if position == PositionType.NONE:
-                if masks[ActionType.SELL.value] == 1:
+                # エントリ
+                if strength and masks[ActionType.SELL.value] == 1:
                     action = ActionType.SELL.value
                 else:
                     action = ActionType.HOLD.value
@@ -91,7 +92,8 @@ class AlgoTrade:
                     raise TypeError(f"Unknown PositionType: {position}")
             elif cross_2 == SignalSign.NEGATIVE:
                 if position == PositionType.NONE:
-                    if masks[ActionType.SELL.value] == 1:
+                    # エントリ
+                    if strength and masks[ActionType.SELL.value] == 1:
                         action = ActionType.SELL.value
                     else:
                         action = ActionType.HOLD.value

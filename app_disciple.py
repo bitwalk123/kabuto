@@ -26,3 +26,8 @@ if __name__ == "__main__":
     print("\nテクニカル指標")
     df_technical = app.getTechnicals()
     print(df_technical)
+
+    # 観測値
+    print("\n観測値")
+    df_obs = app.getObservations()
+    print(df_obs)
