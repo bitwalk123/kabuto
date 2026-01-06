@@ -1,5 +1,7 @@
 import os
 
+import pandas as pd
+
 from funcs.ios import get_excel_sheet
 from funcs.setting import load_setting
 from funcs.tide import get_intraday_timestamp
@@ -30,13 +32,8 @@ class Disciple:
         df = get_excel_sheet(self.path_excel, self.code)
         self.agent.run(dict_setting, df)
 
-        df_transaction = self.agent.getTransaction()
-        print("\n取引明細")
-        print(df_transaction)
-        n_trade = len(df_transaction)
-        total = df_transaction["損益"].sum()
-        print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/株")
+    def getTechnicals(self) -> pd.DataFrame:
+        return self.agent.getTechnicals()
 
-        print("\nテクニカル指標")
-        df_technical = self.agent.getTechnicals()
-        print(df_technical)
+    def getTransaction(self) -> pd.DataFrame:
+        return self.agent.getTransaction()

@@ -302,13 +302,17 @@ class CronAgent:
         self.resetEnv()
 
         # データフレームの行数分のループ
-        n_row = len(df)
-        for r in range(n_row):
-            ts = df.iloc[r]["Time"]
-            price = df.iloc[r]["Price"]
-            volume = df.iloc[r]["Volume"]
+        ts = 0
+        price = 0
+        for row in df.itertuples():
+            ts = row.Time
+            price = row.Price
+            volume = row.Volume
             if self.addData(ts, price, volume):
                 break
+
+        # ポジション解消
+        self.forceClosePosition(ts, price)
 
     def addData(self, ts: float, price: float, volume: float) -> bool:
         # ティックデータから観測値を取得
@@ -355,6 +359,7 @@ class CronAgent:
 
     def getTechnicals(self) -> pd.DataFrame:
         df = pd.DataFrame(self.dict_list_tech)
+        # インデックスを日付形式に変換
         df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
         return df
 
@@ -385,6 +390,12 @@ class CronAgent:
             pass
         else:
             self.logger.error(f"{__name__}: unknown action type {action_enum}!")
+
+    def forceClosePosition(self, ts: float, price: float):
+        position: PositionType = self.env.getCurrentPosition()
+        if position != PositionType.NONE:
+            # ポジションがあれば返済
+            self.posman.closePosition(self.code, ts, price)
 
     def resetEnv(self):
         # 環境のリセット
