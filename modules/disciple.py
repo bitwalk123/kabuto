@@ -16,11 +16,10 @@ class Disciple:
     取引シミュレーションを実行
     """
 
-    def __init__(self):
+    def __init__(self, excel:str, code:str):
         self.res = res = AppRes()
-        self.code = code = "7011"
-        excel = "ticks_20260105.xlsx"
         self.path_excel = os.path.join(res.dir_collection, excel)
+        self.code = code
 
         # ザラ場の開始時間などのタイムスタンプ取得（Excelの日付）
         dict_ts = get_intraday_timestamp(self.path_excel)

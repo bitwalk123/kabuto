@@ -3,7 +3,10 @@ from modules.disciple import Disciple
 
 if __name__ == "__main__":
     main_logger = setup_logging()
-    app = Disciple()
+    excel = "ticks_20260105.xlsx"
+    code = "7011"
+
+    app = Disciple(excel, code)
     app.run()
 
     # 取引明細
