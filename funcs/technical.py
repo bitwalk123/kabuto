@@ -221,7 +221,7 @@ class RegressionSlope:
 
     def getSlope(self) -> float:
         # 現在の傾きを返す（未計算の場合は 0.0）
-        return self.slope if self.slope is not None else 0.0
+        return abs(self.slope) if self.slope is not None else 0.0
 
     def update(self, value: float) -> float:
         """
