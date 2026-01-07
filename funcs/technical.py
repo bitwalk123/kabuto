@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Optional
 
 import pandas as pd
 from scipy.stats import iqr
@@ -198,6 +199,103 @@ class SimpleSlope:
         # slope = diff の rolling mean の絶対値
         self.slope = abs(sum(self.queue_data) / len(self.queue_data))
         return self.slope
+
+
+class RegressionSlope:
+    """
+    RegressionSlope:
+    最新の点を原点とみなしたうえで、
+    「原点を通る（切片0）」単回帰の傾きを逐次計算する軽量クラス。
+
+    - x軸: 1秒間隔を仮定
+    - 最新の点を (x=0, y=0) として扱う
+    """
+
+    def __init__(self, window_size: int):
+        self.slope: Optional[float] = None
+        self.queue_price = deque(maxlen=window_size)
+
+    def clear(self):
+        self.queue_price.clear()
+        self.slope = None
+
+    def getSlope(self) -> float:
+        # 現在の傾きを返す（未計算の場合は 0.0）
+        return self.slope if self.slope is not None else 0.0
+
+    def update(self, value: float) -> float:
+        """
+        新しい価格を追加し、最新点を原点とする
+        切片0の単回帰の傾きを計算して返す。
+        """
+        self.queue_price.append(value)
+
+        n = len(self.queue_price)
+        if n < 2:
+            # 点が1つだけでは傾きは定義できないので0とする
+            self.slope = 0.0
+            return abs(self.slope)
+
+        # 最新点を原点(0,0)とみなす
+        p_last = self.queue_price[-1]
+
+        # x = -(n-1), ..., -1, 0 となるように設定
+        # y_i = p_i - p_last
+        xs = [i - (n - 1) for i in range(n)]
+        ys = [p - p_last for p in self.queue_price]
+
+        sum_xy = sum(x * y for x, y in zip(xs, ys))
+        sum_x2 = sum(x * x for x in xs)
+
+        # 切片0の単回帰の傾き: m = Σ(xy) / Σ(x^2)
+        self.slope = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+        return abs(self.slope)
+
+
+class RegressionSlopeFast:
+    """
+    RegressionSlope:
+    最新の点を原点とみなしたうえで、
+    「原点を通る（切片0）」単回帰の傾きを逐次計算するクラス。
+
+    - x軸: 1秒間隔を仮定
+    - 最新の点を (x=0, y=0) として扱う
+    """
+
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue_price = deque(maxlen=window_size)
+        self.slope: Optional[float] = None
+
+    def clear(self):
+        self.queue_price.clear()
+        self.slope = None
+
+    def getSlope(self) -> float:
+        return self.slope if self.slope is not None else 0.0
+
+    def update(self, value: float) -> float:
+        self.queue_price.append(value)
+
+        n = len(self.queue_price)
+        if n < 2:
+            self.slope = 0.0
+            return 0.0
+
+        p_last = self.queue_price[-1]
+
+        # x = -(n-1), ..., -1, 0
+        # y_i = p_i - p_last
+        sum_xy = 0.0
+        sum_x2 = 0.0
+        for i, p in enumerate(self.queue_price):
+            x = i - (n - 1)
+            y = p - p_last
+            sum_xy += x * y
+            sum_x2 += x * x
+
+        self.slope = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+        return abs(self.slope)
 
 
 class MovingRange:
