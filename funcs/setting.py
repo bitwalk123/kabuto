@@ -7,6 +7,7 @@ from structs.res import AppRes
 def get_default_setting() -> dict:
     # デフォルトのパラメータ設定
     return {
+        "PERIOD_WARMUP": 60,
         "PERIOD_MA_1": 60,
         "PERIOD_MA_2": 600,
         "PERIOD_SLOPE": 5,
@@ -18,6 +19,7 @@ def get_default_setting() -> dict:
 def get_trend_footer(dict_ts: dict, dict_setting: dict) -> str:
     return (
         f"DATE = {dict_ts['datetime_str_2']} / "
+        f"PERIOD_WARMUP = {dict_setting['PERIOD_WARMUP']} / "
         f"PERIOD_MA_1 = {dict_setting['PERIOD_MA_1']} / "
         f"PERIOD_MA_2 = {dict_setting['PERIOD_MA_2']} / "
         f"PERIOD_SLOPE = {dict_setting['PERIOD_SLOPE']} / "

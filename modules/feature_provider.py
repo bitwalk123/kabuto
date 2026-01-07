@@ -15,19 +15,22 @@ class FeatureProvider:
         for key in dict_setting.keys():
             print(f"{key} : {dict_setting[key]}")
         # ---------------------------------------------------------------------
-        # 1. MA_1 移動平均期間
+        # 1. ウォームアップ期間
+        key = "PERIOD_WARMUP"
+        self.PERIOD_WARMUP: int = dict_setting.get(key, 60)
+        # 2. MA_1 移動平均期間
         key = "PERIOD_MA_1"
         self.PERIOD_MA_1: int = dict_setting.get(key, 60)
-        # 2. MA_2 移動平均期間
+        # 3. MA_2 移動平均期間
         key = "PERIOD_MA_2"
         self.PERIOD_MA_2: int = dict_setting.get(key, 600)
-        # 3. MA_1 の傾き（軽い平滑化期間）
+        # 4. MA_1 の傾き（軽い平滑化期間）
         key = "PERIOD_SLOPE"
         self.PERIOD_SLOPE: int = dict_setting.get(key, 5)
-        # 4. クロス時の MA_1 の傾きの閾値
+        # 5. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
         self.THRESHOLD_SLOPE: float = dict_setting.get(key, 1.0)  # doe-10
-        # 5. 単純ロスカットの閾値 1
+        # 6. 単純ロスカットの閾値 1
         key = "LOSSCUT_1"
         self.LOSSCUT_1: float = dict_setting.get(key, -25.0)
         # ---------------------------------------------------------------------
