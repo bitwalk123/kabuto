@@ -254,9 +254,10 @@ class RegressionSlope:
 
 class RegressionSlopeFast:
     """
-    RegressionSlope:
+    RegressionSlopeFast:
     最新の点を原点とみなしたうえで、
     「原点を通る（切片0）」単回帰の傾きを逐次計算するクラス。
+    ※ RegressionSlope　よりちょっと早そうなバージョン → 削除予定
 
     - x軸: 1秒間隔を仮定
     - 最新の点を (x=0, y=0) として扱う
