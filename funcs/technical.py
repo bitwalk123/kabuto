@@ -94,9 +94,9 @@ class EMA:
     リアルタイム用の指数平滑移動平均 (Exponential Moving Average, EMA)
     """
 
-    def __init__(self, period: int):
-        self.period = period
-        self.alpha = 2 / (period + 1)
+    def __init__(self, window_size: int):
+        #self.window_size = window_size
+        self.alpha = 2 / (window_size + 1)
         self.ema = None
 
     def clear(self):

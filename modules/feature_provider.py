@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-from funcs.technical import MovingAverage, SimpleSlope
+from funcs.technical import MovingAverage, RegressionSlope, EMA
 from structs.app_enum import PositionType
 
 
@@ -42,9 +42,10 @@ class FeatureProvider:
         self.volume = None
         # 移動平均差用
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
+        # self.obj_ma1 = EMA(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
-        self.obj_slope1 = SimpleSlope(window_size=self.PERIOD_SLOPE)
-        self.obj_slope2 = SimpleSlope(window_size=self.PERIOD_SLOPE)
+        self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
+        self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.div_ma_prev = None
         self.cross = 0
         self.cross_pre = 0

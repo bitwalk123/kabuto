@@ -19,7 +19,7 @@ class TradingEnv(gym.Env):
     def __init__(self, code: str, dict_param: dict):
         super().__init__()
         # ウォームアップ期間
-        self.n_warmup: int = 60
+        self.n_warmup: int = 180
 
         # 現在の行位置
         self.step_current: int = 0
