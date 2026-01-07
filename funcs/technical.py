@@ -1,4 +1,5 @@
 from collections import deque
+from typing import Optional
 
 import pandas as pd
 from scipy.stats import iqr
@@ -96,47 +97,75 @@ class EMA:
     def __init__(self, period: int):
         self.period = period
         self.alpha = 2 / (period + 1)
-        self.deque = deque(maxlen=period)
-        self.ema = None  # 最新の EMA 値
+        self.ema = None
+
+    def clear(self):
+        self.ema = None
+
+    def getValue(self) -> float:
+        # 現在値を返す
+        return self.ema
 
     def update(self, value: float) -> float:
-        # データを deque に追加
-        self.deque.append(value)
-
-        # 初期化: 最初は単純平均を使うことも可能
         if self.ema is None:
-            if len(self.deque) < self.period:
-                # データが period 未満なら平均で初期化
-                self.ema = sum(self.deque) / len(self.deque)
-            else:
-                # period 個揃ったらその平均を初期 EMA に
-                self.ema = sum(self.deque) / self.period
+            # 初期 EMA は最初の値をそのまま採用
+            self.ema = value
         else:
-            # 通常更新: 再帰式
-            self.ema = self.alpha * value + (1 - self.alpha) * self.ema
+            # 再帰式
+            self.ema += self.alpha * (value - self.ema)
 
         return self.ema
+
+
+class MovingAverageOld:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque(maxlen=window_size)
+        self.ma: float = 0
+
+    def clear(self):
+        self.queue.clear()
+
+    def getValue(self) -> float:
+        # 現在値を返す
+        return self.ma
+
+    def update(self, value: float) -> float:
+        # 新しい値を追加
+        self.queue.append(value)
+        self.ma = sum(self.queue) / len(self.queue)
+        # 移動平均を返す
+        return self.ma
 
 
 class MovingAverage:
     def __init__(self, window_size: int):
         self.window_size = window_size
-        self.queue_data = deque(maxlen=window_size)
-        self.value_ma: float = 0
+        self.queue = deque()
+        self.running_sum = 0.0
+        self.ma = 0.0
 
     def clear(self):
-        self.queue_data.clear()
+        self.queue.clear()
+        self.running_sum = 0.0
+        self.ma = 0.0
 
     def getValue(self) -> float:
-        # 移動平均を返す
-        return self.value_ma
+        return self.ma
 
     def update(self, value: float) -> float:
+        # 古い値を取り除く
+        if len(self.queue) == self.window_size:
+            oldest = self.queue.popleft()
+            self.running_sum -= oldest
+
         # 新しい値を追加
-        self.queue_data.append(value)
-        self.value_ma = sum(self.queue_data) / len(self.queue_data)
-        # 移動平均を返す
-        return self.value_ma
+        self.queue.append(value)
+        self.running_sum += value
+
+        # 移動平均を計算
+        self.ma = self.running_sum / len(self.queue)
+        return self.ma
 
 
 class SimpleSlope:
@@ -170,6 +199,104 @@ class SimpleSlope:
         # slope = diff の rolling mean の絶対値
         self.slope = abs(sum(self.queue_data) / len(self.queue_data))
         return self.slope
+
+
+class RegressionSlope:
+    """
+    RegressionSlope:
+    最新の点を原点とみなしたうえで、
+    「原点を通る（切片0）」単回帰の傾きを逐次計算する軽量クラス。
+
+    - x軸: 1秒間隔を仮定
+    - 最新の点を (x=0, y=0) として扱う
+    """
+
+    def __init__(self, window_size: int):
+        self.slope: Optional[float] = None
+        self.queue_price = deque(maxlen=window_size)
+
+    def clear(self):
+        self.queue_price.clear()
+        self.slope = None
+
+    def getSlope(self) -> float:
+        # 現在の傾きを返す（未計算の場合は 0.0）
+        return self.slope if self.slope is not None else 0.0
+
+    def update(self, value: float) -> float:
+        """
+        新しい価格を追加し、最新点を原点とする
+        切片0の単回帰の傾きを計算して返す。
+        """
+        self.queue_price.append(value)
+
+        n = len(self.queue_price)
+        if n < 2:
+            # 点が1つだけでは傾きは定義できないので0とする
+            self.slope = 0.0
+            return abs(self.slope)
+
+        # 最新点を原点(0,0)とみなす
+        p_last = self.queue_price[-1]
+
+        # x = -(n-1), ..., -1, 0 となるように設定
+        # y_i = p_i - p_last
+        xs = [i - (n - 1) for i in range(n)]
+        ys = [p - p_last for p in self.queue_price]
+
+        sum_xy = sum(x * y for x, y in zip(xs, ys))
+        sum_x2 = sum(x * x for x in xs)
+
+        # 切片0の単回帰の傾き: m = Σ(xy) / Σ(x^2)
+        self.slope = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+        return abs(self.slope)
+
+
+class RegressionSlopeFast:
+    """
+    RegressionSlopeFast:
+    最新の点を原点とみなしたうえで、
+    「原点を通る（切片0）」単回帰の傾きを逐次計算するクラス。
+    ※ RegressionSlope　よりちょっと早そうなバージョン → 削除予定
+
+    - x軸: 1秒間隔を仮定
+    - 最新の点を (x=0, y=0) として扱う
+    """
+
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue_price = deque(maxlen=window_size)
+        self.slope: Optional[float] = None
+
+    def clear(self):
+        self.queue_price.clear()
+        self.slope = None
+
+    def getSlope(self) -> float:
+        return self.slope if self.slope is not None else 0.0
+
+    def update(self, value: float) -> float:
+        self.queue_price.append(value)
+
+        n = len(self.queue_price)
+        if n < 2:
+            self.slope = 0.0
+            return 0.0
+
+        p_last = self.queue_price[-1]
+
+        # x = -(n-1), ..., -1, 0
+        # y_i = p_i - p_last
+        sum_xy = 0.0
+        sum_x2 = 0.0
+        for i, p in enumerate(self.queue_price):
+            x = i - (n - 1)
+            y = p - p_last
+            sum_xy += x * y
+            sum_x2 += x * x
+
+        self.slope = sum_xy / sum_x2 if sum_x2 != 0 else 0.0
+        return abs(self.slope)
 
 
 class MovingRange:
@@ -285,3 +412,88 @@ class CappedTrendAccumulator:
             self.sum_events -= removed
 
         return abs(self.sum_events)
+
+
+class RollingRange:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.prices = deque(maxlen=window_size)
+        self.current_range = 0.0
+        self.current_high = None
+        self.current_low = None
+
+    def clear(self):
+        self.prices.clear()
+        self.current_range = 0.0
+        self.current_high = None
+        self.current_low = None
+
+    def update(self, price: float) -> float:
+        self.prices.append(price)
+
+        # high/low を更新
+        if self.current_high is None:
+            # 初回
+            self.current_high = price
+            self.current_low = price
+        else:
+            # 新規値で更新
+            self.current_high = max(self.current_high, price)
+            self.current_low = min(self.current_low, price)
+
+        # deque が満杯になったとき、古い値が抜けるので high/low を再計算
+        if len(self.prices) == self.window_size:
+            oldest = self.prices[0]
+            if oldest == self.current_high or oldest == self.current_low:
+                # high/low が抜けたので再計算
+                self.current_high = max(self.prices)
+                self.current_low = min(self.prices)
+
+        self.current_range = self.current_high - self.current_low
+        return self.current_range
+
+    def getValue(self) -> float:
+        return self.current_range
+
+
+class MonotonicRange:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.prices = deque()
+        self.max_q = deque()  # 単調減少キュー（先頭が最大）
+        self.min_q = deque()  # 単調増加キュー（先頭が最小）
+
+    def clear(self):
+        self.prices.clear()
+        self.max_q.clear()
+        self.min_q.clear()
+
+    def update(self, price: float) -> float:
+        # 新規価格を追加
+        self.prices.append(price)
+
+        # max_q 更新（単調減少）
+        while self.max_q and self.max_q[-1] < price:
+            self.max_q.pop()
+        self.max_q.append(price)
+
+        # min_q 更新（単調増加）
+        while self.min_q and self.min_q[-1] > price:
+            self.min_q.pop()
+        self.min_q.append(price)
+
+        # window サイズを超えたら古い値を削除
+        if len(self.prices) > self.window_size:
+            old = self.prices.popleft()
+            if old == self.max_q[0]:
+                self.max_q.popleft()
+            if old == self.min_q[0]:
+                self.min_q.popleft()
+
+        # レンジ = 最大 - 最小
+        return self.max_q[0] - self.min_q[0]
+
+    def getValue(self) -> float:
+        if not self.max_q or not self.min_q:
+            return 0.0
+        return self.max_q[0] - self.min_q[0]

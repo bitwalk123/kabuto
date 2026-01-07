@@ -244,7 +244,7 @@ class FeatureProvider:
         """
         self.code = code
 
-    def update(self, ts: float, price: float, volume: float):
+    def update_old(self, ts: float, price: float, volume: float):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 最新ティック情報を保持
         self.ts = ts
@@ -287,13 +287,66 @@ class FeatureProvider:
             if self.cross_pre == 0:
                 self.cross_strong = False
             else:
+                # 1 秒前のクロスシグナル発生時（反対売買用）
                 self.cross_strong = slope1 > self.THRESHOLD_SLOPE
         else:
+            # クロスシグナル発生時
             self.cross_strong = slope1 > self.THRESHOLD_SLOPE
 
         # ---------------------------------------------------------------------
         # ロスカット 1（単純ロスカット）
         self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
+
+    def update(self, ts: float, price: float, volume: float):
+        # --- 最新ティック更新 ---
+        self.ts = ts
+        self.price = price
+        self.volume = volume
+
+        # --- 寄り付き価格の初期化 ---
+        if self.price_open == 0:
+            self.price_open = price
+
+        # --- 移動平均 ---
+        ma1 = self.obj_ma1.update(price)
+        ma2 = self.obj_ma2.update(price)
+        div_ma = ma1 - ma2
+
+        # --- MA1 の傾き ---
+        slope1 = self.obj_slope1.update(ma1)
+
+        # --- クロス判定 ---
+        self.cross_pre = self.cross
+        self.cross = self._detect_cross(self.div_ma_prev, div_ma)
+        self.div_ma_prev = div_ma
+
+        # --- クロス強度判定 ---
+        self.cross_strong = self._is_cross_strong(self.cross, self.cross_pre, slope1)
+
+        # --- ロスカット判定 ---
+        self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
+
+    def _detect_cross(self, prev: float | None, curr: float) -> int:
+        """移動平均の乖離の符号変化からクロスを検出"""
+        if prev is None:
+            return 0
+        if prev < 0 < curr:
+            return +1
+        if curr < 0 < prev:
+            return -1
+        return 0
+
+    def _is_cross_strong(self, cross: int, cross_pre: int, slope1: float) -> bool:
+        """クロス強度（角度）判定"""
+        if cross != 0:
+            # クロス発生時
+            return slope1 > self.THRESHOLD_SLOPE
+
+        if cross_pre != 0:
+            # 1秒前にクロス → 反対売買用
+            return slope1 > self.THRESHOLD_SLOPE
+
+        return False
 
     def transaction_add(self, transaction: str, profit: float = np.nan):
         """
