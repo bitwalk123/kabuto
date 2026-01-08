@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-from funcs.technical import MovingAverage, RegressionSlope, EMA
+from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange
 from structs.app_enum import PositionType
 
 
@@ -30,6 +30,9 @@ class FeatureProvider:
         # 5. クロス時の MA_1 の傾きの閾値
         key = "THRESHOLD_SLOPE"
         self.THRESHOLD_SLOPE: float = dict_setting.get(key, 1.0)  # doe-10
+        # 6. RollingRange
+        key = "PERIOD_RR"
+        self.PERIOD_RR: int = dict_setting.get(key, 30)
         # 6. 単純ロスカットの閾値 1
         key = "LOSSCUT_1"
         self.LOSSCUT_1: float = dict_setting.get(key, -25.0)
@@ -43,9 +46,9 @@ class FeatureProvider:
         self.ts = None
         self.price = None
         self.volume = None
-        # 移動平均差用
+        # ---------------------------------------------------------------------
+        # 移動平均
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
-        # self.obj_ma1 = EMA(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
         self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
@@ -53,16 +56,20 @@ class FeatureProvider:
         self.cross = 0
         self.cross_pre = 0
         self.cross_strong = False
+        # ---------------------------------------------------------------------
+        # ボラティリティ関連
+        self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
+        # ---------------------------------------------------------------------
         # ロスカット
         self.losscut_1 = False
+        # ---------------------------------------------------------------------
         # 始値
         self.price_open = None
+        # ---------------------------------------------------------------------
         # カウンタ関連
         self.n_trade = 0
         self.n_hold = None
         self.n_hold_position = None
-        # キュー
-        # self.deque_price = None
         # ---------------------------------------------------------------------
         # 取引関連の変数
         # ---------------------------------------------------------------------

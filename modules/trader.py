@@ -58,7 +58,7 @@ class Trader(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
-        # チャートインスタンス (FigureCanvas)
+        # チャートインスタンス
         # ---------------------------------------------------------------------
         self.trend = trend = TrendGraph(res, dict_ts, dict_setting)
         self.setCentralWidget(trend)
