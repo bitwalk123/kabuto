@@ -99,6 +99,8 @@ class FeatureProvider:
         self.cross = 0
         self.cross_pre = 0
         self.cross_strong = False
+        # ボラティリティ関連
+        self.obj_rr.clear()
         # ロスカット
         self.losscut_1 = False
         # 始値
@@ -192,6 +194,9 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getRR(self) -> float:
+        return self.obj_rr.getValue()
+
     def getSlope1(self) -> float:
         return self.obj_slope1.getSlope()
 
@@ -255,59 +260,6 @@ class FeatureProvider:
         """
         self.code = code
 
-    def update_old(self, ts: float, price: float, volume: float):
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 最新ティック情報を保持
-        self.ts = ts
-        # ---------------------------------------------------------------------
-        if self.price_open == 0:
-            """
-            寄り付いた最初の株価が基準価格
-            ※ 寄り付き後の株価が送られてくることをシステムが保証している
-            """
-            self.price_open = price
-        # ---------------------------------------------------------------------
-        self.price = price
-        self.volume = volume
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 移動平均
-        ma1 = self.obj_ma1.update(price)
-        ma2 = self.obj_ma2.update(price)
-        # ---------------------------------------------------------------------
-        # 2つの移動平均の乖離度
-        div_ma = ma1 - ma2
-        # ---------------------------------------------------------------------
-        # MA1 の傾き（絶対値）
-        slope1 = self.obj_slope1.update(ma1)
-        # ---------------------------------------------------------------------
-        # クロス判定
-        self.cross_pre = self.cross
-        if self.div_ma_prev is None:
-            self.cross = 0
-        else:
-            if self.div_ma_prev < 0 < div_ma:
-                self.cross = +1
-            elif div_ma < 0 < self.div_ma_prev:
-                self.cross = -1
-            else:
-                self.cross = 0
-        self.div_ma_prev = div_ma
-        # ---------------------------------------------------------------------
-        # クロスの角度（強度）判定
-        if self.cross == 0:
-            if self.cross_pre == 0:
-                self.cross_strong = False
-            else:
-                # 1 秒前のクロスシグナル発生時（反対売買用）
-                self.cross_strong = slope1 > self.THRESHOLD_SLOPE
-        else:
-            # クロスシグナル発生時
-            self.cross_strong = slope1 > self.THRESHOLD_SLOPE
-
-        # ---------------------------------------------------------------------
-        # ロスカット 1（単純ロスカット）
-        self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
-
     def update(self, ts: float, price: float, volume: float):
         # --- 最新ティック更新 ---
         self.ts = ts
@@ -322,6 +274,9 @@ class FeatureProvider:
         ma1 = self.obj_ma1.update(price)
         ma2 = self.obj_ma2.update(price)
         div_ma = ma1 - ma2
+
+        # --- ボラティリティ関連 ---
+        rr = self.obj_rr.update(price)
 
         # --- MA1 の傾き ---
         slope1 = self.obj_slope1.update(ma1)

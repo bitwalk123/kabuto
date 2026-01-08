@@ -22,6 +22,7 @@ class ObservationManager:
             "ma1": self.provider.getMA1(),  # MA1（移動平均 1）
             "ma2": self.provider.getMA2(),  # MA2（移動平均 2）
             "slope1": self.provider.getSlope1(),  # MA1（移動平均 1 の傾き）
+            "rr": self.provider.getRR(),  # RR（Rolling Range）
             "profit": self.provider.get_profit(),  # 含損益
             "profit_max": self.provider.profit_max,  # 最大含み損益
         }
