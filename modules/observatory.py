@@ -6,6 +6,7 @@ FEATURES = [
     ("クロスS1", "getCrossSignal1"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
     ("クロスS2", "getCrossSignal2"),  # 移動平均のクロスシグナル 2 [-1, 0, 1]
     ("クロ強", "getCrossSignalStrength"),  # クロスシグナル強度 [0, 1]
+    ("乱高下", "isFluctuation"), # 値動きが乱高下しているか？
     ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
     ("建玉", "getPositionValue"),  # ポジション情報
 ]

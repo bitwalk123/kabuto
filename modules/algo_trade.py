@@ -11,6 +11,7 @@ class AlgoTrade:
         self.idx_cross_1 = None
         self.idx_cross_2 = None
         self.idx_strength = None
+        self.idx_fluc = None
         self.idx_losscut_1 = None
         self.idx_position = None
 
@@ -18,15 +19,17 @@ class AlgoTrade:
         return self.list_obs_label
 
     def predict(self, obs, masks) -> tuple[int, dict]:
-        # 0. クロスシグナル 1
+        # 1. クロスシグナル 1
         cross_1 = SignalSign(int(obs[self.idx_cross_1]))
-        # 1. クロスシグナル 2
+        # 2. クロスシグナル 2
         cross_2 = SignalSign(int(obs[self.idx_cross_2]))
-        # 2. クロスシグナル強度
+        # 3. クロスシグナル強度
         strength = int(obs[self.idx_strength])
-        # 3. ロスカット 1
+        # 4. 乱高下
+        fluctuation = int(obs[self.idx_fluc])
+        # 5. ロスカット 1
         losscut_1 = int(obs[self.idx_losscut_1])
-        # 4. ポジション（建玉）
+        # 6. ポジション（建玉）
         position = PositionType(int(obs[self.idx_position]))
         # ---------------------------------------------------------------------
         # シグナルの処理
@@ -44,7 +47,10 @@ class AlgoTrade:
             if position == PositionType.NONE:
                 # エントリ
                 if strength and masks[action_entry] == 1:
-                    action = action_entry
+                    if fluctuation:
+                        action = ActionType.HOLD.value
+                    else:
+                        action = action_entry
                 else:
                     action = ActionType.HOLD.value
             elif position in (PositionType.LONG, PositionType.SHORT):
@@ -65,7 +71,10 @@ class AlgoTrade:
                 )
 
                 if strength and masks[action_entry] == 1:
-                    action = action_entry
+                    if fluctuation:
+                        action = ActionType.HOLD.value
+                    else:
+                        action = action_entry
                 else:
                     action = ActionType.HOLD.value
             else:
@@ -90,5 +99,6 @@ class AlgoTrade:
         self.idx_cross_1 = self.list_obs_label.index("クロスS1")
         self.idx_cross_2 = self.list_obs_label.index("クロスS2")
         self.idx_strength = self.list_obs_label.index("クロ強")
+        self.idx_fluc = self.list_obs_label.index("乱高下")
         self.idx_losscut_1 = self.list_obs_label.index("ロス1")
         self.idx_position = self.list_obs_label.index("建玉")

@@ -33,7 +33,10 @@ class FeatureProvider:
         # 6. RollingRange
         key = "PERIOD_RR"
         self.PERIOD_RR: int = dict_setting.get(key, 30)
-        # 6. 単純ロスカットの閾値 1
+        # 7. Turbulence（乱高下）
+        key = "TURBULENCE"
+        self.TURBULENCE: int = dict_setting.get(key, 20)
+        # 8. 単純ロスカットの閾値 1
         key = "LOSSCUT_1"
         self.LOSSCUT_1: float = dict_setting.get(key, -25.0)
         # ---------------------------------------------------------------------
@@ -59,6 +62,9 @@ class FeatureProvider:
         # ---------------------------------------------------------------------
         # ボラティリティ関連
         self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
+        self.rr = 0
+        self.rr_pre = 0
+        self.fluc = 0
         # ---------------------------------------------------------------------
         # ロスカット
         self.losscut_1 = False
@@ -101,6 +107,9 @@ class FeatureProvider:
         self.cross_strong = False
         # ボラティリティ関連
         self.obj_rr.clear()
+        self.rr = 0
+        self.rr_pre = 0
+        self.fluc = 0
         # ロスカット
         self.losscut_1 = False
         # 始値
@@ -209,6 +218,9 @@ class FeatureProvider:
     def getTimestamp(self) -> float:
         return self.ts
 
+    def isFluctuation(self) -> float:
+        return self.fluc
+
     def position_close(self) -> float:
         reward = 0
 
@@ -282,7 +294,14 @@ class FeatureProvider:
         div_ma = ma1 - ma2
 
         # --- ボラティリティ関連 ---
-        rr = self.obj_rr.update(price)
+        self.rr_pre = self.rr
+        self.rr = self.obj_rr.update(price)
+        if self.rr_pre > self.TURBULENCE:
+            self.fluc = 1
+        elif self.rr > self.TURBULENCE:
+            self.fluc = 1
+        else:
+            self.fluc = 0
 
         # --- MA1 の傾き ---
         slope1 = self.obj_slope1.update(ma1)
