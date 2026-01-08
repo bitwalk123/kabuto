@@ -13,7 +13,11 @@ from PySide6.QtGui import (
     QCloseEvent,
     QIcon,
 )
-from PySide6.QtWidgets import QMainWindow, QSizePolicy, QDialog
+from PySide6.QtWidgets import (
+    QDialog,
+    QMainWindow,
+    QSizePolicy,
+)
 
 from funcs.conv import conv_transaction_df2html
 from funcs.tide import get_intraday_timestamp
