@@ -94,7 +94,7 @@ class RewardManager:
         :return:
         """
         reward = 0.0
-        profit = self.provider.get_profit()
+        profit = self.provider.getProfit()
         if self.provider.position == PositionType.LONG:
             # 返済: 買建 (LONG) → 売埋
             # -------------------------------------------------------------
