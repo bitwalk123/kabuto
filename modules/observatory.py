@@ -2,6 +2,24 @@ import numpy as np
 
 from modules.feature_provider import FeatureProvider
 
+FEATURES = [
+    ("クロスS1", "getCrossSignal1"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
+    ("クロスS2", "getCrossSignal2"),  # 移動平均のクロスシグナル 2 [-1, 0, 1]
+    ("クロ強", "getCrossSignalStrength"),  # クロスシグナル強度 [0, 1]
+    ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
+    ("建玉", "getPositionValue"),  # ポジション情報
+]
+TECHNICALS = {
+    "ts": "getTimestamp",  # タイムスタンプ
+    "price": "getPrice",  # 株価
+    "ma1": "getMA1",  # 移動平均線 MA1
+    "ma2": "getMA2",  # 移動平均線 MA2
+    "slope1": "getSlope1",  # 移動平均 MA1 の傾き
+    "rr": "getRR",  # RR（Rolling Range）
+    "profit": "getProfit",  # 含損益
+    "profit_max": "profit_max",  # 最大含み損益
+}
+
 
 class ObservationManager:
     def __init__(self, provider: FeatureProvider):
@@ -15,49 +33,23 @@ class ObservationManager:
         """
         self.n_feature = len(self.getObs()[0])
 
-    def getObs(self) -> tuple[np.ndarray, dict]:
-        # プロット用生データ
-        dict_technicals = {
-            "ts": self.provider.getTimestamp(),  # タイムスタンプ
-            "price": self.provider.getPrice(),  # 株価
-            "ma1": self.provider.getMA1(),  # MA1（移動平均 1）
-            "ma2": self.provider.getMA2(),  # MA2（移動平均 2）
-            "slope1": self.provider.getSlope1(),  # MA1（移動平均 1 の傾き）
-            "rr": self.provider.getRR(),  # RR（Rolling Range）
-            "profit": self.provider.getProfit(),  # 含損益
-            "profit_max": self.provider.profit_max,  # 最大含み損益
-        }
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def getObs(self):
+        p = self.provider
+
         # 観測値（特徴量）用リスト
-        list_feature = list()
-        # ---------------------------------------------------------------------
-        # 0. 移動平均のクロスシグナル 1 [-1, 0, 1]
-        list_feature.append(self.provider.getCrossSignal1())
-        # ---------------------------------------------------------------------
-        # 1. 移動平均のクロスシグナル 2 [-1, 0, 1]
-        list_feature.append(self.provider.getCrossSignal2())
-        # ---------------------------------------------------------------------
-        # 2. クロスシグナル強度 [0, 1]
-        list_feature.append(self.provider.getCrossSignalStrength())
-        # ---------------------------------------------------------------------
-        # 3. ロスカット 1 [0, 1]
-        list_feature.append(self.provider.getLosscut1())
-        # ---------------------------------------------------------------------
-        # 4. ポジション情報
-        list_feature.append(float(self.provider.position.value))
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 配列にして観測値を返す
+        list_feature = [getattr(p, fn)() for _, fn in FEATURES]
+
+        # プロット用データ
+        dict_technicals = {
+            key: getattr(p, name)() if callable(getattr(p, name)) else getattr(p, name)
+            for key, name in TECHNICALS.items()
+        }
+
         return np.array(list_feature, dtype=np.float32), dict_technicals
 
     @staticmethod
     def getObsList() -> list:
-        return [
-            "クロスS1",
-            "クロスS2",
-            "クロ強",
-            "ロス1",
-            "建玉",
-        ]
+        return [name for name, _ in FEATURES]
 
     def getObsReset(self) -> np.ndarray:
         obs, _ = self.getObs()

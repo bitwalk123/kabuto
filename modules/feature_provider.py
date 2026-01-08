@@ -167,6 +167,9 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getPositionValue(self) -> float:
+        return float(self.position.value)
+
     def getPrice(self) -> float:
         return self.price
 
