@@ -18,12 +18,13 @@ class ObservationManager:
     def getObs(self) -> tuple[np.ndarray, dict]:
         # プロット用生データ
         dict_technicals = {
-            "ts": self.provider.ts,  # タイムsタンプ
+            "ts": self.provider.getTimestamp(),  # タイムスタンプ
+            "price": self.provider.getPrice(),  # 株価
             "ma1": self.provider.getMA1(),  # MA1（移動平均 1）
             "ma2": self.provider.getMA2(),  # MA2（移動平均 2）
             "slope1": self.provider.getSlope1(),  # MA1（移動平均 1 の傾き）
             "rr": self.provider.getRR(),  # RR（Rolling Range）
-            "profit": self.provider.get_profit(),  # 含損益
+            "profit": self.provider.getProfit(),  # 含損益
             "profit_max": self.provider.profit_max,  # 最大含み損益
         }
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_

@@ -129,33 +129,6 @@ class FeatureProvider:
         """
         return str(datetime.datetime.fromtimestamp(int(t)))
 
-    def get_profit(self) -> float:
-        """
-        損益計算（含み損益）
-        :return:
-        """
-        if self.position == PositionType.LONG:
-            # 返済: 買建 (LONG) → 売埋
-            profit = self.price - self.price_entry
-        elif self.position == PositionType.SHORT:
-            # 返済: 売建 (SHORT) → 買埋
-            profit = self.price_entry - self.price
-        else:
-            profit = 0.0
-
-        # 最大含み益を保持
-        if self.profit_max < profit:
-            self.profit_max = profit
-
-        return profit
-
-    def get_profit_max(self) -> float:
-        """
-        最大含み益
-        :return:
-        """
-        return self.profit_max
-
     def getCrossSignal1(self) -> float:
         """
         クロスシグナル（-1, 0, 1）
@@ -194,6 +167,36 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getPrice(self) -> float:
+        return self.price
+
+    def getProfit(self) -> float:
+        """
+        損益計算（含み損益）
+        :return:
+        """
+        if self.position == PositionType.LONG:
+            # 返済: 買建 (LONG) → 売埋
+            profit = self.price - self.price_entry
+        elif self.position == PositionType.SHORT:
+            # 返済: 売建 (SHORT) → 買埋
+            profit = self.price_entry - self.price
+        else:
+            profit = 0.0
+
+        # 最大含み益を保持
+        if self.profit_max < profit:
+            self.profit_max = profit
+
+        return profit
+
+    def getProfitMax(self) -> float:
+        """
+        最大含み益
+        :return:
+        """
+        return self.profit_max
+
     def getRR(self) -> float:
         return self.obj_rr.getValue()
 
@@ -212,7 +215,7 @@ class FeatureProvider:
         self.n_trade += 1
 
         # 確定損益
-        profit = self.get_profit()
+        profit = self.getProfit()
         # 確定損益追加
         self.pnl_total += profit
         # 報酬に追加
@@ -290,7 +293,7 @@ class FeatureProvider:
         self.cross_strong = self._is_cross_strong(self.cross, self.cross_pre, slope1)
 
         # --- ロスカット判定 ---
-        self.losscut_1 = self.get_profit() <= self.LOSSCUT_1
+        self.losscut_1 = self.getProfit() <= self.LOSSCUT_1
 
     def _detect_cross(self, prev: float | None, curr: float) -> int:
         """移動平均の乖離の符号変化からクロスを検出"""
