@@ -18,7 +18,7 @@ def get_date_str_from_file(file: str) -> str:
     if m := pattern.match(file):
         return m.group(1)
     else:
-        return "1970-01-01"
+        return "19700101"
 
 def get_year_date_str_from_file(file: str) -> str:
     """

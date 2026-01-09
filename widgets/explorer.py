@@ -15,7 +15,11 @@ class Explorer:
         return self.agent.getObservations()
 
     def getTechnicals(self) -> pd.DataFrame:
-        return self.agent.getTechnicals()
+        df = self.agent.getTechnicals()
+        return df
 
-    def getTransaction(self) -> pd.DataFrame:
-        return self.agent.getTransaction()
+    def getTransaction(self) -> tuple[pd.DataFrame, int, float]:
+        df = self.agent.getTransaction()
+        n_trade = len(df)
+        total = df["損益"].sum()
+        return df, n_trade, total
