@@ -19,7 +19,7 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    name_doe = "doe-10"
+    name_doe = "doe-10a"
     code = "7011"
 
     # 出力ディレクトリ
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
             # シミュレーション実行
             _, n_trade, total = run_condition(setting, df, code, dict_ts)
-            print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/株")
+            print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/100株")
 
             # 結果を保存
             dict_doe["file"].append(excel)
