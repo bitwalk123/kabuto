@@ -3,8 +3,10 @@ from PySide6.QtWidgets import QFrame
 
 from structs.res import AppRes
 from widgets.buttons import (
+    ButtonSave,
+    ButtonSetting,
     TradeButton,
-    ToggleButtonAutoPilot, ButtonSave,
+    ToggleButtonAutoPilot,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -22,8 +24,8 @@ class PanelTrading(Widget):
     固定株数でナンピンしない取引を前提にしている
     """
     clickedBuy = Signal()
-    clickedSell = Signal()
     clickedRepay = Signal()
+    clickedSell = Signal()
 
     def __init__(self):
         super().__init__()
@@ -98,6 +100,7 @@ class PanelTrading(Widget):
 class PanelOption(QFrame):
     changedAutoPilotStatus = Signal(bool)
     clickedSave = Signal()
+    clickedSetting = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -119,6 +122,11 @@ class PanelOption(QFrame):
 
         pad = PadH()
         layout.addWidget(pad)
+
+        # 設定
+        but_setting = ButtonSetting(res)
+        but_setting.clicked.connect(self.clickedSetting.emit)
+        layout.addWidget(but_setting)
 
         # チャートの保存
         but_save = ButtonSave(res)

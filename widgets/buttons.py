@@ -141,6 +141,14 @@ class ButtonSell(QPushButton):
         self.setText("売　建")
 
 
+class ButtonSetting(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        imgname = os.path.join(res.dir_image, "setting.png")
+        self.setIcon(QIcon(imgname))
+
+
 class ButtonSmall(QPushButton):
     def __init__(self, *args):
         super().__init__(*args)
