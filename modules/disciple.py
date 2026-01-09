@@ -3,7 +3,6 @@ import os
 import pandas as pd
 
 from funcs.ios import get_excel_sheet
-from funcs.setting import load_setting
 from funcs.tide import get_intraday_timestamp
 from modules.agent import CronAgent
 from structs.res import AppRes
