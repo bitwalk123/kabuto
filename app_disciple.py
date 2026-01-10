@@ -8,7 +8,7 @@ if __name__ == "__main__":
     res = AppRes()
 
     excel = "ticks_20260109.xlsx"
-    code = "8036"
+    code = "7011"
     dict_setting = load_setting(res, code)
 
     app = Disciple(excel, code, dict_setting)
