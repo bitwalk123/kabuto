@@ -7,8 +7,8 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    excel = "ticks_20260105.xlsx"
-    code = "7011"
+    excel = "ticks_20260109.xlsx"
+    code = "8036"
     dict_setting = load_setting(res, code)
 
     app = Disciple(excel, code, dict_setting)
