@@ -20,7 +20,7 @@ if __name__ == "__main__":
     res = AppRes()
 
     name_doe = "doe-10g"
-    list_code = ["6758", "7011", "7203", "8306"]
+    list_code = ["7011", "7203", "8306"]
     for code in list_code:
         # 出力ディレクトリ
         path_dir = os.path.join(res.dir_output, name_doe, code)
