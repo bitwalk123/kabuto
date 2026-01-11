@@ -19,7 +19,7 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    name_doe = "doe-10g"
+    name_doe = "doe-10f"
     list_code = ["7011", "7203", "8306"]
     for code in list_code:
         # 出力ディレクトリ
