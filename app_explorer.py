@@ -19,8 +19,8 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    name_doe = "doe-10f"
-    code = "7011"
+    name_doe = "doe-10d"
+    code = "8306"
 
     # 出力ディレクトリ
     path_dir = os.path.join(res.dir_output, name_doe, code)
