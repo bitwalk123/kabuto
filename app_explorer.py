@@ -19,7 +19,7 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    name_doe = "doe-10b"
+    name_doe = "doe-10c"
     code = "8306"
 
     # 出力ディレクトリ
