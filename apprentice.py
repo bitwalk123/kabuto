@@ -41,22 +41,40 @@ class RSSWorker(QObject):
             self.do_repay = wb.macro("Module1.DoRepay")
 
     def macro_do_buy(self):
-        if self.wb is not None:
-            self.do_buy()
-        else:
+        if self.wb is None:
             print("doBuy: 非Windows 上で実行されました。")
+            return
+        try:
+            self.do_buy()
+            self.logger.info("DoBuy executed successfully.")
+        except com_error as e:
+            self.logger.error(f"DoBuy failed: {e}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in DoBuy: {e}")
 
     def macro_do_sell(self):
-        if self.wb is not None:
-            self.do_sell()
-        else:
+        if self.wb is None:
             print("doSell: 非Windows 上で実行されました。")
+            return
+        try:
+            self.do_sell()
+            self.logger.info("DoSell executed successfully.")
+        except com_error as e:
+            self.logger.error(f"DoSell failed: {e}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in DoSell: {e}")
 
     def macro_do_repay(self):
-        if self.wb is not None:
-            self.do_repay()
-        else:
+        if self.wb is None:
             print("doRepay: 非Windows 上で実行されました。")
+            return
+        try:
+            self.do_repay()
+            self.logger.info("DoRepay executed successfully.")
+        except com_error as e:
+            self.logger.error(f"DoRepay failed: {e}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in DoRepay: {e}")
 
 
 class Apprentice(QWidget):
