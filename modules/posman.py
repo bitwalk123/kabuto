@@ -2,7 +2,6 @@ import logging
 
 import pandas as pd
 
-from funcs.tide import conv_datetime_from_timestamp
 from structs.app_enum import ActionType
 
 
@@ -17,7 +16,8 @@ class PositionManager:
         self.dict_total = dict()
         self.dict_action = dict()
 
-        dict_columns = {
+        # 取引履歴用辞書
+        self.records = {
             "注文番号": [],
             "注文日時": [],
             "銘柄コード": [],
@@ -27,8 +27,6 @@ class PositionManager:
             "損益": [],
             "備考": [],
         }
-        df = pd.DataFrame.from_dict(dict_columns)
-        self.df_order = df.astype(object)
 
     def initPosition(self, list_code: list):
         for code in list_code:
@@ -51,17 +49,17 @@ class PositionManager:
 
         # 取引履歴
         self.order += 1
-        r = len(self.df_order)
-        self.df_order.at[r, "注文番号"] = self.order
-        self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
-        self.df_order.at[r, "銘柄コード"] = code
+        self.records["注文番号"].append(self.order)
+        self.records["注文日時"].append(ts)
+        self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
-            self.df_order.at[r, "売買"] = "買建"
+            self.records["売買"].append("買建")
         elif action == ActionType.SELL:
-            self.df_order.at[r, "売買"] = "売建"
-        self.df_order.at[r, "約定単価"] = price
-        self.df_order.at[r, "約定数量"] = self.unit
-        self.df_order.at[r, "備考"] = note
+            self.records["売買"].append("売建")
+        self.records["約定単価"].append(price)
+        self.records["約定数量"].append(self.unit)
+        self.records["損益"].append(None)
+        self.records["備考"].append(note)
 
     def closePosition(self, code: str, ts: float, price: float, note: str = ""):
         """
@@ -85,18 +83,17 @@ class PositionManager:
 
         # 取引履歴
         self.order += 1
-        r = len(self.df_order)
-        self.df_order.at[r, "注文番号"] = self.order
-        self.df_order.at[r, "注文日時"] = conv_datetime_from_timestamp(ts)
-        self.df_order.at[r, "銘柄コード"] = code
+        self.records["注文番号"].append(self.order)
+        self.records["注文日時"].append(ts)
+        self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
-            self.df_order.at[r, "売買"] = "売埋"
+            self.records["売買"].append("売埋")
         elif action == ActionType.SELL:
-            self.df_order.at[r, "売買"] = "買埋"
-        self.df_order.at[r, "約定単価"] = price
-        self.df_order.at[r, "約定数量"] = self.unit
-        self.df_order.at[r, "損益"] = profit
-        self.df_order.at[r, "備考"] = note
+            self.records["売買"].append("買埋")
+        self.records["約定単価"].append(price)
+        self.records["約定数量"].append(self.unit)
+        self.records["損益"].append(profit)
+        self.records["備考"].append(note)
 
         # 売買状態のリセット
         self.dict_price[code] = 0
@@ -116,4 +113,6 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
-        return self.df_order
+        df = pd.DataFrame(self.records)
+        df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s")
+        return df
