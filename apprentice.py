@@ -40,36 +40,36 @@ class RSSWorker(QObject):
             self.do_sell = wb.macro("Module1.DoSell")
             self.do_repay = wb.macro("Module1.DoRepay")
 
-    def macro_do_buy(self):
+    def macro_do_buy(self, code: str):
         if self.wb is None:
             print("doBuy: 非Windows 上で実行されました。")
             return
         try:
-            result = self.do_buy()
+            result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"DoBuy failed: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
 
-    def macro_do_sell(self):
+    def macro_do_sell(self, code: str):
         if self.wb is None:
             print("doSell: 非Windows 上で実行されました。")
             return
         try:
-            result = self.do_sell()
+            result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"DoSell failed: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
 
-    def macro_do_repay(self):
+    def macro_do_repay(self, code: str):
         if self.wb is None:
             print("doRepay: 非Windows 上で実行されました。")
             return
         try:
-            result = self.do_repay()
+            result = self.do_repay(code)
             self.logger.info(f"DoRepay returned {result}")
         except com_error as e:
             self.logger.error(f"DoRepay failed: {e}")
@@ -79,13 +79,14 @@ class RSSWorker(QObject):
 
 class Apprentice(QWidget):
     requestWorkerInit = Signal()
-    requestBuy = Signal()
-    requestSell = Signal()
-    requestRepay = Signal()
+    requestBuy = Signal(str)
+    requestSell = Signal(str)
+    requestRepay = Signal(str)
 
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.code = "9432"  # テスト用の銘柄コード
 
         # Thread for xlwings
         self.thread = QThread(self)
@@ -104,13 +105,13 @@ class Apprentice(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.setLayout(layout)
         but_sell = QPushButton("売　建")
-        but_sell.clicked.connect(self.requestSell.emit)
+        but_sell.clicked.connect(self.request_sell)
         layout.addWidget(but_sell, 0, 0)
         but_buy = QPushButton("買　建")
-        but_buy.clicked.connect(self.requestBuy.emit)
+        but_buy.clicked.connect(self.request_buy)
         layout.addWidget(but_buy, 0, 1)
         but_repay = QPushButton("返　　済")
-        but_repay.clicked.connect(self.requestRepay.emit)
+        but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, 1, 0, 1, 2)
 
     def closeEvent(self, event: QCloseEvent):
@@ -121,6 +122,15 @@ class Apprentice(QWidget):
             self.worker.deleteLater()
             self.worker = None
         event.accept()
+
+    def request_buy(self):
+        self.requestBuy.emit(self.code)
+
+    def request_sell(self):
+        self.requestSell.emit(self.code)
+
+    def request_repay(self):
+        self.requestRepay.emit(self.code)
 
 
 def main():
