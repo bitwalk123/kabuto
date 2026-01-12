@@ -40,21 +40,21 @@ class RSSWorker(QObject):
 
     def doBuy(self):
         if self.wb is not None:
-            do_buy = self.wb.macro("DoBuy")
+            do_buy = self.wb.macro("Module1.DoBuy")
             do_buy()
         else:
             print("doBuy: 非Windows 上で実行されました。")
 
     def doSell(self):
         if self.wb is not None:
-            do_sell = self.wb.macro("DoSell")
+            do_sell = self.wb.macro("Module1.DoSell")
             do_sell()
         else:
             print("doSell: 非Windows 上で実行されました。")
 
     def doRepay(self):
         if self.wb is not None:
-            do_repay = self.wb.macro("DoRepay")
+            do_repay = self.wb.macro("Module1.DoRepay")
             do_repay()
         else:
             print("doRepay: 非Windows 上で実行されました。")
