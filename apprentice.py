@@ -29,30 +29,33 @@ class RSSWorker(QObject):
         self.logger = logging.getLogger(__name__)
         if sys.platform == "win32":
             self.wb = wb = xw.Book("collector.xlsm")
-            self.do_buy = wb.macro("DoBuy")
-            self.do_sell = wb.macro("DoSell")
-            self.do_repay = wb.macro("DoRepay")
+            #self.do_buy = wb.macro("DoBuy")
+            #self.do_sell = wb.macro("DoSell")
+            #self.do_repay = wb.macro("DoRepay")
         else:
             self.wb = None
-            self.do_buy = None
-            self.do_sell = None
-            self.do_repay = None
+            #self.do_buy = None
+            #self.do_sell = None
+            #self.do_repay = None
 
     def doBuy(self):
-        if self.do_buy is not None:
-            self.do_buy()
+        if self.wb is not None:
+            do_buy = self.wb.macro("DoBuy")
+            do_buy()
         else:
             print("doBuy: 非Windows 上で実行されました。")
 
     def doSell(self):
-        if self.do_sell is not None:
-            self.do_sell()
+        if self.wb is not None:
+            do_sell = self.wb.macro("DoSell")
+            do_sell()
         else:
             print("doSell: 非Windows 上で実行されました。")
 
     def doRepay(self):
-        if self.do_repay is not None:
-            self.do_repay()
+        if self.wb is not None:
+            do_repay = self.wb.macro("DoRepay")
+            do_repay()
         else:
             print("doRepay: 非Windows 上で実行されました。")
 
