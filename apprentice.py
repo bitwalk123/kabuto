@@ -34,24 +34,25 @@ class RSSWorker(QObject):
 
     def initWorker(self):
         if sys.platform == "win32":
-            self.wb = wb = xw.Book("collector.xlsm")
+            # Excel ファイルが既に開いていることが前提
+            self.wb = wb = xw.books["collector.xlsm"]
             self.do_buy = wb.macro("Module1.DoBuy")
             self.do_sell = wb.macro("Module1.DoSell")
             self.do_repay = wb.macro("Module1.DoRepay")
 
-    def doBuy(self):
+    def macro_do_buy(self):
         if self.wb is not None:
             self.do_buy()
         else:
             print("doBuy: 非Windows 上で実行されました。")
 
-    def doSell(self):
+    def macro_do_sell(self):
         if self.wb is not None:
             self.do_sell()
         else:
             print("doSell: 非Windows 上で実行されました。")
 
-    def doRepay(self):
+    def macro_do_repay(self):
         if self.wb is not None:
             self.do_repay()
         else:
@@ -74,9 +75,9 @@ class Apprentice(QWidget):
         worker.moveToThread(self.thread)
         self.thread.started.connect(self.requestWorkerInit.emit)
         self.requestWorkerInit.connect(worker.initWorker)
-        self.requestBuy.connect(worker.doBuy)
-        self.requestSell.connect(worker.doSell)
-        self.requestRepay.connect(worker.doRepay)
+        self.requestBuy.connect(worker.macro_do_buy)
+        self.requestSell.connect(worker.macro_do_sell)
+        self.requestRepay.connect(worker.macro_do_repay)
         self.thread.start()
 
         # GUI
