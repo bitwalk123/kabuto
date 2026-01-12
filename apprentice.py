@@ -45,8 +45,11 @@ class RSSWorker(QObject):
             print("doBuy: 非Windows 上で実行されました。")
             return
         try:
-            self.do_buy()
-            self.logger.info("DoBuy executed successfully.")
+            # self.do_buy()
+            # self.logger.info("DoBuy executed successfully.")
+            result = self.do_buy()
+            # print(result, type(result))
+            self.logger.info("DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"DoBuy failed: {e}")
         except Exception as e:
@@ -57,8 +60,11 @@ class RSSWorker(QObject):
             print("doSell: 非Windows 上で実行されました。")
             return
         try:
-            self.do_sell()
-            self.logger.info("DoSell executed successfully.")
+            # self.do_sell()
+            # self.logger.info("DoSell executed successfully.")
+            result = self.do_sell()
+            # print(result, type(result))
+            self.logger.info("DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"DoSell failed: {e}")
         except Exception as e:
@@ -69,8 +75,11 @@ class RSSWorker(QObject):
             print("doRepay: 非Windows 上で実行されました。")
             return
         try:
-            self.do_repay()
-            self.logger.info("DoRepay executed successfully.")
+            # self.do_repay()
+            # self.logger.info("DoRepay executed successfully.")
+            result = self.do_repay()
+            # print(result, type(result))
+            self.logger.info("DoRepay returned {result}")
         except com_error as e:
             self.logger.error(f"DoRepay failed: {e}")
         except Exception as e:
