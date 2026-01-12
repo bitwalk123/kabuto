@@ -27,16 +27,17 @@ class RSSWorker(QObject):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.wb = None
+        self.do_buy = None
+        self.do_sell = None
+        self.do_repay = None
+
+    def initWorker(self):
         if sys.platform == "win32":
             self.wb = wb = xw.Book("collector.xlsm")
             self.do_buy = wb.macro("Module1.DoBuy")
             self.do_sell = wb.macro("Module1.DoSell")
             self.do_repay = wb.macro("Module1.DoRepay")
-        else:
-            self.wb = None
-            self.do_buy = None
-            self.do_sell = None
-            self.do_repay = None
 
     def doBuy(self):
         if self.wb is not None:
@@ -58,6 +59,7 @@ class RSSWorker(QObject):
 
 
 class Apprentice(QWidget):
+    requestWorkerInit = Signal()
     requestBuy = Signal()
     requestSell = Signal()
     requestRepay = Signal()
@@ -70,6 +72,8 @@ class Apprentice(QWidget):
         self.thread = QThread(self)
         self.worker = worker = RSSWorker()
         worker.moveToThread(self.thread)
+        self.thread.started.connect(self.requestWorkerInit.emit)
+        self.requestWorkerInit.connect(worker.initWorker)
         self.requestBuy.connect(worker.doBuy)
         self.requestSell.connect(worker.doSell)
         self.requestRepay.connect(worker.doRepay)
@@ -94,11 +98,9 @@ class Apprentice(QWidget):
         if self.thread is not None:
             self.thread.quit()
             self.thread.wait()
-            self.thread.deleteLater()
         if self.worker is not None:
             self.worker.deleteLater()
             self.worker = None
-
         event.accept()
 
 
