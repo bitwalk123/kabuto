@@ -48,7 +48,7 @@ class RSSWorker(QObject):
             result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
-            self.logger.error(f"DoBuy failed: {e}")
+            self.logger.error(f"DoBuy failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
 
@@ -60,7 +60,7 @@ class RSSWorker(QObject):
             result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
-            self.logger.error(f"DoSell failed: {e}")
+            self.logger.error(f"DoSell failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
 
@@ -72,7 +72,7 @@ class RSSWorker(QObject):
             result = self.do_repay(code)
             self.logger.info(f"DoRepay returned {result}")
         except com_error as e:
-            self.logger.error(f"DoRepay failed: {e}")
+            self.logger.error(f"DoRepay failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
 
