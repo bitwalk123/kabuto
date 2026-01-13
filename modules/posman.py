@@ -114,7 +114,7 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
-        df = pd.DataFrame(self.records)
         td = datetime.timedelta(hours=9)
+        df = pd.DataFrame(self.records)
         df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s") + td
         return df
