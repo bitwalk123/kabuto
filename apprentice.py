@@ -48,7 +48,7 @@ class RSSWorker(QObject):
             result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
-            self.logger.error(f"DoBuy failed: {e}")
+            self.logger.error(f"DoBuy failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
 
@@ -60,7 +60,7 @@ class RSSWorker(QObject):
             result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
-            self.logger.error(f"DoSell failed: {e}")
+            self.logger.error(f"DoSell failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
 
@@ -72,9 +72,16 @@ class RSSWorker(QObject):
             result = self.do_repay(code)
             self.logger.info(f"DoRepay returned {result}")
         except com_error as e:
-            self.logger.error(f"DoRepay failed: {e}")
+            self.logger.error(f"DoRepay failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
+
+
+class Button(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setFixedHeight(50)
+        self.setMinimumWidth(100)
 
 
 class Apprentice(QWidget):
@@ -86,7 +93,7 @@ class Apprentice(QWidget):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.code = "9432"  # テスト用の銘柄コード
+        self.code = "9432"  # 売買テスト用の銘柄コード
 
         # Thread for xlwings
         self.thread = QThread(self)
@@ -100,19 +107,20 @@ class Apprentice(QWidget):
         self.thread.start()
 
         # GUI
+        self.setWindowTitle("売買テスト")
         layout = QGridLayout()
-        layout.setSpacing(20)
         layout.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.setLayout(layout)
-        but_sell = QPushButton("売　建")
+        self.but_sell = but_sell = Button("売　建")
         but_sell.clicked.connect(self.request_sell)
         layout.addWidget(but_sell, 0, 0)
-        but_buy = QPushButton("買　建")
+        self.but_buy = but_buy = Button("買　建")
         but_buy.clicked.connect(self.request_buy)
         layout.addWidget(but_buy, 0, 1)
-        but_repay = QPushButton("返　　済")
+        self.but_repay = but_repay = Button("返　　済")
         but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, 1, 0, 1, 2)
+        self.switch_activate(True)
 
     def closeEvent(self, event: QCloseEvent):
         if self.thread is not None:
@@ -125,12 +133,25 @@ class Apprentice(QWidget):
 
     def request_buy(self):
         self.requestBuy.emit(self.code)
+        self.switch_activate(False)
 
     def request_sell(self):
         self.requestSell.emit(self.code)
+        self.switch_activate(False)
 
     def request_repay(self):
         self.requestRepay.emit(self.code)
+        self.switch_activate(True)
+
+    def switch_activate(self, state: bool):
+        self.but_buy.setEnabled(state)
+        self.but_sell.setEnabled(state)
+        self.but_repay.setDisabled(state)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 表示後の最終サイズを固定
+        self.setFixedSize(self.size())
 
 
 def main():
