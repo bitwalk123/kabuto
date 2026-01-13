@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 import pandas as pd
@@ -114,5 +115,6 @@ class PositionManager:
 
     def getTransactionResult(self) -> pd.DataFrame:
         df = pd.DataFrame(self.records)
-        df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s")
+        td = datetime.timedelta(hours=9)
+        df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s") + td
         return df
