@@ -8,10 +8,10 @@ from structs.res import AppRes
 from widgets.explorer import Explorer
 
 
-def run_condition(setting, df, code, dict_ts):
+def run_condition(dict_setting: dict, df, name_code: str, dict_timestamp: dict):
     """DOE 条件 1 つ分のシミュレーションを実行して結果を返す"""
-    app = Explorer(code, dict_ts)
-    app.run(setting, df)
+    app = Explorer(name_code, dict_timestamp)
+    app.run(dict_setting, df)
     return app.getTransaction()
 
 
@@ -50,9 +50,9 @@ if __name__ == "__main__":
 
             # ティックデータ読み込み
             path_excel = os.path.join(res.dir_collection, excel)
-            df = get_excel_sheet(path_excel, code)
+            df_tick = get_excel_sheet(path_excel, code)
             # データがなければスキップ
-            if len(df) == 0:
+            if len(df_tick) == 0:
                 continue
 
             # 結果格納用辞書を初期化
@@ -68,7 +68,7 @@ if __name__ == "__main__":
                     setting[key] = int(row[key])
 
                 # シミュレーション実行
-                _, n_trade, total = run_condition(setting, df, code, dict_ts)
+                _, n_trade, total = run_condition(setting, df_tick, code, dict_ts)
                 print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/100株")
 
                 # 結果を保存
