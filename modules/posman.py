@@ -114,7 +114,11 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
-        td = datetime.timedelta(hours=9)
+        #td = datetime.timedelta(hours=9)
         df = pd.DataFrame(self.records)
-        df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s") + td
+        #df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s")
+        df["注文日時"] = (
+            pd.to_datetime(df["注文日時"], unit="s", utc=True)
+            .dt.tz_convert("Asia/Tokyo")
+        )
         return df
