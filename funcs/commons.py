@@ -13,8 +13,8 @@ def get_collection_path(res: AppRes, file: str) -> str:
 
 
 def get_name_15min_chart(code: str, dt: datetime.datetime) -> str:
-    year = str(dt.year)
-    month = str(dt.month)
+    year = f"{dt.year:04d}"
+    month = f"{dt.month:02d}"
     day = dt.day
     output_dir = os.path.join(year, month)
     os.makedirs(output_dir, exist_ok=True)
@@ -30,8 +30,8 @@ def get_name_15min_chart_now(code: str) -> str:
 
 
 def get_name_15min_chart_usd(code: str, dt: datetime.datetime) -> str:
-    year = str(dt.year)
-    month = str(dt.month)
+    year = f"{dt.year:04d}"
+    month = f"{dt.month:02d}"
     day = dt.day
     output_dir = os.path.join(year, month)
     os.makedirs(output_dir, exist_ok=True)
