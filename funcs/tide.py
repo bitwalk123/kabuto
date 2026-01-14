@@ -20,6 +20,7 @@ def get_date_str_from_file(file: str) -> str:
     else:
         return "19700101"
 
+
 def get_year_date_str_from_file(file: str) -> str:
     """
     ファイル名から日付文字列を返す関数
@@ -31,6 +32,20 @@ def get_year_date_str_from_file(file: str) -> str:
         return os.path.join(m.group(1), m.group(2))
     else:
         return os.path.join("1970", "0101")
+
+
+def get_date_dir_from_file(file: str) -> str:
+    """
+    ファイル名から年/月/日の階層ディレクトリ文字列を返す関数
+    :param file:
+    :return:
+    """
+    pattern = re.compile(r".+_(\d{4})(\d{2})(\d{2})\..+")
+    if m := pattern.match(file):
+        return os.path.join(m.group(1), m.group(2), m.group(3))
+    else:
+        return os.path.join("1970", "01", "01")
+
 
 def get_date_str_today() -> str:
     dt = datetime.datetime.now()

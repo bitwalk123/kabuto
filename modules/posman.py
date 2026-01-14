@@ -114,11 +114,15 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
-        #td = datetime.timedelta(hours=9)
         df = pd.DataFrame(self.records)
-        #df["注文日時"] = pd.to_datetime(df["注文日時"], unit="s")
+        """
+        float 型の UNIX タイムスタンプを UTC として解釈し、
+        JST (Asia/Tokyo) に変換した後、
+        タイムゾーン情報を取り除いて tz-naive な datetime64[ns] にする
+        """
         df["注文日時"] = (
             pd.to_datetime(df["注文日時"], unit="s", utc=True)
             .dt.tz_convert("Asia/Tokyo")
+            .dt.tz_localize(None)
         )
         return df
