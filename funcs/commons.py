@@ -13,10 +13,12 @@ def get_collection_path(res: AppRes, file: str) -> str:
 
 
 def get_name_15min_chart(code: str, dt: datetime.datetime) -> str:
-    year = dt.year
-    month = dt.month
+    year = str(dt.year)
+    month = str(dt.month)
     day = dt.day
-    return f"{year:4d}/{month:02d}{day:02d}_15min_chart_{code}.png"
+    output_dir = os.path.join(year, month)
+    os.makedirs(output_dir, exist_ok=True)
+    return os.path.join(output_dir, f"{day:02d}_15min_chart_{code}.png")
 
 
 def get_name_15min_chart_now(code: str) -> str:
@@ -28,10 +30,12 @@ def get_name_15min_chart_now(code: str) -> str:
 
 
 def get_name_15min_chart_usd(code: str, dt: datetime.datetime) -> str:
-    year = dt.year
-    month = dt.month
+    year = str(dt.year)
+    month = str(dt.month)
     day = dt.day
-    return f"{year:4d}/{month:02d}{day:02d}_15min_chart_{code}_usd.png"
+    output_dir = os.path.join(year, month)
+    os.makedirs(output_dir, exist_ok=True)
+    return os.path.join(output_dir, f"{day:02d}_15min_chart_{code}_usd.png")
 
 
 def get_date_str_from_collections(file_excel: str) -> str:
