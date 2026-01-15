@@ -57,6 +57,7 @@ class FeatureProvider:
         "profit_max": None,
         "drawdown": None,
         "dd_ratio": None,
+        "takeprofit": None,
         "unit": None,
     }
 
@@ -95,6 +96,7 @@ class FeatureProvider:
         "profit_max": 0.0,
         "drawdown": 0.0,
         "dd_ratio": 0.0,
+        "takeprofit": False,
         "unit": 1,
     }
 
@@ -139,6 +141,9 @@ class FeatureProvider:
         # 値のリセットは一括処理
         for key, value in self.CLEAR_VALUES.items():
             setattr(self, key, value)
+
+    def doesTakeProfit(self) -> float:
+        return 1 if self.takeprofit else 0
 
     @staticmethod
     def get_datetime(t: float) -> str:
@@ -352,6 +357,12 @@ class FeatureProvider:
 
         # --- ロスカット判定 ---
         self.losscut_1 = self.getProfit() <= self.LOSSCUT_1
+
+        # --- 利確判定 ---
+        self.takeprofit = (
+                self.dd_ratio > self.THRESHOLD_DDR_MIN
+                and self.profit_max > self.THRESHOLD_PM_MIN
+        )
 
     def _detect_cross(self, prev: float | None, curr: float) -> int:
         """移動平均の乖離の符号変化からクロスを検出"""

@@ -13,6 +13,7 @@ class AlgoTrade:
         self.idx_strength = None
         self.idx_fluc = None
         self.idx_losscut_1 = None
+        self.idx_takeprofit_1 = None
         self.idx_position = None
 
     def getListObs(self) -> list:
@@ -29,7 +30,9 @@ class AlgoTrade:
         fluctuation = int(obs[self.idx_fluc])
         # 5. ロスカット 1
         losscut_1 = int(obs[self.idx_losscut_1])
-        # 6. ポジション（建玉）
+        # 5. ロスカット 1
+        takeprofit_1 = int(obs[self.idx_takeprofit_1])
+        # 7. ポジション（建玉）
         position = PositionType(int(obs[self.idx_position]))
         # ---------------------------------------------------------------------
         # シグナルの処理
@@ -80,9 +83,9 @@ class AlgoTrade:
             else:
                 action = ActionType.HOLD.value
         # ---------------------------------------------------------------------
-        # 3. losscut_1（単純ロスカット）
+        # 3. losscut_1（単純ロスカット）と　takeprofit_1（利確）
         else:
-            if losscut_1:
+            if losscut_1 or takeprofit_1:
                 if position == PositionType.LONG:
                     action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
                 elif position == PositionType.SHORT:
@@ -101,4 +104,5 @@ class AlgoTrade:
         self.idx_strength = self.list_obs_label.index("クロ強")
         self.idx_fluc = self.list_obs_label.index("乱高下")
         self.idx_losscut_1 = self.list_obs_label.index("ロス1")
+        self.idx_takeprofit_1 = self.list_obs_label.index("利確1")
         self.idx_position = self.list_obs_label.index("建玉")
