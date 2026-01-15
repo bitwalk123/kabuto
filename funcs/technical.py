@@ -95,18 +95,23 @@ class EMA:
     """
 
     def __init__(self, window_size: int):
-        #self.window_size = window_size
-        self.alpha = 2 / (window_size + 1)
-        self.ema = None
+        self.alpha: float = 2 / (window_size + 1)
+        self.ema: Optional[float] = None
 
-    def clear(self):
+    def clear(self) -> None:
         self.ema = None
 
     def getValue(self) -> float:
-        # 現在値を返す
-        return self.ema
+        """
+        現在の EMA 値を返す。
+        未初期化の場合は 0.0 を返す（None を返さない保証）。
+        """
+        return self.ema if self.ema is not None else 0.0
 
     def update(self, value: float) -> float:
+        """
+        新しい値で EMA を更新し、常に float を返す。
+        """
         if self.ema is None:
             # 初期 EMA は最初の値をそのまま採用
             self.ema = value
