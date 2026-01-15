@@ -19,6 +19,84 @@ class FeatureProvider:
         "THRESHOLD_PM_MIN": 10.0,
         "THRESHOLD_DDR_MIN": 0.25,
     }
+    INIT_VALUES = {
+        # ティックデータ
+        "ts": None,
+        "price": None,
+        "volume": None,
+
+        # 移動平均関連
+        "div_ma_prev": None,
+        "cross": 0,
+        "cross_pre": 0,
+        "cross_strong": False,
+
+        # ボラティリティ関連
+        "rr": 0,
+        "rr_pre": 0,
+        "fluc": 0,
+
+        # ロスカット
+        "losscut_1": False,
+
+        # 始値
+        "price_open": None,
+
+        # カウンタ
+        "n_trade": 0,
+        "n_hold": None,
+        "n_hold_position": None,
+
+        # 取引関連
+        "code": None,
+        "dict_transaction": None,
+        "position": None,
+        "pnl_total": None,
+        "price_tick": None,
+        "price_entry": None,
+        "profit_max": None,
+        "drawdown": None,
+        "dd_ratio": None,
+        "unit": None,
+    }
+
+    CLEAR_VALUES = {
+        # リアルタイムで取得する変数
+        "ts": 0,
+        "price": 0,
+        "volume": 0,
+
+        # 移動平均差用
+        "div_ma_prev": None,
+        "cross": 0,
+        "cross_pre": 0,
+        "cross_strong": False,
+
+        # ボラティリティ関連
+        "rr": 0,
+        "rr_pre": 0,
+        "fluc": 0,
+
+        # ロスカット
+        "losscut_1": False,
+
+        # 始値
+        "price_open": 0.0,
+
+        # カウンタ関連
+        "n_trade": 0,
+        "n_hold": 0.0,
+        "n_hold_position": 0.0,
+
+        # 取引関連
+        "pnl_total": 0.0,
+        "price_tick": 1.0,
+        "price_entry": 0.0,
+        "profit_max": 0.0,
+        "drawdown": 0.0,
+        "dd_ratio": 0.0,
+        "unit": 1,
+    }
 
     def __init__(self, dict_setting: dict):
         # DEFAULTS をベースに dict_setting を上書きして「完全版」を作る
@@ -29,99 +107,38 @@ class FeatureProvider:
         for key, value in self.dict_setting.items():
             setattr(self, key, value)
             print(f"{key} : {value}")
-        # ---------------------------------------------------------------------
-        # 最大取引回数（買建、売建）
+        # 最大取引回数
         self.N_TRADE_MAX = 100
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 変数とインスタンス
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # ティックデータ
-        self.ts = None
-        self.price = None
-        self.volume = None
-        # ---------------------------------------------------------------------
-        # 移動平均
+
+        # インスタンス生成
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
         self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
-        self.div_ma_prev = None
-        self.cross = 0
-        self.cross_pre = 0
-        self.cross_strong = False
-        # ---------------------------------------------------------------------
-        # ボラティリティ関連
         self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
-        self.rr = 0
-        self.rr_pre = 0
-        self.fluc = 0
-        # ---------------------------------------------------------------------
-        # ロスカット
-        self.losscut_1 = False
-        # ---------------------------------------------------------------------
-        # 始値
-        self.price_open = None
-        # ---------------------------------------------------------------------
-        # カウンタ関連
-        self.n_trade = 0
-        self.n_hold = None
-        self.n_hold_position = None
-        # ---------------------------------------------------------------------
-        # 取引関連の変数
-        # ---------------------------------------------------------------------
-        self.code = None  # 銘柄コード
-        self.dict_transaction = None  # 取引履歴
-        self.position = None  # ポジション
-        self.pnl_total = None  # 損益合計
-        self.price_tick = None  # 呼び値
-        self.price_entry = None  # エントリ価格
-        self.profit_max = None  # 最大含み益
-        self.drawdown = None  # ドローダウン
-        self.dd_ratio = None  # ドローダウン比率
-        self.unit = None  # 売買単位
-        # ---------------------------------------------------------------------
+
+        # INIT_VALUES を一括適用
+        for key, value in self.INIT_VALUES.items():
+            setattr(self, key, value)
+
         # 変数の初期化
         self.clear()
 
     def clear(self):
-        # リアルタイムで取得する変数
-        self.ts = 0
-        self.price = 0
-        self.volume = 0
-        # 移動平均差用
+        # オブジェクト系は個別に clear()
         self.obj_ma1.clear()
         self.obj_ma2.clear()
         self.obj_slope1.clear()
         self.obj_slope2.clear()
-        self.div_ma_prev = None
-        self.cross = 0
-        self.cross_pre = 0
-        self.cross_strong = False
-        # ボラティリティ関連
         self.obj_rr.clear()
-        self.rr = 0
-        self.rr_pre = 0
-        self.fluc = 0
-        # ロスカット
-        self.losscut_1 = False
-        # 始値
-        self.price_open: float = 0  # ザラバの始値
-        # カウンタ関連
-        self.n_trade = 0  # 取引カウンタ
-        self.n_hold = 0.0  # 建玉なしの HOLD カウンタ
-        self.n_hold_position = 0.0  # 建玉ありの HOLD カウンタ
-        # ---------------------------------------------------------------------
-        # 取引関連の変数
-        # ---------------------------------------------------------------------
-        self.dict_transaction = self.transaction_init()  # 取引明細
-        self.position = PositionType.NONE  # ポジション（建玉）
-        self.pnl_total = 0.0  # 総損益
-        self.price_tick: float = 1.0  # 呼び値
-        self.price_entry = 0.0  # 取得価格
-        self.profit_max = 0.0  # 含み損益の最大値
-        self.drawdown = 0.0  # ドローダウン
-        self.dd_ratio = 0.0  # ドローダウン比率
-        self.unit: float = 1  # 売買単位
+
+        # 取引明細とポジションは特殊処理
+        self.dict_transaction = self.transaction_init()
+        self.position = PositionType.NONE
+
+        # 値のリセットは一括処理
+        for key, value in self.CLEAR_VALUES.items():
+            setattr(self, key, value)
 
     @staticmethod
     def get_datetime(t: float) -> str:

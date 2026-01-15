@@ -31,7 +31,6 @@ class TradingEnv(gym.Env):
         # 現在の行位置
         self.step_current: int = 0
 
-
         # 観測空間
         n_feature = self.obs_man.n_feature
         self.observation_space = gym.spaces.Box(
