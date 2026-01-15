@@ -15,6 +15,8 @@ def get_default_setting() -> dict:
         "PERIOD_SLOPE": 5,
         "TURBULENCE": 20,
         "LOSSCUT_1": -25,
+        "THRESHOLD_PM_MIN": 17.5,
+        "THRESHOLD_DDR_MIN": 0.4,
     }
 
 
@@ -28,7 +30,9 @@ def get_trend_footer(dict_ts: dict, dict_setting: dict) -> str:
         f"THRESHOLD_SLOPE = {dict_setting['THRESHOLD_SLOPE']} / "
         f"PERIOD_RR = {dict_setting['PERIOD_RR']} / "
         f"TURBULENCE = {dict_setting['TURBULENCE']} / "
-        f"LOSSCUT_1 = {dict_setting['LOSSCUT_1']}"
+        f"LOSSCUT_1 = {dict_setting['LOSSCUT_1']} / "
+        f"THRESHOLD_PM_MIN = {dict_setting['THRESHOLD_PM_MIN']} / "
+        f"THRESHOLD_DDR_MIN = {dict_setting['THRESHOLD_DDR_MIN']}"
     )
 
 
