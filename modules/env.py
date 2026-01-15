@@ -26,7 +26,7 @@ class TradingEnv(gym.Env):
         self.obs_man = ObservationManager(provider)
 
         # ウォームアップ期間
-        self.n_warmup: int = provider.PERIOD_WARMUP
+        self.n_warmup: int = provider.getPeriodWarmup()
 
         # 現在の行位置
         self.step_current: int = 0
@@ -85,17 +85,7 @@ class TradingEnv(gym.Env):
         調整可能？なパラメータを辞書で返す
         :return:
         """
-        dict_setting = dict()
-        # 移動平均 MA 計算用パラメータ
-        dict_setting["PERIOD_MA_1"] = self.provider.PERIOD_MA_1
-        dict_setting["PERIOD_MA_2"] = self.provider.PERIOD_MA_2
-        # MA1 スロープ用パラメータ
-        dict_setting["PERIOD_SLOPE"] = self.provider.PERIOD_SLOPE
-        dict_setting["THRESHOLD_SLOPE"] = self.provider.THRESHOLD_SLOPE
-        # ロスカット用パラメータ
-        dict_setting["LOSSCUT_1"] = self.provider.LOSSCUT_1
-
-        return dict_setting
+        return self.provider.getSetting()
 
     def getTimestamp(self) -> float:
         return self.provider.ts

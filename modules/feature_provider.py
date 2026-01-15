@@ -7,38 +7,28 @@ from structs.app_enum import PositionType
 
 
 class FeatureProvider:
+    DEFAULTS = {
+        "PERIOD_WARMUP": 60,
+        "PERIOD_MA_1": 60,
+        "PERIOD_MA_2": 600,
+        "PERIOD_SLOPE": 5,
+        "THRESHOLD_SLOPE": 1.0,
+        "PERIOD_RR": 30,
+        "TURBULENCE": 20,
+        "LOSSCUT_1": -25.0,
+        "THRESHOLD_PM_MIN": 10.0,
+        "THRESHOLD_DDR_MIN": 0.25,
+    }
+
     def __init__(self, dict_setting: dict):
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 定数
-        # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        # DEFAULTS をベースに dict_setting を上書きして「完全版」を作る
+        self.dict_setting = {**self.DEFAULTS, **dict_setting}
+
         print("パラメータ")
-        for key in dict_setting.keys():
-            print(f"{key} : {dict_setting[key]}")
-        # ---------------------------------------------------------------------
-        # 1. ウォームアップ期間
-        key = "PERIOD_WARMUP"
-        self.PERIOD_WARMUP: int = dict_setting.get(key, 60)
-        # 2. MA_1 移動平均期間
-        key = "PERIOD_MA_1"
-        self.PERIOD_MA_1: int = dict_setting.get(key, 60)
-        # 3. MA_2 移動平均期間
-        key = "PERIOD_MA_2"
-        self.PERIOD_MA_2: int = dict_setting.get(key, 600)
-        # 4. MA_1 の傾き（軽い平滑化期間）
-        key = "PERIOD_SLOPE"
-        self.PERIOD_SLOPE: int = dict_setting.get(key, 5)
-        # 5. クロス時の MA_1 の傾きの閾値
-        key = "THRESHOLD_SLOPE"
-        self.THRESHOLD_SLOPE: float = dict_setting.get(key, 1.0)  # doe-10
-        # 6. RollingRange
-        key = "PERIOD_RR"
-        self.PERIOD_RR: int = dict_setting.get(key, 30)
-        # 7. Turbulence（乱高下）
-        key = "TURBULENCE"
-        self.TURBULENCE: int = dict_setting.get(key, 20)
-        # 8. 単純ロスカットの閾値 1
-        key = "LOSSCUT_1"
-        self.LOSSCUT_1: float = dict_setting.get(key, -25.0)
+        # 属性へ反映
+        for key, value in self.dict_setting.items():
+            setattr(self, key, value)
+            print(f"{key} : {value}")
         # ---------------------------------------------------------------------
         # 最大取引回数（買建、売建）
         self.N_TRADE_MAX = 100
@@ -191,6 +181,9 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getPeriodWarmup(self):
+        return self.PERIOD_WARMUP
+
     def getPositionValue(self) -> float:
         return float(self.position.value)
 
@@ -216,7 +209,7 @@ class FeatureProvider:
             self.profit_max = profit
 
         # ドローダウン、比率算出
-        if 0 < profit and 0 < self.profit_max:
+        if 0 < profit:
             self.drawdown = self.profit_max - profit
             self.dd_ratio = self.drawdown / self.profit_max
         else:
@@ -234,6 +227,9 @@ class FeatureProvider:
 
     def getRR(self) -> float:
         return self.obj_rr.getValue()
+
+    def getSetting(self) -> dict:
+        return self.dict_setting
 
     def getSlope1(self) -> float:
         return self.obj_slope1.getSlope()
