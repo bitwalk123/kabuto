@@ -66,7 +66,7 @@ if __name__ == "__main__":
                     # 設定をコピーして DOE 条件を適用
                     setting = base_setting.copy()
                     for key in factor_doe:
-                        setting[key] = int(row[key])
+                        setting[key] = row[key]
 
                     # シミュレーション実行
                     _, n_trade, total = run_condition(setting, df, code, dict_ts)
