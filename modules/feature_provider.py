@@ -86,6 +86,8 @@ class FeatureProvider:
         self.price_tick = None  # 呼び値
         self.price_entry = None  # エントリ価格
         self.profit_max = None  # 最大含み益
+        self.drawdown = None  # ドローダウン
+        self.dd_ratio = None  # ドローダウン比率
         self.unit = None  # 売買単位
         # ---------------------------------------------------------------------
         # 変数の初期化
@@ -127,6 +129,8 @@ class FeatureProvider:
         self.price_tick: float = 1.0  # 呼び値
         self.price_entry = 0.0  # 取得価格
         self.profit_max = 0.0  # 含み損益の最大値
+        self.drawdown = 0.0  # ドローダウン
+        self.dd_ratio = 0.0  # ドローダウン比率
         self.unit: float = 1  # 売買単位
 
     @staticmethod
@@ -158,6 +162,17 @@ class FeatureProvider:
         :return:
         """
         return 1 if self.cross_strong else 0
+
+    def getDDRatio(self) -> float:
+        """
+        ドローダウン
+        :return:
+        """
+        return self.dd_ratio
+
+    def getDrawDown(self) -> float:
+        # ドローダウン比率
+        return self.drawdown
 
     def getLosscut1(self) -> float:
         return 1 if self.losscut_1 else 0
@@ -199,6 +214,14 @@ class FeatureProvider:
         # 最大含み益を保持
         if self.profit_max < profit:
             self.profit_max = profit
+
+        # ドローダウン、比率算出
+        if 0 < profit and 0 < self.profit_max:
+            self.drawdown = self.profit_max - profit
+            self.dd_ratio = self.drawdown / self.profit_max
+        else:
+            self.drawdown = 0.0
+            self.dd_ratio = 0.0
 
         return profit
 
