@@ -22,6 +22,7 @@ TECHNICALS = {
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン
     "dd_ratio": "getDDRatio",  # ドローダウン比率
+    "n_minus": "getCounterMinus",  # ド含み益が負の時のカウンタ
 }
 
 
