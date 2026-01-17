@@ -57,7 +57,8 @@ class FeatureProvider:
         "profit_max": None,
         "drawdown": None,
         "dd_ratio": None,
-        "takeprofit": None,
+        "takeprofit": None,  # 利確フラグ
+        "n_minus": None,  # 含み益が連続マイナスになったカウンタ
         "unit": None,
     }
 
@@ -97,6 +98,7 @@ class FeatureProvider:
         "drawdown": 0.0,
         "dd_ratio": 0.0,
         "takeprofit": False,
+        "n_minus": 0,
         "unit": 1,
     }
 
@@ -153,6 +155,9 @@ class FeatureProvider:
         :return:
         """
         return str(datetime.datetime.fromtimestamp(int(t)))
+
+    def getCounterMinus(self) -> float:
+        return float(self.n_minus)
 
     def getCrossSignal1(self) -> float:
         """
@@ -230,13 +235,18 @@ class FeatureProvider:
         if self.profit_max < profit:
             self.profit_max = profit
 
-        # ドローダウン、比率算出
+        # ドローダウン、比率算出、含み益マイナス・カウンタ
         if 0 < profit:
             self.drawdown = self.profit_max - profit
             self.dd_ratio = self.drawdown / self.profit_max
+            self.n_minus = 0  # 含み益マイナス・カウンタのリセット
         else:
             self.drawdown = 0.0
             self.dd_ratio = 0.0
+            if profit < 0:
+                self.n_minus += 1
+            else:
+                self.n_minus = 0
 
         return profit
 
