@@ -8,16 +8,17 @@ from structs.app_enum import PositionType
 
 class FeatureProvider:
     DEFAULTS = {
-        "PERIOD_WARMUP": 60,
-        "PERIOD_MA_1": 60,
-        "PERIOD_MA_2": 600,
-        "PERIOD_SLOPE": 5,
-        "THRESHOLD_SLOPE": 1.0,
-        "PERIOD_RR": 30,
-        "TURBULENCE": 20,
-        "LOSSCUT_1": -25.0,
-        "THRESHOLD_PM_MIN": 10.0,
-        "THRESHOLD_DDR_MIN": 0.25,
+        "PERIOD_WARMUP": 180,  # 寄り付き後のウォームアップ期間
+        "PERIOD_MA_1": 60,  # 短周期移動平均線の周期
+        "PERIOD_MA_2": 600,  # 長周期移動平均線の周期
+        "PERIOD_SLOPE": 5,  # 単回帰直線でMA1の傾きを算出する直前期間（個数）
+        "THRESHOLD_SLOPE": 0.05,  # これより傾きが大きければエントリを許可
+        "PERIOD_RR": 30,  # Rolling Range の周期
+        "TURBULENCE": 20,  # このしきい値より大きければエントリを禁止
+        "LOSSCUT_1": -25.0,  # 単純ロスカットをするためのしきい値
+        "THRESHOLD_PM_MIN": 10.0,  # 「含み益最大値」の最低値を超えればドローダウン開始
+        "THRESHOLD_DDR_MIN": 0.25,  # ドローダウン比率がこのしきい値を超えれば利確
+        "N_MINUS_MAX": 180,  # 含み損益が連続マイナスを許容する最大回数
     }
     INIT_VALUES = {
         # ティックデータ
@@ -193,6 +194,9 @@ class FeatureProvider:
 
     def getLosscut1(self) -> float:
         return 1 if self.losscut_1 else 0
+
+    def getLosscut2(self) -> float:
+        return 1 if self.n_minus > self.N_MINUS_MAX else 0
 
     def getMA1(self) -> float:
         """

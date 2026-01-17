@@ -8,6 +8,7 @@ FEATURES = [
     ("クロ強", "getCrossSignalStrength"),  # クロスシグナル強度 [0, 1]
     ("乱高下", "isFluctuation"),  # 値動きが乱高下しているか？
     ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
+    ("ロス2", "getLosscut2"),  # ロスカット 2 [0, 1]
     ("利確1", "doesTakeProfit"),  # 利確 1 [0, 1]
     ("建玉", "getPositionValue"),  # ポジション情報 [-1, 0, 1]
 ]

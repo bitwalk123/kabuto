@@ -30,9 +30,11 @@ class AlgoTrade:
         fluctuation = int(obs[self.idx_fluc])
         # 5. ロスカット 1
         losscut_1 = int(obs[self.idx_losscut_1])
-        # 5. ロスカット 1
+        # 6. ロスカット 2
+        losscut_2 = int(obs[self.idx_losscut_2])
+        # 7. 利確 1
         takeprofit_1 = int(obs[self.idx_takeprofit_1])
-        # 7. ポジション（建玉）
+        # 8. ポジション（建玉）
         position = PositionType(int(obs[self.idx_position]))
         # ---------------------------------------------------------------------
         # シグナルの処理
@@ -83,9 +85,23 @@ class AlgoTrade:
             else:
                 action = ActionType.HOLD.value
         # ---------------------------------------------------------------------
-        # 3. losscut_1（単純ロスカット）と　takeprofit_1（利確）
+        # 3. ロスカットと利確
         else:
-            if losscut_1 or takeprofit_1:
+            if losscut_1:
+                if position == PositionType.LONG:
+                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
+                elif position == PositionType.SHORT:
+                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
+                else:
+                    action = ActionType.HOLD.value
+            elif losscut_2:
+                if position == PositionType.LONG:
+                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
+                elif position == PositionType.SHORT:
+                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
+                else:
+                    action = ActionType.HOLD.value
+            elif takeprofit_1:
                 if position == PositionType.LONG:
                     action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
                 elif position == PositionType.SHORT:
@@ -104,5 +120,6 @@ class AlgoTrade:
         self.idx_strength = self.list_obs_label.index("クロ強")
         self.idx_fluc = self.list_obs_label.index("乱高下")
         self.idx_losscut_1 = self.list_obs_label.index("ロス1")
+        self.idx_losscut_2 = self.list_obs_label.index("ロス2")
         self.idx_takeprofit_1 = self.list_obs_label.index("利確1")
         self.idx_position = self.list_obs_label.index("建玉")
