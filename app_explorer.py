@@ -19,7 +19,7 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    list_doe = ["doe-13a"]
+    list_doe = ["doe-12b"]
     for name_doe in list_doe:
         list_code = ["7011", "7203", "8306"]
         for code in list_code:
