@@ -19,7 +19,30 @@ class AlgoTrade:
     def getListObs(self) -> list:
         return self.list_obs_label
 
+    def can_execute(self, action, masks):
+        return masks[action] == 1
+
+    def opposite_action(self, position: PositionType):
+        if position == PositionType.LONG:
+            return ActionType.SELL.value
+        if position == PositionType.SHORT:
+            return ActionType.BUY.value
+        return None
+
+    def entry_action(self, signal, strength, fluctuation, masks):
+        action = (
+            ActionType.BUY.value
+            if signal == SignalSign.POSITIVE
+            else ActionType.SELL.value
+        )
+
+        if not strength or not self.can_execute(action, masks):
+            return ActionType.HOLD.value
+
+        return ActionType.HOLD.value if fluctuation else action
+
     def predict(self, obs, masks) -> tuple[int, dict]:
+        # --- 観測値の取り出し ---
         # 1. クロスシグナル 1
         cross_1 = SignalSign(int(obs[self.idx_cross_1]))
         # 2. クロスシグナル 2
@@ -36,81 +59,46 @@ class AlgoTrade:
         takeprofit_1 = int(obs[self.idx_takeprofit_1])
         # 8. ポジション（建玉）
         position = PositionType(int(obs[self.idx_position]))
-        # ---------------------------------------------------------------------
-        # シグナルの処理
-        # ---------------------------------------------------------------------
+
+        # デフォルトは HOLD
+        action = ActionType.HOLD.value
+
+        # ------------------------------------------------------------
         # 1. cross_1（建玉の有無に関係なく適用）
+        # ------------------------------------------------------------
         if cross_1 in (SignalSign.POSITIVE, SignalSign.NEGATIVE):
-            # エントリ方向の決定
-            action_entry = (
-                ActionType.BUY.value if cross_1 == SignalSign.POSITIVE else ActionType.SELL.value
-            )
-            action_exit = (
-                ActionType.SELL.value if position == PositionType.LONG else ActionType.BUY.value
-            )
 
             if position == PositionType.NONE:
-                # エントリ
-                if strength and masks[action_entry] == 1:
-                    if fluctuation:
-                        action = ActionType.HOLD.value
-                    else:
-                        action = action_entry
-                else:
-                    action = ActionType.HOLD.value
-            elif position in (PositionType.LONG, PositionType.SHORT):
-                # エグジット
-                if masks[action_exit] == 1:
-                    action = action_exit
-                else:
-                    action = ActionType.HOLD.value
+                action = self.entry_action(cross_1, strength, fluctuation, masks)
+
             else:
-                raise TypeError(f"Unknown PositionType: {position}")
-        # ---------------------------------------------------------------------
+                exit_act = self.opposite_action(position)
+                if exit_act is not None and self.can_execute(exit_act, masks):
+                    action = exit_act
+
+            return action, {}
+
+        # ------------------------------------------------------------
         # 2. cross_2（建玉が無い時のみ適用）
-        elif cross_2 in (SignalSign.POSITIVE, SignalSign.NEGATIVE):
+        # ------------------------------------------------------------
+        if cross_2 in (SignalSign.POSITIVE, SignalSign.NEGATIVE):
 
             if position == PositionType.NONE:
-                action_entry = (
-                    ActionType.BUY.value if cross_2 == SignalSign.POSITIVE else ActionType.SELL.value
-                )
+                action = self.entry_action(cross_2, strength, fluctuation, masks)
 
-                if strength and masks[action_entry] == 1:
-                    if fluctuation:
-                        action = ActionType.HOLD.value
-                    else:
-                        action = action_entry
-                else:
-                    action = ActionType.HOLD.value
-            else:
-                action = ActionType.HOLD.value
-        # ---------------------------------------------------------------------
-        # 3. ロスカットと利確
-        else:
-            if losscut_1:
-                if position == PositionType.LONG:
-                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
-                elif position == PositionType.SHORT:
-                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
-                else:
-                    action = ActionType.HOLD.value
-            elif losscut_2:
-                if position == PositionType.LONG:
-                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
-                elif position == PositionType.SHORT:
-                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
-                else:
-                    action = ActionType.HOLD.value
-            elif takeprofit_1:
-                if position == PositionType.LONG:
-                    action = ActionType.SELL.value if masks[ActionType.SELL.value] == 1 else ActionType.HOLD.value
-                elif position == PositionType.SHORT:
-                    action = ActionType.BUY.value if masks[ActionType.BUY.value] == 1 else ActionType.HOLD.value
-                else:
-                    action = ActionType.HOLD.value
-            else:
-                action = ActionType.HOLD.value
-        # ---------------------------------------------------------------------
+            return action, {}
+
+        # ------------------------------------------------------------
+        # 3. ロスカット・利確（建玉がある場合のみ意味がある）
+        # ------------------------------------------------------------
+        # ロスカットあるいは利確判定用
+        exit_flags = (losscut_1, losscut_2, takeprofit_1)
+        if any(exit_flags):
+
+            exit_act = self.opposite_action(position)
+            if exit_act is not None and self.can_execute(exit_act, masks):
+                action = exit_act
+
         return action, {}
 
     def updateObs(self, list_obs_label):
