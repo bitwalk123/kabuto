@@ -152,7 +152,7 @@ class MovingAverageOld2:
         return self.ma
 
 
-class MovingAverage:
+class MovingAverageOld3:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.queue = deque()
@@ -178,6 +178,43 @@ class MovingAverage:
 
         # 移動平均を計算
         self.ma = self.running_sum / len(self.queue)
+        return self.ma
+
+
+class MovingAverage:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque()
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0  # 直前の MA を保持
+
+    def clear(self):
+        self.queue.clear()
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def getValue(self) -> float:
+        return self.ma
+
+    def getSlope(self) -> float:
+        # s = ma_current - ma_prev
+        return self.ma - self.prev_ma
+
+    def update(self, value: float) -> float:
+        # 古い値を取り除く
+        if len(self.queue) >= self.window_size:
+            self.running_sum -= self.queue.popleft()
+
+        # 新しい値を追加
+        self.queue.append(value)
+        self.running_sum += value
+
+        # MA を更新（更新前に prev_ma を保存）
+        self.prev_ma = self.ma
+        self.ma = self.running_sum / len(self.queue)
+
         return self.ma
 
 
