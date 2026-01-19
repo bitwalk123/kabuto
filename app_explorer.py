@@ -3,7 +3,7 @@ import pandas as pd
 from funcs.ios import get_excel_sheet
 from funcs.logs import setup_logging
 from funcs.setting import load_setting
-from funcs.tide import get_intraday_timestamp, get_date_str_from_file
+from funcs.tide import get_date_str_from_file, get_intraday_timestamp
 from structs.res import AppRes
 from widgets.explorer import Explorer
 
