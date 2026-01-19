@@ -122,24 +122,33 @@ class EMA:
         return self.ema
 
 
-class MovingAverageOld:
+class MovingAverageOld2:
     def __init__(self, window_size: int):
         self.window_size = window_size
-        self.queue = deque(maxlen=window_size)
-        self.ma: float = 0
+        self.queue = deque()
+        self.running_sum = 0.0
+        self.ma = 0.0
 
     def clear(self):
         self.queue.clear()
+        self.running_sum = 0.0
+        self.ma = 0.0
 
     def getValue(self) -> float:
-        # 現在値を返す
         return self.ma
 
     def update(self, value: float) -> float:
+        # 古い値を取り除く
+        if len(self.queue) == self.window_size:
+            oldest = self.queue.popleft()
+            self.running_sum -= oldest
+
         # 新しい値を追加
         self.queue.append(value)
-        self.ma = sum(self.queue) / len(self.queue)
-        # 移動平均を返す
+        self.running_sum += value
+
+        # 移動平均を計算
+        self.ma = self.running_sum / len(self.queue)
         return self.ma
 
 
@@ -160,9 +169,8 @@ class MovingAverage:
 
     def update(self, value: float) -> float:
         # 古い値を取り除く
-        if len(self.queue) == self.window_size:
-            oldest = self.queue.popleft()
-            self.running_sum -= oldest
+        if len(self.queue) >= self.window_size:
+            self.running_sum -= self.queue.popleft()
 
         # 新しい値を追加
         self.queue.append(value)
