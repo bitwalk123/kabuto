@@ -28,6 +28,7 @@ class FeatureProvider:
 
         # 移動平均関連
         "div_ma_prev": None,
+        "ma_disparity": 0,
         "cross": 0,
         "cross_pre": 0,
         "cross_strong": False,
@@ -71,6 +72,7 @@ class FeatureProvider:
 
         # 移動平均差用
         "div_ma_prev": None,
+        "ma_disparity": 0,
         "cross": 0,
         "cross_pre": 0,
         "cross_strong": False,
@@ -212,6 +214,9 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
+    def getMADisparity(self) -> float:
+        return self.ma_disparity
+
     def getPeriodWarmup(self):
         return self.PERIOD_WARMUP
 
@@ -221,9 +226,9 @@ class FeatureProvider:
     def getPrice(self) -> float:
         return self.price
 
-    def getProfit(self) -> float:
+    def getProfitOld(self) -> float:
         """
-        損益計算（含み損益）
+        損益（含み損益）の計算
         :return:
         """
         if self.position == PositionType.LONG:
@@ -240,17 +245,53 @@ class FeatureProvider:
             self.profit_max = profit
 
         # ドローダウン、比率算出、含み益マイナス・カウンタ
-        if 0 < profit:
-            self.drawdown = self.profit_max - profit
-            self.dd_ratio = self.drawdown / self.profit_max
-            self.n_minus = 0  # 含み益マイナス・カウンタのリセット
-        else:
+        # 含み損益から建玉有無の判定に変更（含み益がマイナスになった時の対応）
+        if self.position == PositionType.NONE:
             self.drawdown = 0.0
             self.dd_ratio = 0.0
+            self.n_minus = 0  # 含み益マイナス・カウンタのリセット
+        else:
+            self.drawdown = self.profit_max - profit
+            if self.profit_max > 0:
+                self.dd_ratio = self.drawdown / self.profit_max
+            else:
+                self.dd_ratio = 0
+
             if profit < 0:
+                # 含み益がマイナスになった時のカウンタ
                 self.n_minus += 1
             else:
                 self.n_minus = 0
+
+        return profit
+
+    def getProfit(self) -> float:
+        """
+        損益（含み損益）の計算
+        :return:
+        """
+        # --- 損益計算 ---
+        if self.position == PositionType.LONG:
+            # 返済: 買建 (LONG) → 売埋
+            profit = self.price - self.price_entry
+        elif self.position == PositionType.SHORT:
+            # 返済: 売建 (SHORT) → 買埋
+            profit = self.price_entry - self.price
+        else:
+            # 建玉なし
+            profit = 0.0
+            return profit
+
+        # --- 最大含み益の更新 ---
+        if profit > self.profit_max:
+            self.profit_max = profit
+
+        # --- ドローダウン関連の更新 ---
+        self.drawdown = self.profit_max - profit
+        self.dd_ratio = self.drawdown / self.profit_max if self.profit_max > 0 else 0.0
+
+        # --- 含み損が続く回数カウント ---
+        self.n_minus = self.n_minus + 1 if profit < 0 else 0
 
         return profit
 
@@ -291,16 +332,20 @@ class FeatureProvider:
         # 報酬に追加
         reward += profit
 
-        # エントリ価格をリセット
-        self.price_entry = 0.0
-        # 含み損益の最大値
-        self.profit_max = 0.0
-
         # 取引明細更新（建玉返済）
         self.transaction_close(profit)
 
+        # エントリ価格をリセット
+        self.price_entry = 0.0
+
         # ポジションの更新
         self.position = PositionType.NONE
+
+        # 含み益関連のインスタンス変数をリセット
+        self.profit_max = 0.0
+        self.drawdown = 0.0
+        self.dd_ratio = 0.0
+        self.n_minus = 0
 
         return reward
 
@@ -313,13 +358,16 @@ class FeatureProvider:
 
         # HOLD カウンター（建玉なし）のリセット
         self.n_hold = 0
+
         # 取引回数のインクリメント
         self.n_trade += 1
 
         # エントリ価格
         self.price_entry = self.price
+
         # ポジションを更新
         self.position = position
+
         # 取引明細更新（新規建玉）
         self.transaction_open()
 
@@ -347,6 +395,7 @@ class FeatureProvider:
         ma1 = self.obj_ma1.update(price)
         ma2 = self.obj_ma2.update(price)
         div_ma = ma1 - ma2
+        self.ma_disparity = (ma1 - ma2) / ma2 if ma2 != 0 else 0
 
         # --- ボラティリティ関連 ---
         self.rr_pre = self.rr
