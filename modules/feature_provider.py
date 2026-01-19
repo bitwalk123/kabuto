@@ -28,6 +28,7 @@ class FeatureProvider:
 
         # 移動平均関連
         "div_ma_prev": None,
+        "ma_disparity": 0,
         "cross": 0,
         "cross_pre": 0,
         "cross_strong": False,
@@ -71,6 +72,7 @@ class FeatureProvider:
 
         # 移動平均差用
         "div_ma_prev": None,
+        "ma_disparity": 0,
         "cross": 0,
         "cross_pre": 0,
         "cross_strong": False,
@@ -211,6 +213,9 @@ class FeatureProvider:
         :return:
         """
         return self.obj_ma2.getValue()
+
+    def getMADisparity(self) -> float:
+        return self.ma_disparity
 
     def getPeriodWarmup(self):
         return self.PERIOD_WARMUP
@@ -390,6 +395,7 @@ class FeatureProvider:
         ma1 = self.obj_ma1.update(price)
         ma2 = self.obj_ma2.update(price)
         div_ma = ma1 - ma2
+        self.ma_disparity = (ma1 - ma2) / ma2 if ma2 != 0 else 0
 
         # --- ボラティリティ関連 ---
         self.rr_pre = self.rr
