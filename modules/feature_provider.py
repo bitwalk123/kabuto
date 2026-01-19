@@ -395,7 +395,7 @@ class FeatureProvider:
         ma1 = self.obj_ma1.update(price)
         ma2 = self.obj_ma2.update(price)
         div_ma = ma1 - ma2
-        self.ma_disparity = (ma1 - ma2) / ma2 if ma2 != 0 else 0
+        self.ma_disparity = abs(ma1 - ma2) / ma2 if ma2 != 0 else 0
 
         # --- ボラティリティ関連 ---
         self.rr_pre = self.rr
