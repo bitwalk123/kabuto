@@ -19,10 +19,10 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    list_doe = ["doe-13d"]
-    #list_doe = ["doe-14a"]
+    #list_doe = ["doe-13d"]
+    list_doe = ["doe-14a"]
     for name_doe in list_doe:
-        list_code = ["7011", "7203", "8306"]
+        list_code = ["285A", "7011", "7203", "8306"]
         for code in list_code:
             # 出力ディレクトリ
             path_dir = os.path.join(res.dir_output, name_doe, code)
