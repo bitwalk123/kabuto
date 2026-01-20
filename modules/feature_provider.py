@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange
+from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange, MovingRange
 from structs.app_enum import PositionType
 
 
@@ -120,6 +120,7 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
+        self.obj_mr = MovingRange(window_size=self.PERIOD_MA_2)
         self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
@@ -217,6 +218,9 @@ class FeatureProvider:
     def getMADisparity(self) -> float:
         return self.ma_disparity
 
+    def getMR(self) -> float:
+        return self.obj_mr.getValue()
+
     def getPeriodWarmup(self):
         return self.PERIOD_WARMUP
 
@@ -287,8 +291,12 @@ class FeatureProvider:
             self.profit_max = profit
 
         # --- ドローダウン関連の更新 ---
-        self.drawdown = self.profit_max - profit
-        self.dd_ratio = self.drawdown / self.profit_max if self.profit_max > 0 else 0.0
+        if profit > 0:
+            self.drawdown = self.profit_max - profit
+            self.dd_ratio = self.drawdown / self.profit_max
+        else:
+            self.drawdown = 0
+            self.dd_ratio = 0
 
         # --- 含み損が続く回数カウント ---
         self.n_minus = self.n_minus + 1 if profit < 0 else 0
@@ -397,7 +405,10 @@ class FeatureProvider:
         div_ma = ma1 - ma2
         self.ma_disparity = div_ma / ma2 if ma2 != 0 else 0
 
-        # --- ボラティリティ関連 ---
+        # --- ボラティリティ関連 (1) ---
+        self.obj_mr.update(price)
+
+        # --- ボラティリティ関連 (2) ---
         self.rr_pre = self.rr
         self.rr = self.obj_rr.update(price)
         if self.rr_pre > self.TURBULENCE:

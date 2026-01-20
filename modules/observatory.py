@@ -17,6 +17,7 @@ TECHNICALS = {
     "price": "getPrice",  # 株価
     "ma1": "getMA1",  # 移動平均線 MA1
     "ma2": "getMA2",  # 移動平均線 MA2
+    "mr": "getMR",  # 移動範囲
     "disparity": "getMADisparity",  # 移動平均乖離率
     "slope1": "getSlope1",  # 移動平均 MA1 の傾き
     "rr": "getRR",  # RR（Rolling Range）

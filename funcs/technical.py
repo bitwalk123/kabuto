@@ -122,65 +122,6 @@ class EMA:
         return self.ema
 
 
-class MovingAverageOld2:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.queue = deque()
-        self.running_sum = 0.0
-        self.ma = 0.0
-
-    def clear(self):
-        self.queue.clear()
-        self.running_sum = 0.0
-        self.ma = 0.0
-
-    def getValue(self) -> float:
-        return self.ma
-
-    def update(self, value: float) -> float:
-        # 古い値を取り除く
-        if len(self.queue) == self.window_size:
-            oldest = self.queue.popleft()
-            self.running_sum -= oldest
-
-        # 新しい値を追加
-        self.queue.append(value)
-        self.running_sum += value
-
-        # 移動平均を計算
-        self.ma = self.running_sum / len(self.queue)
-        return self.ma
-
-
-class MovingAverageOld3:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.queue = deque()
-        self.running_sum = 0.0
-        self.ma = 0.0
-
-    def clear(self):
-        self.queue.clear()
-        self.running_sum = 0.0
-        self.ma = 0.0
-
-    def getValue(self) -> float:
-        return self.ma
-
-    def update(self, value: float) -> float:
-        # 古い値を取り除く
-        if len(self.queue) >= self.window_size:
-            self.running_sum -= self.queue.popleft()
-
-        # 新しい値を追加
-        self.queue.append(value)
-        self.running_sum += value
-
-        # 移動平均を計算
-        self.ma = self.running_sum / len(self.queue)
-        return self.ma
-
-
 class MovingAverage:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -216,6 +157,124 @@ class MovingAverage:
         self.ma = self.running_sum / len(self.queue)
 
         return self.ma
+
+
+from collections import deque
+
+
+class MovingMax:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque()  # 入力値を保持
+        self.max_queue = deque()  # 単調減少キュー（最大値候補）
+        self.current_max = None
+        self.prev_max = None
+
+    def clear(self):
+        self.queue.clear()
+        self.max_queue.clear()
+        self.current_max = None
+        self.prev_max = None
+
+    def getValue(self) -> float:
+        return self.current_max
+
+    def getSlope(self) -> float:
+        if self.prev_max is None or self.current_max is None:
+            return 0.0
+        return self.current_max - self.prev_max
+
+    def update(self, value: float) -> float:
+        # 古い値を取り除く
+        if len(self.queue) >= self.window_size:
+            old = self.queue.popleft()
+            if self.max_queue and self.max_queue[0] == old:
+                self.max_queue.popleft()
+
+        # 新しい値を追加
+        self.queue.append(value)
+
+        # max_queue を単調減少に保つ
+        while self.max_queue and self.max_queue[-1] < value:
+            self.max_queue.pop()
+
+        self.max_queue.append(value)
+
+        # 最大値を更新
+        self.prev_max = self.current_max
+        self.current_max = self.max_queue[0]
+
+        return self.current_max
+
+
+class MovingMin:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque()
+        self.min_queue = deque()
+        self.current_min = None
+        self.prev_min = None
+
+    def clear(self):
+        self.queue.clear()
+        self.min_queue.clear()
+        self.current_min = None
+        self.prev_min = None
+
+    def getValue(self) -> float:
+        return self.current_min
+
+    def getSlope(self) -> float:
+        if self.prev_min is None or self.current_min is None:
+            return 0.0
+        return self.current_min - self.prev_min
+
+    def update(self, value: float) -> float:
+        if len(self.queue) >= self.window_size:
+            old = self.queue.popleft()
+            if self.min_queue and self.min_queue[0] == old:
+                self.min_queue.popleft()
+
+        self.queue.append(value)
+
+        while self.min_queue and self.min_queue[-1] > value:
+            self.min_queue.pop()
+
+        self.min_queue.append(value)
+
+        self.prev_min = self.current_min
+        self.current_min = self.min_queue[0]
+
+        return self.current_min
+
+
+class MovingRange:
+    def __init__(self, window_size: int):
+        self.max_calc = MovingMax(window_size)
+        self.min_calc = MovingMin(window_size)
+        self.vola = 0.0
+        self.prev_vola = 0.0
+
+    def clear(self):
+        self.max_calc.clear()
+        self.min_calc.clear()
+        self.vola = 0.0
+        self.prev_vola = 0.0
+
+    def getValue(self) -> float:
+        return self.vola
+
+    def getSlope(self) -> float:
+        return self.vola - self.prev_vola
+
+    def update(self, value: float) -> float:
+        max_v = self.max_calc.update(value)
+        min_v = self.min_calc.update(value)
+
+        self.prev_vola = self.vola
+        self.vola = max_v - min_v
+
+        return self.vola
 
 
 class SimpleSlope:
@@ -349,7 +408,7 @@ class RegressionSlopeFast:
         return abs(self.slope)
 
 
-class MovingRange:
+class MovingRangeOld:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.data = deque()
