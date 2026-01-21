@@ -2,7 +2,7 @@ import datetime
 
 import numpy as np
 
-from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange, MovingRange
+from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange, MovingRange, RegressionSlopePeriod
 from structs.app_enum import PositionType
 
 
@@ -122,6 +122,7 @@ class FeatureProvider:
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
         self.obj_mr = MovingRange(window_size=self.PERIOD_MA_2)
         self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
+        # self.obj_slope1 = RegressionSlopePeriod(period=self.PERIOD_SLOPE)
         self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
 
