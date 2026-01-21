@@ -120,7 +120,7 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
-        self.obj_mr = MovingRange(window_size=self.PERIOD_MA_2)
+        self.obj_mr = MovingRange(window_size=self.PERIOD_MA_1)
         self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
         # self.obj_slope1 = RegressionSlopePeriod(period=self.PERIOD_SLOPE)
         self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
@@ -288,11 +288,11 @@ class FeatureProvider:
             return profit
 
         # --- 最大含み益の更新 ---
-        if profit > self.profit_max:
+        if self.profit_max < profit:
             self.profit_max = profit
 
         # --- ドローダウン関連の更新 ---
-        if profit > 0:
+        if 0 < self.profit_max:
             self.drawdown = self.profit_max - profit
             self.dd_ratio = self.drawdown / self.profit_max
         else:
