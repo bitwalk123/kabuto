@@ -408,42 +408,53 @@ class RegressionSlopeFast:
         return abs(self.slope)
 
 
-class MovingRangeOld:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.data = deque()
-        self.max_q = deque()  # 単調減少キュー（先頭が最大）
-        self.min_q = deque()  # 単調増加キュー（先頭が最小）
+class RegressionSlopePeriod:
+    """
+    RegressionSlopePeriod:
+    最新の点を原点とみなしたうえで、
+    period 秒前の点との 2 点から、
+    「原点を通る（切片0）」直線の傾きを算出するクラス。
+
+    - x軸: 1秒間隔を仮定
+    - 最新の点を (x=0, y=0) として扱う
+    - period 秒前の点を (x=-period, y=past - now) として扱う
+    """
+
+    def __init__(self, period: int):
+        self.period = period
+        # period 秒前まで遡れるように period+1 個保持
+        self.queue_price = deque(maxlen=period + 1)
+        self.slope: Optional[float] = None
 
     def clear(self):
-        self.data.clear()
-        self.max_q.clear()
-        self.min_q.clear()
+        self.queue_price.clear()
+        self.slope = None
+
+    def getSlope(self) -> float:
+        # 絶対値で返す（元の仕様に合わせる）
+        return abs(self.slope) if self.slope is not None else 0.0
 
     def update(self, value: float) -> float:
-        # 新しい値を追加
-        self.data.append(value)
+        """
+        新しい値（例: MA1）を追加し、
+        period 秒前の点との 2 点から傾きを計算して返す。
+        """
+        self.queue_price.append(value)
 
-        # --- 最大値キュー更新 ---
-        while self.max_q and self.max_q[-1] < value:
-            self.max_q.pop()
-        self.max_q.append(value)
+        # period 秒前の点がまだ存在しない場合
+        if len(self.queue_price) <= self.period:
+            self.slope = 0.0
+            return 0.0
 
-        # --- 最小値キュー更新 ---
-        while self.min_q and self.min_q[-1] > value:
-            self.min_q.pop()
-        self.min_q.append(value)
+        # 最新点（原点とみなす）
+        p_now = self.queue_price[-1]
+        # period 秒前の点
+        p_past = self.queue_price[0]
 
-        # 古い値を削除（window_size を超えたら）
-        if len(self.data) > self.window_size:
-            old = self.data.popleft()
-            if old == self.max_q[0]:
-                self.max_q.popleft()
-            if old == self.min_q[0]:
-                self.min_q.popleft()
-
-        # 移動範囲を返す
-        return self.max_q[0] - self.min_q[0]
+        # 原点を通る直線の傾き:
+        # m = (p_now - p_past) / period
+        self.slope = (p_now - p_past) / self.period
+        return abs(self.slope)
 
 
 class PriceChangeBinary:
