@@ -36,9 +36,24 @@ class RSSWorker(QObject):
         if sys.platform == "win32":
             # Excel ファイルが既に開いていることが前提
             self.wb = wb = xw.books["collector.xlsm"]
+            self.clear_logs = wb.macro("Module1.ClearLogs")
             self.do_buy = wb.macro("Module1.DoBuy")
             self.do_sell = wb.macro("Module1.DoSell")
             self.do_repay = wb.macro("Module1.DoRepay")
+            # 古いログをクリア
+            self.macro_clear_logs()
+
+    def macro_clear_logs(self):
+        if self.wb is None:
+            print("doBuy: 非Windows 上で実行されました。")
+            return
+        try:
+            self.clear_logs()
+            self.logger.info("ClearLogs completed")
+        except com_error as e:
+            self.logger.error(f"ClearLogs failed: {e}")
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in ClearLogs: {e}")
 
     def macro_do_buy(self, code: str):
         if self.wb is None:
