@@ -244,6 +244,7 @@ class RSSReaderWorker(QObject):
             volumes = self.sheet.range((self.min_row, self.col_volume + 1), (self.max_row, self.col_volume + 1)).value
 
             print(prices)
+            print(volumes)
             # 読み取り結果を dict_data に格納
             for i, code in enumerate(self.list_code):
                 price = prices[i]
