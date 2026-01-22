@@ -66,7 +66,8 @@ class RSSReaderWorker(QObject):
         self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
-        self.dict_df = dict()  # 銘柄別データフレーム
+        # self.dict_df = dict()  # 銘柄別データフレーム
+        self.ticks = dict()  # 銘柄別データフレーム
 
         # Excel の列情報
         self.col_code = 0  # 銘柄コード
@@ -124,15 +125,25 @@ class RSSReaderWorker(QObject):
                 # 前日の終値の横線
                 # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
 
+                '''
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[code] = pd.DataFrame({
                     "Time": list(),
                     "Price": list(),
                     "Volume": list(),
                 })
+                '''
 
                 # 行番号のインクリメント
                 row += 1
+
+        # 銘柄別に空の辞書/リストを準備 → あとでデータフレームに変換
+        for code in self.list_code:
+            self.ticks[code] = {
+                "Time": [],
+                "Price": [],
+                "Volume": [],
+            }
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
@@ -197,25 +208,39 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータをまとめて保持
         for code in self.list_code:
+            '''
             df = self.dict_df[code]
             row = len(df)
+            '''
             # 寄っていない場合はデータが無い銘柄コードがある！
             if code in self.dict_data:
                 ts, price, volume = self.dict_data[code]
-                df.loc[row] = [ts, price, volume]
+                # df.loc[row] = [ts, price, volume]
+                d = self.ticks[code]
+                d["Time"].append(ts)
+                d["Price"].append(price)
+                d["Volume"].append(volume)
 
     def saveDataFrame(self):
+        """
+        最後にティックデータを保存する処理
+        :return:
+        """
         # 保存するファイル名
         date_str = get_date_str_today()
         name_excel = os.path.join(
             self.res.dir_collection,
             f"ticks_{date_str}.xlsx"
         )
-        # 念のため、空のデータでないか確認して空でなければ保存
+        dict_df = dict()  # 銘柄コード別にデータフレームを保存
+        # 念のため、全てが空のデータでないか確認して空でなければ保存（無用な上書きを回避）
         r = 0
         for code in self.list_code:
-            df = self.dict_df[code]
+            # df = self.dict_df[code]
+            df = pd.DataFrame(self.ticks[code])
             r += len(df)
+            # 保存する Excel では code がシート名になる → 辞書で渡す
+            dict_df[code] = df
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
             self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
@@ -223,7 +248,8 @@ class RSSReaderWorker(QObject):
         else:
             # ティックデータの保存処理
             try:
-                save_dataframe_to_excel(name_excel, self.dict_df)
+                # save_dataframe_to_excel(name_excel, self.dict_df)
+                save_dataframe_to_excel(name_excel, dict_df)
                 self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
                 flag = True
             except ValueError as e:
