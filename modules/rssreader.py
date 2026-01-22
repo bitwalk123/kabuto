@@ -243,11 +243,11 @@ class RSSReaderWorker(QObject):
             prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
             volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
 
+            print(price)
             # 読み取り結果を dict_data に格納
             for i, code in enumerate(self.list_code):
                 price = prices[i]
                 volume = volumes[i]
-                print(price)
                 if price > 0:
                     self.dict_data[code] = (ts, price, volume)
                     self.dict_profit[code] = self.posman.getProfit(code, price)
