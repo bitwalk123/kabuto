@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.2.7"
+    __version__ = "0.2.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
