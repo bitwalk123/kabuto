@@ -270,6 +270,7 @@ class RSSReaderWorker(QObject):
         self.dict_profit.clear()
         self.dict_total.clear()
 
+        print("DEBUG 1")
         for attempt in range(self.max_retries):
             try:
                 # 一括読み取り（列ごとに）
@@ -304,6 +305,8 @@ class RSSReaderWorker(QObject):
             except Exception as e:
                 self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
                 raise
+
+        print("DEBUG 2")
 
         # 🧿 GUI に通知
         self.notifyCurrentPrice.emit(self.dict_data, self.dict_profit, self.dict_total)
