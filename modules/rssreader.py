@@ -142,8 +142,8 @@ class RSSReaderWorker(QObject):
 
         # 一括読み取り対象の行範囲を取得
         rows = [self.dict_row[code] for code in self.list_code]
-        self.min_row = min(rows)
-        self.max_row = max(rows)
+        self.min_row = min(rows) + 1
+        self.max_row = max(rows) + 1
 
         # 銘柄別に空の辞書/リストを準備 → あとでデータフレームに変換
         for code in self.list_code:
@@ -245,8 +245,8 @@ class RSSReaderWorker(QObject):
 
             # 読み取り結果を dict_data に格納
             for i, code in enumerate(self.list_code):
-                price = float(prices[i])
-                volume = float(volumes[i])
+                price = prices[i]
+                volume = volumes[i]
                 if price > 0:
                     self.dict_data[code] = (ts, price, volume)
                     self.dict_profit[code] = self.posman.getProfit(code, price)
