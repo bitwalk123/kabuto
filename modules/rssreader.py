@@ -72,15 +72,15 @@ class RSSReaderWorker(QObject):
         # self.dict_df = dict()  # 銘柄別データフレーム
         self.ticks = dict()  # 銘柄別データフレーム
 
-        # Excel の列情報
-        self.col_code = 0  # 銘柄コード
-        self.col_name = 1  # 銘柄名
-        self.col_date = 2  # 日付
-        self.col_time = 3  # 時刻
-        self.col_price = 4  # 現在詳細株価
-        self.col_lastclose = 5  # 前日終値
-        self.col_ratio = 6  # 前日比
-        self.col_volume = 7  # 出来高
+        # Excel の列情報（VBA準拠）
+        self.col_code = 1  # 銘柄コード
+        self.col_name = 2  # 銘柄名
+        self.col_date = 3  # 日付
+        self.col_time = 4  # 時刻
+        self.col_price = 5  # 現在詳細株価
+        self.col_lastclose = 6  # 前日終値
+        self.col_ratio = 7  # 前日比
+        self.col_volume = 8  # 出来高
 
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
@@ -240,8 +240,8 @@ class RSSReaderWorker(QObject):
 
         try:
             # 一括読み取り（列ごとに）
-            prices = self.sheet.range((self.min_row, self.col_price + 1), (self.max_row, self.col_price + 1)).value
-            volumes = self.sheet.range((self.min_row, self.col_volume + 1), (self.max_row, self.col_volume + 1)).value
+            prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
+            volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
 
             #print(prices)
             #print(volumes)
