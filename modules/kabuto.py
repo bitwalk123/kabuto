@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.2.7"
+    __version__ = "0.2.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -384,7 +384,7 @@ class Kabuto(QMainWindow):
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
             self.timer.start()
-            self.logger.info(f"{__name__}: タイマーを開始しました。。")
+            self.logger.info(f"{__name__}: タイマーを開始しました。")
 
     def on_request_data(self):
         """

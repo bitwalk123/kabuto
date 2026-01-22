@@ -5,6 +5,7 @@ from PySide6.QtCore import (
     QObject,
     QThread,
     Signal,
+    Slot,
 )
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import (
@@ -20,10 +21,12 @@ class ExcelWorker(QObject):
         super().__init__()
         self.sheet = None
 
+    @Slot()
     def initWorker(self):
         wb = xw.Book()  # 新しいワークブックを開く
         self.sheet = wb.sheets["Sheet1"]  # シート・オブジェクトをインスタンス化
 
+    @Slot(str)
     def excel_write(self, msg: str):
         self.sheet["A1"].value = msg  # 値の書き込み
 
@@ -35,7 +38,7 @@ class SampleXlwings(QWidget):
     def __init__(self):
         super().__init__()
         # xlwings用スレッド
-        self.thread = thread = QThread(self)
+        self.thread = thread = QThread()
         self.worker = worker = ExcelWorker()
         worker.moveToThread(thread)
         thread.started.connect(self.requestWorkerInit.emit)
@@ -58,6 +61,7 @@ class SampleXlwings(QWidget):
             self.worker = None
         event.accept()
 
+    @Slot()
     def request_write(self):
         msg = "Python から書き込みました。"
         self.requestWrite.emit(msg)

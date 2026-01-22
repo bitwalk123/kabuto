@@ -49,6 +49,9 @@ class RSSReaderWorker(QObject):
         self.wb = None  # Excel のワークブックインスタンス
         self.sheet = None  # Excel のワークシートインスタンス
 
+        self.max_row = None
+        self.min_row = None
+
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
         # COM エラーが発生するため、リトライできるようにしている。
@@ -66,17 +69,18 @@ class RSSReaderWorker(QObject):
         self.list_code = list()  # 銘柄リスト
         self.dict_row = dict()  # 銘柄の行位置
         self.dict_name = dict()  # 銘柄名
-        self.dict_df = dict()  # 銘柄別データフレーム
+        # self.dict_df = dict()  # 銘柄別データフレーム
+        self.ticks = dict()  # 銘柄別データフレーム
 
-        # Excel の列情報
-        self.col_code = 0  # 銘柄コード
-        self.col_name = 1  # 銘柄名
-        self.col_date = 2  # 日付
-        self.col_time = 3  # 時刻
-        self.col_price = 4  # 現在詳細株価
-        self.col_lastclose = 5  # 前日終値
-        self.col_ratio = 6  # 前日比
-        self.col_volume = 7  # 出来高
+        # Excel の列情報（VBA準拠）
+        self.col_code = 1  # 銘柄コード
+        self.col_name = 2  # 銘柄名
+        self.col_date = 3  # 日付
+        self.col_time = 4  # 時刻
+        self.col_price = 5  # 現在詳細株価
+        self.col_lastclose = 6  # 前日終値
+        self.col_ratio = 7  # 前日比
+        self.col_volume = 8  # 出来高
 
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
@@ -92,7 +96,7 @@ class RSSReaderWorker(QObject):
         self.notifyTransactionResult.emit(df)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def initWorker(self):
+    def initWorkerOld(self):
         self.logger.info("Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
@@ -108,7 +112,7 @@ class RSSReaderWorker(QObject):
         row = 1
         flag_loop = True
         while flag_loop:
-            code = self.sheet[row, self.col_code].value
+            code = self.sheet[row, self.col_code - 1].value
             if code == self.cell_bottom:
                 flag_loop = False
             else:
@@ -119,20 +123,35 @@ class RSSReaderWorker(QObject):
                 self.dict_row[code] = row
 
                 # 銘柄名
-                self.dict_name[code] = self.sheet[row, self.col_name].value
+                self.dict_name[code] = self.sheet[row, self.col_name - 1].value
 
                 # 前日の終値の横線
                 # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
 
+                '''
                 # 銘柄別に空のデータフレームを準備
                 self.dict_df[code] = pd.DataFrame({
                     "Time": list(),
                     "Price": list(),
                     "Volume": list(),
                 })
+                '''
 
                 # 行番号のインクリメント
                 row += 1
+
+        # 一括読み取り対象の行範囲を取得
+        rows = [self.dict_row[code] for code in self.list_code]
+        self.min_row = min(rows) + 1
+        self.max_row = max(rows) + 1
+
+        # 銘柄別に空の辞書/リストを準備 → あとでデータフレームに変換
+        for code in self.list_code:
+            self.ticks[code] = {
+                "Time": [],
+                "Price": [],
+                "Volume": [],
+            }
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
@@ -142,7 +161,39 @@ class RSSReaderWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_code)
 
-    def readCurrentPrice(self, ts: float):
+    def initWorker(self):
+        self.logger.info("Worker: in init process.")
+
+        self.wb = xw.Book(self.excel_path)
+        self.sheet = self.wb.sheets["Cover"]
+
+        row_max = 200  # Cover の最大行数の仮設定
+
+        for row in range(2, row_max + 1):
+            code = self.sheet.range(row, self.col_code).value
+            if code == self.cell_bottom:
+                break
+
+            self.list_code.append(code)
+            self.dict_row[code] = row
+            self.dict_name[code] = self.sheet.range(row, self.col_name).value
+
+        # 一括読み取りの行範囲
+        rows = list(self.dict_row.values())
+        self.min_row = min(rows)
+        self.max_row = max(rows)
+
+        # ティックデータ初期化
+        for code in self.list_code:
+            self.ticks[code] = {"Time": [], "Price": [], "Volume": []}
+
+        # GUI に通知
+        self.notifyTickerN.emit(self.list_code, self.dict_name)
+
+        # ポジションマネージャ初期化
+        self.posman.initPosition(self.list_code)
+
+    def readCurrentPriceOld(self, ts: float):
         """
         現在株価の読み取り
         :param ts:
@@ -197,25 +248,95 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータをまとめて保持
         for code in self.list_code:
+            '''
             df = self.dict_df[code]
             row = len(df)
+            '''
             # 寄っていない場合はデータが無い銘柄コードがある！
             if code in self.dict_data:
                 ts, price, volume = self.dict_data[code]
-                df.loc[row] = [ts, price, volume]
+                # df.loc[row] = [ts, price, volume]
+                d = self.ticks[code]
+                d["Time"].append(ts)
+                d["Price"].append(price)
+                d["Volume"].append(volume)
+
+    def readCurrentPrice(self, ts: float):
+        """
+        現在株価の読み取り（Excel 一括読み取り版）
+        :param ts: タイムスタンプ
+        """
+        self.dict_data.clear()
+        self.dict_profit.clear()
+        self.dict_total.clear()
+
+        for attempt in range(self.max_retries):
+            try:
+                # 一括読み取り（列ごとに）
+                prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
+                volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
+
+                # print(prices)
+                # print(volumes)
+                # 読み取り結果を dict_data に格納
+                for i, code in enumerate(self.list_code):
+                    price = prices[i]
+                    volume = volumes[i]
+                    if price > 0:
+                        self.dict_data[code] = (ts, price, volume)
+                        self.dict_profit[code] = self.posman.getProfit(code, price)
+                        self.dict_total[code] = self.posman.getTotal(code)
+                break
+            except com_error as e:
+                # ---------------------------------------------------------
+                # com_error は Windows 固有
+                # ---------------------------------------------------------
+                if attempt < self.max_retries - 1:
+                    self.logger.warning(
+                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                    )
+                    time.sleep(self.retry_delay)
+                else:
+                    self.logger.error(
+                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                    )
+                    raise  # 最終的に失敗したら例外を再発生させる
+            except Exception as e:
+                self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
+                raise
+
+        # 🧿 GUI に通知
+        self.notifyCurrentPrice.emit(self.dict_data, self.dict_profit, self.dict_total)
+
+        # ティックデータを蓄積
+        for code in self.list_code:
+            if code in self.dict_data:
+                ts, price, volume = self.dict_data[code]
+                d = self.ticks[code]
+                d["Time"].append(ts)
+                d["Price"].append(price)
+                d["Volume"].append(volume)
 
     def saveDataFrame(self):
+        """
+        最後にティックデータを保存する処理
+        :return:
+        """
         # 保存するファイル名
         date_str = get_date_str_today()
         name_excel = os.path.join(
             self.res.dir_collection,
             f"ticks_{date_str}.xlsx"
         )
-        # 念のため、空のデータでないか確認して空でなければ保存
+        dict_df = dict()  # 銘柄コード別にデータフレームを保存
+        # 念のため、全てが空のデータでないか確認して空でなければ保存（無用な上書きを回避）
         r = 0
         for code in self.list_code:
-            df = self.dict_df[code]
+            # df = self.dict_df[code]
+            df = pd.DataFrame(self.ticks[code])
             r += len(df)
+            # 保存する Excel では code がシート名になる → 辞書で渡す
+            dict_df[code] = df
         if r == 0:
             # すべてのデータフレームの行数が 0 の場合は保存しない。
             self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
@@ -223,7 +344,8 @@ class RSSReaderWorker(QObject):
         else:
             # ティックデータの保存処理
             try:
-                save_dataframe_to_excel(name_excel, self.dict_df)
+                # save_dataframe_to_excel(name_excel, self.dict_df)
+                save_dataframe_to_excel(name_excel, dict_df)
                 self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
                 flag = True
             except ValueError as e:
