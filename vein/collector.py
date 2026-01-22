@@ -13,7 +13,7 @@ from funcs.tide import get_date_str_today
 if sys.platform == "win32":
     from pywintypes import com_error
 
-from PySide6.QtCore import QObject, QThread, Signal
+from PySide6.QtCore import QObject, QThread, Signal, Slot
 
 from structs.res import AppRes
 
@@ -65,7 +65,7 @@ class StockCollectorWorker(QObject):
         self.col_ratio = 6  # 前日比
         self.col_volume = 7  # 出来高
 
-    def initWorker(self):
+    def initWorkerOld(self):
         self.logger.info("Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
@@ -101,6 +101,55 @@ class StockCollectorWorker(QObject):
                 # 行番号のインクリメント
                 row += 1
 
+        # --------------------------------------------------------------
+        # 🧿 銘柄名などの情報を通知
+        self.notifyTickerN.emit(self.list_ticker, self.dict_name)
+        # --------------------------------------------------------------
+
+    @Slot()
+    def initWorker(self):
+        self.logger.info("Worker: in init process.")
+
+        #######################################################################
+        # Excel ワークブックとシートの取得
+        self.wb = wb = xw.Book(self.excel_path)
+        self.sheet = sheet = wb.sheets["Cover"]
+        #######################################################################
+
+        # 読み取り上限（必要に応じて調整可能）
+        max_row = 200
+
+        # 銘柄コード列と銘柄名列を一括取得（COM 呼び出し最小化）
+        values_code = sheet.range((1, self.col_code), (max_row, self.col_code)).value
+        values_name = sheet.range((1, self.col_name), (max_row, self.col_name)).value
+
+        # 初期化
+        self.list_ticker.clear()
+        self.dict_row.clear()
+        self.dict_name.clear()
+        self.dict_df.clear()
+
+        # 行ごとに処理
+        for row, (ticker, name) in enumerate(zip(values_code, values_name), start=1):
+            # デリミタ検出で終了
+            if ticker == self.cell_bottom:
+                break
+            # 空行はスキップ（壊れにくさ向上）
+            if not ticker:
+                continue
+            # 銘柄コード
+            self.list_ticker.append(ticker)
+            # 行位置
+            self.dict_row[ticker] = row
+            # 銘柄名
+            self.dict_name[ticker] = name
+            # 空のティックデータ DataFrame を準備
+            self.dict_df[ticker] = pd.DataFrame({
+                "Time": [],
+                "Price": [],
+                "Volume": [],
+            })
+        self.logger.info(f"Worker: {len(self.list_ticker)} tickers loaded.")
         # --------------------------------------------------------------
         # 🧿 銘柄名などの情報を通知
         self.notifyTickerN.emit(self.list_ticker, self.dict_name)
