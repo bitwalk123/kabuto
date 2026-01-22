@@ -240,8 +240,8 @@ class RSSReaderWorker(QObject):
 
         try:
             # 一括読み取り（列ごとに）
-            prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
-            volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
+            prices = self.sheet.range((self.min_row, self.col_price + 1), (self.max_row, self.col_price + 1)).value
+            volumes = self.sheet.range((self.min_row, self.col_volume + 1), (self.max_row, self.col_volume + 1)).value
 
             print(prices)
             # 読み取り結果を dict_data に格納
