@@ -88,7 +88,7 @@ class RSSReaderWorker(QObject):
         # ポジション・マネージャのインスタンス
         self.posman = PositionManager()
 
-    @Slot
+    @Slot()
     def getTransactionResult(self):
         """
         取引結果を取得
@@ -254,6 +254,7 @@ class RSSReaderWorker(QObject):
     def stop(self):
         self._running = False
 
+    @Slot()
     def stopProcess(self):
         """
         xlwings のインスタンスを明示的に開放する
