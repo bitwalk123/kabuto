@@ -245,8 +245,8 @@ class RSSReaderWorker(QObject):
 
             # 読み取り結果を dict_data に格納
             for i, code in enumerate(self.list_code):
-                price = prices[i]
-                volume = volumes[i]
+                price = float(prices[i])
+                volume = float(volumes[i])
                 if price > 0:
                     self.dict_data[code] = (ts, price, volume)
                     self.dict_profit[code] = self.posman.getProfit(code, price)
