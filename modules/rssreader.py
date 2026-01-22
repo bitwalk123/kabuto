@@ -112,7 +112,7 @@ class RSSReaderWorker(QObject):
         row = 1
         flag_loop = True
         while flag_loop:
-            code = self.sheet[row, self.col_code].value
+            code = self.sheet[row, self.col_code - 1].value
             if code == self.cell_bottom:
                 flag_loop = False
             else:
@@ -123,7 +123,7 @@ class RSSReaderWorker(QObject):
                 self.dict_row[code] = row
 
                 # 銘柄名
-                self.dict_name[code] = self.sheet[row, self.col_name].value
+                self.dict_name[code] = self.sheet[row, self.col_name - 1].value
 
                 # 前日の終値の横線
                 # dict_lastclose[code] = self.sheet[row, self.col_lastclose].value
