@@ -49,6 +49,9 @@ class RSSReaderWorker(QObject):
         self.wb = None  # Excel のワークブックインスタンス
         self.sheet = None  # Excel のワークシートインスタンス
 
+        self.max_row = None
+        self.min_row = None
+
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
         # COM エラーが発生するため、リトライできるようにしている。
@@ -137,6 +140,11 @@ class RSSReaderWorker(QObject):
                 # 行番号のインクリメント
                 row += 1
 
+        # 一括読み取り対象の行範囲を取得
+        rows = [self.dict_row[code] for code in self.list_code]
+        self.min_row = min(rows)
+        self.max_row = max(rows)
+
         # 銘柄別に空の辞書/リストを準備 → あとでデータフレームに変換
         for code in self.list_code:
             self.ticks[code] = {
@@ -153,7 +161,7 @@ class RSSReaderWorker(QObject):
         # ポジション・マネージャの初期化
         self.posman.initPosition(self.list_code)
 
-    def readCurrentPrice(self, ts: float):
+    def readCurrentPriceOld(self, ts: float):
         """
         現在株価の読み取り
         :param ts:
@@ -216,6 +224,48 @@ class RSSReaderWorker(QObject):
             if code in self.dict_data:
                 ts, price, volume = self.dict_data[code]
                 # df.loc[row] = [ts, price, volume]
+                d = self.ticks[code]
+                d["Time"].append(ts)
+                d["Price"].append(price)
+                d["Volume"].append(volume)
+
+    def readCurrentPrice(self, ts: float):
+        """
+        現在株価の読み取り（Excel 一括読み取り版）
+        :param ts: タイムスタンプ
+        """
+        self.dict_data.clear()
+        self.dict_profit.clear()
+        self.dict_total.clear()
+
+        try:
+            # 一括読み取り（列ごとに）
+            prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
+            volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
+
+            # 読み取り結果を dict_data に格納
+            for i, code in enumerate(self.list_code):
+                price = prices[i]
+                volume = volumes[i]
+                if price > 0:
+                    self.dict_data[code] = (ts, price, volume)
+                    self.dict_profit[code] = self.posman.getProfit(code, price)
+                    self.dict_total[code] = self.posman.getTotal(code)
+
+        except com_error as e:
+            self.logger.error(f"{__name__} COM error during bulk read: {e}")
+            raise
+        except Exception as e:
+            self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
+            raise
+
+        # 🧿 GUI に通知
+        self.notifyCurrentPrice.emit(self.dict_data, self.dict_profit, self.dict_total)
+
+        # ティックデータを蓄積
+        for code in self.list_code:
+            if code in self.dict_data:
+                ts, price, volume = self.dict_data[code]
                 d = self.ticks[code]
                 d["Time"].append(ts)
                 d["Price"].append(price)
