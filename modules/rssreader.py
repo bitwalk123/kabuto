@@ -169,7 +169,7 @@ class RSSReaderWorker(QObject):
 
         row_max = 200  # Cover の最大行数の仮設定
 
-        for row in range(1, row_max + 1):
+        for row in range(2, row_max + 1):
             code = self.sheet.range(row, self.col_code).value
             if code == self.cell_bottom:
                 break
