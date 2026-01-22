@@ -270,28 +270,40 @@ class RSSReaderWorker(QObject):
         self.dict_profit.clear()
         self.dict_total.clear()
 
-        try:
-            # 一括読み取り（列ごとに）
-            prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
-            volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
+        for attempt in range(self.max_retries):
+            try:
+                # 一括読み取り（列ごとに）
+                prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
+                volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
 
-            # print(prices)
-            # print(volumes)
-            # 読み取り結果を dict_data に格納
-            for i, code in enumerate(self.list_code):
-                price = prices[i]
-                volume = volumes[i]
-                if price > 0:
-                    self.dict_data[code] = (ts, price, volume)
-                    self.dict_profit[code] = self.posman.getProfit(code, price)
-                    self.dict_total[code] = self.posman.getTotal(code)
-
-        except com_error as e:
-            self.logger.error(f"{__name__} COM error during bulk read: {e}")
-            raise
-        except Exception as e:
-            self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
-            raise
+                # print(prices)
+                # print(volumes)
+                # 読み取り結果を dict_data に格納
+                for i, code in enumerate(self.list_code):
+                    price = prices[i]
+                    volume = volumes[i]
+                    if price > 0:
+                        self.dict_data[code] = (ts, price, volume)
+                        self.dict_profit[code] = self.posman.getProfit(code, price)
+                        self.dict_total[code] = self.posman.getTotal(code)
+                    break
+            except com_error as e:
+                # ---------------------------------------------------------
+                # com_error は Windows 固有
+                # ---------------------------------------------------------
+                if attempt < self.max_retries - 1:
+                    self.logger.warning(
+                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                    )
+                    time.sleep(self.retry_delay)
+                else:
+                    self.logger.error(
+                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                    )
+                    raise  # 最終的に失敗したら例外を再発生させる
+            except Exception as e:
+                self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
+                raise
 
         # 🧿 GUI に通知
         self.notifyCurrentPrice.emit(self.dict_data, self.dict_profit, self.dict_total)
