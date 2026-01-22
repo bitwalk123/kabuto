@@ -142,8 +142,8 @@ class RSSReaderWorker(QObject):
 
         # 一括読み取り対象の行範囲を取得
         rows = [self.dict_row[code] for code in self.list_code]
-        self.min_row = min(rows)
-        self.max_row = max(rows)
+        self.min_row = min(rows) + 1
+        self.max_row = max(rows) + 1
 
         # 銘柄別に空の辞書/リストを準備 → あとでデータフレームに変換
         for code in self.list_code:
