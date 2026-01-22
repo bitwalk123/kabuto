@@ -96,7 +96,7 @@ class RSSReaderWorker(QObject):
         self.notifyTransactionResult.emit(df)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def initWorker(self):
+    def initWorkerOld(self):
         self.logger.info("Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
@@ -159,6 +159,38 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ポジション・マネージャの初期化
+        self.posman.initPosition(self.list_code)
+
+    def initWorker(self):
+        self.logger.info("Worker: in init process.")
+
+        self.wb = xw.Book(self.excel_path)
+        self.sheet = self.wb.sheets["Cover"]
+
+        row_max = 200  # Cover の最大行数の仮設定
+
+        for row in range(1, row_max + 1):
+            code = self.sheet.range(row, self.col_code).value
+            if code == self.cell_bottom:
+                break
+
+            self.list_code.append(code)
+            self.dict_row[code] = row
+            self.dict_name[code] = self.sheet.range(row, self.col_name).value
+
+        # 一括読み取りの行範囲
+        rows = list(self.dict_row.values())
+        self.min_row = min(rows)
+        self.max_row = max(rows)
+
+        # ティックデータ初期化
+        for code in self.list_code:
+            self.ticks[code] = {"Time": [], "Price": [], "Volume": []}
+
+        # GUI に通知
+        self.notifyTickerN.emit(self.list_code, self.dict_name)
+
+        # ポジションマネージャ初期化
         self.posman.initPosition(self.list_code)
 
     def readCurrentPriceOld(self, ts: float):
@@ -243,8 +275,8 @@ class RSSReaderWorker(QObject):
             prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
             volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
 
-            #print(prices)
-            #print(volumes)
+            # print(prices)
+            # print(volumes)
             # 読み取り結果を dict_data に格納
             for i, code in enumerate(self.list_code):
                 price = prices[i]
