@@ -1,7 +1,10 @@
 import datetime
+import logging
 import os
+import subprocess
+from pathlib import Path
 
-from PySide6.QtCore import QTimer, Signal
+from PySide6.QtCore import QTimer, Signal, QThread
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QDialog,
@@ -16,6 +19,7 @@ from funcs.ios import (
 )
 from funcs.setting import get_default_setting, load_setting
 from funcs.tse import get_ticker_name_list
+from modules.uploader import UploadWorker
 from structs.app_enum import AppMode
 from structs.res import AppRes
 from widgets.buttons import ButtonGroup, RadioButton
@@ -38,7 +42,11 @@ class ToolBar(QToolBar):
 
     def __init__(self, res: AppRes):
         super().__init__()
+        self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res
+
+        self.thread = None
+        self.worker = None
 
         # デバッグ（レビュー）モード時のみ
         if res.debug:
@@ -71,6 +79,15 @@ class ToolBar(QToolBar):
             action_stop.triggered.connect(self.on_stop)
             self.addAction(action_stop)
 
+            # 設定ファイルのアップロード
+            action_upload = QAction(
+                QIcon(os.path.join(res.dir_image, "upload.png")),
+                "設定ファイルのアップロード",
+                self
+            )
+            action_upload.triggered.connect(self.on_upload)
+            self.addAction(action_upload)
+
         # 取引履歴
         self.action_transaction = action_transaction = QAction(
             QIcon(os.path.join(res.dir_image, "transaction.png")),
@@ -98,6 +115,13 @@ class ToolBar(QToolBar):
 
         self.lcd_time = lcd_time = LCDTime()
         self.addWidget(lcd_time)
+
+    def closeEvent(self, event):
+        thread = getattr(self, "thread", None)
+        if thread is not None and thread.isRunning():
+            thread.quit()
+            thread.wait()
+        super().closeEvent(event)
 
     def on_about(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -152,6 +176,28 @@ class ToolBar(QToolBar):
         self.clickedTransaction.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def on_upload(self):
+        """
+        現在の JSON ファイルを HTTP サーバーへアップロード
+        :return:
+        """
+        local_conf = Path(self.res.dir_conf)
+        files = local_conf.glob("*.json")
+        # スレッド処理
+        self.thread = thread = QThread()
+        self.worker = worker = UploadWorker(self.res, files)
+        worker.moveToThread(thread)
+        # スレッドが開始されたら処理開始
+        thread.started.connect(worker.run)
+        # 処理が終わったら削除
+        worker.finished.connect(thread.quit)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+        # 終了後の処理
+        worker.finished.connect(self.upload_completed)
+        # スレッドの開始
+        thread.start()
+
     def set_transaction(self):
         """
         取引履歴の表示ボタンを Enable にする
@@ -162,6 +208,13 @@ class ToolBar(QToolBar):
     def updateTime(self, ts: float):
         dt = datetime.datetime.fromtimestamp(ts)
         self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
+
+    def upload_completed(self):
+        """
+        アップロード終了メッセージ
+        :return:
+        """
+        self.logger.info(f"{__name__}: アップロードが完了しました。")
 
 
 class ToolBarProphet(QToolBar):
