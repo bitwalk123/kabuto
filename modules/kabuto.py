@@ -1,8 +1,13 @@
+import json
 import logging
 import os
+import subprocess
 import time
+import warnings
+from pathlib import Path
 
 import pandas as pd
+import requests
 from PySide6.QtCore import (
     QThread,
     QTimer,
@@ -18,6 +23,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QSizePolicy,
 )
+from urllib3.exceptions import InsecureRequestWarning
 
 from funcs.conv import conv_transaction_df2html
 from funcs.tide import get_intraday_timestamp
@@ -35,6 +41,9 @@ from modules.win_transaction import WinTransaction
 from structs.res import AppRes
 from widgets.containers import ScrollArea, Widget
 from widgets.layouts import VBoxLayout
+
+# HTTPS verify=False の警告を抑制
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 
 class Kabuto(QMainWindow):
@@ -220,6 +229,7 @@ class Kabuto(QMainWindow):
         # 選択した銘柄数分の Trader および Ticker インスタンスの生成
         # ---------------------------------------------------------------------
         for code in self.list_code_selected:
+            self.update_conf_if_exists(code)
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # Trader インスタンスの生成
             # 主にチャート表示用（選択された銘柄コードのみ）
@@ -530,6 +540,43 @@ class Kabuto(QMainWindow):
             code, self.ts_system, price, note
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def update_conf_if_exists(self, code):
+        """
+        最新の JSON ファイルを HTTP サーバーからダウンロード
+        :param code:
+        :return:
+        """
+        url = f"{self.res.url_conf}/{code}.json"
+
+        local_conf_dir = Path(self.res.dir_conf)
+        local_conf_dir.mkdir(exist_ok=True)
+
+        try:
+            r = requests.get(url, timeout=3, verify=False)
+            if r.status_code == 200:
+                data = r.json()
+                with open(local_conf_dir / f"{code}.json", "w", encoding="utf-8") as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                self.logger.info(f"{__name__}: {code}.json を更新しました")
+            else:
+                self.logger.warning(f"{__name__}: リモートに {code}.json はありません (status={r.status_code})")
+
+        except Exception as e:
+            self.logger.error(f"{__name__}: {code}.json の更新に失敗しました: {e}")
+
+    def upload_conf_files(self):
+        """
+        現在の JSON ファイルを HTTP サーバーへアップロード
+        :return:
+        """
+        local_conf = Path(self.res.dir_conf)
+        remote = f"{self.res.ssh_user}@{self.res.ssh_host}:/home/{self.res.ssh_user}/public_html/conf/"
+
+        for json_file in local_conf.glob("*.json"):
+            cmd = ["scp", str(json_file), remote]
+            self.logger.info(f"{__name__}: Uploading {json_file.name} ...")
+            subprocess.run(cmd, check=True)
 
     ###########################################################################
     #

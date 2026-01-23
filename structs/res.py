@@ -13,27 +13,31 @@ class AppRes:
 
     code_default = "7011"  # デフォルトの銘柄コード
 
-    dir_collection = 'collection'
-    dir_conf = 'conf'
-    dir_doe = 'doe'
-    dir_excel = 'excel'
-    dir_font = 'fonts'
-    dir_image = 'images'
-    dir_info = 'info'
-    dir_log = 'logs'
-    dir_model = 'models'
-    dir_output = 'output'
-    dir_report = 'report'
-    dir_temp = 'tmp'
-    dir_training = 'training'
-    dir_transaction = 'transaction'
+    dir_collection = "collection"
+    dir_conf = "conf"
+    url_conf = "https://192.168.0.36/~bitwalk/conf"
+    dir_doe = "doe"
+    dir_excel = "excel"
+    dir_font = "fonts"
+    dir_image = "images"
+    dir_info = "info"
+    dir_log = "logs"
+    dir_model = "models"
+    dir_output = "output"
+    dir_report = "report"
+    dir_temp = "tmp"
+    dir_training = "training"
+    dir_transaction = "transaction"
+
+    ssh_user = "bitwalk"
+    ssh_host = "192.168.0.36"
 
     excel_collector = "collector.xlsm"
     excel_portfolio = "portfolio.xlsm"
 
     debug = False
 
-    tse = 'https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls'
+    tse = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 
     path_monospace = "fonts/RictyDiminished-Regular.ttf"
 
@@ -61,7 +65,7 @@ class AppRes:
 
     @staticmethod
     def getBuiltinIcon(parent: QWidget, name: str) -> QIcon:
-        pixmap_icon = getattr(QStyle.StandardPixmap, 'SP_%s' % name)
+        pixmap_icon = getattr(QStyle.StandardPixmap, "SP_%s" % name)
         return parent.style().standardIcon(pixmap_icon)
 
     def getJPXTickerList(self) -> pd.DataFrame:
