@@ -29,8 +29,10 @@ class AppRes:
     dir_training = "training"
     dir_transaction = "transaction"
 
-    ssh_user = "bitwalk"
-    ssh_host = "192.168.0.36"
+    ssh_key_path = "~/.ssh/id_rsa"
+    remote_user  = "bitwalk"
+    remote_host  = "192.168.0.36"
+    remote_conf_dir  = "/home/bitwalk/public_html/conf/"
 
     excel_collector = "collector.xlsm"
     excel_portfolio = "portfolio.xlsm"

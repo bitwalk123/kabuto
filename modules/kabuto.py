@@ -515,7 +515,7 @@ class Kabuto(QMainWindow):
                 trader.dock.setTotal(dict_total[code])
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理（Acquire 用）
+    # 取引ボタンがクリックされた時の処理（リアルタイム用）
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_buy(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -565,18 +565,6 @@ class Kabuto(QMainWindow):
         except Exception as e:
             self.logger.error(f"{__name__}: {code}.json の更新に失敗しました: {e}")
 
-    def upload_conf_files(self):
-        """
-        現在の JSON ファイルを HTTP サーバーへアップロード
-        :return:
-        """
-        local_conf = Path(self.res.dir_conf)
-        remote = f"{self.res.ssh_user}@{self.res.ssh_host}:/home/{self.res.ssh_user}/public_html/conf/"
-
-        for json_file in local_conf.glob("*.json"):
-            cmd = ["scp", str(json_file), remote]
-            self.logger.info(f"{__name__}: Uploading {json_file.name} ...")
-            subprocess.run(cmd, check=True)
 
     ###########################################################################
     #
