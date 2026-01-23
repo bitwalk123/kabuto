@@ -20,7 +20,8 @@ if __name__ == "__main__":
     res = AppRes()
 
     # list_doe = ["doe-13h"]
-    list_doe = ["doe-14d"]
+    #list_doe = ["doe-14d"]
+    list_doe = ["doe-15"]
     for name_doe in list_doe:
         list_code = ["285A", "7011", "7203", "8306"]
         for code in list_code:
