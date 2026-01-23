@@ -9,6 +9,9 @@ from structs.res import AppRes
 
 
 class UploadWorker(QObject):
+    """
+    設定ファイルを指定したサーバー、場所にアップロードして保存する
+    """
     finished = Signal()
 
     def __init__(self, res: AppRes, files: Generator):

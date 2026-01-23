@@ -177,27 +177,6 @@ class ToolBar(QToolBar):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_upload(self):
-        self.upload_conf_files()
-
-    def set_transaction(self):
-        """
-        取引履歴の表示ボタンを Enable にする
-        :return:
-        """
-        self.action_transaction.setEnabled(True)
-
-    def updateTime(self, ts: float):
-        dt = datetime.datetime.fromtimestamp(ts)
-        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
-
-    def upload_completed(self):
-        """
-        アップロード終了メッセージ
-        :return:
-        """
-        self.logger.info(f"{__name__}: アップロードが完了しました。")
-
-    def upload_conf_files(self):
         """
         現在の JSON ファイルを HTTP サーバーへアップロード
         :return:
@@ -218,6 +197,24 @@ class ToolBar(QToolBar):
         worker.finished.connect(self.upload_completed)
         # スレッドの開始
         thread.start()
+
+    def set_transaction(self):
+        """
+        取引履歴の表示ボタンを Enable にする
+        :return:
+        """
+        self.action_transaction.setEnabled(True)
+
+    def updateTime(self, ts: float):
+        dt = datetime.datetime.fromtimestamp(ts)
+        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
+
+    def upload_completed(self):
+        """
+        アップロード終了メッセージ
+        :return:
+        """
+        self.logger.info(f"{__name__}: アップロードが完了しました。")
 
 
 class ToolBarProphet(QToolBar):
