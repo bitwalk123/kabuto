@@ -114,6 +114,7 @@ class FeatureProvider:
         for key, value in self.dict_setting.items():
             setattr(self, key, value)
             print(f"{key} : {value}")
+
         # 最大取引回数
         self.N_TRADE_MAX = 100
 

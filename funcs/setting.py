@@ -1,7 +1,13 @@
 import json
+import logging
 import os
+from pathlib import Path
+
+import requests
 
 from structs.res import AppRes
+
+logger = logging.getLogger(__name__)
 
 
 def get_default_setting() -> dict:
@@ -52,3 +58,28 @@ def load_setting(res: AppRes, code: str) -> dict:
         return dict_setting
     else:
         return get_default_setting()
+
+
+def update_setting(res: AppRes, code: str):
+    """
+    最新の JSON ファイルを HTTP サーバーからダウンロードして更新
+    :param res:
+    :param code:
+    :return:
+    """
+    url = f"{res.url_conf}/{code}.json"
+
+    local_conf_dir = Path(res.dir_conf)
+    local_conf_dir.mkdir(exist_ok=True)
+
+    try:
+        r = requests.get(url, timeout=3, verify=False)
+        if r.status_code == 200:
+            data = r.json()
+            with open(local_conf_dir / f"{code}.json", "w", encoding="utf-8") as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            logger.info(f"{__name__}: {code}.json を更新しました")
+        else:
+            logger.warning(f"{__name__}: リモートに {code}.json はありません (status={r.status_code})")
+    except Exception as e:
+        logger.error(f"{__name__}: {code}.json の更新に失敗しました: {e}")
