@@ -1,13 +1,18 @@
 import json
 import logging
 import os
+import warnings
 from pathlib import Path
 
 import requests
+from urllib3.exceptions import InsecureRequestWarning
 
 from structs.res import AppRes
 
 logger = logging.getLogger(__name__)
+
+# HTTPS verify=False の警告を抑制
+warnings.simplefilter("ignore", InsecureRequestWarning)
 
 
 def get_default_setting() -> dict:
