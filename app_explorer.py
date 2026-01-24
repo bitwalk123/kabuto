@@ -19,15 +19,12 @@ if __name__ == "__main__":
     main_logger = setup_logging()
     res = AppRes()
 
-    # list_doe = ["doe-13h"]
-    list_doe = ["doe-14d"]
+    list_doe = ["doe-13h"]
+    # list_doe = ["doe-14d"]
     # list_doe = ["doe-16"]
     for name_doe in list_doe:
         list_code = ["285A", "7011", "7203", "8306"]
         for code in list_code:
-            # 設定ファイルの更新
-            update_setting(res, code)
-
             # 出力ディレクトリ
             path_dir = os.path.join(res.dir_output, name_doe, code)
             os.makedirs(path_dir, exist_ok=True)
@@ -37,6 +34,8 @@ if __name__ == "__main__":
             df_matrix = pd.read_csv(path_doe)
             factor_doe = list(df_matrix.columns)
 
+            # 設定ファイルの更新
+            update_setting(res, code)
             # 基本設定
             base_setting = load_setting(res, code)
 
