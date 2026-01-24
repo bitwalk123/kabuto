@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from funcs.ios import get_excel_sheet
 from funcs.logs import setup_logging
-from funcs.setting import load_setting
+from funcs.setting import load_setting, update_setting
 from funcs.tide import get_date_str_from_file, get_intraday_timestamp
 from structs.res import AppRes
 from widgets.explorer import Explorer
@@ -20,11 +20,14 @@ if __name__ == "__main__":
     res = AppRes()
 
     # list_doe = ["doe-13h"]
-    #list_doe = ["doe-14d"]
+    # list_doe = ["doe-14d"]
     list_doe = ["doe-16"]
     for name_doe in list_doe:
         list_code = ["285A", "7011", "7203", "8306"]
         for code in list_code:
+            # 設定ファイルの更新
+            update_setting(res, code)
+
             # 出力ディレクトリ
             path_dir = os.path.join(res.dir_output, name_doe, code)
             os.makedirs(path_dir, exist_ok=True)
