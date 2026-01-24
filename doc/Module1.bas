@@ -1,0 +1,168 @@
+Attribute VB_Name = "Module1"
+
+Public gOrderID As Long
+
+Function NextOrderID() As Long
+    gOrderID = gOrderID + 1
+    NextOrderID = gOrderID
+End Function
+
+Function DoBuy(code As String) As Boolean
+    Dim oid As Long
+
+    oid = NextOrderID()
+    result = RssMarginOpenOrder_v( _
+        oid, _
+        code, _
+        3, _   ' 買建
+        0, _   ' 通常注文
+        1, _   ' SOR
+        4, _   ' 一般信用いちにち
+        100, _   ' 数量
+        0, _   ' 成行
+        , _      ' 注文価格（省略）
+        1, _   ' 本日中
+        , _      ' 注文期限（省略）
+        0 _    ' 口座区分（特定）
+    )
+    Call AppendLog(code, "DoBuy called")
+    DoBuy = True
+End Function
+
+
+Function DoSell(code As String) As Boolean
+    Dim oid As Long
+
+    oid = NextOrderID()
+    result = RssMarginOpenOrder_v( _
+        oid, _
+        code, _
+        1, _   ' 売建
+        0, _   ' 通常注文
+        1, _   ' SOR
+        4, _   ' 一般信用いちにち
+        100, _   ' 数量
+        0, _   ' 成行
+        , _      ' 注文価格（省略）
+        1, _   ' 本日中
+        , _      ' 注文期限（省略）
+        0 _    ' 口座区分（特定）
+    )
+    Call AppendLog(code, "DoSell called")
+    DoSell = True
+End Function
+
+
+Function DoRepay(code As String) As Boolean
+    Dim oid As Long
+    Dim row As Long
+    Dim ws As Worksheet
+    Dim qty As Long
+    Dim tanka As Double
+    Dim tatebi As String
+    Dim market As Long
+    Dim shinyo As Long
+
+    Set ws = ThisWorkbook.Sheets("Positions")
+
+    ' 建玉行を探す
+    row = FindPositionRow(code)
+    If row = 0 Then
+        Call AppendLog(code, "DoRepay: 建玉が見つかりません")
+        DoRepay = False
+        Exit Function
+    End If
+
+    ' 必要な値を取得
+    qty = ws.Cells(row, "G").Value
+    tanka = ws.Cells(row, "I").Value
+    tatebi = ws.Cells(row, "J").Value
+    market = ws.Cells(row, "D").Value
+    shinyo = ws.Cells(row, "E").Value
+
+    ' 発注ID
+    oid = NextOrderID()
+
+    ' 返済注文（成行）
+    result = RssMarginCloseOrder_v( _
+        oid, _
+        code, _
+        1, _        ' 売埋（買建を返済する場合）
+        0, _        ' 通常注文
+        1, _        ' SOR
+        shinyo, _   ' 信用区分
+        qty, _      ' 数量
+        0, _        ' 成行
+        , _         ' 注文価格
+        1, _        ' 本日中
+        , _         ' 注文期限
+        0, _        ' 口座区分
+        tatebi, _   ' 建日
+        tanka, _    ' 建単価
+        market _    ' 建市場
+    )
+
+    Call AppendLog(code, "DoRepay: 発注ID=" & oid & " を送信しました")
+    DoRepay = True
+End Function
+
+
+Sub AppendLog(code As String, message As String)
+    Dim ws As Worksheet
+    Dim nextRow As Long
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Logs")
+    On Error GoTo 0
+
+    If ws Is Nothing Then
+        MsgBox "Logs シートが見つかりません。", vbExclamation
+        Exit Sub
+    End If
+
+    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+    If nextRow < 2 Then nextRow = 2 ' ヘッダーが1行目にある前提
+
+    With ws
+        .Cells(nextRow, 1).Value = Now
+        .Cells(nextRow, 2).Value = code
+        .Cells(nextRow, 3).Value = message
+    End With
+End Sub
+
+
+Sub ClearLogs()
+    Dim ws As Worksheet
+
+    On Error Resume Next
+    Set ws = ThisWorkbook.Sheets("Logs")
+    On Error GoTo 0
+
+    If ws Is Nothing Then
+        MsgBox "Logs シートが見つかりません。", vbExclamation
+        Exit Sub
+    End If
+
+    ' 2行目以降を削除（ヘッダーは残す）
+    ws.Rows("2:" & ws.Rows.Count).ClearContents
+End Sub
+
+
+Function FindPositionRow(code As String) As Long
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim r As Long
+
+    Set ws = ThisWorkbook.Sheets("Positions")
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    For r = 3 To lastRow   ' ヘッダーが2行目なので3行目から
+        If ws.Cells(r, "A").Value = code Then
+            FindPositionRow = r
+            Exit Function
+        End If
+    Next r
+
+    FindPositionRow = 0   ' 見つからなかった
+End Function
+
