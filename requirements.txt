@@ -4,8 +4,12 @@ cython
 fqdn
 gymnasium
 importlib-metadata
+inflect
 isoduration
 isort
+jaraco-collections
+jaraco-context
+jaraco-functools
 jaraco.collections
 jsonpointer
 jupyterlab
@@ -17,6 +21,7 @@ openpyxl
 pandas-stubs
 pip-chill
 pip-review
+pypdf
 pyqtgraph
 pyside6
 rfc3987-syntax

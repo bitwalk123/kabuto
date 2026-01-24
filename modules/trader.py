@@ -23,6 +23,15 @@ class Trader(QMainWindow):
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
 
+    # --- 状態遷移表 ---
+    ACTION_DISPATCH = {
+        (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
+        (ActionType.BUY, PositionType.SHORT): "doRepay",  # 売建（ショート）であれば（買って）返済
+        (ActionType.SELL, PositionType.NONE): "doSell",  # 建玉がなければ売建
+        (ActionType.SELL, PositionType.LONG): "doRepay",  # 買建（ロング）であれば（売って）返済
+        # HOLD は何もしないので載せない
+    }
+
     def __init__(self, res: AppRes, code: str, dict_ts: dict):
         super().__init__()
         self.logger = logging.getLogger(__name__)
@@ -127,28 +136,20 @@ class Trader(QMainWindow):
 
     def on_action(self, action: int, position: PositionType):
         action_enum = ActionType(action)
-        if action_enum == ActionType.BUY:
-            if position == PositionType.NONE:
-                # 建玉がなければ買建
-                self.dock.doBuy()
-            elif position == PositionType.SHORT:
-                # 売建（ショート）であれば（買って）返済
-                self.dock.doRepay()
-            else:
-                self.logger.error(f"{__name__}: trade rule violation!")
-        elif action_enum == ActionType.SELL:
-            if position == PositionType.NONE:
-                # 建玉がなければ売建
-                self.dock.doSell()
-            elif position == PositionType.LONG:
-                # 買建（ロング）であれば（売って）返済
-                self.dock.doRepay()
-            else:
-                self.logger.error(f"{__name__}: trade rule violation!")
-        elif action_enum == ActionType.HOLD:
-            pass
-        else:
-            self.logger.error(f"{__name__}: unknown action type {action_enum}!")
+
+        # HOLD は即 return
+        if action_enum == ActionType.HOLD:
+            return
+
+        method_name = self.ACTION_DISPATCH.get((action_enum, position))
+        if method_name is None:
+            self.logger.error(
+                f"{__name__}: trade rule violation! action={action_enum}, pos={position}"
+            )
+            return
+
+        # dock のメソッドを取得して実行
+        getattr(self.dock, method_name)()
 
     def on_save(self):
         file_img = f"{self.dict_ts['datetime_str']}_{self.code}_trend.png"
