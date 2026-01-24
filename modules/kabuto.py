@@ -268,11 +268,8 @@ class Kabuto(QMainWindow):
         チャートが保持しているティックデータをデータフレームで取得
         :return:
         """
-        dict_df = dict()
-        for code in self.dict_trader.keys():
-            trader = self.dict_trader[code]
-            dict_df[code] = trader.getTimePrice()
-        return dict_df
+        traders = self.dict_trader
+        return {code: t.getTimePrice() for code, t in traders.items()}
 
     def on_about(self):
         """
