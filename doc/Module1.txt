@@ -1,11 +1,12 @@
 Attribute VB_Name = "Module1"
-
 Public gOrderID As Long
+
 
 Function NextOrderID() As Long
     gOrderID = gOrderID + 1
     NextOrderID = gOrderID
 End Function
+
 
 Function DoBuy(code As String) As Boolean
     Dim oid As Long
@@ -18,14 +19,14 @@ Function DoBuy(code As String) As Boolean
         0, _   ' 通常注文
         1, _   ' SOR
         4, _   ' 一般信用いちにち
-        100, _   ' 数量
+        100, _ ' 数量
         0, _   ' 成行
-        , _      ' 注文価格（省略）
+        , _    ' 注文価格（省略）
         1, _   ' 本日中
-        , _      ' 注文期限（省略）
+        , _    ' 注文期限（省略）
         0 _    ' 口座区分（特定）
     )
-    Call AppendLog(code, "DoBuy called")
+    Call AppendLog(code, "DoBuy: 発注ID=" & oid & " を送信しました")
     DoBuy = True
 End Function
 
@@ -41,14 +42,14 @@ Function DoSell(code As String) As Boolean
         0, _   ' 通常注文
         1, _   ' SOR
         4, _   ' 一般信用いちにち
-        100, _   ' 数量
+        100, _ ' 数量
         0, _   ' 成行
         , _      ' 注文価格（省略）
         1, _   ' 本日中
         , _      ' 注文期限（省略）
         0 _    ' 口座区分（特定）
     )
-    Call AppendLog(code, "DoSell called")
+    Call AppendLog(code, "DoSell: 発注ID=" & oid & " を送信しました")
     DoSell = True
 End Function
 
@@ -87,19 +88,19 @@ Function DoRepay(code As String) As Boolean
     result = RssMarginCloseOrder_v( _
         oid, _
         code, _
-        1, _        ' 売埋（買建を返済する場合）
-        0, _        ' 通常注文
-        1, _        ' SOR
-        shinyo, _   ' 信用区分
-        qty, _      ' 数量
-        0, _        ' 成行
-        , _         ' 注文価格
-        1, _        ' 本日中
-        , _         ' 注文期限
-        0, _        ' 口座区分
-        tatebi, _   ' 建日
-        tanka, _    ' 建単価
-        market _    ' 建市場
+        1, _      ' 売埋（買建を返済する場合）
+        0, _      ' 通常注文
+        1, _      ' SOR
+        shinyo, _ ' 信用区分
+        qty, _    ' 数量
+        0, _      ' 成行
+        , _       ' 注文価格
+        1, _      ' 本日中
+        , _       ' 注文期限
+        0, _      ' 口座区分
+        tatebi, _ ' 建日
+        tanka, _  ' 建単価
+        market _  ' 建市場
     )
 
     Call AppendLog(code, "DoRepay: 発注ID=" & oid & " を送信しました")
@@ -120,7 +121,7 @@ Sub AppendLog(code As String, message As String)
         Exit Sub
     End If
 
-    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
+    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row + 1
     If nextRow < 2 Then nextRow = 2 ' ヘッダーが1行目にある前提
 
     With ws
@@ -154,7 +155,7 @@ Function FindPositionRow(code As String) As Long
     Dim r As Long
 
     Set ws = ThisWorkbook.Sheets("Positions")
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row
 
     For r = 3 To lastRow   ' ヘッダーが2行目なので3行目から
         If ws.Cells(r, "A").Value = code Then
@@ -165,4 +166,6 @@ Function FindPositionRow(code As String) As Long
 
     FindPositionRow = 0   ' 見つからなかった
 End Function
+
+
 
