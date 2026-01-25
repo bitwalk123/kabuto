@@ -112,17 +112,21 @@ Function FindPositionRow(code As String) As Long
     Dim r As Long
 
     Set ws = ThisWorkbook.Sheets("Positions")
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
 
-    For r = 3 To lastRow   ' ヘッダーが2行目なので3行目から
+    ' 最終行が '-------- の場合は1行上から検索開始
+    If ws.Cells(lastRow, "A").Value = "--------" Then
+        lastRow = lastRow - 1
+    End If
+
+    ' 下から上へ検索（最新の建玉を優先）
+    For r = lastRow To 3 Step -1
         If ws.Cells(r, "A").Value = code Then
             FindPositionRow = r
             Exit Function
         End If
     Next r
 
-    FindPositionRow = 0   ' 見つからなかった
+    FindPositionRow = 0
 End Function
-
-
 
