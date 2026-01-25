@@ -1,7 +1,6 @@
 import logging
 import os
 import time
-import warnings
 
 import pandas as pd
 from PySide6.QtCore import (
@@ -19,7 +18,6 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QSizePolicy,
 )
-from urllib3.exceptions import InsecureRequestWarning
 
 from funcs.conv import conv_transaction_df2html
 from funcs.setting import update_setting
@@ -39,13 +37,10 @@ from structs.res import AppRes
 from widgets.containers import ScrollArea, Widget
 from widgets.layouts import VBoxLayout
 
-# HTTPS verify=False の警告を抑制
-warnings.simplefilter("ignore", InsecureRequestWarning)
-
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.2.9"
+    __version__ = "0.2.10"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
