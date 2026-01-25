@@ -40,25 +40,25 @@ Function DoRepay(code As String) As Boolean
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
-    ' Œš‹Ês‚ğ’T‚·
+    ' å»ºç‰è¡Œã‚’æ¢ã™
     row = FindPositionRow(code)
     If row = 0 Then
-        Call AppendLog(code, "DoRepay: Œš‹Ê‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ")
+        Call AppendLog(code, "DoRepay: å»ºç‰ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“")
         DoRepay = False
         Exit Function
     End If
 
-    ' •K—v‚È’l‚ğæ“¾
+    ' å¿…è¦ãªå€¤ã‚’å–å¾—
     qty = ws.Cells(row, "G").Value
     tanka = ws.Cells(row, "I").Value
     tatebi = ws.Cells(row, "J").Value
     market = ws.Cells(row, "D").Value
     shinyo = ws.Cells(row, "E").Value
 
-    ' ”­’ID
+    ' ç™ºæ³¨ID
     oid = NextOrderID()
 
-    ' •ÔÏ’•¶i¬sj
+    ' è¿”æ¸ˆæ³¨æ–‡ï¼ˆæˆè¡Œï¼‰
     result = RssMarginCloseOrder_v(oid, code, 1, 0, 1, shinyo, qty, 0, , 1, , 0, tatebi, tanka, market)
     Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
@@ -74,12 +74,12 @@ Sub AppendLog(code As String, message As String)
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs ƒV[ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", vbExclamation
+        MsgBox "Logs ã‚·ãƒ¼ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚", vbExclamation
         Exit Sub
     End If
 
     nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row + 1
-    If nextRow < 2 Then nextRow = 2 ' ƒwƒbƒ_[‚ª1s–Ú‚É‚ ‚é‘O’ñ
+    If nextRow < 2 Then nextRow = 2 ' ãƒ˜ãƒƒãƒ€ãƒ¼ãŒ1è¡Œç›®ã«ã‚ã‚‹å‰æ
 
     With ws
         .Cells(nextRow, 1).Value = Now
@@ -97,11 +97,11 @@ Sub ClearLogs()
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs ƒV[ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", vbExclamation
+        MsgBox "Logs ã‚·ãƒ¼ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚", vbExclamation
         Exit Sub
     End If
 
-    ' 2s–ÚˆÈ~‚ğíœiƒwƒbƒ_[‚Íc‚·j
+    ' 2è¡Œç›®ä»¥é™ã‚’å‰Šé™¤ï¼ˆãƒ˜ãƒƒãƒ€ãƒ¼ã¯æ®‹ã™ï¼‰
     ws.Rows("2:" & ws.Rows.Count).ClearContents
 End Sub
 
@@ -114,12 +114,12 @@ Function FindPositionRow(code As String) As Long
     Set ws = ThisWorkbook.Sheets("Positions")
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
 
-    ' ÅIs‚ª '-------- ‚Ìê‡‚Í1sã‚©‚çŒŸõŠJn
+    ' æœ€çµ‚è¡ŒãŒ '-------- ã®å ´åˆã¯1è¡Œä¸Šã‹ã‚‰æ¤œç´¢é–‹å§‹
     If ws.Cells(lastRow, "A").Value = "--------" Then
         lastRow = lastRow - 1
     End If
 
-    ' ‰º‚©‚çã‚ÖŒŸõiÅV‚ÌŒš‹Ê‚ğ—Dæj
+    ' ä¸‹ã‹ã‚‰ä¸Šã¸æ¤œç´¢ï¼ˆæœ€æ–°ã®å»ºç‰ã‚’å„ªå…ˆï¼‰
     For r = lastRow To 3 Step -1
         If ws.Cells(r, "A").Value = code Then
             FindPositionRow = r
