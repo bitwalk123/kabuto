@@ -12,20 +12,7 @@ Function DoBuy(code As String) As Boolean
     Dim oid As Long
 
     oid = NextOrderID()
-    result = RssMarginOpenOrder_v( _
-        oid, _
-        code, _
-        3, _   ' 買建
-        0, _   ' 通常注文
-        1, _   ' SOR
-        4, _   ' 一般信用いちにち
-        100, _ ' 数量
-        0, _   ' 成行
-        , _    ' 注文価格（省略）
-        1, _   ' 本日中
-        , _    ' 注文期限（省略）
-        0 _    ' 口座区分（特定）
-    )
+    result = RssMarginOpenOrder_v(oid, code, 3, 0, 1, 4, 100, 0, , 1, , 0)
     Call AppendLog(code, "DoBuy result=" & CStr(result))
     DoBuy = True
 End Function
@@ -35,20 +22,7 @@ Function DoSell(code As String) As Boolean
     Dim oid As Long
 
     oid = NextOrderID()
-    result = RssMarginOpenOrder_v( _
-        oid, _
-        code, _
-        1, _   ' 売建
-        0, _   ' 通常注文
-        1, _   ' SOR
-        4, _   ' 一般信用いちにち
-        100, _ ' 数量
-        0, _   ' 成行
-        , _      ' 注文価格（省略）
-        1, _   ' 本日中
-        , _      ' 注文期限（省略）
-        0 _    ' 口座区分（特定）
-    )
+    result = RssMarginOpenOrder_v(oid, code, 1, 0, 1, 4, 100, 0, , 1, , 0)
     Call AppendLog(code, "DoSell result=" & CStr(result))
     DoSell = True
 End Function
@@ -85,23 +59,7 @@ Function DoRepay(code As String) As Boolean
     oid = NextOrderID()
 
     ' 返済注文（成行）
-    result = RssMarginCloseOrder_v( _
-        oid, _
-        code, _
-        1, _      ' 売埋（買建を返済する場合）
-        0, _      ' 通常注文
-        1, _      ' SOR
-        shinyo, _ ' 信用区分
-        qty, _    ' 数量
-        0, _      ' 成行
-        , _       ' 注文価格
-        1, _      ' 本日中
-        , _       ' 注文期限
-        0, _      ' 口座区分
-        tatebi, _ ' 建日
-        tanka, _  ' 建単価
-        market _  ' 建市場
-    )
+    result = RssMarginCloseOrder_v(oid, code, 1, 0, 1, shinyo, qty, 0, , 1, , 0, tatebi, tanka, market)
     Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
 End Function
