@@ -26,7 +26,7 @@ Function DoBuy(code As String) As Boolean
         , _    ' 注文期限（省略）
         0 _    ' 口座区分（特定）
     )
-    Call AppendLog(code, "DoBuy: 発注ID=" & oid & " を送信しました")
+    Call AppendLog(code, "DoBuy result=" & CStr(result))
     DoBuy = True
 End Function
 
@@ -49,7 +49,7 @@ Function DoSell(code As String) As Boolean
         , _      ' 注文期限（省略）
         0 _    ' 口座区分（特定）
     )
-    Call AppendLog(code, "DoSell: 発注ID=" & oid & " を送信しました")
+    Call AppendLog(code, "DoSell result=" & CStr(result))
     DoSell = True
 End Function
 
@@ -102,8 +102,7 @@ Function DoRepay(code As String) As Boolean
         tanka, _  ' 建単価
         market _  ' 建市場
     )
-
-    Call AppendLog(code, "DoRepay: 発注ID=" & oid & " を送信しました")
+    Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
 End Function
 
