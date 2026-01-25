@@ -135,6 +135,9 @@ class Apprentice(QWidget):
         self.but_repay = but_repay = Button("返　　済")
         but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, 1, 0, 1, 2)
+        but_reset = QPushButton("解　　除")
+        but_reset.clicked.connect(self.on_reset)
+        layout.addWidget(but_reset, 2, 0, 1, 2)
         self.switch_activate(True)
 
     def closeEvent(self, event: QCloseEvent):
@@ -145,6 +148,9 @@ class Apprentice(QWidget):
             self.worker.deleteLater()
             self.worker = None
         event.accept()
+
+    def on_reset(self):
+        self.switch_activate(True)
 
     def request_buy(self):
         self.requestBuy.emit(self.code)
