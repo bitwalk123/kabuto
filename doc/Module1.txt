@@ -94,26 +94,26 @@ Function DoRepay(code As String) As Boolean
     ' 19:逆指値価格        → 数値（0）
 
     result = RssMarginCloseOrder_v( _
-                oid, _
-                CStr(code), _          ' 2:銘柄コード（文字列）
-                "1", _                 ' 3:売買区分（売埋）
-                "0", _                 ' 4:注文区分（通常）
-                "0", _                 ' 5:SOR区分（通常）
-                shinyo, _              ' 6:信用区分（文字列）
-                qty, _                 ' 7:注文数量（数値）
-                "0", _                 ' 8:価格区分（成行）
-                0, _                   ' 9:注文価格（成行なので 0）
-                "1", _                 ' 10:執行条件（本日中）
-                "", _                  ' 11:注文期限（空）
-                "0", _                 ' 12:口座区分（特定）
-                tatebi, _              ' 13:建日（文字列）
-                tanka, _               ' 14:建単価（数値）
-                marketCode, _          ' 15:建市場（数値）
-                0, _                   ' 16:逆指値条件価格
-                "", _                  ' 17:逆指値条件区分
-                "", _                  ' 18:逆指値価格区分
-                0 _                    ' 19:逆指値価格
-            )
+	    oid, _
+	    CStr(code), _
+	    "1", _
+	    "0", _
+	    "0", _
+	    CStr(shinyo), _
+	    qty, _
+	    "0", _
+	    0, _
+	    "1", _
+	    "", _
+	    "0", _
+	    tatebi, _
+	    tanka, _
+	    marketCode, _
+	    0, _
+	    "", _
+	    "", _
+	    0)
+
 
     Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
