@@ -1,4 +1,3 @@
-Attribute VB_Name = "Module1"
 Public gOrderID As Long
 
 
@@ -32,90 +31,59 @@ Function DoRepay(code As String) As Boolean
     Dim ws As Worksheet
     Dim row As Long
     Dim oid As Long
-    Dim qty As Long
-    Dim tanka As Double
+    Dim qty As String
+    Dim tanka As String
     Dim tatebi As String
     Dim marketStr As String
-    Dim marketCode As Long
+    Dim marketCode As String
     Dim shinyo As String
-    Dim result As Variant
+    Dim result As String
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
-    ' 建玉行を探す
     row = FindPositionRow(code)
     If row = 0 Then
-        Call AppendLog(code, "DoRepay: 建玉が見つかりません")
         DoRepay = False
         Exit Function
     End If
 
-    ' 必要な値を取得
-    qty = CLng(ws.Cells(row, "H").Value)          ' 建玉数量
-    tanka = CDbl(ws.Cells(row, "I").Value)        ' 建値
-    tatebi = CStr(ws.Cells(row, "J").Value)       ' 建日 (YYYYMMDD)
-    marketStr = Trim(ws.Cells(row, "D").Value)    ' 建市場（文字列）
-    ' 信用区分（本当は 1〜4 にマッピングすべきだが、まずは型だけ合わせておく）
+    qty = CStr(ws.Cells(row, "H").Value)
+    tanka = Format(ws.Cells(row, "I").Value, "0.00")
+    tatebi = CStr(ws.Cells(row, "J").Value)
+    marketStr = Trim(ws.Cells(row, "D").Value)
     shinyo = CStr(ws.Cells(row, "E").Value)
 
-    ' 建市場コードに変換（PDF 準拠）
     Select Case marketStr
-        Case "東証": marketCode = 1
-        Case "JNX":  marketCode = 4
-        Case "JAX":  marketCode = 5
-        Case "Chi-X": marketCode = 6
-        Case Else
-            Call AppendLog(code, "DoRepay: 未知の建市場 '" & marketStr & "'")
-            DoRepay = False
-            Exit Function
+        Case "東証": marketCode = "1"
+        Case "JNX": marketCode = "4"
+        Case "JAX": marketCode = "5"
+        Case "Chi-X": marketCode = "6"
+        Case Else: DoRepay = False: Exit Function
     End Select
 
-    ' 発注ID
     oid = NextOrderID()
 
-    ' ★ ここが本題：引数の「型」を PDF に合わせる ★
-    '  2:銘柄コード        → 文字列
-    '  3:売買区分          → 文字列 ("1":売埋)
-    '  4:注文区分          → 文字列 ("0":通常)
-    '  5:SOR区分           → 文字列 ("0":通常)
-    '  6:信用区分          → 文字列
-    '  7:注文数量          → 数値
-    '  8:価格区分          → 文字列 ("0":成行)
-    '  9:注文価格          → 数値（成行なので 0）
-    ' 10:執行条件          → 文字列 ("1":本日中)
-    ' 11:注文期限          → 文字列（空でOK）
-    ' 12:口座区分          → 文字列 ("0":特定)
-    ' 13:建日              → 文字列
-    ' 14:建単価            → 数値
-    ' 15:建市場            → 数値
-    ' 16:逆指値条件価格    → 数値（0）
-    ' 17:逆指値条件区分    → 文字列（空）
-    ' 18:逆指値価格区分    → 文字列（空）
-    ' 19:逆指値価格        → 数値（0）
+    result = ResMarginCloseOrder_V( _
+        oid, _
+        CStr(code), _
+        "1", _
+        "0", _
+        "0", _
+        shinyo, _
+        qty, _
+        "0", _
+        "0", _
+        "1", _
+        "", _
+        "0", _
+        tatebi, _
+        tanka, _
+        marketCode, _
+        "0", _
+        "", _
+        "", _
+        "0")
 
-    result = RssMarginCloseOrder_v( _
-	    oid, _
-	    CStr(code), _
-	    "1", _
-	    "0", _
-	    "0", _
-	    CStr(shinyo), _
-	    qty, _
-	    "0", _
-	    0, _
-	    "1", _
-	    "", _
-	    "0", _
-	    tatebi, _
-	    tanka, _
-	    marketCode, _
-	    0, _
-	    "", _
-	    "", _
-	    0)
-
-
-    Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
 End Function
 
