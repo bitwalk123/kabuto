@@ -36,10 +36,10 @@ class RSSWorker(QObject):
         if sys.platform == "win32":
             # Excel ファイルが既に開いていることが前提
             self.wb = wb = xw.books["collector.xlsm"]
-            self.clear_logs = wb.macro("Module1.ClearLogs")
-            self.do_buy = wb.macro("Module1.DoBuy")
-            self.do_sell = wb.macro("Module1.DoSell")
-            self.do_repay = wb.macro("Module1.DoRepay")
+            self.clear_logs = wb.macro("ClearLogs")
+            self.do_buy = wb.macro("DoBuy")
+            self.do_sell = wb.macro("DoSell")
+            self.do_repay = wb.macro("DoRepay")
             # 古いログをクリア
             self.macro_clear_logs()
 
