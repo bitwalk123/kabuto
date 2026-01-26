@@ -30,24 +30,23 @@ End Function
 Function DoRepay(code As String) As Boolean
     Dim ws As Worksheet
     Dim row As Long
-    Dim oid As Long
 
-    ' RssMarginCloseOrder_V の引数用
-    Dim vOrderId      As Long   ' 1: 発注ID（だけ Long）
-    Dim vCode         As String ' 2: 銘柄コード
-    Dim vBaibai       As String ' 3: 売買区分（1:売り, 3:買い）
-    Dim vOrderKbn     As String ' 4: 注文区分（0:通常）
-    Dim vSorKbn       As String ' 5: SOR区分（0:通常）
-    Dim vShinyo       As String ' 6: 信用区分（4:いちにち信用）
-    Dim vQty          As String ' 7: 注文数量
-    Dim vPriceKbn     As String ' 8: 価格区分（0:成行, 1:指値）
-    Dim vPrice        As String ' 9: 注文価格（成行なら "0" or ""）
+    ' --- RssMarginCloseOrder_V の引数 ---
+    Dim vOrderId      As Long   '1: 発注ID
+    Dim vCode         As String '2: 銘柄コード
+    Dim vBaibai       As String '3: 売買区分（1:売り）
+    Dim vOrderKbn     As String '4: 注文区分（0:通常）
+    Dim vSorKbn       As String '5: SOR区分（0）
+    Dim vShinyo       As String '6: 信用区分（4:いちにち信用）
+    Dim vQty          As String '7: 注文数量
+    Dim vPriceKbn     As String '8: 価格区分（0:成行）
+    Dim vPrice        As String '9: 注文価格（成行なので ""）
     Dim vExecCond     As String '10: 執行条件（1:本日中）
-    Dim vLimit        As String '11: 注文期限（使わないなら "" or "0"）
-    Dim vKouza        As String '12: 口座区分（特定=1, 一般=2 など）
+    Dim vLimit        As String '11: 注文期限（""）
+    Dim vKouza        As String '12: 口座区分（1:特定）
     Dim vTatebi       As String '13: 建日（YYYYMMDD）
-    Dim vTanka        As String '14: 建単価（建値）
-    Dim vMarket       As String '15: 建市場（1:東証, 5:JAX など）
+    Dim vTanka        As String '14: 建値
+    Dim vMarket       As String '15: 建市場
     Dim vRevCondPrice As String '16: 逆指値条件価格
     Dim vRevCondKbn   As String '17: 逆指値条件区分
     Dim vRevPriceKbn  As String '18: 逆指値価格区分
@@ -65,51 +64,49 @@ Function DoRepay(code As String) As Boolean
         Exit Function
     End If
 
-    ' 1: 発注ID
+    ' --- 1: 発注ID ---
     vOrderId = NextOrderID()
 
-    ' 2: 銘柄コード
+    ' --- 2: 銘柄コード ---
     vCode = CStr(code)
 
-    ' 3: 売買区分
-    '   建玉が「買建」なら返済は「売り」= "1"
-    '   ここはとりあえず "1" 決め打ち（買建だけ返済する前提）
+    ' --- 3: 売買区分（買建の返済なので売り=1） ---
     vBaibai = "1"
 
-    ' 4: 注文区分（通常）
+    ' --- 4: 注文区分 ---
     vOrderKbn = "0"
 
-    ' 5: SOR区分（使わないなら "0"）
+    ' --- 5: SOR区分 ---
     vSorKbn = "0"
 
-    ' 6: 信用区分（いちにち信用 = "4" 決め打ち）
+    ' --- 6: 信用区分（いちにち信用） ---
     vShinyo = "4"
 
-    ' 7: 注文数量（建玉数量そのまま）
-    vQty = CStr(ws.Cells(row, "I").Value)   ' 発注数量
+    ' --- 7: 注文数量 ---
+    vQty = CStr(ws.Cells(row, "I").Value)
 
-    ' 8: 価格区分（成行 = "0"）
+    ' --- 8: 価格区分（成行） ---
     vPriceKbn = "0"
 
-    ' 9: 注文価格（成行なので "0" か ""）
-    vPrice = "0"
+    ' --- 9: 注文価格（成行なので空） ---
+    vPrice = ""
 
-    '10: 執行条件（本日中 = "1"）
+    ' --- 10: 執行条件（本日中） ---
     vExecCond = "1"
 
-    '11: 注文期限（使わないので "0"）
-    vLimit = "0"
+    ' --- 11: 注文期限 ---
+    vLimit = ""
 
-    '12: 口座区分（特定=1 / 一般=2 など。ここはとりあえず "1" 決め打ちでもよい）
+    ' --- 12: 口座区分（特定=1） ---
     vKouza = "1"
 
-    '13: 建日（K列そのまま。すでに YYYYMMDD なのでいじらない）
+    ' --- 13: 建日 ---
     vTatebi = CStr(ws.Cells(row, "K").Value)
 
-    '14: 建単価（J列そのまま。Format しない）
+    ' --- 14: 建値 ---
     vTanka = CStr(ws.Cells(row, "J").Value)
 
-    '15: 建市場（D列 → コードに変換）
+    ' --- 15: 建市場 ---
     marketStr = Trim$(ws.Cells(row, "D").Value)
     Select Case marketStr
         Case "東証": vMarket = "1"
@@ -122,13 +119,13 @@ Function DoRepay(code As String) As Boolean
             Exit Function
     End Select
 
-    '16～19: 逆指値は使わないので全部 "0" or ""
-    vRevCondPrice = "0"
-    vRevCondKbn   = "0"
-    vRevPriceKbn  = "0"
-    vRevPrice     = "0"
+    ' --- 16〜19: 逆指値は使わない ---
+    vRevCondPrice = ""
+    vRevCondKbn   = ""
+    vRevPriceKbn  = ""
+    vRevPrice     = ""
 
-    ' 呼び出し：変数をそのまま渡す
+    ' --- 呼び出し（mhcka さんの順番に完全一致） ---
     result = RssMarginCloseOrder_V( _
         vOrderId, _
         vCode, _
@@ -154,7 +151,6 @@ Function DoRepay(code As String) As Boolean
 
     DoRepay = True
 End Function
-
 
 
 Sub AppendLog(code As String, message As String)
