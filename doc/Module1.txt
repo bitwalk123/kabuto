@@ -36,13 +36,12 @@ Function DoRepay(code As String) As Boolean
     Dim tanka As Double
     Dim tatebi As Long
     Dim marketStr As String
-    Dim marketCode As Long
-    Dim shinyo As Long
+    Dim marketCode As Integer
+    Dim shinyo As Integer
     Dim result As Variant
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
-    ' 建玉行を探す
     row = FindPositionRow(code)
     If row = 0 Then
         Call AppendLog(code, "DoRepay: 建玉が見つかりません")
@@ -50,31 +49,29 @@ Function DoRepay(code As String) As Boolean
         Exit Function
     End If
 
-    ' 必要な値を取得
     qty = CLng(ws.Cells(row, "G").Value)
     tanka = CDbl(ws.Cells(row, "I").Value)
     tatebi = CLng(ws.Cells(row, "J").Value)
     marketStr = Trim(ws.Cells(row, "D").Value)
-    shinyo = CLng(ws.Cells(row, "E").Value)
+    shinyo = CInt(ws.Cells(row, "E").Value)  ' ← 明示的に Integer 型へ
 
-    ' 建市場コードに変換
     Select Case marketStr
         Case "東証": marketCode = 1
-        Case "JNX": marketCode = 4
-        Case "JAX": marketCode = 5
-        Case "Chi-X": marketCode = 6
+        Case "名証": marketCode = 2
+        Case "JAX": marketCode = 3
+        Case "札証": marketCode = 4
+        Case "福証": marketCode = 5
         Case Else
-            Call AppendLog(code, "DoRepay: 未知の建市場 '" & marketStr & "'")
+            marketCode = 6
+            Call AppendLog(code, "DoRepay: 未知の市場 " & marketStr)
             DoRepay = False
             Exit Function
     End Select
 
-    ' 発注ID
     oid = NextOrderID()
 
-    ' 返済注文（成行）
     result = RssMarginCloseOrder_v(oid, code, 1, 0, 1, shinyo, qty, 0, "", 1, "", 0, tatebi, tanka, marketCode, "", "", "", "")
-    Call AppendLog(code, "DoRepay result=" & CStr(result))
+    Call AppendLog(code, "DoRepay 実行")
     DoRepay = True
 End Function
 
