@@ -33,26 +33,26 @@ Function DoRepay(code As String) As Boolean
     Dim row As Long
     Dim oid As Long
 
-    ' RssMarginCloseOrder_V ‚Ìˆø”—p
-    Dim vOrderId      As Long   ' 1: ”­’IDi‚¾‚¯ Longj
-    Dim vCode         As String ' 2: –Á•¿ƒR[ƒh
-    Dim vBaibai       As String ' 3: ”„”ƒ‹æ•ªi1:”„‚è, 3:”ƒ‚¢j
-    Dim vOrderKbn     As String ' 4: ’•¶‹æ•ªi0:’Êíj
-    Dim vSorKbn       As String ' 5: SOR‹æ•ªi0:’Êíj
-    Dim vShinyo       As String ' 6: M—p‹æ•ªi4:‚¢‚¿‚É‚¿M—pj
-    Dim vQty          As String ' 7: ’•¶”—Ê
-    Dim vPriceKbn     As String ' 8: ‰¿Ši‹æ•ªi0:¬s, 1:w’lj
-    Dim vPrice        As String ' 9: ’•¶‰¿Šii¬s‚È‚ç "0" or ""j
-    Dim vExecCond     As String '10: ·sğŒi1:–{“ú’†j
-    Dim vLimit        As String '11: ’•¶ŠúŒÀig‚í‚È‚¢‚È‚ç "" or "0"j
-    Dim vKouza        As String '12: ŒûÀ‹æ•ªi“Á’è=1, ˆê”Ê=2 ‚È‚Çj
-    Dim vTatebi       As String '13: Œš“úiYYYYMMDDj
-    Dim vTanka        As String '14: Œš’P‰¿iŒš’lj
-    Dim vMarket       As String '15: Œšsêi1:“ŒØ, 5:JAX ‚È‚Çj
-    Dim vRevCondPrice As String '16: ‹tw’lğŒ‰¿Ši
-    Dim vRevCondKbn   As String '17: ‹tw’lğŒ‹æ•ª
-    Dim vRevPriceKbn  As String '18: ‹tw’l‰¿Ši‹æ•ª
-    Dim vRevPrice     As String '19: ‹tw’l‰¿Ši
+    ' RssMarginCloseOrder_V ã®å¼•æ•°ç”¨
+    Dim vOrderId      As Long   ' 1: ç™ºæ³¨IDï¼ˆã ã‘ Longï¼‰
+    Dim vCode         As String ' 2: éŠ˜æŸ„ã‚³ãƒ¼ãƒ‰
+    Dim vBaibai       As String ' 3: å£²è²·åŒºåˆ†ï¼ˆ1:å£²ã‚Š, 3:è²·ã„ï¼‰
+    Dim vOrderKbn     As String ' 4: æ³¨æ–‡åŒºåˆ†ï¼ˆ0:é€šå¸¸ï¼‰
+    Dim vSorKbn       As String ' 5: SORåŒºåˆ†ï¼ˆ0:é€šå¸¸ï¼‰
+    Dim vShinyo       As String ' 6: ä¿¡ç”¨åŒºåˆ†ï¼ˆ4:ã„ã¡ã«ã¡ä¿¡ç”¨ï¼‰
+    Dim vQty          As String ' 7: æ³¨æ–‡æ•°é‡
+    Dim vPriceKbn     As String ' 8: ä¾¡æ ¼åŒºåˆ†ï¼ˆ0:æˆè¡Œ, 1:æŒ‡å€¤ï¼‰
+    Dim vPrice        As String ' 9: æ³¨æ–‡ä¾¡æ ¼ï¼ˆæˆè¡Œãªã‚‰ "0" or ""ï¼‰
+    Dim vExecCond     As String '10: åŸ·è¡Œæ¡ä»¶ï¼ˆ1:æœ¬æ—¥ä¸­ï¼‰
+    Dim vLimit        As String '11: æ³¨æ–‡æœŸé™ï¼ˆä½¿ã‚ãªã„ãªã‚‰ "" or "0"ï¼‰
+    Dim vKouza        As String '12: å£åº§åŒºåˆ†ï¼ˆç‰¹å®š=1, ä¸€èˆ¬=2 ãªã©ï¼‰
+    Dim vTatebi       As String '13: å»ºæ—¥ï¼ˆYYYYMMDDï¼‰
+    Dim vTanka        As String '14: å»ºå˜ä¾¡ï¼ˆå»ºå€¤ï¼‰
+    Dim vMarket       As String '15: å»ºå¸‚å ´ï¼ˆ1:æ±è¨¼, 5:JAX ãªã©ï¼‰
+    Dim vRevCondPrice As String '16: é€†æŒ‡å€¤æ¡ä»¶ä¾¡æ ¼
+    Dim vRevCondKbn   As String '17: é€†æŒ‡å€¤æ¡ä»¶åŒºåˆ†
+    Dim vRevPriceKbn  As String '18: é€†æŒ‡å€¤ä¾¡æ ¼åŒºåˆ†
+    Dim vRevPrice     As String '19: é€†æŒ‡å€¤ä¾¡æ ¼
 
     Dim marketStr As String
     Dim result As String
@@ -61,75 +61,75 @@ Function DoRepay(code As String) As Boolean
 
     row = FindPositionRow(code)
     If row = 0 Then
-        Call AppendLog(code, "DoRepay: Œš‹Ê‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñ")
+        Call AppendLog(code, "DoRepay: å»ºç‰ãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“")
         DoRepay = False
         Exit Function
     End If
 
-    ' 1: ”­’ID
+    ' 1: ç™ºæ³¨ID
     vOrderId = NextOrderID()
 
-    ' 2: –Á•¿ƒR[ƒh
+    ' 2: éŠ˜æŸ„ã‚³ãƒ¼ãƒ‰
     vCode = CStr(code)
 
-    ' 3: ”„”ƒ‹æ•ª
-    '   Œš‹Ê‚ªu”ƒŒšv‚È‚ç•ÔÏ‚Íu”„‚èv= "1"
-    '   ‚±‚±‚Í‚Æ‚è‚ ‚¦‚¸ "1" Œˆ‚ß‘Å‚¿i”ƒŒš‚¾‚¯•ÔÏ‚·‚é‘O’ñj
+    ' 3: å£²è²·åŒºåˆ†
+    '   å»ºç‰ãŒã€Œè²·å»ºã€ãªã‚‰è¿”æ¸ˆã¯ã€Œå£²ã‚Šã€= "1"
+    '   ã“ã“ã¯ã¨ã‚Šã‚ãˆãš "1" æ±ºã‚æ‰“ã¡ï¼ˆè²·å»ºã ã‘è¿”æ¸ˆã™ã‚‹å‰æï¼‰
     vBaibai = "1"
 
-    ' 4: ’•¶‹æ•ªi’Êíj
+    ' 4: æ³¨æ–‡åŒºåˆ†ï¼ˆé€šå¸¸ï¼‰
     vOrderKbn = "0"
 
-    ' 5: SOR‹æ•ªig‚í‚È‚¢‚È‚ç "0"j
+    ' 5: SORåŒºåˆ†ï¼ˆä½¿ã‚ãªã„ãªã‚‰ "0"ï¼‰
     vSorKbn = "0"
 
-    ' 6: M—p‹æ•ªi‚¢‚¿‚É‚¿M—p = "4" Œˆ‚ß‘Å‚¿j
+    ' 6: ä¿¡ç”¨åŒºåˆ†ï¼ˆã„ã¡ã«ã¡ä¿¡ç”¨ = "4" æ±ºã‚æ‰“ã¡ï¼‰
     vShinyo = "4"
 
-    ' 7: ’•¶”—ÊiŒš‹Ê”—Ê‚»‚Ì‚Ü‚Üj
-    vQty = CStr(ws.Cells(row, "I").Value)   ' ”­’”—Ê
+    ' 7: æ³¨æ–‡æ•°é‡ï¼ˆå»ºç‰æ•°é‡ãã®ã¾ã¾ï¼‰
+    vQty = CStr(ws.Cells(row, "I").Value)   ' ç™ºæ³¨æ•°é‡
 
-    ' 8: ‰¿Ši‹æ•ªi¬s = "0"j
+    ' 8: ä¾¡æ ¼åŒºåˆ†ï¼ˆæˆè¡Œ = "0"ï¼‰
     vPriceKbn = "0"
 
-    ' 9: ’•¶‰¿Šii¬s‚È‚Ì‚Å "0" ‚© ""j
+    ' 9: æ³¨æ–‡ä¾¡æ ¼ï¼ˆæˆè¡Œãªã®ã§ "0" ã‹ ""ï¼‰
     vPrice = "0"
 
-    '10: ·sğŒi–{“ú’† = "1"j
+    '10: åŸ·è¡Œæ¡ä»¶ï¼ˆæœ¬æ—¥ä¸­ = "1"ï¼‰
     vExecCond = "1"
 
-    '11: ’•¶ŠúŒÀig‚í‚È‚¢‚Ì‚Å "0"j
+    '11: æ³¨æ–‡æœŸé™ï¼ˆä½¿ã‚ãªã„ã®ã§ "0"ï¼‰
     vLimit = "0"
 
-    '12: ŒûÀ‹æ•ªi“Á’è=1 / ˆê”Ê=2 ‚È‚ÇB‚±‚±‚Í‚Æ‚è‚ ‚¦‚¸ "1" Œˆ‚ß‘Å‚¿‚Å‚à‚æ‚¢j
+    '12: å£åº§åŒºåˆ†ï¼ˆç‰¹å®š=1 / ä¸€èˆ¬=2 ãªã©ã€‚ã“ã“ã¯ã¨ã‚Šã‚ãˆãš "1" æ±ºã‚æ‰“ã¡ã§ã‚‚ã‚ˆã„ï¼‰
     vKouza = "1"
 
-    '13: Œš“úiK—ñ‚»‚Ì‚Ü‚ÜB‚·‚Å‚É YYYYMMDD ‚È‚Ì‚Å‚¢‚¶‚ç‚È‚¢j
+    '13: å»ºæ—¥ï¼ˆKåˆ—ãã®ã¾ã¾ã€‚ã™ã§ã« YYYYMMDD ãªã®ã§ã„ã˜ã‚‰ãªã„ï¼‰
     vTatebi = CStr(ws.Cells(row, "K").Value)
 
-    '14: Œš’P‰¿iJ—ñ‚»‚Ì‚Ü‚ÜBFormat ‚µ‚È‚¢j
+    '14: å»ºå˜ä¾¡ï¼ˆJåˆ—ãã®ã¾ã¾ã€‚Format ã—ãªã„ï¼‰
     vTanka = CStr(ws.Cells(row, "J").Value)
 
-    '15: ŒšsêiD—ñ ¨ ƒR[ƒh‚É•ÏŠ·j
+    '15: å»ºå¸‚å ´ï¼ˆDåˆ— â†’ ã‚³ãƒ¼ãƒ‰ã«å¤‰æ›ï¼‰
     marketStr = Trim$(ws.Cells(row, "D").Value)
     Select Case marketStr
-        Case "“ŒØ": vMarket = "1"
+        Case "æ±è¨¼": vMarket = "1"
         Case "JNX":  vMarket = "4"
         Case "JAX":  vMarket = "5"
         Case "Chi-X": vMarket = "6"
         Case Else
-            Call AppendLog(code, "DoRepay: –¢’m‚ÌŒšsê " & marketStr)
+            Call AppendLog(code, "DoRepay: æœªçŸ¥ã®å»ºå¸‚å ´ " & marketStr)
             DoRepay = False
             Exit Function
     End Select
 
-    '16`19: ‹tw’l‚Íg‚í‚È‚¢‚Ì‚Å‘S•” "0" or ""
+    '16ï½19: é€†æŒ‡å€¤ã¯ä½¿ã‚ãªã„ã®ã§å…¨éƒ¨ "0" or ""
     vRevCondPrice = "0"
     vRevCondKbn   = "0"
     vRevPriceKbn  = "0"
     vRevPrice     = "0"
 
-    ' ŒÄ‚Ño‚µF•Ï”‚ğ‚»‚Ì‚Ü‚Ü“n‚·
+    ' å‘¼ã³å‡ºã—ï¼šå¤‰æ•°ã‚’ãã®ã¾ã¾æ¸¡ã™
     result = RssMarginCloseOrder_V( _
         vOrderId, _
         vCode, _
@@ -167,12 +167,12 @@ Sub AppendLog(code As String, message As String)
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs ƒV[ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", vbExclamation
+        MsgBox "Logs ã‚·ãƒ¼ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚", vbExclamation
         Exit Sub
     End If
 
     nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row + 1
-    If nextRow < 2 Then nextRow = 2 ' ƒwƒbƒ_[‚ª1s–Ú‚É‚ ‚é‘O’ñ
+    If nextRow < 2 Then nextRow = 2 ' ãƒ˜ãƒƒãƒ€ãƒ¼ãŒ1è¡Œç›®ã«ã‚ã‚‹å‰æ
 
     With ws
         .Cells(nextRow, 1).Value = Now
@@ -190,11 +190,11 @@ Sub ClearLogs()
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs ƒV[ƒg‚ªŒ©‚Â‚©‚è‚Ü‚¹‚ñB", vbExclamation
+        MsgBox "Logs ã‚·ãƒ¼ãƒˆãŒè¦‹ã¤ã‹ã‚Šã¾ã›ã‚“ã€‚", vbExclamation
         Exit Sub
     End If
 
-    ' 2s–ÚˆÈ~‚ğíœiƒwƒbƒ_[‚Íc‚·j
+    ' 2è¡Œç›®ä»¥é™ã‚’å‰Šé™¤ï¼ˆãƒ˜ãƒƒãƒ€ãƒ¼ã¯æ®‹ã™ï¼‰
     ws.Rows("2:" & ws.Rows.Count).ClearContents
 End Sub
 
@@ -207,12 +207,12 @@ Function FindPositionRow(code As String) As Long
     Set ws = ThisWorkbook.Sheets("Positions")
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row
 
-    ' ÅIs‚ª '-------- ‚Ìê‡‚Í1sã‚©‚çŒŸõŠJn
+    ' æœ€çµ‚è¡ŒãŒ '-------- ã®å ´åˆã¯1è¡Œä¸Šã‹ã‚‰æ¤œç´¢é–‹å§‹
     If ws.Cells(lastRow, "A").Value = "--------" Then
         lastRow = lastRow - 1
     End If
 
-    ' ‰º‚©‚çã‚ÖŒŸõiÅV‚ÌŒš‹Ê‚ğ—Dæj
+    ' ä¸‹ã‹ã‚‰ä¸Šã¸æ¤œç´¢ï¼ˆæœ€æ–°ã®å»ºç‰ã‚’å„ªå…ˆï¼‰
     For r = lastRow To 3 Step -1
         If ws.Cells(r, "A").Value = code Then
             FindPositionRow = r
