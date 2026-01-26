@@ -29,19 +29,20 @@ End Function
 
 
 Function DoRepay(code As String) As Boolean
-    Dim oid As Long
-    Dim row As Long
     Dim ws As Worksheet
+    Dim row As Long
+    Dim oid As Long
     Dim qty As Long
     Dim tanka As Double
-    Dim tatebi As Long
+    Dim tatebi As String
     Dim marketStr As String
-    Dim marketCode As Integer
-    Dim shinyo As Integer
+    Dim marketCode As Long
+    Dim shinyo As String
     Dim result As Variant
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
+    ' 建玉行を探す
     row = FindPositionRow(code)
     If row = 0 Then
         Call AppendLog(code, "DoRepay: 建玉が見つかりません")
@@ -49,29 +50,72 @@ Function DoRepay(code As String) As Boolean
         Exit Function
     End If
 
-    qty = CLng(ws.Cells(row, "G").Value)
-    tanka = CDbl(ws.Cells(row, "I").Value)
-    tatebi = CLng(ws.Cells(row, "J").Value)
-    marketStr = Trim(ws.Cells(row, "D").Value)
-    shinyo = CInt(ws.Cells(row, "E").Value)  ' ← 明示的に Integer 型へ
+    ' 必要な値を取得
+    qty = CLng(ws.Cells(row, "H").Value)          ' 建玉数量
+    tanka = CDbl(ws.Cells(row, "I").Value)        ' 建値
+    tatebi = CStr(ws.Cells(row, "J").Value)       ' 建日 (YYYYMMDD)
+    marketStr = Trim(ws.Cells(row, "D").Value)    ' 建市場（文字列）
+    ' 信用区分（本当は 1〜4 にマッピングすべきだが、まずは型だけ合わせておく）
+    shinyo = CStr(ws.Cells(row, "E").Value)
 
+    ' 建市場コードに変換（PDF 準拠）
     Select Case marketStr
         Case "東証": marketCode = 1
-        Case "名証": marketCode = 2
-        Case "JAX": marketCode = 3
-        Case "札証": marketCode = 4
-        Case "福証": marketCode = 5
+        Case "JNX":  marketCode = 4
+        Case "JAX":  marketCode = 5
+        Case "Chi-X": marketCode = 6
         Case Else
-            marketCode = 6
-            Call AppendLog(code, "DoRepay: 未知の市場 " & marketStr)
+            Call AppendLog(code, "DoRepay: 未知の建市場 '" & marketStr & "'")
             DoRepay = False
             Exit Function
     End Select
 
+    ' 発注ID
     oid = NextOrderID()
 
-    result = RssMarginCloseOrder_v(oid, code, 1, 0, 1, shinyo, qty, 0, "", 1, "", 0, tatebi, tanka, marketCode, "", "", "", "")
-    Call AppendLog(code, "DoRepay 実行")
+    ' ★ ここが本題：引数の「型」を PDF に合わせる ★
+    '  2:銘柄コード        → 文字列
+    '  3:売買区分          → 文字列 ("1":売埋)
+    '  4:注文区分          → 文字列 ("0":通常)
+    '  5:SOR区分           → 文字列 ("0":通常)
+    '  6:信用区分          → 文字列
+    '  7:注文数量          → 数値
+    '  8:価格区分          → 文字列 ("0":成行)
+    '  9:注文価格          → 数値（成行なので 0）
+    ' 10:執行条件          → 文字列 ("1":本日中)
+    ' 11:注文期限          → 文字列（空でOK）
+    ' 12:口座区分          → 文字列 ("0":特定)
+    ' 13:建日              → 文字列
+    ' 14:建単価            → 数値
+    ' 15:建市場            → 数値
+    ' 16:逆指値条件価格    → 数値（0）
+    ' 17:逆指値条件区分    → 文字列（空）
+    ' 18:逆指値価格区分    → 文字列（空）
+    ' 19:逆指値価格        → 数値（0）
+
+    result = RssMarginCloseOrder_v( _
+                oid, _
+                CStr(code), _          ' 2:銘柄コード（文字列）
+                "1", _                 ' 3:売買区分（売埋）
+                "0", _                 ' 4:注文区分（通常）
+                "0", _                 ' 5:SOR区分（通常）
+                shinyo, _              ' 6:信用区分（文字列）
+                qty, _                 ' 7:注文数量（数値）
+                "0", _                 ' 8:価格区分（成行）
+                0, _                   ' 9:注文価格（成行なので 0）
+                "1", _                 ' 10:執行条件（本日中）
+                "", _                  ' 11:注文期限（空）
+                "0", _                 ' 12:口座区分（特定）
+                tatebi, _              ' 13:建日（文字列）
+                tanka, _               ' 14:建単価（数値）
+                marketCode, _          ' 15:建市場（数値）
+                0, _                   ' 16:逆指値条件価格
+                "", _                  ' 17:逆指値条件区分
+                "", _                  ' 18:逆指値価格区分
+                0 _                    ' 19:逆指値価格
+            )
+
+    Call AppendLog(code, "DoRepay result=" & CStr(result))
     DoRepay = True
 End Function
 
