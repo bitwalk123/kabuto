@@ -1,3 +1,6 @@
+Option Explicit
+
+
 Public gOrderID As Long
 
 
@@ -8,22 +11,137 @@ End Function
 
 
 Function DoBuy(code As String) As Boolean
-    Dim oid As Long
+    Dim vOrderId      As Long   '1: 発注ID
+    Dim vCode         As String '2: 銘柄コード
+    Dim vBaibai       As String '3: 売買区分（3:買建）
+    Dim vOrderKbn     As String '4: 注文区分（0:通常）
+    Dim vSorKbn       As String '5: SOR区分（1:SOR）
+    Dim vShinyo       As String '6: 信用区分（4:いちにち信用）
+    Dim vQty          As Long   '7: 注文数量
+    Dim vPriceKbn     As String '8: 価格区分（0:成行）
+    Dim vPrice        As Variant '9: 注文価格（成行なので省略 → Empty）
+    Dim vExecCond     As String '10: 執行条件（1:本日中）
+    Dim vLimit        As Variant '11: 注文期限（省略 → Empty）
+    Dim vKouza        As String '12: 口座区分（0:特定）
+    Dim vRevCondPrice As Variant '13: 逆指値条件価格（省略）
+    Dim vRevCondKbn   As Variant '14: 逆指値条件区分（省略）
+    Dim vRevPriceKbn  As Variant '15: 逆指値価格区分（省略）
+    Dim vRevPrice     As Variant '16: 逆指値価格（省略）
+    Dim vSetKbn       As String  '17: セット注文区分（0:通常）
+    Dim vSetPriceKbn  As Variant '18: セット注文価格区分（省略）
+    Dim vSetPrice     As Variant '19: セット注文価格（省略）
+    Dim vSetExecCond  As Variant '20: セット注文執行条件（省略）
+    Dim vSetLimit     As Variant '21: セット注文期限（省略）
 
-    oid = NextOrderID()
-    result = RssMarginOpenOrder_v(oid, code, 3, 0, 1, 4, 100, 0, , 1, , 0)
+    vOrderId = NextOrderID()
+    vCode = code
+    vBaibai = "3"
+    vOrderKbn = "0"
+    vSorKbn = "1"
+    vShinyo = "4"
+    vQty = 100
+    vPriceKbn = "0"
+    vPrice = Empty
+    vExecCond = "1"
+    vLimit = Empty
+    vKouza = "0"
+    vRevCondPrice = Empty
+    vRevCondKbn = Empty
+    vRevPriceKbn = Empty
+    vRevPrice = Empty
+    vSetKbn = "0"
+    vSetPriceKbn = Empty
+    vSetPrice = Empty
+    vSetExecCond = Empty
+    vSetLimit = Empty
+
+    Dim result As Variant
+    result = RssMarginOpenOrder_V( _
+        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+        vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
+        vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
+
     Call AppendLog(code, "DoBuy result=" & CStr(result))
     DoBuy = True
 End Function
 
 
 Function DoSell(code As String) As Boolean
-    Dim oid As Long
+    Dim vOrderId      As Long
+    Dim vCode         As String
+    Dim vBaibai       As String
+    Dim vOrderKbn     As String
+    Dim vSorKbn       As String
+    Dim vShinyo       As String
+    Dim vQty          As Long
+    Dim vPriceKbn     As String
+    Dim vPrice        As Variant
+    Dim vExecCond     As String
+    Dim vLimit        As Variant
+    Dim vKouza        As String
+    Dim vRevCondPrice As Variant
+    Dim vRevCondKbn   As Variant
+    Dim vRevPriceKbn  As Variant
+    Dim vRevPrice     As Variant
+    Dim vSetKbn       As String
+    Dim vSetPriceKbn  As Variant
+    Dim vSetPrice     As Variant
+    Dim vSetExecCond  As Variant
+    Dim vSetLimit     As Variant
 
-    oid = NextOrderID()
-    result = RssMarginOpenOrder_v(oid, code, 1, 0, 1, 4, 100, 0, , 1, , 0)
+    vOrderId = NextOrderID()
+    vCode = code
+    vBaibai = "1"   '← 売建
+    vOrderKbn = "0"
+    vSorKbn = "1"
+    vShinyo = "4"
+    vQty = 100
+    vPriceKbn = "0"
+    vPrice = Empty
+    vExecCond = "1"
+    vLimit = Empty
+    vKouza = "0"
+    vRevCondPrice = Empty
+    vRevCondKbn = Empty
+    vRevPriceKbn = Empty
+    vRevPrice = Empty
+    vSetKbn = "0"
+    vSetPriceKbn = Empty
+    vSetPrice = Empty
+    vSetExecCond = Empty
+    vSetLimit = Empty
+
+    Dim result As Variant
+    result = RssMarginOpenOrder_V( _
+        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+        vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
+        vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
+
     Call AppendLog(code, "DoSell result=" & CStr(result))
     DoSell = True
+End Function
+
+
+Function FindPositionRow(code As String) As Long
+    Dim ws As Worksheet
+    Dim r As Long
+    Dim cellValue As String
+
+    Set ws = ThisWorkbook.Sheets("Positions")
+
+    ' 3 行目から区切り線（--------）まで順に検索
+    r = 3
+    Do While ws.Cells(r, "A").Value <> "--------"
+        cellValue = CStr(ws.Cells(r, "A").Value)
+        If cellValue = code Then
+            FindPositionRow = r
+            Exit Function
+        End If
+        r = r + 1
+    Loop
+
+    ' 見つからなかった場合
+    FindPositionRow = 0
 End Function
 
 
@@ -32,31 +150,32 @@ Function DoRepay(code As String) As Boolean
     Dim row As Long
 
     ' --- RssMarginCloseOrder_V の引数 ---
-    Dim vOrderId      As Long   '1: 発注ID
-    Dim vCode         As String '2: 銘柄コード
-    Dim vBaibai       As String '3: 売買区分（1:売り）
-    Dim vOrderKbn     As String '4: 注文区分（0:通常）
-    Dim vSorKbn       As String '5: SOR区分（0）
-    Dim vShinyo       As String '6: 信用区分（4:いちにち信用）
-    Dim vQty          As String '7: 注文数量
-    Dim vPriceKbn     As String '8: 価格区分（0:成行）
-    Dim vPrice        As String '9: 注文価格（成行なので ""）
-    Dim vExecCond     As String '10: 執行条件（1:本日中）
-    Dim vLimit        As String '11: 注文期限（""）
-    Dim vKouza        As String '12: 口座区分（1:特定）
-    Dim vTatebi       As String '13: 建日（YYYYMMDD）
-    Dim vTanka        As String '14: 建値
-    Dim vMarket       As String '15: 建市場
-    Dim vRevCondPrice As String '16: 逆指値条件価格
-    Dim vRevCondKbn   As String '17: 逆指値条件区分
-    Dim vRevPriceKbn  As String '18: 逆指値価格区分
-    Dim vRevPrice     As String '19: 逆指値価格
+    Dim vOrderId      As Long      '1: 発注ID
+    Dim vCode         As String    '2: 銘柄コード
+    Dim vBaibai       As String    '3: 売買区分（1:売り）
+    Dim vOrderKbn     As String    '4: 注文区分（0:通常）
+    Dim vSorKbn       As String    '5: SOR区分（0）
+    Dim vShinyo       As String    '6: 信用区分（4:いちにち信用）
+    Dim vQty          As Long      '7: 注文数量
+    Dim vPriceKbn     As String    '8: 価格区分（0:成行）
+    Dim vPrice        As Variant   '9: 注文価格（成行 → Empty）
+    Dim vExecCond     As String    '10: 執行条件（1:本日中）
+    Dim vLimit        As Variant   '11: 注文期限（省略 → Empty）
+    Dim vKouza        As String    '12: 口座区分（0:特定）
+    Dim vTatebi       As String    '13: 建日（YYYYMMDD）
+    Dim vTanka        As Double    '14: 建単価
+    Dim vMarket       As Long      '15: 建市場
+    Dim vRevCondPrice As Variant   '16: 逆指値条件価格（省略）
+    Dim vRevCondKbn   As Variant   '17: 逆指値条件区分（省略）
+    Dim vRevPriceKbn  As Variant   '18: 逆指値価格区分（省略）
+    Dim vRevPrice     As Variant   '19: 逆指値価格（省略）
 
     Dim marketStr As String
-    Dim result As String
+    Dim result As Variant
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
+    ' --- 建玉行を検索 ---
     row = FindPositionRow(code)
     If row = 0 Then
         Call AppendLog(code, "DoRepay: 建玉が見つかりません")
@@ -68,9 +187,9 @@ Function DoRepay(code As String) As Boolean
     vOrderId = NextOrderID()
 
     ' --- 2: 銘柄コード ---
-    vCode = CStr(code)
+    vCode = code
 
-    ' --- 3: 売買区分（買建の返済なので売り=1） ---
+    ' --- 3: 売買区分（買建の返済 → 売り=1） ---
     vBaibai = "1"
 
     ' --- 4: 注文区分 ---
@@ -82,70 +201,54 @@ Function DoRepay(code As String) As Boolean
     ' --- 6: 信用区分（いちにち信用） ---
     vShinyo = "4"
 
-    ' --- 7: 注文数量 ---
-    vQty = CStr(ws.Cells(row, "I").Value)
+    ' --- 7: 注文数量（発注数量 I 列） ---
+    vQty = CLng(ws.Cells(row, "I").Value)
 
     ' --- 8: 価格区分（成行） ---
     vPriceKbn = "0"
 
-    ' --- 9: 注文価格（成行なので空） ---
-    vPrice = ""
+    ' --- 9: 注文価格（成行 → Empty） ---
+    vPrice = Empty
 
     ' --- 10: 執行条件（本日中） ---
     vExecCond = "1"
 
-    ' --- 11: 注文期限 ---
-    vLimit = ""
+    ' --- 11: 注文期限（省略） ---
+    vLimit = Empty
 
-    ' --- 12: 口座区分（特定=1） ---
-    vKouza = "1"
+    ' --- 12: 口座区分（0:特定） ---
+    vKouza = "0"
 
-    ' --- 13: 建日 ---
+    ' --- 13: 建日（K 列） ---
     vTatebi = CStr(ws.Cells(row, "K").Value)
 
-    ' --- 14: 建値 ---
-    vTanka = CStr(ws.Cells(row, "J").Value)
+    ' --- 14: 建単価（J 列） ---
+    vTanka = CDbl(ws.Cells(row, "J").Value)
 
-    ' --- 15: 建市場 ---
+    ' --- 15: 建市場（D 列 → 数値コードへ） ---
     marketStr = Trim$(ws.Cells(row, "D").Value)
     Select Case marketStr
-        Case "東証": vMarket = "1"
-        Case "JNX":  vMarket = "4"
-        Case "JAX":  vMarket = "5"
-        Case "Chi-X": vMarket = "6"
+        Case "東証": vMarket = 1
+        Case "JNX":  vMarket = 4
+        Case "JAX":  vMarket = 5
+        Case "Chi-X": vMarket = 6
         Case Else
             Call AppendLog(code, "DoRepay: 未知の建市場 " & marketStr)
             DoRepay = False
             Exit Function
     End Select
 
-    ' --- 16〜19: 逆指値は使わない ---
-    vRevCondPrice = ""
-    vRevCondKbn   = ""
-    vRevPriceKbn  = ""
-    vRevPrice     = ""
+    ' --- 16〜19: 逆指値は省略（Empty） ---
+    vRevCondPrice = Empty
+    vRevCondKbn   = Empty
+    vRevPriceKbn  = Empty
+    vRevPrice     = Empty
 
-    ' --- 呼び出し（mhcka さんの順番に完全一致） ---
+    ' --- 呼び出し（公式仕様の順番に完全一致） ---
     result = RssMarginCloseOrder_V( _
-        vOrderId, _
-        vCode, _
-        vBaibai, _
-        vOrderKbn, _
-        vSorKbn, _
-        vShinyo, _
-        vQty, _
-        vPriceKbn, _
-        vPrice, _
-        vExecCond, _
-        vLimit, _
-        vKouza, _
-        vTatebi, _
-        vTanka, _
-        vMarket, _
-        vRevCondPrice, _
-        vRevCondKbn, _
-        vRevPriceKbn, _
-        vRevPrice)
+        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+        vExecCond, vLimit, vKouza, vTatebi, vTanka, vMarket, _
+        vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice)
 
     Call AppendLog(code, "DoRepay result=" & CStr(result))
 
@@ -157,6 +260,7 @@ Sub AppendLog(code As String, message As String)
     Dim ws As Worksheet
     Dim nextRow As Long
 
+    ' Logs シート取得
     On Error Resume Next
     Set ws = ThisWorkbook.Sheets("Logs")
     On Error GoTo 0
@@ -166,9 +270,13 @@ Sub AppendLog(code As String, message As String)
         Exit Sub
     End If
 
-    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row + 1
-    If nextRow < 2 Then nextRow = 2 ' ヘッダーが1行目にある前提
+    ' 次の書き込み行を取得（A列の最終行 + 1）
+    nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row + 1
 
+    ' ヘッダーが1行目にある前提で、最低でも2行目に書く
+    If nextRow < 2 Then nextRow = 2
+
+    ' ログ書き込み
     With ws
         .Cells(nextRow, 1).Value = Now
         .Cells(nextRow, 2).Value = code
@@ -179,7 +287,9 @@ End Sub
 
 Sub ClearLogs()
     Dim ws As Worksheet
+    Dim lastRow As Long
 
+    ' Logs シート取得
     On Error Resume Next
     Set ws = ThisWorkbook.Sheets("Logs")
     On Error GoTo 0
@@ -189,33 +299,13 @@ Sub ClearLogs()
         Exit Sub
     End If
 
+    ' A列の最終行を取得
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' データが1行（ヘッダーのみ）なら何もしない
+    If lastRow < 2 Then Exit Sub
+
     ' 2行目以降を削除（ヘッダーは残す）
-    ws.Rows("2:" & ws.Rows.Count).ClearContents
+    ws.Rows("2:" & lastRow).ClearContents
 End Sub
-
-
-Function FindPositionRow(code As String) As Long
-    Dim ws As Worksheet
-    Dim lastRow As Long
-    Dim r As Long
-
-    Set ws = ThisWorkbook.Sheets("Positions")
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row
-
-    ' 最終行が '-------- の場合は1行上から検索開始
-    If ws.Cells(lastRow, "A").Value = "--------" Then
-        lastRow = lastRow - 1
-    End If
-
-    ' 下から上へ検索（最新の建玉を優先）
-    For r = lastRow To 3 Step -1
-        If ws.Cells(r, "A").Value = code Then
-            FindPositionRow = r
-            Exit Function
-        End If
-    Next r
-
-    FindPositionRow = 0
-End Function
-
 
