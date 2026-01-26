@@ -32,61 +32,130 @@ Function DoRepay(code As String) As Boolean
     Dim ws As Worksheet
     Dim row As Long
     Dim oid As Long
-    Dim qty As String
-    Dim tanka As String
-    Dim tatebi As String
+
+    ' RssMarginCloseOrder_V の引数用
+    Dim vOrderId      As Long   ' 1: 発注ID（だけ Long）
+    Dim vCode         As String ' 2: 銘柄コード
+    Dim vBaibai       As String ' 3: 売買区分（1:売り, 3:買い）
+    Dim vOrderKbn     As String ' 4: 注文区分（0:通常）
+    Dim vSorKbn       As String ' 5: SOR区分（0:通常）
+    Dim vShinyo       As String ' 6: 信用区分（4:いちにち信用）
+    Dim vQty          As String ' 7: 注文数量
+    Dim vPriceKbn     As String ' 8: 価格区分（0:成行, 1:指値）
+    Dim vPrice        As String ' 9: 注文価格（成行なら "0" or ""）
+    Dim vExecCond     As String '10: 執行条件（1:本日中）
+    Dim vLimit        As String '11: 注文期限（使わないなら "" or "0"）
+    Dim vKouza        As String '12: 口座区分（特定=1, 一般=2 など）
+    Dim vTatebi       As String '13: 建日（YYYYMMDD）
+    Dim vTanka        As String '14: 建単価（建値）
+    Dim vMarket       As String '15: 建市場（1:東証, 5:JAX など）
+    Dim vRevCondPrice As String '16: 逆指値条件価格
+    Dim vRevCondKbn   As String '17: 逆指値条件区分
+    Dim vRevPriceKbn  As String '18: 逆指値価格区分
+    Dim vRevPrice     As String '19: 逆指値価格
+
     Dim marketStr As String
-    Dim marketCode As String
-    Dim shinyo As String
     Dim result As String
 
     Set ws = ThisWorkbook.Sheets("Positions")
 
     row = FindPositionRow(code)
     If row = 0 Then
+        Call AppendLog(code, "DoRepay: 建玉が見つかりません")
         DoRepay = False
         Exit Function
     End If
 
-    qty = CStr(ws.Cells(row, "I").Value)
-    tanka = Format$(ws.Cells(row, "J").Value, "0.00")
-    tatebi = CStr(ws.Cells(row, "K").Value)
-    marketStr = Trim(ws.Cells(row, "D").Value)
-    shinyo = CStr(ws.Cells(row, "E").Value)
+    ' 1: 発注ID
+    vOrderId = NextOrderID()
 
+    ' 2: 銘柄コード
+    vCode = CStr(code)
+
+    ' 3: 売買区分
+    '   建玉が「買建」なら返済は「売り」= "1"
+    '   ここはとりあえず "1" 決め打ち（買建だけ返済する前提）
+    vBaibai = "1"
+
+    ' 4: 注文区分（通常）
+    vOrderKbn = "0"
+
+    ' 5: SOR区分（使わないなら "0"）
+    vSorKbn = "0"
+
+    ' 6: 信用区分（いちにち信用 = "4" 決め打ち）
+    vShinyo = "4"
+
+    ' 7: 注文数量（建玉数量そのまま）
+    vQty = CStr(ws.Cells(row, "I").Value)   ' 発注数量
+
+    ' 8: 価格区分（成行 = "0"）
+    vPriceKbn = "0"
+
+    ' 9: 注文価格（成行なので "0" か ""）
+    vPrice = "0"
+
+    '10: 執行条件（本日中 = "1"）
+    vExecCond = "1"
+
+    '11: 注文期限（使わないので "0"）
+    vLimit = "0"
+
+    '12: 口座区分（特定=1 / 一般=2 など。ここはとりあえず "1" 決め打ちでもよい）
+    vKouza = "1"
+
+    '13: 建日（K列そのまま。すでに YYYYMMDD なのでいじらない）
+    vTatebi = CStr(ws.Cells(row, "K").Value)
+
+    '14: 建単価（J列そのまま。Format しない）
+    vTanka = CStr(ws.Cells(row, "J").Value)
+
+    '15: 建市場（D列 → コードに変換）
+    marketStr = Trim$(ws.Cells(row, "D").Value)
     Select Case marketStr
-        Case "東証": marketCode = "1"
-        Case "JNX": marketCode = "4"
-        Case "JAX": marketCode = "5"
-        Case "Chi-X": marketCode = "6"
-        Case Else: DoRepay = False: Exit Function
+        Case "東証": vMarket = "1"
+        Case "JNX":  vMarket = "4"
+        Case "JAX":  vMarket = "5"
+        Case "Chi-X": vMarket = "6"
+        Case Else
+            Call AppendLog(code, "DoRepay: 未知の建市場 " & marketStr)
+            DoRepay = False
+            Exit Function
     End Select
 
-    oid = NextOrderID()
+    '16～19: 逆指値は使わないので全部 "0" or ""
+    vRevCondPrice = "0"
+    vRevCondKbn   = "0"
+    vRevPriceKbn  = "0"
+    vRevPrice     = "0"
 
+    ' 呼び出し：変数をそのまま渡す
     result = RssMarginCloseOrder_V( _
-        oid, _
-        CStr(code), _
-        "1", _
-        "0", _
-        "0", _
-        "4", _
-        qty, _
-        "0", _
-        "0", _
-        "1", _
-        "", _
-        "0", _
-        tatebi, _
-        tanka, _
-        marketCode, _
-        "0", _
-        "", _
-        "", _
-        "0")
+        vOrderId, _
+        vCode, _
+        vBaibai, _
+        vOrderKbn, _
+        vSorKbn, _
+        vShinyo, _
+        vQty, _
+        vPriceKbn, _
+        vPrice, _
+        vExecCond, _
+        vLimit, _
+        vKouza, _
+        vTatebi, _
+        vTanka, _
+        vMarket, _
+        vRevCondPrice, _
+        vRevCondKbn, _
+        vRevPriceKbn, _
+        vRevPrice)
+
+    Call AppendLog(code, "DoRepay result=" & CStr(result))
 
     DoRepay = True
 End Function
+
 
 
 Sub AppendLog(code As String, message As String)
