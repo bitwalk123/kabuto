@@ -1,3 +1,4 @@
+Attribute VB_Name = "Module1"
 Public gOrderID As Long
 
 
@@ -47,14 +48,14 @@ Function DoRepay(code As String) As Boolean
         Exit Function
     End If
 
-    qty = CStr(ws.Cells(row, "H").Value)
-    tanka = Format(ws.Cells(row, "I").Value, "0.00")
-    tatebi = CStr(ws.Cells(row, "J").Value)
+    qty = CStr(ws.Cells(row, "I").Value)
+    tanka = Format$(ws.Cells(row, "J").Value, "0.00")
+    tatebi = CStr(ws.Cells(row, "K").Value)
     marketStr = Trim(ws.Cells(row, "D").Value)
     shinyo = CStr(ws.Cells(row, "E").Value)
 
     Select Case marketStr
-        Case "Êù±Ë®º": marketCode = "1"
+        Case "ìåèÿ": marketCode = "1"
         Case "JNX": marketCode = "4"
         Case "JAX": marketCode = "5"
         Case "Chi-X": marketCode = "6"
@@ -63,13 +64,13 @@ Function DoRepay(code As String) As Boolean
 
     oid = NextOrderID()
 
-    result = ResMarginCloseOrder_V( _
+    result = RssMarginCloseOrder_V( _
         oid, _
         CStr(code), _
         "1", _
         "0", _
         "0", _
-        shinyo, _
+        "4", _
         qty, _
         "0", _
         "0", _
@@ -97,12 +98,12 @@ Sub AppendLog(code As String, message As String)
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs „Ç∑„Éº„Éà„ÅåË¶ã„Å§„Åã„Çä„Åæ„Åõ„Çì„ÄÇ", vbExclamation
+        MsgBox "Logs ÉVÅ[ÉgÇ™å©Ç¬Ç©ÇËÇ‹ÇπÇÒÅB", vbExclamation
         Exit Sub
     End If
 
     nextRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row + 1
-    If nextRow < 2 Then nextRow = 2 ' „Éò„ÉÉ„ÉÄ„Éº„Åå1Ë°åÁõÆ„Å´„ÅÇ„ÇãÂâçÊèê
+    If nextRow < 2 Then nextRow = 2 ' ÉwÉbÉ_Å[Ç™1çsñ⁄Ç…Ç†ÇÈëOíÒ
 
     With ws
         .Cells(nextRow, 1).Value = Now
@@ -120,11 +121,11 @@ Sub ClearLogs()
     On Error GoTo 0
 
     If ws Is Nothing Then
-        MsgBox "Logs „Ç∑„Éº„Éà„ÅåË¶ã„Å§„Åã„Çä„Åæ„Åõ„Çì„ÄÇ", vbExclamation
+        MsgBox "Logs ÉVÅ[ÉgÇ™å©Ç¬Ç©ÇËÇ‹ÇπÇÒÅB", vbExclamation
         Exit Sub
     End If
 
-    ' 2Ë°åÁõÆ‰ª•Èôç„ÇíÂâäÈô§Ôºà„Éò„ÉÉ„ÉÄ„Éº„ÅØÊÆã„ÅôÔºâ
+    ' 2çsñ⁄à»ç~ÇçÌèúÅiÉwÉbÉ_Å[ÇÕécÇ∑Åj
     ws.Rows("2:" & ws.Rows.Count).ClearContents
 End Sub
 
@@ -135,14 +136,14 @@ Function FindPositionRow(code As String) As Long
     Dim r As Long
 
     Set ws = ThisWorkbook.Sheets("Positions")
-    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).row
 
-    ' ÊúÄÁµÇË°å„Åå '-------- „ÅÆÂ†¥Âêà„ÅØ1Ë°å‰∏ä„Åã„ÇâÊ§úÁ¥¢ÈñãÂßã
+    ' ç≈èIçsÇ™ '-------- ÇÃèÍçáÇÕ1çsè„Ç©ÇÁåüçıäJén
     If ws.Cells(lastRow, "A").Value = "--------" Then
         lastRow = lastRow - 1
     End If
 
-    ' ‰∏ã„Åã„Çâ‰∏ä„Å∏Ê§úÁ¥¢ÔºàÊúÄÊñ∞„ÅÆÂª∫Áéâ„ÇíÂÑ™ÂÖàÔºâ
+    ' â∫Ç©ÇÁè„Ç÷åüçıÅiç≈êVÇÃåöã ÇóDêÊÅj
     For r = lastRow To 3 Step -1
         If ws.Cells(r, "A").Value = code Then
             FindPositionRow = r
@@ -152,4 +153,5 @@ Function FindPositionRow(code As String) As Long
 
     FindPositionRow = 0
 End Function
+
 
