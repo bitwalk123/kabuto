@@ -202,8 +202,8 @@ Function DoRepay(code As String) As Boolean
     ' --- 6: 信用区分（いちにち信用） ---
     vShinyo = "4"
 
-    ' --- 7: 注文数量（発注数量 I 列） ---
-    vQty = CStr(ws.Cells(row, "I").Value)
+    ' --- 7: 注文数量（発注数量 I 列 wrong!） ---
+    vQty = CStr(ws.Cells(row, "H").Value)
 
     ' --- 8: 価格区分（成行） ---
     vPriceKbn = "0"
