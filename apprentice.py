@@ -24,10 +24,13 @@ from funcs.logs import setup_logging
 
 
 class RSSWorker(QObject):
+    sendResult = Signal(bool)
+
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.wb = None
+        self.clear_logs = None
         self.do_buy = None
         self.do_sell = None
         self.do_repay = None
@@ -44,9 +47,9 @@ class RSSWorker(QObject):
             self.macro_clear_logs()
 
     def macro_clear_logs(self):
-        if self.wb is None:
+        if sys.platform != "win32":
             print("doBuy: 非Windows 上で実行されました。")
-            return
+            self.sendResult.emit(True)
         try:
             self.clear_logs()
             self.logger.info("ClearLogs completed")
@@ -56,9 +59,9 @@ class RSSWorker(QObject):
             self.logger.exception(f"Unexpected error in ClearLogs: {e}")
 
     def macro_do_buy(self, code: str):
-        if self.wb is None:
+        if sys.platform != "win32":
             print("doBuy: 非Windows 上で実行されました。")
-            return
+            self.sendResult.emit(True)
         try:
             result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
@@ -70,9 +73,9 @@ class RSSWorker(QObject):
             return
 
     def macro_do_sell(self, code: str):
-        if self.wb is None:
+        if sys.platform != "win32":
             print("doSell: 非Windows 上で実行されました。")
-            return
+            self.sendResult.emit(True)
         try:
             result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
@@ -84,7 +87,7 @@ class RSSWorker(QObject):
             return
 
     def macro_do_repay(self, code: str):
-        if self.wb is None:
+        if sys.platform != "win32":
             print("doRepay: 非Windows 上で実行されました。")
             return
         try:
@@ -114,6 +117,8 @@ class Apprentice(QWidget):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.flag_next_status = None
+
         # self.code = "9432"  # 売買テスト用の銘柄コード
         self.code = "8410"  # 売買テスト用の銘柄コード
 
@@ -159,20 +164,29 @@ class Apprentice(QWidget):
     def on_reset(self):
         self.switch_activate(True)
 
+    def receive_result(self, status: bool):
+        if status:
+            self.switch_activate(self.flag_next_status)
+        else:
+            self.switch_activate(not self.flag_next_status)
+
     def request_buy(self):
         self.switch_deactivate_all()
+        self.flag_next_status = False
         self.requestBuy.emit(self.code)
-        self.switch_activate(False)
+        # self.switch_activate(False)
 
     def request_sell(self):
         self.switch_deactivate_all()
+        self.flag_next_status = False
         self.requestSell.emit(self.code)
-        self.switch_activate(False)
+        # self.switch_activate(False)
 
     def request_repay(self):
         self.switch_deactivate_all()
+        self.flag_next_status = True
         self.requestRepay.emit(self.code)
-        self.switch_activate(True)
+        # self.switch_activate(True)
 
     def switch_deactivate_all(self):
         self.but_buy.setDisabled(True)
