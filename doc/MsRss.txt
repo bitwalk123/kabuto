@@ -1,0 +1,6 @@
+Function RssMarginOpenOrder_V(OrderId As Long, BrandCode As String, BuySell As String, OrderType As String, SOR As String, MarginType As String, Quantity As String, [PriceType As String], [Price As String], [ExpiryType As String], [ExpiryDate As String], [AccountType As String], [StopTriggerPrice As String], [StopTriggerType As String], [StopPriceType As String], [StopPrice As String], [SetType As String], [SetPriceType As String], [SetPrice As String], [SetExpiryType As String], [SetExpiryDate As String]) As String
+    Marketspeed2_Rss_Vba.MsRss のメンバー
+
+
+Function RssMarginCloseOrder_V(OrderId As Long, BrandCode As String, BuySell As String, OrderType As String, SOR As String, MarginType As String, Quantity As String, [PriceType As String], [Price As String], [ExpiryType As String], [ExpiryDate As String], [AccountType As String], [OpenDate As String], [OpenPrice As String], [OpenMarket As String], [StopTriggerPrice As String], [StopTriggerType As String], [StopPriceType As String], [StopPrice As String]) As String
+    Marketspeed2_Rss_Vba.MsRss のメンバー
