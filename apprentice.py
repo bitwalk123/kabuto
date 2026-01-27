@@ -49,7 +49,7 @@ class RSSWorker(QObject):
     def macro_clear_logs(self):
         if sys.platform != "win32":
             print("doBuy: 非Windows 上で実行されました。")
-            self.sendResult.emit(True)
+            return
         try:
             self.clear_logs()
             self.logger.info("ClearLogs completed")
@@ -62,6 +62,7 @@ class RSSWorker(QObject):
         if sys.platform != "win32":
             print("doBuy: 非Windows 上で実行されました。")
             self.sendResult.emit(True)
+            return
         try:
             result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
@@ -76,6 +77,7 @@ class RSSWorker(QObject):
         if sys.platform != "win32":
             print("doSell: 非Windows 上で実行されました。")
             self.sendResult.emit(True)
+            return
         try:
             result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
@@ -89,6 +91,7 @@ class RSSWorker(QObject):
     def macro_do_repay(self, code: str):
         if sys.platform != "win32":
             print("doRepay: 非Windows 上で実行されました。")
+            self.sendResult.emit(True)
             return
         try:
             result = self.do_repay(code)
@@ -131,6 +134,7 @@ class Apprentice(QWidget):
         self.requestBuy.connect(worker.macro_do_buy)
         self.requestSell.connect(worker.macro_do_sell)
         self.requestRepay.connect(worker.macro_do_repay)
+        worker.sendResult.connect(self.receive_result)
         self.thread.start()
 
         # GUI
@@ -174,19 +178,16 @@ class Apprentice(QWidget):
         self.switch_deactivate_all()
         self.flag_next_status = False
         self.requestBuy.emit(self.code)
-        # self.switch_activate(False)
 
     def request_sell(self):
         self.switch_deactivate_all()
         self.flag_next_status = False
         self.requestSell.emit(self.code)
-        # self.switch_activate(False)
 
     def request_repay(self):
         self.switch_deactivate_all()
         self.flag_next_status = True
         self.requestRepay.emit(self.code)
-        # self.switch_activate(True)
 
     def switch_deactivate_all(self):
         self.but_buy.setDisabled(True)
