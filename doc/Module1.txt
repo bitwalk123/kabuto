@@ -149,6 +149,7 @@ End Function
 Function DoRepay(code As String) As Boolean
     Dim ws As Worksheet
     Dim row As Long
+    Dim posType As String  ' 建玉の種類
 
     ' --- RssMarginCloseOrder_V の引数 ---
     Dim vOrderId      As Long      '1: 発注ID
@@ -190,19 +191,29 @@ Function DoRepay(code As String) As Boolean
     ' --- 2: 銘柄コード ---
     vCode = code
 
-    ' --- 3: 売買区分（買建の返済 → 売り=1） ---
-    vBaibai = "1"
+    ' --- 3: 売買区分（返済方向を決定） ---
+    ' G列が「買建」なら 1（売埋）、G列が「売建」なら 3（買埋）
+    posType = Trim$(ws.Cells(row, "G").Value)
+    If posType = "買建" Then
+        vBaibai = "1"   ' 売埋
+    ElseIf posType = "売建" Then
+        vBaibai = "3"   ' 買埋
+    Else
+        Call AppendLog(code, "DoRepay: 未知の売買区分 G列=" & posType)
+        DoRepay = False
+        Exit Function
+    End If
 
     ' --- 4: 注文区分 ---
     vOrderKbn = "0"
 
     ' --- 5: SOR区分 ---
-    vSorKbn = "0"
+    vSorKbn = "1"
 
     ' --- 6: 信用区分（いちにち信用） ---
     vShinyo = "4"
 
-    ' --- 7: 注文数量（発注数量 I 列 wrong!） ---
+    ' --- 7: 注文数量 ← 建玉数量（H列） ---
     vQty = CStr(ws.Cells(row, "H").Value)
 
     ' --- 8: 価格区分（成行） ---
