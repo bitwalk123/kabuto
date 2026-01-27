@@ -64,8 +64,10 @@ class RSSWorker(QObject):
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"DoBuy failed for code={code}: {e}")
+            return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
+            return
 
     def macro_do_sell(self, code: str):
         if self.wb is None:
@@ -76,8 +78,10 @@ class RSSWorker(QObject):
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"DoSell failed for code={code}: {e}")
+            return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
+            return
 
     def macro_do_repay(self, code: str):
         if self.wb is None:
@@ -86,10 +90,12 @@ class RSSWorker(QObject):
         try:
             result = self.do_repay(code)
             self.logger.info(f"DoRepay returned {result}")
+            return
         except com_error as e:
             self.logger.error(f"DoRepay failed for code={code}: {e}")
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
+            return
 
 
 class Button(QPushButton):
@@ -108,7 +114,8 @@ class Apprentice(QWidget):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.code = "9432"  # 売買テスト用の銘柄コード
+        # self.code = "9432"  # 売買テスト用の銘柄コード
+        self.code = "8410"  # 売買テスト用の銘柄コード
 
         # Thread for xlwings
         self.thread = QThread(self)
@@ -153,16 +160,24 @@ class Apprentice(QWidget):
         self.switch_activate(True)
 
     def request_buy(self):
+        self.switch_deactivate_all()
         self.requestBuy.emit(self.code)
         self.switch_activate(False)
 
     def request_sell(self):
+        self.switch_deactivate_all()
         self.requestSell.emit(self.code)
         self.switch_activate(False)
 
     def request_repay(self):
+        self.switch_deactivate_all()
         self.requestRepay.emit(self.code)
         self.switch_activate(True)
+
+    def switch_deactivate_all(self):
+        self.but_buy.setDisabled(True)
+        self.but_sell.setDisabled(True)
+        self.but_repay.setDisabled(True)
 
     def switch_activate(self, state: bool):
         self.but_buy.setEnabled(state)
