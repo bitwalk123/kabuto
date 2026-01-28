@@ -54,31 +54,31 @@ class RSSWorker(QObject):
     @Slot()
     def macro_clear_logs(self):
         if sys.platform != "win32":
-            self.logger.info("doBuy: 非Windows 上で実行されました。")
+            self.logger.info(f"{__name__} ClearLogs: 非Windows 上では実行できません。")
             return
         try:
             self.clear_logs()
-            self.logger.info("ClearLogs completed")
+            self.logger.info(f"{__name__} ClearLogs completed")
         except com_error as e:
-            self.logger.error(f"ClearLogs failed: {e}")
+            self.logger.error(f"{__name__} ClearLogs failed: {e}")
         except Exception as e:
-            self.logger.exception(f"Unexpected error in ClearLogs: {e}")
+            self.logger.exception(f"{__name__} Unexpected error in ClearLogs: {e}")
 
     @Slot(str)
     def macro_do_buy(self, code: str):
         if sys.platform != "win32":
-            self.logger.info("doBuy: 非Windows 上で実行されました。")
+            self.logger.info(f"{__name__} doBuy: 非Windows 上では実行できません。")
             self.sendResult.emit(True)
             return
         try:
             result = self.do_buy(code)
-            self.logger.info(f"DoBuy returned {result}")
+            self.logger.info(f"{__name__} DoBuy returned {result}")
         except com_error as e:
-            self.logger.error(f"DoBuy failed for code={code}: {e}")
+            self.logger.error(f"{__name__} DoBuy failed for code={code}: {e}")
             self.sendResult.emit(False)
             return
         except Exception as e:
-            self.logger.exception(f"Unexpected error in DoBuy: {e}")
+            self.logger.exception(f"{__name__} Unexpected error in DoBuy: {e}")
             self.sendResult.emit(False)
             return
 
@@ -94,18 +94,18 @@ class RSSWorker(QObject):
     @Slot(str)
     def macro_do_sell(self, code: str):
         if sys.platform != "win32":
-            self.logger.info("doSell: 非Windows 上で実行されました。")
+            self.logger.info(f"{__name__} doSell: 非Windows 上では実行できません。")
             self.sendResult.emit(True)
             return
         try:
             result = self.do_sell(code)
-            self.logger.info(f"DoSell returned {result}")
+            self.logger.info(f"{__name__} DoSell returned {result}")
         except com_error as e:
-            self.logger.error(f"DoSell failed for code={code}: {e}")
+            self.logger.error(f"{__name__} DoSell failed for code={code}: {e}")
             self.sendResult.emit(False)
             return
         except Exception as e:
-            self.logger.exception(f"Unexpected error in DoSell: {e}")
+            self.logger.exception(f"{__name__} Unexpected error in DoSell: {e}")
             self.sendResult.emit(False)
             return
 
@@ -121,18 +121,18 @@ class RSSWorker(QObject):
     @Slot(str)
     def macro_do_repay(self, code: str):
         if sys.platform != "win32":
-            self.logger.info("doRepay: 非Windows 上で実行されました。")
+            self.logger.info(f"{__name__} doRepay: 非Windows 上では実行できません。")
             self.sendResult.emit(True)
             return
         try:
             result = self.do_repay(code)
-            self.logger.info(f"DoRepay returned {result}")
+            self.logger.info(f"{__name__} DoRepay returned {result}")
         except com_error as e:
-            self.logger.error(f"DoRepay failed for code={code}: {e}")
+            self.logger.error(f"{__name__} DoRepay failed for code={code}: {e}")
             self.sendResult.emit(False)
             return
         except Exception as e:
-            self.logger.exception(f"Unexpected error in DoRepay: {e}")
+            self.logger.exception(f"{__name__} Unexpected error in DoRepay: {e}")
             self.sendResult.emit(False)
             return
 
@@ -150,18 +150,24 @@ class RSSWorker(QObject):
         for attempt in range(self.max_retries):
             time.sleep(0.5)  # 0.5秒
             try:
-                if self.is_position_present(code) == expected_state:
-                    self.logger.info("約定が反映されました。")
+                current = bool(self.is_position_present(code)) # 論理値が返ってくるはずだけど保険に
+                if current == expected_state:
+                    self.logger.info(f"{__name__} 約定が反映されました (attempt {attempt + 1}).")
                     self.sendResult.emit(True)
                     return
+                else:
+                    self.logger.info(
+                        f"{__name__} 約定未反映 (attempt {attempt + 1}): "
+                        f"is_position_present={current}, expected={expected_state}"
+                    )
             except com_error as e:
-                self.logger.error(f"IsPositionPresent failed for code={code}: {e}")
-                self.logger.info(f"retrying... (Attempt {attempt + 1}/{self.max_retries})")
+                self.logger.error(f"{__name__} IsPositionPresent failed for code={code}: {e}")
+                self.logger.info(f"{__name__} retrying... (Attempt {attempt + 1}/{self.max_retries})")
             except Exception as e:
-                self.logger.exception(f"Unexpected error in IsPositionPresent: {e}")
+                self.logger.exception(f"{__name__} Unexpected error in IsPositionPresent: {e}")
 
         # self.max_retries 回確認しても変化なし → 注文未反映
-        self.logger.info("約定を確認できませんでした。")
+        self.logger.info(f"{__name__} 約定を確認できませんでした。")
         self.sendResult.emit(False)
 
 
@@ -231,6 +237,10 @@ class Apprentice(QWidget):
 
     @Slot(bool)
     def receive_result(self, status: bool):
+        if self.flag_next_status is None:
+            # 初期状態で誤って呼ばれた場合の保険
+            self.switch_activate(True)
+            return
         if status:
             self.switch_activate(self.flag_next_status)
         else:
