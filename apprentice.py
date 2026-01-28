@@ -1,5 +1,6 @@
 import logging
 import sys
+import time
 
 import xlwings as xw
 from PySide6.QtGui import QCloseEvent
@@ -11,7 +12,7 @@ from PySide6.QtCore import (
     QObject,
     QThread,
     Qt,
-    Signal,
+    Signal, Slot,
 )
 from PySide6.QtWidgets import (
     QApplication,
@@ -29,12 +30,15 @@ class RSSWorker(QObject):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.max_retries = 3
         self.wb = None
         self.clear_logs = None
         self.do_buy = None
         self.do_sell = None
         self.do_repay = None
+        self.is_position_present = None
 
+    @Slot()
     def initWorker(self):
         if sys.platform == "win32":
             # Excel ファイルが既に開いていることが前提
@@ -43,12 +47,14 @@ class RSSWorker(QObject):
             self.do_buy = wb.macro("DoBuy")
             self.do_sell = wb.macro("DoSell")
             self.do_repay = wb.macro("DoRepay")
+            self.is_position_present = wb.macro("IsPositionPresent")
             # 古いログをクリア
             self.macro_clear_logs()
 
+    @Slot()
     def macro_clear_logs(self):
         if sys.platform != "win32":
-            print("doBuy: 非Windows 上で実行されました。")
+            self.logger.info("doBuy: 非Windows 上で実行されました。")
             return
         try:
             self.clear_logs()
@@ -58,9 +64,10 @@ class RSSWorker(QObject):
         except Exception as e:
             self.logger.exception(f"Unexpected error in ClearLogs: {e}")
 
+    @Slot(str)
     def macro_do_buy(self, code: str):
         if sys.platform != "win32":
-            print("doBuy: 非Windows 上で実行されました。")
+            self.logger.info("doBuy: 非Windows 上で実行されました。")
             self.sendResult.emit(True)
             return
         try:
@@ -73,9 +80,19 @@ class RSSWorker(QObject):
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
             return
 
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、買建では建玉一覧に銘柄コードあり (True)
+        expected_state = True
+        # 約定確認
+        self.confirm_execution(code, expected_state)
+
+    @Slot(str)
     def macro_do_sell(self, code: str):
         if sys.platform != "win32":
-            print("doSell: 非Windows 上で実行されました。")
+            self.logger.info("doSell: 非Windows 上で実行されました。")
             self.sendResult.emit(True)
             return
         try:
@@ -88,20 +105,58 @@ class RSSWorker(QObject):
             self.logger.exception(f"Unexpected error in DoSell: {e}")
             return
 
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、売建では建玉一覧に銘柄コードあり (True)
+        expected_state = True
+        # 約定確認
+        self.confirm_execution(code, expected_state)
+
+    @Slot(str)
     def macro_do_repay(self, code: str):
         if sys.platform != "win32":
-            print("doRepay: 非Windows 上で実行されました。")
+            self.logger.info("doRepay: 非Windows 上で実行されました。")
             self.sendResult.emit(True)
             return
         try:
             result = self.do_repay(code)
             self.logger.info(f"DoRepay returned {result}")
-            return
         except com_error as e:
             self.logger.error(f"DoRepay failed for code={code}: {e}")
+            return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
             return
+
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、返済では建玉一覧に銘柄コードなし (False)
+        expected_state = False
+        # 約定確認
+        self.confirm_execution(code, expected_state)
+
+    def confirm_execution(self, code: str, expected_state: bool):
+        # 約定確認
+        for attempt in range(self.max_retries):
+            time.sleep(0.5)  # 0.5秒〜1秒が適切
+            try:
+                if self.is_position_present(code) == expected_state:
+                    self.logger.info("約定が反映されました。")
+                    self.sendResult.emit(True)
+                    return
+            except com_error as e:
+                self.logger.error(f"IsPositionPresent failed for code={code}: {e}")
+                self.logger.info(f"retrying... (Attempt {attempt + 1}/{self.max_retries})")
+            except Exception as e:
+                self.logger.exception(f"Unexpected error in DoBuy: {e}")
+
+        # self.max_retries 回確認しても変化なし → 注文未反映
+        self.logger.info("約定を確認できませんでした。")
+        self.sendResult.emit(False)
 
 
 class Button(QPushButton):
@@ -168,6 +223,7 @@ class Apprentice(QWidget):
     def on_reset(self):
         self.switch_activate(True)
 
+    @Slot(bool)
     def receive_result(self, status: bool):
         if status:
             self.switch_activate(self.flag_next_status)
