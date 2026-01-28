@@ -4,35 +4,33 @@ Option Explicit
 
 Public gOrderID As Long
 
-
 Function NextOrderID() As Long
     gOrderID = gOrderID + 1
     NextOrderID = gOrderID
 End Function
 
-
 Function DoBuy(code As String) As Boolean
-    Dim vOrderId      As Long   '1: 発注ID
-    Dim vCode         As String '2: 銘柄コード
-    Dim vBaibai       As String '3: 売買区分（3:買建）
-    Dim vOrderKbn     As String '4: 注文区分（0:通常）
-    Dim vSorKbn       As String '5: SOR区分（1:SOR）
-    Dim vShinyo       As String '6: 信用区分（4:いちにち信用）
-    Dim vQty          As String '7: 注文数量
-    Dim vPriceKbn     As String '8: 価格区分（0:成行）
-    Dim vPrice        As String '9: 注文価格（成行なので省略 → Empty）
-    Dim vExecCond     As String '10: 執行条件（1:本日中）
-    Dim vLimit        As String '11: 注文期限（省略 → Empty）
-    Dim vKouza        As String '12: 口座区分（0:特定）
-    Dim vRevCondPrice As String '13: 逆指値条件価格（省略）
-    Dim vRevCondKbn   As String '14: 逆指値条件区分（省略）
-    Dim vRevPriceKbn  As String '15: 逆指値価格区分（省略）
-    Dim vRevPrice     As String '16: 逆指値価格（省略）
-    Dim vSetKbn       As String  '17: セット注文区分（0:通常）
-    Dim vSetPriceKbn  As String '18: セット注文価格区分（省略）
-    Dim vSetPrice     As String '19: セット注文価格（省略）
-    Dim vSetExecCond  As String '20: セット注文執行条件（省略）
-    Dim vSetLimit     As String '21: セット注文期限（省略）
+    Dim vOrderId As Long                         '1: 発注ID
+    Dim vCode As String                          '2: 銘柄コード
+    Dim vBaibai As String                        '3: 売買区分（3:買建）
+    Dim vOrderKbn As String                      '4: 注文区分（0:通常）
+    Dim vSorKbn As String                        '5: SOR区分（1:SOR）
+    Dim vShinyo As String                        '6: 信用区分（4:いちにち信用）
+    Dim vQty As String                           '7: 注文数量
+    Dim vPriceKbn As String                      '8: 価格区分（0:成行）
+    Dim vPrice As String                         '9: 注文価格（成行なので省略）
+    Dim vExecCond As String                      '10: 執行条件（1:本日中）
+    Dim vLimit As String                         '11: 注文期限（省略）
+    Dim vKouza As String                         '12: 口座区分（0:特定）
+    Dim vRevCondPrice As String                  '13: 逆指値条件価格（省略）
+    Dim vRevCondKbn As String                    '14: 逆指値条件区分（省略）
+    Dim vRevPriceKbn As String                   '15: 逆指値価格区分（省略）
+    Dim vRevPrice As String                      '16: 逆指値価格（省略）
+    Dim vSetKbn As String                        '17: セット注文区分（0:通常）
+    Dim vSetPriceKbn As String                   '18: セット注文価格区分（省略）
+    Dim vSetPrice As String                      '19: セット注文価格（省略）
+    Dim vSetExecCond As String                   '20: セット注文執行条件（省略）
+    Dim vSetLimit As String                      '21: セット注文期限（省略）
 
     vOrderId = NextOrderID()
     vCode = code
@@ -58,41 +56,40 @@ Function DoBuy(code As String) As Boolean
 
     Dim result As Variant
     result = RssMarginOpenOrder_V( _
-        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
-        vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
-        vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
+             vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+             vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
+             vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
 
     Call AppendLog(code, "DoBuy result=" & CStr(result))
     DoBuy = True
 End Function
 
-
 Function DoSell(code As String) As Boolean
-    Dim vOrderId      As Long
-    Dim vCode         As String
-    Dim vBaibai       As String
-    Dim vOrderKbn     As String
-    Dim vSorKbn       As String
-    Dim vShinyo       As String
-    Dim vQty          As String
-    Dim vPriceKbn     As String
-    Dim vPrice        As String
-    Dim vExecCond     As String
-    Dim vLimit        As String
-    Dim vKouza        As String
+    Dim vOrderId As Long
+    Dim vCode As String
+    Dim vBaibai As String
+    Dim vOrderKbn As String
+    Dim vSorKbn As String
+    Dim vShinyo As String
+    Dim vQty As String
+    Dim vPriceKbn As String
+    Dim vPrice As String
+    Dim vExecCond As String
+    Dim vLimit As String
+    Dim vKouza As String
     Dim vRevCondPrice As String
-    Dim vRevCondKbn   As String
-    Dim vRevPriceKbn  As String
-    Dim vRevPrice     As String
-    Dim vSetKbn       As String
-    Dim vSetPriceKbn  As String
-    Dim vSetPrice     As String
-    Dim vSetExecCond  As String
-    Dim vSetLimit     As String
+    Dim vRevCondKbn As String
+    Dim vRevPriceKbn As String
+    Dim vRevPrice As String
+    Dim vSetKbn As String
+    Dim vSetPriceKbn As String
+    Dim vSetPrice As String
+    Dim vSetExecCond As String
+    Dim vSetLimit As String
 
     vOrderId = NextOrderID()
     vCode = code
-    vBaibai = "1"   '← 売建
+    vBaibai = "1"                                '← 売建
     vOrderKbn = "0"
     vSorKbn = "1"
     vShinyo = "4"
@@ -114,14 +111,13 @@ Function DoSell(code As String) As Boolean
 
     Dim result As Variant
     result = RssMarginOpenOrder_V( _
-        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
-        vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
-        vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
+             vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+             vExecCond, vLimit, vKouza, vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice, _
+             vSetKbn, vSetPriceKbn, vSetPrice, vSetExecCond, vSetLimit)
 
     Call AppendLog(code, "DoSell result=" & CStr(result))
     DoSell = True
 End Function
-
 
 Function FindPositionRow(code As String) As Long
     Dim ws As Worksheet
@@ -145,36 +141,39 @@ Function FindPositionRow(code As String) As Long
     FindPositionRow = 0
 End Function
 
+Function IsPositionPresent(code As String) As Boolean
+    IsPositionPresent = (FindPositionRow(code) <> 0)
+End Function
 
 Function DoRepay(code As String) As Boolean
     Dim ws As Worksheet
     Dim row As Long
-    Dim posType As String  ' 建玉の種類
+    Dim posType As String                        ' 建玉の種類
 
     ' --- RssMarginCloseOrder_V の引数 ---
-    Dim vOrderId      As Long      '1: 発注ID
-    Dim vCode         As String    '2: 銘柄コード
-    Dim vBaibai       As String    '3: 売買区分（1:売り）
-    Dim vOrderKbn     As String    '4: 注文区分（0:通常）
-    Dim vSorKbn       As String    '5: SOR区分（0）
-    Dim vShinyo       As String    '6: 信用区分（4:いちにち信用）
-    Dim vQty          As String   '7: 注文数量
-    Dim vPriceKbn     As String    '8: 価格区分（0:成行）
-    Dim vPrice        As String   '9: 注文価格（成行 → Empty）
-    Dim vExecCond     As String    '10: 執行条件（1:本日中）
-    Dim vLimit        As String   '11: 注文期限（省略 → Empty）
-    Dim vKouza        As String    '12: 口座区分（0:特定）
-    Dim vTatebi       As String    '13: 建日（YYYYMMDD）
-    Dim vTanka        As String    '14: 建単価
-    Dim vMarket       As String   '15: 建市場
-    Dim vRevCondPrice As String   '16: 逆指値条件価格（省略）
-    Dim vRevCondKbn   As String   '17: 逆指値条件区分（省略）
-    Dim vRevPriceKbn  As String   '18: 逆指値価格区分（省略）
-    Dim vRevPrice     As String   '19: 逆指値価格（省略）
+    Dim vOrderId As Long                         '1: 発注ID
+    Dim vCode As String                          '2: 銘柄コード
+    Dim vBaibai As String                        '3: 売買区分（1:売り）
+    Dim vOrderKbn As String                      '4: 注文区分（0:通常）
+    Dim vSorKbn As String                        '5: SOR区分（0）
+    Dim vShinyo As String                        '6: 信用区分（4:いちにち信用）
+    Dim vQty As String                           '7: 注文数量
+    Dim vPriceKbn As String                      '8: 価格区分（0:成行）
+    Dim vPrice As String                         '9: 注文価格（成行 → Empty）
+    Dim vExecCond As String                      '10: 執行条件（1:本日中）
+    Dim vLimit As String                         '11: 注文期限（省略 → Empty）
+    Dim vKouza As String                         '12: 口座区分（0:特定）
+    Dim vTatebi As String                        '13: 建日（YYYYMMDD）
+    Dim vTanka As String                         '14: 建単価
+    Dim vMarket As String                        '15: 建市場
+    Dim vRevCondPrice As String                  '16: 逆指値条件価格（省略）
+    Dim vRevCondKbn As String                    '17: 逆指値条件区分（省略）
+    Dim vRevPriceKbn As String                   '18: 逆指値価格区分（省略）
+    Dim vRevPrice As String                      '19: 逆指値価格（省略）
 
     Dim marketStr As String
     Dim result As Variant
-
+    
     Set ws = ThisWorkbook.Sheets("Positions")
 
     ' --- 建玉行を検索 ---
@@ -195,9 +194,9 @@ Function DoRepay(code As String) As Boolean
     ' G列が「買建」なら 1（売埋）、G列が「売建」なら 3（買埋）
     posType = Trim$(ws.Cells(row, "G").Value)
     If posType = "買建" Then
-        vBaibai = "1"   ' 売埋
+        vBaibai = "1"                            ' 売埋
     ElseIf posType = "売建" Then
-        vBaibai = "3"   ' 買埋
+        vBaibai = "3"                            ' 買埋
     Else
         Call AppendLog(code, "DoRepay: 未知の売買区分 G列=" & posType)
         DoRepay = False
@@ -240,14 +239,14 @@ Function DoRepay(code As String) As Boolean
     ' --- 15: 建市場（D 列 → 数値コードへ） ---
     marketStr = Trim$(ws.Cells(row, "D").Value)
     Select Case marketStr
-        Case "東証": vMarket = "1"
-        Case "JNX":  vMarket = "4"
-        Case "JAX":  vMarket = "5"
-        Case "Chi-X": vMarket = "6"
-        Case Else
-            Call AppendLog(code, "DoRepay: 未知の建市場 " & marketStr)
-            DoRepay = False
-            Exit Function
+    Case "東証": vMarket = "1"
+    Case "JNX": vMarket = "4"
+    Case "JAX": vMarket = "5"
+    Case "Chi-X": vMarket = "6"
+    Case Else
+        Call AppendLog(code, "DoRepay: 未知の建市場 " & marketStr)
+        DoRepay = False
+        Exit Function
     End Select
 
     ' --- 16?19: 逆指値は省略（Empty） ---
@@ -258,15 +257,14 @@ Function DoRepay(code As String) As Boolean
 
     ' --- 呼び出し（公式仕様の順番に完全一致） ---
     result = RssMarginCloseOrder_V( _
-        vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
-        vExecCond, vLimit, vKouza, vTatebi, vTanka, vMarket, _
-        vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice)
+             vOrderId, vCode, vBaibai, vOrderKbn, vSorKbn, vShinyo, vQty, vPriceKbn, vPrice, _
+             vExecCond, vLimit, vKouza, vTatebi, vTanka, vMarket, _
+             vRevCondPrice, vRevCondKbn, vRevPriceKbn, vRevPrice)
 
     Call AppendLog(code, "DoRepay result=" & CStr(result))
 
     DoRepay = True
 End Function
-
 
 Sub AppendLog(code As String, message As String)
     Dim ws As Worksheet
@@ -295,7 +293,6 @@ Sub AppendLog(code As String, message As String)
         .Cells(nextRow, 3).Value = message
     End With
 End Sub
-
 
 Sub ClearLogs()
     Dim ws As Worksheet
