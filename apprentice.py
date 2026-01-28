@@ -30,7 +30,8 @@ class RSSWorker(QObject):
     def __init__(self):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.max_retries = 3
+        self.max_retries = 5
+        self.sec_sleep = 2
         self.wb = None
         self.clear_logs = None
         self.do_buy = None
@@ -148,7 +149,7 @@ class RSSWorker(QObject):
     def confirm_execution(self, code: str, expected_state: bool):
         # 約定確認
         for attempt in range(self.max_retries):
-            time.sleep(0.5)  # 0.5秒
+            time.sleep(self.sec_sleep)
             try:
                 current = bool(self.is_position_present(code)) # 論理値が返ってくるはずだけど保険に
                 if current == expected_state:
