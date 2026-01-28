@@ -1,0 +1,11 @@
+(venv) PS C:\Users\bitwa\MyProjects\kabuto> python apprentice.py
+2026-01-28 12:51:36,700 - INFO - RSSWorker ClearLogs completed
+2026-01-28 12:51:45,749 - INFO - RSSWorker DoBuy returned True
+2026-01-28 12:51:47,752 - INFO - RSSWorker 約定が反映されました (attempt 1).
+2026-01-28 12:51:57,364 - INFO - RSSWorker DoRepay returned True
+2026-01-28 12:51:59,368 - INFO - RSSWorker 約定が反映されました (attempt 1).
+2026-01-28 12:52:07,091 - INFO - RSSWorker DoSell returned True
+2026-01-28 12:52:09,093 - INFO - RSSWorker 約定が反映されました (attempt 1).
+2026-01-28 12:52:19,117 - INFO - RSSWorker DoRepay returned True
+2026-01-28 12:52:21,121 - INFO - RSSWorker 約定が反映されました (attempt 1).
+(venv) PS C:\Users\bitwa\MyProjects\kabuto>>
