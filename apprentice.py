@@ -75,9 +75,11 @@ class RSSWorker(QObject):
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"DoBuy failed for code={code}: {e}")
+            self.sendResult.emit(False)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
+            self.sendResult.emit(False)
             return
 
         # 注文結果が False の場合はここで終了
@@ -100,9 +102,11 @@ class RSSWorker(QObject):
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"DoSell failed for code={code}: {e}")
+            self.sendResult.emit(False)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
+            self.sendResult.emit(False)
             return
 
         # 注文結果が False の場合はここで終了
@@ -125,9 +129,11 @@ class RSSWorker(QObject):
             self.logger.info(f"DoRepay returned {result}")
         except com_error as e:
             self.logger.error(f"DoRepay failed for code={code}: {e}")
+            self.sendResult.emit(False)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
+            self.sendResult.emit(False)
             return
 
         # 注文結果が False の場合はここで終了
@@ -142,7 +148,7 @@ class RSSWorker(QObject):
     def confirm_execution(self, code: str, expected_state: bool):
         # 約定確認
         for attempt in range(self.max_retries):
-            time.sleep(0.5)  # 0.5秒〜1秒が適切
+            time.sleep(0.5)  # 0.5秒
             try:
                 if self.is_position_present(code) == expected_state:
                     self.logger.info("約定が反映されました。")
@@ -152,7 +158,7 @@ class RSSWorker(QObject):
                 self.logger.error(f"IsPositionPresent failed for code={code}: {e}")
                 self.logger.info(f"retrying... (Attempt {attempt + 1}/{self.max_retries})")
             except Exception as e:
-                self.logger.exception(f"Unexpected error in DoBuy: {e}")
+                self.logger.exception(f"Unexpected error in IsPositionPresent: {e}")
 
         # self.max_retries 回確認しても変化なし → 注文未反映
         self.logger.info("約定を確認できませんでした。")
