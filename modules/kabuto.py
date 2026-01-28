@@ -66,16 +66,17 @@ class Kabuto(QMainWindow):
         self.res = res = AppRes()
         res.debug = debug  # デバッグ・モードを保持
         #######################################################################
-        # NORMAL / DEBUG モード固有の設定
+        # リアルタイム / デバッグ モード固有の設定
         if debug:
-            # DEBUG モード
+            # デバッグ・モード
             self.logger.info(f"{__name__}: デバッグモードで起動しました。")
             self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
             self.flag_data_ready = False
         else:
-            # NORMAL モード
+            # リアルタイム・モード
             self.logger.info(f"{__name__}: 通常モードで起動しました。")
-            self.timer_interval = 1000  # タイマー間隔（ミリ秒）
+            # self.timer_interval = 1000  # タイマー間隔（ミリ秒）
+            self.timer_interval = 2000  # タイマー間隔（ミリ秒）
         #
         #######################################################################
         # ---------------------------------------------------------------------
