@@ -228,5 +228,5 @@ def plot_contour(df, col_x: str, col_y: str, col_z: str, output: str):
     plt.show()
 
 
-def trend_title_html(text: str, size: int = 9) -> str:
+def trend_label_html(text: str, size: int = 9) -> str:
     return f'<span style="font-size: {size}pt; font-family: monospace;">{text}</span>'

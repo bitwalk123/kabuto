@@ -5,7 +5,7 @@ import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
 from pyqtgraph import DateAxisItem
 
-from funcs.plot import trend_title_html
+from funcs.plot import trend_label_html
 from funcs.setting import get_trend_footer
 from structs.res import AppRes
 from widgets.misc import TickFont
@@ -72,13 +72,7 @@ class TrendGraph(pg.PlotWidget):
         # ---------------------------------------------------------------------
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
-        self.plot_item.setLabel(
-            axis="bottom",
-            text=(
-                '<span style="font-family: monospace; font-size: 7pt;">'
-                f'{footer}</span>'
-            )
-        )
+        self.plot_item.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
         # x軸の余白を設定
         self.plot_item.getAxis('bottom').setHeight(25)
         # ---------------------------------------------------------------------
@@ -109,7 +103,7 @@ class TrendGraph(pg.PlotWidget):
         self.ma_2.setData(line_ts, line_ma_2)
 
     def setTrendTitle(self, title: str):
-        self.setTitle(trend_title_html(title, size=9))
+        self.setTitle(trend_label_html(title, size=9))
 
     def save(self, path_img: str):
         """
