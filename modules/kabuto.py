@@ -496,13 +496,10 @@ class Kabuto(QMainWindow):
         for code in self.list_code_selected:
             if code in dict_data:
                 x, y, vol = dict_data[code]
+                profit = dict_profit[code]
+                total = dict_total[code]
                 trader: Trader = self.dict_trader[code]
-                trader.setTradeData(x, y, vol)
-
-                # 銘柄単位の現在株価および含み益と収益を更新
-                trader.dock.setPrice(y)
-                trader.dock.setProfit(dict_profit[code])
-                trader.dock.setTotal(dict_total[code])
+                trader.setTradeData(x, y, vol, profit, total)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理（リアルタイム用）
