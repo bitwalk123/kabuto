@@ -252,14 +252,14 @@ class FeatureProvider:
         # エントリ価格をリセット
         self.price_entry = 0.0
 
-        # ポジションの更新
-        self.position = PositionType.NONE
-
         # 含み益関連のインスタンス変数をリセット
         self.profit_max = 0.0
         self.drawdown = 0.0
         self.dd_ratio = 0.0
         self.n_minus = 0
+
+        # ポジションの更新
+        self.position = PositionType.NONE
 
         return reward
 

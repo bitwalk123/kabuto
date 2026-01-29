@@ -154,6 +154,18 @@ class TradingEnv(gym.Env):
         self.step_current += 1
         return reward, terminated, truncated, info
 
+    def openPosition(self, action_type: ActionType):
+        if action_type == ActionType.BUY:
+            self.provider.position_open(PositionType.LONG)
+        elif action_type == ActionType.SELL:
+            self.provider.position_open(PositionType.SHORT)
+        else:
+            raise TypeError(f"Unknown ActionType: {action_type}")
+
+    def closePosition(self):
+        if self.provider.position != PositionType.NONE:
+            self.provider.position_close()
+
 
 class TrainingEnv(TradingEnv):
     """

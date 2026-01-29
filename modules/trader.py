@@ -23,6 +23,11 @@ class Trader(QMainWindow):
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
 
+    # 売買
+    requestPositionOpen = Signal(ActionType)
+    requestPositionClose = Signal()
+    requestTransactionResult = Signal()
+
     # --- 状態遷移表 ---
     ACTION_DISPATCH = {
         (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
@@ -62,8 +67,11 @@ class Trader(QMainWindow):
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
-        self.dock.option.changedAutoPilotStatus.connect(self.changedAutoPilotStatus)
+        self.dock.clickedBuy.connect(self.on_buy)
+        self.dock.clickedRepay.connect(self.on_repay)
+        self.dock.clickedSell.connect(self.on_sell)
         self.dock.clickedSave.connect(self.on_save)
+        self.dock.option.changedAutoPilotStatus.connect(self.changedAutoPilotStatus)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -83,19 +91,21 @@ class Trader(QMainWindow):
         flag_autopilot = self.dock.option.isAutoPilotEnabled()
 
         # ワーカースレッドの生成
-        self.worker = WorkerAgentRT(flag_autopilot, code, dict_setting)
-        self.worker.moveToThread(self.thread)
+        self.worker = worker = WorkerAgentRT(flag_autopilot, code, dict_setting)
+        worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
-        self.notifyAutoPilotStatus.connect(self.worker.setAutoPilotStatus)
-        self.requestResetEnv.connect(self.worker.resetEnv)
-        self.sendTradeData.connect(self.worker.addData)
+        self.notifyAutoPilotStatus.connect(worker.setAutoPilotStatus)
+        self.requestResetEnv.connect(worker.resetEnv)
+        self.sendTradeData.connect(worker.addData)
+        self.requestPositionOpen.connect(worker.env.openPosition)
+        self.requestPositionClose.connect(worker.env.closePosition)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
-        self.worker.completedResetEnv.connect(self.reset_env_completed)
-        self.worker.completedTrading.connect(self.on_trading_completed)
-        self.worker.notifyAction.connect(self.on_action)
-        self.worker.sendTechnicals.connect(self.on_technicals)
+        worker.completedResetEnv.connect(self.reset_env_completed)
+        worker.completedTrading.connect(self.on_trading_completed)
+        worker.notifyAction.connect(self.on_action)
+        worker.sendTechnicals.connect(self.on_technicals)
 
         # スレッドの開始
         self.thread.start()
@@ -231,3 +241,24 @@ class Trader(QMainWindow):
         :return:
         """
         self.trend.setTrendTitle(title)
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理（リアルタイム用）
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def on_buy(self, code: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 買建で建玉取得リクエストのシグナル
+        self.requestPositionOpen.emit(ActionType.BUY)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_sell(self, code: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 売建で建玉取得リクエストのシグナル
+        self.requestPositionOpen.emit(ActionType.SELL)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_repay(self, code: str, price: float, note: str):
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 建玉返済リクエストのシグナル
+        self.requestPositionClose.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
