@@ -8,17 +8,13 @@ from structs.app_enum import PositionType
 
 class FeatureProvider:
     DEFAULTS = {
-        "PERIOD_WARMUP": 180,  # 寄り付き後のウォームアップ期間
-        "PERIOD_MA_1": 60,  # 短周期移動平均線の周期
-        "PERIOD_MA_2": 600,  # 長周期移動平均線の周期
-        "PERIOD_SLOPE": 5,  # 単回帰直線でMA1の傾きを算出する直前期間（個数）
-        "THRESHOLD_SLOPE": 0.05,  # これより傾きが大きければエントリを許可
-        "PERIOD_RR": 30,  # Rolling Range の周期
-        "TURBULENCE": 20,  # このしきい値より大きければエントリを禁止
+        "PERIOD_WARMUP": 60,  # 寄り付き後のウォームアップ期間
+        "PERIOD_MA_1": 30,  # 短周期移動平均線の周期
+        "PERIOD_MA_2": 300,  # 長周期移動平均線の周期
         "LOSSCUT_1": -25.0,  # 単純ロスカットをするためのしきい値
-        "THRESHOLD_PM_MIN": 10.0,  # 「含み益最大値」の最低値を超えればドローダウン開始
-        "THRESHOLD_DDR_MIN": 0.25,  # ドローダウン比率がこのしきい値を超えれば利確
-        "N_MINUS_MAX": 180,  # 含み損益が連続マイナスを許容する最大回数
+        "N_MINUS_MAX": 90,  # 含み損益が連続マイナスを許容する最大回数
+        "DD_PROFIT": 5.0,  # 「含み益最大値」がこれを超えればドローダウン対象
+        "DD_RATIO": 0.5,  # ドローダウン比率がこのしきい値を超えれば利確
     }
     INIT_VALUES = {
         # ティックデータ
@@ -28,15 +24,7 @@ class FeatureProvider:
 
         # 移動平均関連
         "div_ma_prev": None,
-        "ma_disparity": 0,
         "cross": 0,
-        "cross_pre": 0,
-        "cross_strong": False,
-
-        # ボラティリティ関連
-        "rr": 0,
-        "rr_pre": 0,
-        "fluc": 0,
 
         # ロスカット
         "losscut_1": False,
@@ -72,15 +60,7 @@ class FeatureProvider:
 
         # 移動平均差用
         "div_ma_prev": None,
-        "ma_disparity": 0,
         "cross": 0,
-        "cross_pre": 0,
-        "cross_strong": False,
-
-        # ボラティリティ関連
-        "rr": 0,
-        "rr_pre": 0,
-        "fluc": 0,
 
         # ロスカット
         "losscut_1": False,
@@ -121,11 +101,6 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
-        self.obj_mr = MovingRange(window_size=self.PERIOD_MA_1)
-        self.obj_slope1 = RegressionSlope(window_size=self.PERIOD_SLOPE)
-        # self.obj_slope1 = RegressionSlopePeriod(period=self.PERIOD_SLOPE)
-        self.obj_slope2 = RegressionSlope(window_size=self.PERIOD_SLOPE)
-        self.obj_rr = RollingRange(window_size=self.PERIOD_RR)
 
         # INIT_VALUES を一括適用
         for key, value in self.INIT_VALUES.items():
@@ -138,9 +113,6 @@ class FeatureProvider:
         # オブジェクト系は個別に clear()
         self.obj_ma1.clear()
         self.obj_ma2.clear()
-        self.obj_slope1.clear()
-        self.obj_slope2.clear()
-        self.obj_rr.clear()
 
         # 取引明細とポジションは特殊処理
         self.dict_transaction = self.transaction_init()
@@ -171,20 +143,6 @@ class FeatureProvider:
         :return:
         """
         return float(self.cross)
-
-    def getCrossSignal2(self) -> float:
-        """
-        クロスシグナル（-1, 0, 1）
-        :return:
-        """
-        return float(self.cross_pre)
-
-    def getCrossSignalStrength(self) -> float:
-        """
-        強いクロスシグナルか？（0: なし/弱い、1: 強い）
-        :return:
-        """
-        return 1 if self.cross_strong else 0
 
     def getDDRatio(self) -> float:
         """
@@ -217,12 +175,6 @@ class FeatureProvider:
         """
         return self.obj_ma2.getValue()
 
-    def getMADisparity(self) -> float:
-        return self.ma_disparity
-
-    def getMR(self) -> float:
-        return self.obj_mr.getValue()
-
     def getPeriodWarmup(self):
         return self.PERIOD_WARMUP
 
@@ -231,45 +183,6 @@ class FeatureProvider:
 
     def getPrice(self) -> float:
         return self.price
-
-    def getProfitOld(self) -> float:
-        """
-        損益（含み損益）の計算
-        :return:
-        """
-        if self.position == PositionType.LONG:
-            # 返済: 買建 (LONG) → 売埋
-            profit = self.price - self.price_entry
-        elif self.position == PositionType.SHORT:
-            # 返済: 売建 (SHORT) → 買埋
-            profit = self.price_entry - self.price
-        else:
-            profit = 0.0
-
-        # 最大含み益を保持
-        if self.profit_max < profit:
-            self.profit_max = profit
-
-        # ドローダウン、比率算出、含み益マイナス・カウンタ
-        # 含み損益から建玉有無の判定に変更（含み益がマイナスになった時の対応）
-        if self.position == PositionType.NONE:
-            self.drawdown = 0.0
-            self.dd_ratio = 0.0
-            self.n_minus = 0  # 含み益マイナス・カウンタのリセット
-        else:
-            self.drawdown = self.profit_max - profit
-            if self.profit_max > 0:
-                self.dd_ratio = self.drawdown / self.profit_max
-            else:
-                self.dd_ratio = 0
-
-            if profit < 0:
-                # 含み益がマイナスになった時のカウンタ
-                self.n_minus += 1
-            else:
-                self.n_minus = 0
-
-        return profit
 
     def getProfit(self) -> float:
         """
@@ -312,20 +225,11 @@ class FeatureProvider:
         """
         return self.profit_max
 
-    def getRR(self) -> float:
-        return self.obj_rr.getValue()
-
     def getSetting(self) -> dict:
         return self.dict_setting
 
-    def getSlope1(self) -> float:
-        return self.obj_slope1.getSlope()
-
     def getTimestamp(self) -> float:
         return self.ts
-
-    def isFluctuation(self) -> float:
-        return self.fluc
 
     def position_close(self) -> float:
         reward = 0
@@ -405,39 +309,18 @@ class FeatureProvider:
         ma1 = self.obj_ma1.update(price)
         ma2 = self.obj_ma2.update(price)
         div_ma = ma1 - ma2
-        self.ma_disparity = div_ma / ma2 if ma2 != 0 else 0
-
-        # --- ボラティリティ関連 (1) ---
-        self.obj_mr.update(price)
-
-        # --- ボラティリティ関連 (2) ---
-        self.rr_pre = self.rr
-        self.rr = self.obj_rr.update(price)
-        if self.rr_pre > self.TURBULENCE:
-            self.fluc = 1
-        elif self.rr > self.TURBULENCE:
-            self.fluc = 1
-        else:
-            self.fluc = 0
-
-        # --- MA1 の傾き ---
-        slope1 = self.obj_slope1.update(ma1)
-
         # --- クロス判定 ---
         self.cross_pre = self.cross
         self.cross = self._detect_cross(self.div_ma_prev, div_ma)
         self.div_ma_prev = div_ma
-
-        # --- クロス強度判定 ---
-        self.cross_strong = self._is_cross_strong(self.cross, self.cross_pre, slope1)
 
         # --- ロスカット判定 ---
         self.losscut_1 = self.getProfit() <= self.LOSSCUT_1
 
         # --- 利確判定 ---
         self.takeprofit = (
-                self.dd_ratio > self.THRESHOLD_DDR_MIN
-                and self.profit_max > self.THRESHOLD_PM_MIN
+                self.dd_ratio > self.DD_RATIO
+                and self.profit_max > self.DD_PROFIT
         )
 
     def _detect_cross(self, prev: float | None, curr: float) -> int:
@@ -449,18 +332,6 @@ class FeatureProvider:
         if curr < 0 < prev:
             return -1
         return 0
-
-    def _is_cross_strong(self, cross: int, cross_pre: int, slope1: float) -> bool:
-        """クロス強度（角度）判定"""
-        if cross != 0:
-            # クロス発生時
-            return slope1 > self.THRESHOLD_SLOPE
-
-        if cross_pre != 0:
-            # 1秒前にクロス → 反対売買用
-            return slope1 > self.THRESHOLD_SLOPE
-
-        return False
 
     def transaction_add(self, transaction: str, profit: float = np.nan):
         """

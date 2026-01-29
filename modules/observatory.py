@@ -4,28 +4,22 @@ from modules.feature_provider import FeatureProvider
 
 FEATURES = [
     ("クロスS1", "getCrossSignal1"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
-    # ("クロスS2", "getCrossSignal2"),  # 移動平均のクロスシグナル 2 [-1, 0, 1]
-    # ("クロ強", "getCrossSignalStrength"),  # クロスシグナル強度 [0, 1]
-    # ("乱高下", "isFluctuation"),  # 値動きが乱高下しているか？
     ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
     ("ロス2", "getLosscut2"),  # ロスカット 2 [0, 1]
     ("利確1", "doesTakeProfit"),  # 利確 1 [0, 1]
     ("建玉", "getPositionValue"),  # ポジション情報 [-1, 0, 1]
 ]
+
 TECHNICALS = {
     "ts": "getTimestamp",  # タイムスタンプ
     "price": "getPrice",  # 株価
     "ma1": "getMA1",  # 移動平均線 MA1
     "ma2": "getMA2",  # 移動平均線 MA2
-    "mr": "getMR",  # 移動範囲
-    "disparity": "getMADisparity",  # 移動平均乖離率
-    #"slope1": "getSlope1",  # 移動平均 MA1 の傾き
-    #"rr": "getRR",  # RR（Rolling Range）
     "profit": "getProfit",  # 含損益
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン
     "dd_ratio": "getDDRatio",  # ドローダウン比率
-    "n_minus": "getCounterMinus",  # ド含み益が負の時のカウンタ
+    "n_minus": "getCounterMinus",  # 含み益が負の時のカウンタ
 }
 
 
