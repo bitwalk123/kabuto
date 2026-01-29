@@ -5,6 +5,7 @@ import pyqtgraph.exporters
 from PySide6.QtCore import QMargins
 from pyqtgraph import DateAxisItem
 
+from funcs.plot import trend_title_html
 from funcs.setting import get_trend_footer
 from structs.res import AppRes
 from widgets.misc import TickFont
@@ -16,6 +17,11 @@ class CustomYAxisItem(pg.AxisItem):
 
 
 class TrendGraph(pg.PlotWidget):
+    COLOR_MA_1 = "#0f0"
+    COLOR_MA_2 = "#faf"
+    COLOR_LAST_DOT = "#0f0"
+    SIZE_LAST_DOT = 4
+
     def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
         self.logger = logging.getLogger(__name__)
         self.dict_ts = dict_ts
@@ -40,11 +46,20 @@ class TrendGraph(pg.PlotWidget):
         # ---------------------------------------------------------------------
         # 折れ線
         # 株価
-        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
+        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
         # 移動平均線 1
-        self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#0f0", width=0.75))
+        self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
         # 移動平均線 2
-        self.ma_2: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen("#faf", width=1))
+        self.ma_2: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_2, width=1))
+        # ---------------------------------------------------------------------
+        # 散布図の点
+        # 最新値を示すドット
+        self.last_dot = pg.ScatterPlotItem(
+            size=self.SIZE_LAST_DOT,
+            brush=pg.mkBrush(self.COLOR_LAST_DOT),
+            pen=None
+        )
+        self.addItem(self.last_dot)
 
     def config_plot_item(self):
         """
@@ -85,17 +100,16 @@ class TrendGraph(pg.PlotWidget):
 
     def setLine(self, line_x, line_y):
         self.line.setData(line_x, line_y)
+        # 最新値
+        if len(line_x) > 0:
+            self.last_dot.setData([line_x[-1]], [line_y[-1]])
 
     def setTechnicals(self, line_ts, line_ma_1, line_ma_2):
         self.ma_1.setData(line_ts, line_ma_1)
         self.ma_2.setData(line_ts, line_ma_2)
 
     def setTrendTitle(self, title: str):
-        html = (
-            '<span style="font-size: 9pt; font-family: monospace;">'
-            f'{title}</span>'
-        )
-        self.setTitle(html)
+        self.setTitle(trend_title_html(title, size=9))
 
     def save(self, path_img: str):
         """

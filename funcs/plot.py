@@ -226,3 +226,7 @@ def plot_contour(df, col_x: str, col_y: str, col_z: str, output: str):
     ax.grid(True, color="gray", linestyle="dotted", linewidth=0.5)
     plt.savefig(output)
     plt.show()
+
+
+def trend_title_html(text: str, size: int = 9) -> str:
+    return f'<span style="font-size: {size}pt; font-family: monospace;">{text}</span>'
