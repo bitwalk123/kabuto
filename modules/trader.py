@@ -186,7 +186,7 @@ class Trader(QMainWindow):
         """
         self.trend.ax.axhline(y=price_close, color="red", linewidth=0.75)
 
-    def setTradeData(self, ts: float, price: float, volume: float):
+    def setTradeData(self, ts: float, price: float, volume: float, profit: float, total: float):
         """
         ティックデータの取得
         :param ts:
@@ -194,6 +194,7 @@ class Trader(QMainWindow):
         :param volume:
         :return:
         """
+
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータを送るシグナル
         self.sendTradeData.emit(ts, price, volume)
@@ -206,6 +207,11 @@ class Trader(QMainWindow):
 
         # 株価トレンド線
         self.trend.setLine(self.list_x, self.list_y)
+
+        # 銘柄単位の現在株価および含み益と収益を更新
+        self.dock.setPrice(price)
+        self.dock.setProfit(profit)
+        self.dock.setTotal(total)
 
     def setTimeAxisRange(self, ts_start, ts_end):
         """
