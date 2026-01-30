@@ -15,6 +15,7 @@ from PySide6.QtCore import (
 from funcs.ios import save_dataframe_to_excel
 from funcs.tide import get_date_str_today
 from modules.posman import PositionManager
+from structs.app_enum import ActionType
 from structs.res import AppRes
 
 if sys.platform == "win32":
@@ -268,3 +269,21 @@ class RSSReaderWorker(QObject):
         # 🧿 スレッド終了シグナルの通知
         self.threadFinished.emit(True)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    @Slot(str, float, float, str)
+    def on_buy(self, code: str, ts: float, price: float, note: str):
+        # 買建で新規建玉
+        self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+
+    @Slot(str, float, float, str)
+    def on_sell(self, code: str, ts: float, price: float, note: str):
+        # 売建で新規建玉
+        self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+
+    @Slot(str, float, float, str)
+    def on_repay(self, code: str, ts: float, price: float, note: str):
+        # 建玉返済
+        self.posman.closePosition(code, ts, price, note)

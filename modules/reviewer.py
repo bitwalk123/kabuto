@@ -6,6 +6,7 @@ from PySide6.QtCore import QObject, Signal, Slot
 from funcs.ios import load_excel
 from funcs.tse import get_ticker_name_list
 from modules.posman import PositionManager
+from structs.app_enum import ActionType
 
 
 class ExcelReviewWorker(QObject):
@@ -130,3 +131,21 @@ class ExcelReviewWorker(QObject):
         # 🧿 スレッドの正常終了を通知
         self.threadFinished.emit(True)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    @Slot(str, float, float, str)
+    def on_buy(self, code: str, ts: float, price: float, note: str):
+        # 買建で新規建玉
+        self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+
+    @Slot(str, float, float, str)
+    def on_sell(self, code: str, ts: float, price: float, note: str):
+        # 売建で新規建玉
+        self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+
+    @Slot(str, float, float, str)
+    def on_repay(self, code: str, ts: float, price: float, note: str):
+        # 建玉返済
+        self.posman.closePosition(code, ts, price, note)

@@ -53,8 +53,9 @@ class Kabuto(QMainWindow):
     requestStopProcess = Signal()
 
     # 売買
-    requestPositionOpen = Signal(str, float, float, ActionType, str)
-    requestPositionClose = Signal(str, float, float, str)
+    requestBuy = Signal(str, float, float, str)
+    requestSell = Signal(str, float, float, str)
+    requestRepay = Signal(str, float, float, str)
     requestTransactionResult = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
@@ -301,8 +302,9 @@ class Kabuto(QMainWindow):
         self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
         # 04. 売買ポジション処理用のメソッドへキューイング
-        self.requestPositionOpen.connect(worker.posman.openPosition)
-        self.requestPositionClose.connect(worker.posman.closePosition)
+        self.requestBuy.connect(worker.on_buy)
+        self.requestSell.connect(worker.on_sell)
+        self.requestRepay.connect(worker.on_repay)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
@@ -502,30 +504,24 @@ class Kabuto(QMainWindow):
                 trader.setTradeData(x, y, vol, profit, total)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理（リアルタイム用）
+    # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def on_buy(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(
-            code, self.ts_system, price, ActionType.BUY, note
-        )
+        # 🧿 買建リクエストのシグナル
+        self.requestBuy.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_sell(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(
-            code, self.ts_system, price, ActionType.SELL, note
-        )
+        # 🧿 売建リクエストのシグナル
+        self.requestSell.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_repay(self, code: str, price: float, note: str):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済リクエストのシグナル
-        self.requestPositionClose.emit(
-            code, self.ts_system, price, note
-        )
+        self.requestRepay.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ###########################################################################
@@ -558,9 +554,10 @@ class Kabuto(QMainWindow):
         # 03. 初期化処理は指定された Excel ファイルの読み込み
         self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
-        # 04. 売買ポジション処理用のメソッドへキューイング
-        self.requestPositionOpen.connect(worker.posman.openPosition)
-        self.requestPositionClose.connect(worker.posman.closePosition)
+        # 04. 売買処理用のメソッドへキューイング
+        self.requestBuy.connect(worker.on_buy)
+        self.requestSell.connect(worker.on_sell)
+        self.requestRepay.connect(worker.on_repay)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
