@@ -19,7 +19,6 @@ class CustomYAxisItem(pg.AxisItem):
 class TrendGraph(pg.PlotWidget):
     COLOR_MA_1 = "#0f0"
     COLOR_MA_2 = "#f0f"
-    COLOR_CROSS = "#0ef"
     COLOR_LAST_DOT = "#0f0"
     SIZE_LAST_DOT = 4
 
@@ -62,7 +61,7 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.last_dot)
 
-        self.vline = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_CROSS, width=0.75))
+        self.vline = pg.InfiniteLine(angle=90, pen=pg.mkPen((255, 255, 64, 128), width=1))
         self.addItem(self.vline)
 
     def config_plot_item(self):

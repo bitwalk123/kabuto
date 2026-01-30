@@ -7,7 +7,7 @@ from PySide6.QtWidgets import QStyle, QWidget
 
 class AppRes:
     # トレンドチャートの幅、高さ
-    trend_width = 1600
+    trend_width = 1500
     trend_height = 250
     trend_n_max = 3  # ビューに表示できるチャートの数
 
