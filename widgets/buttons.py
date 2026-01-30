@@ -259,9 +259,62 @@ class TradeButton(QPushButton):
 
         if act == "buy":
             self.setText("買　建")
+            self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+                background-color: #a24;
+                color: white;
+            }
+            QPushButton:pressed {
+                font-family: monospace;
+                background-color: #d45;
+                color: white;
+            }
+            QPushButton:disabled {
+                font-family: monospace;
+                background-color: #512;
+                color: gray;
+            }
+            """)
+
         elif act == "sell":
             self.setText("売　建")
+            self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+                background-color: #065;
+                color: white;
+            }
+            QPushButton:pressed {
+                font-family: monospace;
+                background-color: #098;
+                color: white;
+            }
+            QPushButton:disabled {
+                font-family: monospace;
+                background-color: #032;
+                color: gray;
+            }
+            """)
+
         elif act == "repay":
             self.setText("返　　却")
+            self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+                background-color: #039;
+                color: white;
+            }
+            QPushButton:pressed {
+                font-family: monospace;
+                background-color: #07d;
+                color: white;
+            }
+            QPushButton:disabled {
+                font-family: monospace;
+                background-color: #016;
+                color: gray;
+            }
+            """)
         else:
             self.setText("不明")
