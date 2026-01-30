@@ -51,7 +51,7 @@ class ToolBar(QToolBar):
         # デバッグ（レビュー）モード時のみ
         if res.debug:
             # Excel ファイルを開く
-            action_open = QAction(
+            self.excel = action_open = QAction(
                 QIcon(os.path.join(res.dir_image, "excel.png")),
                 "Excel ファイルを開く",
                 self
@@ -146,6 +146,9 @@ class ToolBar(QToolBar):
             path_excel = dlg_file.selectedFiles()[0]
         else:
             return
+
+        # Excel アイコンを Desable に
+        self.excel.setDisabled(True)
 
         # 対象の Excel ファイルのシート一覧
         list_code = get_sheets_in_excel(path_excel)

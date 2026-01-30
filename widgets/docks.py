@@ -19,18 +19,6 @@ class DockTitle(Widget):
         self.lab_title = LabelRightMedium(title)
         layout.addWidget(self.lab_title)
 
-        self.switch = switch = Switch()
-        switch.set(False)
-        switch.setToolTip("RSS売買 ON/OFF")
-        switch.statusChanged.connect(self.changed_swicth_status)
-        layout.addWidget(switch)
-
-    def changed_swicth_status(self, state: bool):
-        print(state)
-
-    def isSwitchChecked(self):
-        self.switch.isChecked()
-
     def setTitle(self, title: str):
         self.lab_title.setText(title)
 
