@@ -19,7 +19,6 @@ from widgets.graphs import TrendGraph
 
 
 class Trader(QMainWindow):
-    notifyAutoPilotStatus = Signal(bool)
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
 
@@ -68,10 +67,9 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
         self.dock.clickedBuy.connect(self.on_buy)
-        self.dock.clickedRepay.connect(self.on_repay)
         self.dock.clickedSell.connect(self.on_sell)
+        self.dock.clickedRepay.connect(self.on_repay)
         self.dock.clickedSave.connect(self.on_save)
-        self.dock.option.changedAutoPilotStatus.connect(self.changedAutoPilotStatus)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -87,15 +85,11 @@ class Trader(QMainWindow):
         # 学習済みモデルのパス
         # path_model = get_trained_ppo_model_path(res, code)
 
-        # AutoPilot フラグ
-        flag_autopilot = self.dock.option.isAutoPilotEnabled()
-
         # ワーカースレッドの生成
-        self.worker = worker = WorkerAgentRT(flag_autopilot, code, dict_setting)
+        self.worker = worker = WorkerAgentRT(code, dict_setting)
         worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
-        self.notifyAutoPilotStatus.connect(worker.setAutoPilotStatus)
         self.requestResetEnv.connect(worker.resetEnv)
         self.sendTradeData.connect(worker.addData)
         self.requestPositionOpen.connect(worker.env.openPosition)
@@ -113,9 +107,6 @@ class Trader(QMainWindow):
         self.requestResetEnv.emit()
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-
-    def changedAutoPilotStatus(self, state: bool):
-        self.notifyAutoPilotStatus.emit(state)
 
     def closeEvent(self, event: QCloseEvent):
         if self.thread is not None:
@@ -243,22 +234,28 @@ class Trader(QMainWindow):
         self.trend.setTrendTitle(title)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理（リアルタイム用）
+    # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(ActionType.BUY)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_buy(self, code: str, price: float, note: str, auto: bool):
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 買建で建玉取得リクエストのシグナル
+            self.requestPositionOpen.emit(ActionType.BUY)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(ActionType.SELL)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_sell(self, code: str, price: float, note: str, auto: bool):
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 売建で建玉取得リクエストのシグナル
+            self.requestPositionOpen.emit(ActionType.SELL)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay(self, code: str, price: float, note: str):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 建玉返済リクエストのシグナル
-        self.requestPositionClose.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_repay(self, code: str, price: float, note: str, auto: bool):
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 建玉返済リクエストのシグナル
+            self.requestPositionClose.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

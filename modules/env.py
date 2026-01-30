@@ -163,8 +163,7 @@ class TradingEnv(gym.Env):
             raise TypeError(f"Unknown ActionType: {action_type}")
 
     def closePosition(self):
-        if self.provider.position != PositionType.NONE:
-            self.provider.position_close()
+        self.provider.position_close()
 
 
 class TrainingEnv(TradingEnv):

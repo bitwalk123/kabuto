@@ -9,14 +9,15 @@ from widgets.labels import LCDValueWithTitle
 
 
 class DockTrader(DockWidget):
-    clickedBuy = Signal(str, float, str)
-    clickedSell = Signal(str, float, str)
-    clickedRepay = Signal(str, float, str)
+    clickedBuy = Signal(str, float, str, bool)
+    clickedSell = Signal(str, float, str, bool)
+    clickedRepay = Signal(str, float, str, bool)
     clickedSave = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__(code)
         self.logger = logging.getLogger(__name__)
+        self.auto = False  # 自動オペレーション用フラグ
         self.code = code
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -49,51 +50,13 @@ class DockTrader(DockWidget):
         option.clickedSave.connect(self.on_save)
         self.layout.addWidget(option)
 
-    def doBuy(self) -> bool:
+    def forceRepay(self):
         """
-        「買建」ボタンをクリックして建玉を売る。
-        :return:
-        """
-        if self.trading.buy.isEnabled():
-            self.trading.buy.animateClick()
-            return True
-        else:
-            return False
-
-    def doSell(self) -> bool:
-        """
-        「売建」ボタンをクリックして建玉を売る。
-        :return:
-        """
-        if self.trading.sell.isEnabled():
-            self.trading.sell.animateClick()
-            return True
-        else:
-            return False
-
-    def doRepay(self) -> bool:
-        """
-        「返済」ボタンをクリックして建玉を売る。
-        :return:
-        """
-        if self.trading.repay.isEnabled():
-            self.trading.repay.animateClick()
-            return True
-        else:
-            return False
-
-    def forceStopAutoPilot(self):
-        """
-        強制返済
+        強制返済（取引終了時）
         :return:
         """
         if self.doRepay():
             self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
-        """
-        if self.option.isAutoPilotEnabled():
-            self.option.setAutoPilotEnabled(False)
-            self.logger.info(f"{__name__}: '{self.code}'の Autopilot をオフにしました。")
-        """
 
     def on_buy(self):
         """
@@ -104,22 +67,10 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit(
-            self.code, self.price.getValue(), note
+            self.code, self.price.getValue(), note, self.auto
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_repay(self):
-        """
-        返済ボタンがクリックされた時の処理
-        :return:
-        """
-        note = ""
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 返済ボタンがクリックされたことを通知
-        self.clickedRepay.emit(
-            self.code, self.price.getValue(), note
-        )
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.auto = False
 
     def on_sell(self):
         """
@@ -130,9 +81,24 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit(
-            self.code, self.price.getValue(), note
+            self.code, self.price.getValue(), note, self.auto
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.auto = False
+
+    def on_repay(self):
+        """
+        返済ボタンがクリックされた時の処理
+        :return:
+        """
+        note = ""
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 返済ボタンがクリックされたことを通知
+        self.clickedRepay.emit(
+            self.code, self.price.getValue(), note, self.auto
+        )
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.auto = False
 
     def on_save(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -163,3 +129,46 @@ class DockTrader(DockWidget):
         :return:
         """
         self.total.setValue(total)
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # Agent からのアクション
+    # 手動でボタンをクリックした時と区別できるようにする
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def doBuy(self) -> bool:
+        """
+        「買建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.buy.isEnabled():
+            self.auto = True
+            self.trading.buy.animateClick()
+            return True
+        else:
+            self.auto = False
+            return False
+
+    def doSell(self) -> bool:
+        """
+        「売建」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.sell.isEnabled():
+            self.auto = True
+            self.trading.sell.animateClick()
+            return True
+        else:
+            self.auto = False
+            return False
+
+    def doRepay(self) -> bool:
+        """
+        「返済」ボタンをクリックして建玉を売る。
+        :return:
+        """
+        if self.trading.repay.isEnabled():
+            self.auto = True
+            self.trading.repay.animateClick()
+            return True
+        else:
+            self.auto = False
+            return False

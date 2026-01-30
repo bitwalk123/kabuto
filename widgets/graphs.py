@@ -13,7 +13,7 @@ from widgets.misc import TickFont
 
 class CustomYAxisItem(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
-        return [f"{value:6,.0f}" for value in values]
+        return [f"{value:6,.1f}" for value in values]
 
 
 class TrendGraph(pg.PlotWidget):
