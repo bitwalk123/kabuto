@@ -167,6 +167,9 @@ class Trader(QMainWindow):
             self.list_ma_1,
             self.list_ma_2
         )
+        # クロス時の縦線表示
+        if dict_technicals["cross1"] != 0:
+            self.trend.setCross(dict_technicals["ts"])
 
     def on_trading_completed(self):
         self.logger.info("取引が終了しました。")
