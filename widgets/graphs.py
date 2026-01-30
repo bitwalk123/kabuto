@@ -13,12 +13,13 @@ from widgets.misc import TickFont
 
 class CustomYAxisItem(pg.AxisItem):
     def tickStrings(self, values, scale, spacing):
-        return [f"{value:6,.0f}" for value in values]
+        return [f"{value:6,.1f}" for value in values]
 
 
 class TrendGraph(pg.PlotWidget):
     COLOR_MA_1 = "#0f0"
     COLOR_MA_2 = "#faf"
+    COLOR_CROSS = "#0ef"
     COLOR_LAST_DOT = "#0f0"
     SIZE_LAST_DOT = 4
 
@@ -61,6 +62,9 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.last_dot)
 
+        self.vline = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_CROSS, width=0.75))
+        self.addItem(self.vline)
+
     def config_plot_item(self):
         """
         プロットアイテムの設定
@@ -91,6 +95,9 @@ class TrendGraph(pg.PlotWidget):
         # ---------------------------------------------------------------------
         # 高速化オプション
         self.plot_item.setClipToView(True)
+
+    def setCross(self, x):
+        self.vline.setPos(x)
 
     def setLine(self, line_x, line_y):
         self.line.setData(line_x, line_y)

@@ -6,7 +6,6 @@ from widgets.buttons import (
     ButtonSave,
     ButtonSetting,
     TradeButton,
-    ToggleButtonAutoPilot,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -21,7 +20,7 @@ from widgets.layouts import (
 class PanelTrading(Widget):
     """
     トレーディング用パネル
-    固定株数でナンピンしない取引を前提にしている
+    固定株数でナンピンしない取引が前提
     """
     clickedBuy = Signal()
     clickedRepay = Signal()
@@ -98,7 +97,6 @@ class PanelTrading(Widget):
 
 
 class PanelOption(QFrame):
-    changedAutoPilotStatus = Signal(bool)
     clickedSave = Signal()
     clickedSetting = Signal()
 
@@ -114,12 +112,6 @@ class PanelOption(QFrame):
         layout = HBoxLayout()
         self.setLayout(layout)
 
-        # オートパイロット（自動売買）
-        self.autopilot = autopilot = ToggleButtonAutoPilot(res)
-        autopilot.setChecked(True)  # デフォルトで ON
-        autopilot.toggled.connect(self.toggledAutoPilot)
-        layout.addWidget(autopilot)
-
         pad = PadH()
         layout.addWidget(pad)
 
@@ -132,15 +124,3 @@ class PanelOption(QFrame):
         but_save = ButtonSave(res)
         but_save.clicked.connect(self.clickedSave.emit)
         layout.addWidget(but_save)
-
-    def isAutoPilotEnabled(self) -> bool:
-        return self.autopilot.isChecked()
-
-    def setAutoPilotEnabled(self, state: bool = True):
-        self.autopilot.setChecked(state)
-
-    def toggledAutoPilot(self, state: bool):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 AutoPilot 状態の変更を通知するシグナル
-        self.changedAutoPilotStatus.emit(state)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -257,7 +257,7 @@ class Kabuto(QMainWindow):
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
-            dock.forceStopAutoPilot()
+            dock.forceRepay()
 
     def get_current_tick_data(self) -> dict:
         """

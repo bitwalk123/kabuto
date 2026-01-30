@@ -171,17 +171,9 @@ class WorkerAgentRT(QObject):
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     sendTechnicals = Signal(dict)
 
-    """
-    readyNext = Signal()
-    sendObs = Signal(pd.DataFrame)
-    sendParams = Signal(dict)
-    sendResults = Signal(dict)
-    """
-
-    def __init__(self, autopilot: bool, code: str, dict_param: dict):
+    def __init__(self, code: str, dict_param: dict):
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.autopilot = autopilot
 
         self.obs = None
         self.done = False
@@ -206,14 +198,12 @@ class WorkerAgentRT(QObject):
             # モデルによる行動予測
             action, _states = self.model.predict(obs, masks=masks)
 
-            # self.autopilot フラグが立っていればアクションとポジションを通知
-            if self.autopilot:
-                position: PositionType = self.env.getCurrentPosition()
-                if ActionType(action) != ActionType.HOLD:
-                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-                    # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-                    self.notifyAction.emit(action, position)
-                    # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            position: PositionType = self.env.getCurrentPosition()
+            if ActionType(action) != ActionType.HOLD:
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+                # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
+                self.notifyAction.emit(action, position)
+                # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
             # -----------------------------------------------------------------
             # プロット用テクニカル指標
@@ -255,8 +245,6 @@ class WorkerAgentRT(QObject):
         self.done = False
 
         list_colname = ["Timestamp", "Price", "Volume"]
-        # self.list_obs_label.clear()
-        # self.list_obs_label.extend(self.env.getObsList())
         self.list_obs_label = None
         self.list_obs_label = self.env.getObsList()
         self.model.updateObs(self.list_obs_label)
@@ -269,11 +257,6 @@ class WorkerAgentRT(QObject):
         # 🧿 環境のリセット環境を通知
         self.completedResetEnv.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @Slot(bool)
-    def setAutoPilotStatus(self, state: bool):
-        self.autopilot = state
-        self.logger.info(f"{__name__}: autopilot is set to {state}.")
 
 
 class CronAgent:
