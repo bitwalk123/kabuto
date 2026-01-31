@@ -309,16 +309,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"{self.prefix}: DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"{self.prefix}: DoBuy failed for code={code}: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         except Exception as e:
             self.logger.exception(f"{self.prefix}: Unexpected error in DoBuy: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         # 約定後、買建では建玉一覧に銘柄コードあり (True)
         expected_state = True
@@ -335,16 +335,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"{self.prefix}: DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"{self.prefix}: DoSell failed for code={code}: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         except Exception as e:
             self.logger.exception(f"{self.prefix}: Unexpected error in DoSell: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         # 約定後、売建では建玉一覧に銘柄コードあり (True)
         expected_state = True
@@ -360,16 +360,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"{self.prefix}: DoRepay returned {result}")
         except com_error as e:
             self.logger.error(f"{self.prefix}: DoRepay failed for code={code}: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         except Exception as e:
             self.logger.exception(f"{self.prefix}: Unexpected error in DoRepay: {e}")
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(False)
+            self.sendResult.emit(code, False)
             return
         # 約定後、返済では建玉一覧に銘柄コードなし (False)
         expected_state = False
