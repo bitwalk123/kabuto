@@ -282,26 +282,6 @@ class TradeButton(QPushButton):
             self.setStyleSheet("""
             QPushButton {
                 font-family: monospace;
-                background-color: #065;
-                color: white;
-            }
-            QPushButton:pressed {
-                font-family: monospace;
-                background-color: #098;
-                color: white;
-            }
-            QPushButton:disabled {
-                font-family: monospace;
-                background-color: #032;
-                color: gray;
-            }
-            """)
-
-        elif act == "repay":
-            self.setText("返　　却")
-            self.setStyleSheet("""
-            QPushButton {
-                font-family: monospace;
                 background-color: #039;
                 color: white;
             }
@@ -313,6 +293,26 @@ class TradeButton(QPushButton):
             QPushButton:disabled {
                 font-family: monospace;
                 background-color: #016;
+                color: gray;
+            }
+            """)
+
+        elif act == "repay":
+            self.setText("返　　却")
+            self.setStyleSheet("""
+            QPushButton {
+                font-family: monospace;
+                background-color: #065;
+                color: white;
+            }
+            QPushButton:pressed {
+                font-family: monospace;
+                background-color: #098;
+                color: white;
+            }
+            QPushButton:disabled {
+                font-family: monospace;
+                background-color: #032;
                 color: gray;
             }
             """)
