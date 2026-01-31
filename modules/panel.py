@@ -45,20 +45,17 @@ class PanelTrading(Widget):
         row += 1
         # 建玉の売建
         self.sell = but_sell = TradeButton("sell")
-        # but_sell.clicked.connect(self.on_sell)
         but_sell.clicked.connect(self.request_sell)
         layout.addWidget(but_sell, row, 0)
 
         # 建玉の買建
         self.buy = but_buy = TradeButton("buy")
-        # but_buy.clicked.connect(self.on_buy)
         but_buy.clicked.connect(self.request_buy)
         layout.addWidget(but_buy, row, 1)
 
         row += 1
         # 建玉の返却
         self.repay = but_repay = TradeButton("repay")
-        # but_repay.clicked.connect(self.on_repay)
         but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, row, 0, 1, 2)
 
@@ -120,7 +117,6 @@ class PanelTrading(Widget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.switch_deactivate_all()
         self.flag_next_status = False
-        # self.requestBuy.emit(self.code)
         self.ind_buy.setBuy()
 
     def request_sell(self):
@@ -130,7 +126,6 @@ class PanelTrading(Widget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.switch_deactivate_all()
         self.flag_next_status = False
-        # self.requestSell.emit(self.code)
         self.ind_sell.setSell()
 
     def request_repay(self):
@@ -140,7 +135,6 @@ class PanelTrading(Widget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.switch_deactivate_all()
         self.flag_next_status = True
-        # self.requestRepay.emit(self.code)
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
 
