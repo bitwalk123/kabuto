@@ -153,6 +153,10 @@ class PanelTrading(Widget):
         self.buy.setEnabled(state)
         self.sell.setEnabled(state)
         self.repay.setDisabled(state)
+        if state:
+            self.ind_buy.setDefault()
+            self.ind_sell.setDefault()
+
 
 
 class PanelOption(QFrame):
