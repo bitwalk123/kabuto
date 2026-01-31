@@ -63,45 +63,8 @@ class PanelTrading(Widget):
         # self.position_close()
         self.switch_activate(True)
 
-    """
-    def position_close(self):
-        self.sell.setEnabled(True)
-        self.buy.setEnabled(True)
-        self.repay.setDisabled(True)
-
-    def position_open(self):
-        self.sell.setDisabled(True)
-        self.buy.setDisabled(True)
-        self.repay.setEnabled(True)
-
-    def on_buy(self):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建ボタンがクリックされたことを通知
-        self.clickedBuy.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.position_open()
-        self.ind_buy.setBuy()
-
-    def on_sell(self):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建ボタンがクリックされたことを通知
-        self.clickedSell.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.position_open()
-        self.ind_sell.setSell()
-
-    def on_repay(self):
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 返却ボタンがクリックされたことを通知
-        self.clickedRepay.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.position_close()
-        self.ind_buy.setDefault()
-        self.ind_sell.setDefault()
-    """
-
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # （実売買移行用）
+    # 売買イベント
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def receive_result(self, status: bool):
         if self.flag_next_status is None:
