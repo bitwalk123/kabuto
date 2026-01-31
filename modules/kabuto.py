@@ -25,7 +25,6 @@ from funcs.tide import get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.dock import DockTrader
-from structs.app_enum import ActionType
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.dialogs import DlgAboutThis, DlgCodeSel
@@ -40,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.2"
+    __version__ = "0.3.3"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
