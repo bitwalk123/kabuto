@@ -25,6 +25,7 @@ class TrendGraph(pg.PlotWidget):
 
     def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
         self.logger = logging.getLogger(__name__)
+        self.res = res
         self.dict_ts = dict_ts
         self.dict_setting = dict_setting
 
@@ -36,6 +37,16 @@ class TrendGraph(pg.PlotWidget):
             axisItems={'bottom': axis_bottom, 'left': axis_left},
             enableMenu=False
         )
+
+        # ---------------------------------------------------------------------
+        # y軸の固定範囲対応
+        self.vb = self.getViewBox()
+        self.open_price = None
+        self.fixed_range_active = False
+        self.ratio_range = 0.005
+        self.minY = None
+        self.maxY = None
+
         # ---------------------------------------------------------------------
         # ウィンドウのサイズ制約（高さのみ）
         self.setFixedHeight(res.trend_height)
@@ -81,7 +92,7 @@ class TrendGraph(pg.PlotWidget):
         self.plot_item.getAxis('bottom').setHeight(25)
         # ---------------------------------------------------------------------
         # 軸のフォント設定
-        font_tick = TickFont()
+        font_tick = TickFont(self.res)
         self.plot_item.getAxis('bottom').setStyle(tickFont=font_tick)
         self.plot_item.getAxis('left').setStyle(tickFont=font_tick)
         # ---------------------------------------------------------------------
@@ -100,10 +111,22 @@ class TrendGraph(pg.PlotWidget):
         self.vline.setPos(x)
 
     def setLine(self, line_x, line_y):
+        # line_x, line_y が空でないことが保証されている
+        t = line_x[-1]
+        price = line_y[-1]
+
+        # 最初のy軸はは固定レンジ
+        if self.open_price is None:
+            self.yrange_set_fixed(price)
+
+        # y軸が固定レンジ中であればチェック
+        if self.fixed_range_active:
+            self.yrange_check(price)
+
+        # トレンド線
         self.line.setData(line_x, line_y)
         # 最新値
-        if len(line_x) > 0:
-            self.last_dot.setData([line_x[-1]], [line_y[-1]])
+        self.last_dot.setData([t], [price])
 
     def setTechnicals(self, line_ts, line_ma_1, line_ma_2):
         self.ma_1.setData(line_ts, line_ma_1)
@@ -122,3 +145,19 @@ class TrendGraph(pg.PlotWidget):
         exporter = pg.exporters.ImageExporter(self.plot_item)
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
+
+    def yrange_check(self, price):
+        if price < self.minY or self.maxY < price:
+            # 範囲を超えた → オートスケールに切り替え
+            self.vb.enableAutoRange(axis=pg.ViewBox.YAxis)
+            self.fixed_range_active = False
+
+    def yrange_set_fixed(self, price: float):
+        self.open_price = price
+        width = price * self.ratio_range
+        self.minY = price - width
+        self.maxY = price + width
+        # 固定レンジを設定
+        self.vb.disableAutoRange(axis=pg.ViewBox.YAxis)
+        self.vb.setYRange(self.minY, self.maxY)
+        self.fixed_range_active = True
