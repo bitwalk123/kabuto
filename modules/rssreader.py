@@ -43,6 +43,7 @@ class RSSReaderWorker(QObject):
     def __init__(self, res: AppRes):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.prefix = self.__class__.__name__
         self.res = res
         self.excel_path = res.excel_collector
         self._running = True
