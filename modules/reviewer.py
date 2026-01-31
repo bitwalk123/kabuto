@@ -35,6 +35,7 @@ class ExcelReviewWorker(QObject):
     def __init__(self, excel_path: str):
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.prefix = self.__class__.__name__
         self._running = True
         self.excel_path = excel_path
         self.dict_sheet = dict()
