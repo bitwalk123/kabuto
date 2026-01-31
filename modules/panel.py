@@ -60,8 +60,10 @@ class PanelTrading(Widget):
         layout.addWidget(but_repay, row, 0, 1, 2)
 
         # 初期状態ではポジション無し
-        self.position_close()
+        # self.position_close()
+        self.switch_activate(True)
 
+    """
     def position_close(self):
         self.sell.setEnabled(True)
         self.buy.setEnabled(True)
@@ -96,6 +98,7 @@ class PanelTrading(Widget):
         self.position_close()
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
+    """
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # （実売買移行用）
@@ -150,7 +153,6 @@ class PanelTrading(Widget):
         if state:
             self.ind_buy.setDefault()
             self.ind_sell.setDefault()
-
 
 
 class PanelOption(QFrame):
