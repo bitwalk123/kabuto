@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from structs.res import AppRes
+from widgets.buttons import RadioButton, ButtonGroup
 from widgets.entries import EntryFloat, EntryInt
 from widgets.labels import (
     Label,
@@ -105,7 +106,7 @@ class DlgAboutThis(QDialog):
 
 
 class DlgCodeSel(QDialog):
-    def __init__(self,res, list_code: list, row_default: int = 0):
+    def __init__(self, res, list_code: list, row_default: int = 0):
         super().__init__()
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "check.png")))
         self.setWindowTitle("銘柄コード一覧")
@@ -225,3 +226,46 @@ class DlgTickFileSel(QFileDialog):
         self.setOption(QFileDialog.Option.DontUseNativeDialog)
         self.setDefaultSuffix("xlsx")
         self.setDirectory(res.dir_collection)
+
+
+class DlgRepair(QDialog):
+    def __init__(self, res):
+        super().__init__()
+        self.setContentsMargins(QMargins(10, 2, 10, 2))
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "repair.png")))
+        self.setWindowTitle("売買ボタン状態修復")
+
+        layout = VBoxLayout()
+        layout.setSpacing(2)
+        self.setLayout(layout)
+
+        rb_no_pos = RadioButton("建玉なし")
+        rb_no_pos.toggle()
+        layout.addWidget(rb_no_pos)
+
+        rb_has_pos = RadioButton("建玉あり")
+        layout.addWidget(rb_has_pos)
+
+        self.rb_group = rb_group = ButtonGroup()
+        rb_group.addButton(rb_no_pos)
+        rb_group.addButton(rb_has_pos)
+
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        layout.addWidget(bbox)
+
+    def getStatus(self) -> bool:
+        rb = self.rb_group.checkedButton()
+        text = rb.text()
+        if text == "建玉なし":
+            return True
+        else:
+            return False
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # 表示後の最終サイズを固定
+        self.setFixedSize(self.size())

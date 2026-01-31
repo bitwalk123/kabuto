@@ -1,9 +1,10 @@
 import logging
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QMargins
 
 from modules.panel import PanelOption, PanelTrading
 from structs.res import AppRes
+from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
 from widgets.labels import LCDValueWithTitle
 
@@ -17,12 +18,14 @@ class DockTrader(DockWidget):
     def __init__(self, res: AppRes, code: str):
         super().__init__(code)
         self.logger = logging.getLogger(__name__)
-        self.auto = False  # 自動オペレーション用フラグ
+        self.res = res
         self.code = code
+        self.auto = False  # 自動オペレーション用フラグ
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        self.setContentsMargins(QMargins(5, 2, 5, 2))
 
         # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
@@ -48,6 +51,7 @@ class DockTrader(DockWidget):
         # ---------------------------------------------------------------------
         self.option = option = PanelOption(res, code)
         option.clickedSave.connect(self.on_save)
+        option.clickedRepair.connect(self.on_repair)
         self.layout.addWidget(option)
 
     def forceRepay(self):
@@ -105,6 +109,14 @@ class DockTrader(DockWidget):
         # 🧿 保存ボタンがクリックされたことを通知
         self.clickedSave.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_repair(self):
+        dlg = DlgRepair(self.res)
+        if dlg.exec():
+            flag = dlg.getStatus()
+            self.trading.switch_activate(flag)
+        else:
+            return
 
     def setPrice(self, price: float):
         """
@@ -178,4 +190,3 @@ class DockTrader(DockWidget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     def receive_result(self, status: bool):
         self.trading.receive_result(status)
-

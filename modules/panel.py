@@ -1,11 +1,11 @@
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QMargins, Signal
 from PySide6.QtWidgets import QFrame
 
 from structs.res import AppRes
 from widgets.buttons import (
     ButtonSave,
     ButtonSetting,
-    TradeButton,
+    TradeButton, ButtonRepair,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -29,8 +29,10 @@ class PanelTrading(Widget):
     def __init__(self):
         super().__init__()
         self.flag_next_status = None
+        self.setContentsMargins(QMargins(0, 2, 0, 2))
 
         layout = GridLayout()
+        layout.setSpacing(2)
         self.setLayout(layout)
 
         row = 0
@@ -121,6 +123,7 @@ class PanelTrading(Widget):
 class PanelOption(QFrame):
     clickedSave = Signal()
     clickedSetting = Signal()
+    clickedRepair = Signal()
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -137,12 +140,20 @@ class PanelOption(QFrame):
         pad = PadH()
         layout.addWidget(pad)
 
+        # 売買ボタンの状態修正
+        but_repair = ButtonRepair(res)
+        but_repair.setToolTip("売買ボタンの状態修正")
+        but_repair.clicked.connect(self.clickedRepair.emit)
+        layout.addWidget(but_repair)
+
         # 設定
         but_setting = ButtonSetting(res)
+        but_setting.setToolTip("設定")
         but_setting.clicked.connect(self.clickedSetting.emit)
         layout.addWidget(but_setting)
 
         # チャートの保存
         but_save = ButtonSave(res)
+        but_save.setToolTip("チャートの保存")
         but_save.clicked.connect(self.clickedSave.emit)
         layout.addWidget(but_save)

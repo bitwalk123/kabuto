@@ -100,6 +100,14 @@ class ButtonPig(QPushButton):
         self.setIcon(QIcon(imgname))
 
 
+class ButtonRepair(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        imgname = os.path.join(res.dir_image, "repair.png")
+        self.setIcon(QIcon(imgname))
+
+
 class ButtonSave(QPushButton):
     def __init__(self, res: AppRes):
         super().__init__()
@@ -139,6 +147,30 @@ class ButtonSell(QPushButton):
             }
         """)
         self.setText("売　建")
+
+
+class ButtonSemiAuto(QPushButton):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setCheckable(True)
+        self.setStyleSheet("""
+            QPushButton {
+                font-size: 8pt;
+                font-weight: bold;
+                color: black;
+                background-color: #fed;
+            }
+            QPushButton:checked {
+                color: white;
+                background-color: #432;
+            }
+            QPushButton:disabled {
+                color: #888;
+                background-color: #ccc;
+            }
+        """)
+        self.setText("Semi AUTO")
+        self.setToolTip("セミオート")
 
 
 class ButtonSetting(QPushButton):
@@ -182,30 +214,6 @@ class ButtonTicker(QPushButton):
 
     def getName(self) -> str:
         return self.name
-
-
-class ButtonSemiAuto(QPushButton):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.setCheckable(True)
-        self.setStyleSheet("""
-            QPushButton {
-                font-size: 8pt;
-                font-weight: bold;
-                color: black;
-                background-color: #fed;
-            }
-            QPushButton:checked {
-                color: white;
-                background-color: #432;
-            }
-            QPushButton:disabled {
-                color: #888;
-                background-color: #ccc;
-            }
-        """)
-        self.setText("Semi AUTO")
-        self.setToolTip("セミオート")
 
 
 class RadioButton(QRadioButton):
