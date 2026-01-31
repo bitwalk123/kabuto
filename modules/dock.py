@@ -172,3 +172,10 @@ class DockTrader(DockWidget):
         else:
             self.auto = False
             return False
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # （実売買移行用）
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def receive_result(self, status: bool):
+        self.trading.receive_result(status)
+

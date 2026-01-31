@@ -35,6 +35,8 @@ class RSSReaderWorker(QObject):
     notifyTransactionResult = Signal(pd.DataFrame)
     # ティックデータ保存の終了を通知
     saveCompleted = Signal(bool)
+    # 約定確認結果を通知
+    sendResult = Signal(str, bool)
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
@@ -53,6 +55,11 @@ class RSSReaderWorker(QObject):
         # ---------------------------------------------------------------------
         self.wb = None  # Excel のワークブックインスタンス
         self.sheet = None  # Excel のワークシートインスタンス
+        self.clear_logs = None
+        self.do_buy = None
+        self.do_sell = None
+        self.do_repay = None
+        self.is_position_present = None
 
         self.max_row = None
         self.min_row = None
@@ -60,8 +67,9 @@ class RSSReaderWorker(QObject):
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
         # COM エラーが発生するため、リトライできるようにしている。
-        self.max_retries = 3  # 最大リトライ回数
+        self.max_retries = 5  # 最大リトライ回数
         self.retry_delay = 0.1  # リトライ間の遅延（秒）
+        self.sec_sleep = 2  # 約定確認用のスリープ時間（秒）
 
         # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
         self.dict_data = dict()
@@ -110,8 +118,13 @@ class RSSReaderWorker(QObject):
         self.logger.info("Worker: in init process.")
         #######################################################################
         # 情報を取得する Excel ワークブック・インスタンスの生成
-        self.wb = xw.Book(self.excel_path)
-        self.sheet = self.wb.sheets["Cover"]
+        self.wb = wb = xw.Book(self.excel_path)
+        self.sheet = wb.sheets["Cover"]
+        self.clear_logs = wb.macro("ClearLogs")
+        self.do_buy = wb.macro("DoBuy")
+        self.do_sell = wb.macro("DoSell")
+        self.do_repay = wb.macro("DoRepay")
+        self.is_position_present = wb.macro("IsPositionPresent")
         #######################################################################
         row_max = 200  # Cover の最大行数の仮設定
 
@@ -141,6 +154,8 @@ class RSSReaderWorker(QObject):
 
         # ポジションマネージャ初期化
         self.posman.initPosition(self.list_code)
+        # 古いログをクリア
+        self.macro_clear_logs()
 
     @Slot(float)
     def readCurrentPrice(self, ts: float):
@@ -271,19 +286,121 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理
+    # 取引ボタンがクリックされた時など　VBAマクロとやり取りをする処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    @Slot(str, float, float, str)
-    def on_buy(self, code: str, ts: float, price: float, note: str):
-        # 買建で新規建玉
-        self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+    @Slot()
+    def macro_clear_logs(self):
+        if sys.platform != "win32":
+            self.logger.info(f"{self.prefix}: ClearLogs: 非Windows 上では実行できません。")
+            return
+        try:
+            self.clear_logs()
+            self.logger.info(f"{self.prefix}: ClearLogs completed")
+        except com_error as e:
+            self.logger.error(f"{self.prefix}: ClearLogs failed: {e}")
+        except Exception as e:
+            self.logger.exception(f"{self.prefix}: Unexpected error in ClearLogs: {e}")
 
     @Slot(str, float, float, str)
-    def on_sell(self, code: str, ts: float, price: float, note: str):
-        # 売建で新規建玉
-        self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+    def macro_do_buy(self, code: str, ts: float, price: float, note: str):
+        try:
+            result = self.do_buy(code)
+            self.logger.info(f"{self.prefix}: DoBuy returned {result}")
+        except com_error as e:
+            self.logger.error(f"{self.prefix}: DoBuy failed for code={code}: {e}")
+            self.sendResult.emit(False)
+            return
+        except Exception as e:
+            self.logger.exception(f"{self.prefix}: Unexpected error in DoBuy: {e}")
+            self.sendResult.emit(False)
+            return
+
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、買建では建玉一覧に銘柄コードあり (True)
+        expected_state = True
+
+        # 約定確認
+        if self.confirm_execution(code, expected_state):
+            # 買建で新規建玉
+            self.posman.openPosition(code, ts, price, ActionType.BUY, note)
 
     @Slot(str, float, float, str)
-    def on_repay(self, code: str, ts: float, price: float, note: str):
-        # 建玉返済
-        self.posman.closePosition(code, ts, price, note)
+    def macro_do_sell(self, code: str, ts: float, price: float, note: str):
+        try:
+            result = self.do_sell(code)
+            self.logger.info(f"{self.prefix}: DoSell returned {result}")
+        except com_error as e:
+            self.logger.error(f"{self.prefix}: DoSell failed for code={code}: {e}")
+            self.sendResult.emit(False)
+            return
+        except Exception as e:
+            self.logger.exception(f"{self.prefix}: Unexpected error in DoSell: {e}")
+            self.sendResult.emit(False)
+            return
+
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、売建では建玉一覧に銘柄コードあり (True)
+        expected_state = True
+        # 約定確認
+        if self.confirm_execution(code, expected_state):
+            # 売建で新規建玉
+            self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+
+    @Slot(str, float, float, str)
+    def macro_do_repay(self, code: str, ts: float, price: float, note: str):
+        try:
+            result = self.do_repay(code)
+            self.logger.info(f"{self.prefix}: DoRepay returned {result}")
+        except com_error as e:
+            self.logger.error(f"{self.prefix}: DoRepay failed for code={code}: {e}")
+            self.sendResult.emit(False)
+            return
+        except Exception as e:
+            self.logger.exception(f"{self.prefix}: Unexpected error in DoRepay: {e}")
+            self.sendResult.emit(False)
+            return
+
+        # 注文結果が False の場合はここで終了
+        if not result:
+            self.sendResult.emit(False)
+            return
+        # 約定後、返済では建玉一覧に銘柄コードなし (False)
+        expected_state = False
+
+        # 約定確認
+        if self.confirm_execution(code, expected_state):
+            # 建玉返済
+            self.posman.closePosition(code, ts, price, note)
+
+    def confirm_execution(self, code: str, expected_state: bool) -> bool:
+        # 約定確認
+        for attempt in range(self.max_retries):
+            time.sleep(self.sec_sleep)
+            try:
+                current = bool(self.is_position_present(code))  # 論理値が返ってくるはずだけど保険に
+                if current == expected_state:
+                    self.logger.info(f"{self.prefix}: 約定が反映されました (attempt {attempt + 1}).")
+                    self.sendResult.emit(code, True)
+                    return True
+                else:
+                    self.logger.info(
+                        f"{self.prefix}: 約定未反映 (attempt {attempt + 1}): "
+                        f"is_position_present={current}, expected={expected_state}"
+                    )
+            except com_error as e:
+                self.logger.error(f"{self.prefix}: IsPositionPresent failed for code={code}: {e}")
+                self.logger.info(f"{self.prefix}: retrying... (Attempt {attempt + 1}/{self.max_retries})")
+            except Exception as e:
+                self.logger.exception(f"{self.prefix}: Unexpected error in IsPositionPresent: {e}")
+
+        # self.max_retries 回確認しても変化なし → 注文未反映
+        self.logger.info(f"{self.prefix}: 約定を確認できませんでした。")
+        self.sendResult.emit(code, False)
+
+        return False

@@ -7,7 +7,7 @@ from PySide6.QtCore import (
     QThread,
     QTimer,
     Qt,
-    Signal,
+    Signal, Slot,
 )
 from PySide6.QtGui import (
     QCloseEvent,
@@ -284,7 +284,7 @@ class Kabuto(QMainWindow):
 
     def on_create_thread(self):
         """
-        リアルタイム用ティックデータ取得スレッドの生成
+        リアルタイム用ティックデータ取得および売買用スレッドの生成
         :return:
         """
         # ---------------------------------------------------------------------
@@ -301,10 +301,10 @@ class Kabuto(QMainWindow):
         # 03. 初期化処理は主に xlwings 関連処理
         self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
-        # 04. 売買ポジション処理用のメソッドへキューイング
-        self.requestBuy.connect(worker.on_buy)
-        self.requestSell.connect(worker.on_sell)
-        self.requestRepay.connect(worker.on_repay)
+        # 04. 売買処理用のメソッドへキューイング
+        self.requestBuy.connect(worker.macro_do_buy)
+        self.requestSell.connect(worker.macro_do_sell)
+        self.requestRepay.connect(worker.macro_do_repay)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
@@ -330,6 +330,8 @@ class Kabuto(QMainWindow):
         # 13. データフレームの保存終了を通知
         worker.saveCompleted.connect(self.on_save_completed)
         # ---------------------------------------------------------------------
+        # 14. 約定結果の通知
+        worker.sendResult.connect(self.receive_result)
         # 19. スレッド終了関連
         worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
@@ -524,6 +526,17 @@ class Kabuto(QMainWindow):
         self.requestRepay.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @Slot(bool)
+    def receive_result(self, code: str, status: bool):
+        """
+        約定確認結果
+        :param code:
+        :param status:
+        :return:
+        """
+        trader: Trader = self.dict_trader[code]
+        trader.dock.receive_result(status)
+
     ###########################################################################
     #
     # デバッグ（レビュー）用メソッド
@@ -555,9 +568,9 @@ class Kabuto(QMainWindow):
         self.requestWorkerInit.connect(worker.initWorker)
         # ---------------------------------------------------------------------
         # 04. 売買処理用のメソッドへキューイング
-        self.requestBuy.connect(worker.on_buy)
-        self.requestSell.connect(worker.on_sell)
-        self.requestRepay.connect(worker.on_repay)
+        self.requestBuy.connect(worker.macro_do_buy)
+        self.requestSell.connect(worker.macro_do_sell)
+        self.requestRepay.connect(worker.macro_do_repay)
         # ---------------------------------------------------------------------
         # 05. 取引結果を取得するメソッドへキューイング
         self.requestTransactionResult.connect(worker.getTransactionResult)
@@ -582,6 +595,9 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # 13. データフレームを保存終了を通知
         # デバッグ/レビュー用では本機能なし
+        # ---------------------------------------------------------------------
+        # 14. 約定結果の通知
+        worker.sendResult.connect(self.receive_result)
         # ---------------------------------------------------------------------
         # 19. スレッド終了関連
         worker.threadFinished.connect(self.on_thread_finished)

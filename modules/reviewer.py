@@ -1,4 +1,5 @@
 import logging
+import time
 
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
@@ -24,6 +25,9 @@ class ExcelReviewWorker(QObject):
 
     # 取引結果のデータフレーム通知シグナル
     notifyTransactionResult = Signal(pd.DataFrame)
+
+    # 約定確認結果を通知
+    sendResult = Signal(str, bool)
 
     # スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
@@ -136,16 +140,22 @@ class ExcelReviewWorker(QObject):
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     @Slot(str, float, float, str)
-    def on_buy(self, code: str, ts: float, price: float, note: str):
+    def macro_do_buy(self, code: str, ts: float, price: float, note: str):
+        time.sleep(0.2)
         # 買建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+        self.sendResult.emit(code, True)
 
     @Slot(str, float, float, str)
-    def on_sell(self, code: str, ts: float, price: float, note: str):
+    def macro_do_sell(self, code: str, ts: float, price: float, note: str):
+        time.sleep(0.2)
         # 売建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+        self.sendResult.emit(code, True)
 
     @Slot(str, float, float, str)
-    def on_repay(self, code: str, ts: float, price: float, note: str):
+    def macro_do_repay(self, code: str, ts: float, price: float, note: str):
+        time.sleep(0.2)
         # 建玉返済
         self.posman.closePosition(code, ts, price, note)
+        self.sendResult.emit(code, True)
