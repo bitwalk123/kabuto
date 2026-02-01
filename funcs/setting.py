@@ -60,7 +60,9 @@ def update_setting(res: AppRes, code: str):
             logger.info(f"{__name__}: {code}.json を更新しました")
         else:
             logger.warning(f"{__name__}: リモートに {code}.json はありません (status={r.status_code})")
-            save_setting(res, code, FeatureDefaults.as_dict())
+            defaults = FeatureDefaults.as_dict()
+            print(defaults)
+            save_setting(res, code, defaults)
             logger.info(f"{__name__}: デフォルトの設定で {code}.json を保存しました。")
 
     except Exception as e:

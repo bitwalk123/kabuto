@@ -33,6 +33,10 @@ class TrendGraph(pg.PlotWidget):
         # 軸の設定
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
+        font_mono = TickFont(self.res)
+        axis_bottom.setStyle(tickFont=font_mono)
+        axis_left.setStyle(tickFont=font_mono)
+
         super().__init__(
             axisItems={'bottom': axis_bottom, 'left': axis_left},
             enableMenu=False
@@ -89,12 +93,7 @@ class TrendGraph(pg.PlotWidget):
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
         self.plot_item.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
         # x軸の余白を設定
-        self.plot_item.getAxis('bottom').setHeight(27)
-        # ---------------------------------------------------------------------
-        # 軸のフォント設定
-        font_tick = TickFont(self.res)
-        self.plot_item.getAxis('bottom').setStyle(tickFont=font_tick)
-        self.plot_item.getAxis('left').setStyle(tickFont=font_tick)
+        self.plot_item.getAxis('bottom').setHeight(28)
         # ---------------------------------------------------------------------
         # グリッド
         self.plot_item.showGrid(x=True, y=True, alpha=0.5)

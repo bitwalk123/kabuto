@@ -1,3 +1,6 @@
+import inspect
+
+
 class FeatureDefaults:
     """
     特徴量用パラメータ管理クラス
@@ -14,5 +17,5 @@ class FeatureDefaults:
     def as_dict(cls) -> dict:
         return {
             k: v for k, v in cls.__dict__.items()
-            if not k.startswith("_") and not callable(v)
+            if not k.startswith("_") and not inspect.isroutine(v)
         }
