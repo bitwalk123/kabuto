@@ -306,7 +306,7 @@ class TradeButton(QPushButton):
             """)
 
         elif act == "repay":
-            self.setText("返　　却")
+            self.setText("返　　済")
             self.setStyleSheet("""
             QPushButton {
                 font-family: monospace;
