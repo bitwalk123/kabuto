@@ -17,7 +17,7 @@ from funcs.ios import (
     get_sheets_in_excel,
     save_setting,
 )
-from funcs.setting import get_default_setting, load_setting
+from funcs.setting import load_setting
 from funcs.tse import get_ticker_name_list
 from modules.uploader import UploadWorker
 from structs.app_enum import AppMode

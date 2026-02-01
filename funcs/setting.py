@@ -8,6 +8,7 @@ import requests
 from urllib3.exceptions import InsecureRequestWarning
 
 from funcs.ios import save_setting
+from structs.defaults import FeatureDefaults
 from structs.res import AppRes
 
 logger = logging.getLogger(__name__)
@@ -16,30 +17,10 @@ logger = logging.getLogger(__name__)
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
 
-def get_default_setting() -> dict:
-    # デフォルトのパラメータ設定
-    return {
-        "PERIOD_WARMUP": 60,  # 寄り付き後のウォームアップ期間
-        "PERIOD_MA_1": 30,  # 短周期移動平均線の周期
-        "PERIOD_MA_2": 300,  # 長周期移動平均線の周期
-        "LOSSCUT_1": -25.0,  # 単純ロスカットをするためのしきい値
-        "N_MINUS_MAX": 90,  # 含み損益が連続マイナスを許容する最大回数
-        "DD_PROFIT": 5.0,  # 「含み益最大値」がこれを超えればドローダウン対象
-        "DD_RATIO": 0.5,  # ドローダウン比率がこのしきい値を超えれば利確
-    }
-
-
 def get_trend_footer(dict_ts: dict, dict_setting: dict) -> str:
-    return (
-        f"DATE = {dict_ts['datetime_str_2']} / "
-        f"PERIOD_WARMUP = {dict_setting['PERIOD_WARMUP']} / "
-        f"PERIOD_MA_1 = {dict_setting['PERIOD_MA_1']} / "
-        f"PERIOD_MA_2 = {dict_setting['PERIOD_MA_2']} / "
-        f"LOSSCUT_1 = {dict_setting['LOSSCUT_1']} / "
-        f"N_MINUS_MAX = {dict_setting['N_MINUS_MAX']} / "
-        f"DD_PROFIT = {dict_setting['DD_PROFIT']} / "
-        f"DD_RATIO = {dict_setting['DD_RATIO']}"
-    )
+    parts = [f"DATE = {dict_ts['datetime_str_2']}"]
+    parts += [f"{k} = {v}" for k, v in dict_setting.items()]
+    return " / ".join(parts)
 
 
 def load_setting(res: AppRes, code: str) -> dict:
@@ -55,7 +36,7 @@ def load_setting(res: AppRes, code: str) -> dict:
             dict_setting = json.load(f)
         return dict_setting
     else:
-        return get_default_setting()
+        return FeatureDefaults.as_dict()
 
 
 def update_setting(res: AppRes, code: str):
@@ -79,7 +60,7 @@ def update_setting(res: AppRes, code: str):
             logger.info(f"{__name__}: {code}.json を更新しました")
         else:
             logger.warning(f"{__name__}: リモートに {code}.json はありません (status={r.status_code})")
-            save_setting(res, code, get_default_setting())
+            save_setting(res, code, FeatureDefaults.as_dict())
             logger.info(f"{__name__}: デフォルトの設定で {code}.json を保存しました。")
 
     except Exception as e:

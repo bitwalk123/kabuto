@@ -1,0 +1,18 @@
+class FeatureDefaults:
+    """
+    特徴量用パラメータ管理クラス
+    """
+    PERIOD_WARMUP = 60
+    PERIOD_MA_1 = 30
+    PERIOD_MA_2 = 600
+    LOSSCUT_1 = -25.0
+    N_MINUS_MAX = 90
+    DD_PROFIT = 5.0
+    DD_RATIO = 0.5
+
+    @classmethod
+    def as_dict(cls) -> dict:
+        return {
+            k: v for k, v in cls.__dict__.items()
+            if not k.startswith("_") and not callable(v)
+        }

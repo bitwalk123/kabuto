@@ -2,20 +2,12 @@ import datetime
 
 import numpy as np
 
-from funcs.technical import MovingAverage, RegressionSlope, EMA, RollingRange, MovingRange, RegressionSlopePeriod
+from structs.defaults import FeatureDefaults
+from funcs.technical import MovingAverage
 from structs.app_enum import PositionType
 
 
 class FeatureProvider:
-    DEFAULTS = {
-        "PERIOD_WARMUP": 60,  # 寄り付き後のウォームアップ期間
-        "PERIOD_MA_1": 30,  # 短周期移動平均線の周期
-        "PERIOD_MA_2": 300,  # 長周期移動平均線の周期
-        "LOSSCUT_1": -25.0,  # 単純ロスカットをするためのしきい値
-        "N_MINUS_MAX": 90,  # 含み損益が連続マイナスを許容する最大回数
-        "DD_PROFIT": 5.0,  # 「含み益最大値」がこれを超えればドローダウン対象
-        "DD_RATIO": 0.5,  # ドローダウン比率がこのしきい値を超えれば利確
-    }
     INIT_VALUES = {
         # ティックデータ
         "ts": None,
@@ -86,8 +78,9 @@ class FeatureProvider:
     }
 
     def __init__(self, dict_setting: dict):
-        # DEFAULTS をベースに dict_setting を上書きして「完全版」を作る
-        self.dict_setting = {**self.DEFAULTS, **dict_setting}
+        # defaults をベースに dict_setting を上書きして「完全版」を作る
+        defaults = FeatureDefaults.as_dict()
+        self.dict_setting = {**defaults, **dict_setting}
 
         print("パラメータ")
         # 属性へ反映
