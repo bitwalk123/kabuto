@@ -89,7 +89,7 @@ class TrendGraph(pg.PlotWidget):
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
         self.plot_item.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
         # x軸の余白を設定
-        self.plot_item.getAxis('bottom').setHeight(25)
+        self.plot_item.getAxis('bottom').setHeight(27)
         # ---------------------------------------------------------------------
         # 軸のフォント設定
         font_tick = TickFont(self.res)
