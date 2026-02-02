@@ -617,3 +617,51 @@ class MonotonicRange:
         if not self.max_q or not self.min_q:
             return 0.0
         return self.max_q[0] - self.min_q[0]
+
+
+class VWAP:
+    def __init__(self):
+        self.running_pv = 0.0
+        self.running_vol = 0.0
+        self.vwap = 0.0
+        self.prev_vwap = 0.0
+        self.prev_volume = None
+
+    def clear(self):
+        self.running_pv = 0.0
+        self.running_vol = 0.0
+        self.vwap = 0.0
+        self.prev_vwap = 0.0
+        self.prev_volume = None
+
+    def getValue(self) -> float:
+        return self.vwap
+
+    def getSlope(self) -> float:
+        return self.vwap - self.prev_vwap
+
+    def update(self, price: float, cumulative_volume: float) -> float:
+        # 初回ティック：始値を VWAP として採用
+        if self.prev_volume is None:
+            self.prev_volume = cumulative_volume
+            self.vwap = price
+            self.prev_vwap = price
+            return self.vwap
+
+        # 出来高の増加量
+        vol_delta = cumulative_volume - self.prev_volume
+        self.prev_volume = cumulative_volume
+
+        # 異常値（出来高減少）は無視
+        if vol_delta <= 0:
+            return self.vwap
+
+        # 加重合計を更新
+        self.running_pv += price * vol_delta
+        self.running_vol += vol_delta
+
+        # VWAP 更新
+        self.prev_vwap = self.vwap
+        self.vwap = self.running_pv / self.running_vol
+
+        return self.vwap

@@ -17,6 +17,7 @@ class CustomYAxisItem(pg.AxisItem):
 
 
 class TrendGraph(pg.PlotWidget):
+    COLOR_VWAP = (0, 255, 255, 192)
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 0, 255, 255)
     COLOR_CROSS = (255, 255, 64, 128)
@@ -63,6 +64,8 @@ class TrendGraph(pg.PlotWidget):
         # 折れ線
         # 株価
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
+        # VWAP
+        self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=0.5))
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
         # 移動平均線 2
@@ -127,7 +130,8 @@ class TrendGraph(pg.PlotWidget):
         # 最新値
         self.last_dot.setData([t], [price])
 
-    def setTechnicals(self, line_ts, line_ma_1, line_ma_2):
+    def setTechnicals(self, line_ts, line_vwap, line_ma_1, line_ma_2):
+        self.vwap.setData(line_ts, line_vwap)
         self.ma_1.setData(line_ts, line_ma_1)
         self.ma_2.setData(line_ts, line_ma_2)
 

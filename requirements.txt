@@ -10,7 +10,6 @@ isort
 jaraco-collections
 jaraco-context
 jaraco-functools
-jaraco.collections
 jsonpointer
 jupyterlab
 jupyterlab-code-formatter

@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from structs.defaults import FeatureDefaults
-from funcs.technical import MovingAverage
+from funcs.technical import MovingAverage, VWAP
 from structs.app_enum import PositionType
 
 
@@ -92,6 +92,7 @@ class FeatureProvider:
         self.N_TRADE_MAX = 100
 
         # インスタンス生成
+        self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
         self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
 
@@ -104,6 +105,7 @@ class FeatureProvider:
 
     def clear(self):
         # オブジェクト系は個別に clear()
+        self.obj_vwap.clear()
         self.obj_ma1.clear()
         self.obj_ma2.clear()
 
@@ -224,6 +226,20 @@ class FeatureProvider:
     def getTimestamp(self) -> float:
         return self.ts
 
+    def getVolume(self) -> float:
+        """
+        出来高
+        :return:
+        """
+        return self.volume
+
+    def getVWAP(self) -> float:
+        """
+        VWAP
+        :return:
+        """
+        return self.obj_vwap.getValue()
+
     def position_close(self) -> float:
         reward = 0
 
@@ -297,6 +313,9 @@ class FeatureProvider:
         # --- 寄り付き価格の初期化 ---
         if self.price_open == 0:
             self.price_open = price
+
+        # --- VWAP ---
+        self.obj_vwap.update(price, volume)
 
         # --- 移動平均 ---
         ma1 = self.obj_ma1.update(price)
