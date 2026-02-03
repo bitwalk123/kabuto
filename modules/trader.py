@@ -159,11 +159,11 @@ class Trader(QMainWindow):
         self.trend.save(path_img)
 
     def on_technicals(self, dict_technicals: dict):
+        # テクニカル指標
         self.list_ts.append(dict_technicals["ts"])
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_ma_2.append(dict_technicals["ma2"])
-        # テクニカル指標
         self.trend.setTechnicals(
             self.list_ts,
             self.list_vwap,
@@ -171,8 +171,10 @@ class Trader(QMainWindow):
             self.list_ma_2
         )
         # クロス時の縦線表示
-        if dict_technicals["cross1"] != 0:
-            self.trend.setCross(dict_technicals["ts"])
+        if 0 < dict_technicals["cross1"]:
+            self.trend.setCrossGolden(dict_technicals["ts"])
+        elif dict_technicals["cross1"] < 0:
+            self.trend.setCrossDead(dict_technicals["ts"])
 
     def on_trading_completed(self):
         self.logger.info("取引が終了しました。")

@@ -20,7 +20,8 @@ class TrendGraph(pg.PlotWidget):
     COLOR_VWAP = (0, 255, 255, 192)
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 0, 255, 255)
-    COLOR_CROSS = (255, 255, 64, 128)
+    COLOR_GOLDEN = (255, 0, 192, 160)
+    COLOR_DEAD = (0, 192, 255, 128)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
@@ -80,8 +81,11 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.last_dot)
 
-        self.vline = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_CROSS, width=1))
-        self.addItem(self.vline)
+        self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=1))
+        self.addItem(self.vline_golden)
+
+        self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=1))
+        self.addItem(self.vline_dead)
 
     def config_plot_item(self):
         """
@@ -109,8 +113,11 @@ class TrendGraph(pg.PlotWidget):
         # 高速化オプション
         self.plot_item.setClipToView(True)
 
-    def setCross(self, x):
-        self.vline.setPos(x)
+    def setCrossDead(self, x):
+        self.vline_dead.setPos(x)
+
+    def setCrossGolden(self, x):
+        self.vline_golden.setPos(x)
 
     def setLine(self, line_x, line_y):
         # line_x, line_y が空でないことが保証されている
