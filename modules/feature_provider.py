@@ -94,7 +94,7 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
-        self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
+        #self.obj_ma2 = MovingAverage(window_size=self.PERIOD_MA_2)
 
         # INIT_VALUES を一括適用
         for key, value in self.INIT_VALUES.items():
@@ -107,7 +107,7 @@ class FeatureProvider:
         # オブジェクト系は個別に clear()
         self.obj_vwap.clear()
         self.obj_ma1.clear()
-        self.obj_ma2.clear()
+        #self.obj_ma2.clear()
 
         # 取引明細とポジションは特殊処理
         self.dict_transaction = self.transaction_init()
@@ -162,13 +162,6 @@ class FeatureProvider:
         :return:
         """
         return self.obj_ma1.getValue()
-
-    def getMA2(self) -> float:
-        """
-        移動平均 2 の取得
-        :return:
-        """
-        return self.obj_ma2.getValue()
 
     def getPeriodWarmup(self):
         return self.PERIOD_WARMUP
@@ -315,12 +308,11 @@ class FeatureProvider:
             self.price_open = price
 
         # --- VWAP ---
-        self.obj_vwap.update(price, volume)
+        vwap = self.obj_vwap.update(price, volume)
 
         # --- 移動平均 ---
         ma1 = self.obj_ma1.update(price)
-        ma2 = self.obj_ma2.update(price)
-        div_ma = ma1 - ma2
+        div_ma = ma1 - vwap
         # --- クロス判定 ---
         self.cross_pre = self.cross
         self.cross = self._detect_cross(self.div_ma_prev, div_ma)

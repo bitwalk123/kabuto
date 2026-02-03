@@ -163,12 +163,11 @@ class Trader(QMainWindow):
         self.list_ts.append(dict_technicals["ts"])
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_ma_2.append(dict_technicals["ma2"])
+        # self.list_ma_2.append(dict_technicals["ma2"])
         self.trend.setTechnicals(
             self.list_ts,
-            self.list_vwap,
             self.list_ma_1,
-            self.list_ma_2
+            self.list_vwap,
         )
         # クロス時の縦線表示
         if 0 < dict_technicals["cross1"]:
