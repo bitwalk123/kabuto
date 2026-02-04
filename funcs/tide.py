@@ -8,6 +8,14 @@ def conv_datetime_from_timestamp(ts) -> str:
     return f"{dt.year:04}-{dt.month:02}-{dt.day:02} {dt.hour:02}:{dt.minute:02}:{dt.second:02}"
 
 
+def conv_date_str_to_path(date_str: str) -> str:
+    pattern = re.compile(r"(\d{4})(\d{2})(\d{2})")
+    if m := pattern.match(date_str):
+        return os.path.join(m.group(1), m.group(2), m.group(3))
+    else:
+        return os.path.join("1970", "01", "01")
+
+
 def get_date_str_from_file(file: str) -> str:
     """
     ファイル名から日付文字列を返す関数

@@ -21,6 +21,7 @@ from widgets.graphs import TrendGraph
 class Trader(QMainWindow):
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
+    requestSaveTechnicals = Signal(str)
 
     # 売買
     requestPositionOpen = Signal(ActionType)
@@ -93,6 +94,7 @@ class Trader(QMainWindow):
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.requestResetEnv.connect(worker.resetEnv)
         self.sendTradeData.connect(worker.addData)
+        self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.requestPositionOpen.connect(worker.env.openPosition)
         self.requestPositionClose.connect(worker.env.closePosition)
 
@@ -266,3 +268,7 @@ class Trader(QMainWindow):
             # 🧿 建玉返済リクエストのシグナル
             self.requestPositionClose.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def saveTechnicals(self, path_dir:str):
+        path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
+        self.requestSaveTechnicals.emit(path_csv)

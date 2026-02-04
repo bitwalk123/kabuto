@@ -18,9 +18,9 @@ class CustomYAxisItem(pg.AxisItem):
 
 class TrendGraph(pg.PlotWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
-    COLOR_MA_2 = (255, 0, 255, 255)
-    COLOR_GOLDEN = (255, 0, 192, 160)
-    COLOR_DEAD = (0, 192, 255, 128)
+    COLOR_MA_2 = (255, 0, 255, 192)
+    COLOR_GOLDEN = (255, 0, 192, 192)
+    COLOR_DEAD = (0, 192, 255, 160)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 

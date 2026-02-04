@@ -21,7 +21,7 @@ from PySide6.QtWidgets import (
 
 from funcs.conv import conv_transaction_df2html
 from funcs.setting import update_setting
-from funcs.tide import get_intraday_timestamp
+from funcs.tide import get_intraday_timestamp, conv_date_str_to_path
 from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.dock import DockTrader
@@ -29,7 +29,7 @@ from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.dialogs import DlgAboutThis, DlgCodeSel
 from widgets.statusbars import StatusBar
-from widgets.toolbars import ToolBar
+from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.win_transaction import WinTransaction
 from structs.res import AppRes
@@ -420,6 +420,12 @@ class Kabuto(QMainWindow):
             # 🧿 収集したデータの保存
             self.requestSaveDataFrame.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 保持したテクニカルデータを保存
+            path_dir = os.path.join(
+                self.res.dir_output,
+                conv_date_str_to_path(self.dict_ts["datetime_str"])
+            )
+            self.save_technicals(path_dir)
         else:
             pass
 
@@ -503,6 +509,17 @@ class Kabuto(QMainWindow):
                 total = dict_total[code]
                 trader: Trader = self.dict_trader[code]
                 trader.setTradeData(x, y, vol, profit, total)
+
+    def save_technicals(self, path_dir: str):
+        """
+        取引終了後に銘柄毎にテクニカルデータを保存
+        :param path_dir:
+        :return:
+        """
+        os.makedirs(path_dir, exist_ok=True)
+        for code in self.list_code_selected:
+            trader: Trader = self.dict_trader[code]
+            trader.saveTechnicals(path_dir)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
@@ -628,6 +645,12 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__}: タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
+            # 保持したテクニカルデータを保存
+            path_dir = os.path.join(
+                self.res.dir_temp,
+                conv_date_str_to_path(self.dict_ts["datetime_str"])
+            )
+            self.save_technicals(path_dir)
 
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
@@ -653,6 +676,12 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__}: タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
+            # 保持したテクニカルデータを保存
+            path_dir = os.path.join(
+                self.res.dir_temp,
+                conv_date_str_to_path(self.dict_ts["datetime_str"])
+            )
+            self.save_technicals(path_dir)
 
     def set_data_ready_status(self, state: bool):
         self.flag_data_ready = state

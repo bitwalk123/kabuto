@@ -182,9 +182,13 @@ class WorkerAgentRT(QObject):
         # 学習環境の取得
         self.env = TradingEnv(code, dict_param)
 
-        # モデルのインスタンス
+        # モデルに渡す観測値のリスト
         self.list_obs_label = list()
+        # モデルのインスタンス
         self.model = AlgoTrade()
+
+        # 取引内容（＋テクニカル指標）
+        self.dict_list_tech = defaultdict(list)
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float):
@@ -211,6 +215,8 @@ class WorkerAgentRT(QObject):
             # 🧿 テクニカル指標を通知するシグナル
             self.sendTechnicals.emit(dict_technicals)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            for key, value in dict_technicals.items():
+                self.dict_list_tech[key].append(value)
 
             # -----------------------------------------------------------------
             # アクションによる環境の状態更新
@@ -258,6 +264,15 @@ class WorkerAgentRT(QObject):
         self.completedResetEnv.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def saveTechnicals(self, path_csv: str):
+        df = pd.DataFrame(self.dict_list_tech)
+        # インデックスを日付形式に変換
+        df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
+        # 指定されたパスにデータフレームを CSV 形式で保存
+        df.to_csv(path_csv)
+        self.logger.info(f"{__name__}: {path_csv} を保存しました。")
+
+
 
 class CronAgent:
     """
@@ -284,7 +299,7 @@ class CronAgent:
         # 環境クラス
         self.env: TradingEnv | None = None
 
-        # 取引内容
+        # 取引内容（＋テクニカル指標）
         self.dict_list_tech = defaultdict(list)
 
     def run(self, dict_param: dict, df: pd.DataFrame):
