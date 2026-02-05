@@ -131,9 +131,9 @@ if __name__ == "__main__":
     agent = MaskablePPOAgent()
 
     # 推論用データ
-    # file = "ticks_20250819.xlsx"
-    # file = "ticks_20250828.xlsx"
-    # file = "ticks_20251006.xlsx"
+    # date_str = "ticks_20250819.xlsx"
+    # date_str = "ticks_20250828.xlsx"
+    # date_str = "ticks_20251006.xlsx"
     file = sorted(os.listdir(res.dir_collection))[-1:][0]
     code = "7011"
 

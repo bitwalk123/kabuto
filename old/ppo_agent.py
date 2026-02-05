@@ -1,7 +1,7 @@
 """
 PPO trainer for the provided TradingEnv (gym.Env) using PyTorch.
 Usage:
-  - Put this file in the same folder as your TradingEnv class or adapt import path.
+  - Put this date_str in the same folder as your TradingEnv class or adapt import path.
   - Ensure `tick_20250819.xlsx` is present in the working directory.
   - Install requirements: torch, gymnasium, numpy, pandas, ta-lib (or python-ta-lib wrapper), openpyxl
 
@@ -10,7 +10,7 @@ This trainer is tuned to learn reasonably fast on the provided environment:
  - GAE (lambda=0.95), gamma=0.99
  - PPO clipping (eps=0.2), value loss coef=0.5, entropy coef=0.01
  - advantage normalization, value target clipping
- - uses full-episode rollouts (one episode = full file) and performs multiple PPO epochs per episode
+ - uses full-episode rollouts (one episode = full date_str) and performs multiple PPO epochs per episode
 
 Notes:
  - This is a self-contained example for experimentation. You should adapt batch sizes / learning rates
@@ -27,7 +27,7 @@ import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
 
 
-# If your TradingEnv is defined in another module, import it. Otherwise this file expects
+# If your TradingEnv is defined in another module, import it. Otherwise this date_str expects
 # TradingEnv class to be available in the same Python path.
 # from trading_env_module import TradingEnv
 

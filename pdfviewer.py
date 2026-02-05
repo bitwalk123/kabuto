@@ -29,7 +29,7 @@ class PDFViewer(QMainWindow):
 
         # Open
         icon_open = self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
-        self.action_open = action_open = QAction(icon_open, "Open PDF file", self)
+        self.action_open = action_open = QAction(icon_open, "Open PDF date_str", self)
         action_open.triggered.connect(self.on_select_pdf)
         toolbar.addAction(action_open)
 

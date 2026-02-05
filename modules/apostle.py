@@ -41,8 +41,8 @@ class Apostle:
             n_trade: int,
             total: float
     ):
-        # file
-        key = "file"
+        # date_str
+        key = "date_str"
         value = os.path.basename(path_excel)
         self.dict_doe.setdefault(key, []).append(value)
         # code

@@ -7,7 +7,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QRadioButton,
     QSizePolicy,
-    QStyle,
+    QStyle, QCheckBox,
 )
 
 from structs.res import AppRes
@@ -214,6 +214,18 @@ class ButtonTicker(QPushButton):
 
     def getName(self) -> str:
         return self.name
+
+
+class CheckBox(QCheckBox):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setStyleSheet("""
+            QCheckBox {
+                font-family: monospace;
+                margin-left: 0.5em;
+                margin-right: 0.5em;
+            }
+        """)
 
 
 class RadioButton(QRadioButton):

@@ -64,7 +64,7 @@ class ExcelReviewWorker(QObject):
         try:
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
-            msg = "encountered error in reading Excel file:"
+            msg = "encountered error in reading Excel date_str:"
             self.logger.critical(f"{__name__}: {msg} {e}")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 スレッドの異常終了を通知

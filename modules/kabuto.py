@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.7"
+    __version__ = "0.3.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -421,11 +421,20 @@ class Kabuto(QMainWindow):
             self.requestSaveDataFrame.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 保持したテクニカルデータを保存
-            path_dir = os.path.join(
-                self.res.dir_output,
-                conv_date_str_to_path(self.dict_ts["datetime_str"])
-            )
-            self.save_technicals(path_dir)
+            if self.toolbar.isAlt():
+                self.logger.info(
+                    f"{__name__}: 代替環境なのでテクニカルデータの保存をキャンセルします。"
+                )
+            else:
+                """
+                バックアップ用に稼働しているのでなければ、テクニカルデータを保存
+                ※ このデータは Github にアップしているので上書きや衝突を防ぐため
+                """
+                path_dir = os.path.join(
+                    self.res.dir_output,
+                    conv_date_str_to_path(self.dict_ts["datetime_str"])
+                )
+                self.save_technicals(path_dir)
         else:
             pass
 
@@ -434,9 +443,9 @@ class Kabuto(QMainWindow):
 
     def on_save_completed(self, state: bool):
         if state:
-            self.logger.info("ティック・データを正常に保存しました。")
+            self.logger.info(f"{__name__}: ティック・データを正常に保存しました。")
         else:
-            self.logger.info("ティック・データを正常に保存できませんでした。")
+            self.logger.info(f"{__name__}: ティック・データを正常に保存できませんでした。")
 
     def on_show_transaction(self):
         """
@@ -676,6 +685,7 @@ class Kabuto(QMainWindow):
             self.logger.info(f"{__name__}: タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
+
             # 保持したテクニカルデータを保存
             path_dir = os.path.join(
                 self.res.dir_temp,
@@ -688,3 +698,5 @@ class Kabuto(QMainWindow):
         self.logger.info(
             f"{__name__}: データ準備完了フラグが {state} になりました。"
         )
+        # Play / Stop ボタンの状態変更
+        self.toolbar.switch_playstop(state)

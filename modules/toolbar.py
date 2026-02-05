@@ -11,6 +11,7 @@ from funcs.ios import get_sheets_in_excel
 from funcs.tse import get_ticker_name_list
 from modules.uploader import UploadWorker
 from structs.res import AppRes
+from widgets.buttons import CheckBox
 from widgets.containers import PadH
 from widgets.dialogs import DlgTickFileSel, DlgCodeSel
 from widgets.labels import Label, LCDTime
@@ -48,21 +49,23 @@ class ToolBar(QToolBar):
             self.addSeparator()
 
             # タイマー開始
-            action_play = QAction(
+            self.action_play = action_play = QAction(
                 QIcon(os.path.join(res.dir_image, "play.png")),
                 "タイマー開始",
                 self
             )
+            action_play.setEnabled(False)
             action_play.triggered.connect(self.on_play)
             self.addAction(action_play)
 
             # タイマー停止
-            action_stop = QAction(
+            self.action_stop = action_stop = QAction(
                 QIcon(os.path.join(res.dir_image, "stop.png")),
                 "タイマー停止",
                 self
             )
             action_stop.triggered.connect(self.on_stop)
+            action_stop.setEnabled(False)
             self.addAction(action_stop)
 
             # 設定ファイルのアップロード
@@ -84,6 +87,15 @@ class ToolBar(QToolBar):
         action_transaction.triggered.connect(self.on_transaction)
         self.addAction(action_transaction)
 
+        # システム設定
+        self.action_setting = action_setting = QAction(
+            QIcon(os.path.join(res.dir_image, "setting.png")),
+            "システム設定",
+            self
+        )
+        action_setting.triggered.connect(self.on_setting)
+        self.addAction(action_setting)
+
         # このアプリについて
         self.action_about = action_about = QAction(
             QIcon(os.path.join(res.dir_image, "about.png")),
@@ -92,6 +104,12 @@ class ToolBar(QToolBar):
         )
         action_about.triggered.connect(self.on_about)
         self.addAction(action_about)
+
+        self.addSeparator()
+
+        # バックアップ稼働かの識別用
+        self.check_alt = check_alt = CheckBox("alt.")
+        self.addWidget(check_alt)
 
         pad = PadH()
         self.addWidget(pad)
@@ -109,6 +127,10 @@ class ToolBar(QToolBar):
             thread.wait()
         super().closeEvent(event)
 
+    def isAlt(self) -> bool:
+        # バックアップ用に稼働しているかどうか
+        return self.check_alt.isChecked()
+
     def on_about(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 「このアプリについて」ボタンがクリックされたことを通知
@@ -120,6 +142,11 @@ class ToolBar(QToolBar):
         # 🧿 「タイマー開始」ボタンがクリックされたことを通知
         self.clickedPlay.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # Play / Stop ボタンの状態変更
+        self.switch_playstop(False)
+
+    def on_setting(self):
+        print("未実装です。")
 
     def on_select_excel(self):
         """
@@ -133,7 +160,7 @@ class ToolBar(QToolBar):
         else:
             return
 
-        # Excel アイコンを Desable に
+        # Excel アイコンを Disable に
         self.excel.setDisabled(True)
 
         # 対象の Excel ファイルのシート一覧
@@ -158,6 +185,7 @@ class ToolBar(QToolBar):
         # 🧿 「タイマー停止」ボタンがクリックされたことを通知
         self.clickedStop.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        self.action_stop.setDisabled(True)
 
     def on_transaction(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -193,6 +221,10 @@ class ToolBar(QToolBar):
         :return:
         """
         self.action_transaction.setEnabled(True)
+
+    def switch_playstop(self, state: bool):
+        self.action_play.setEnabled(state)
+        self.action_stop.setDisabled(state)
 
     def updateTime(self, ts: float):
         dt = datetime.datetime.fromtimestamp(ts)
