@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.7"
+    __version__ = "0.3.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -421,11 +421,16 @@ class Kabuto(QMainWindow):
             self.requestSaveDataFrame.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 保持したテクニカルデータを保存
-            path_dir = os.path.join(
-                self.res.dir_output,
-                conv_date_str_to_path(self.dict_ts["datetime_str"])
-            )
-            self.save_technicals(path_dir)
+            if not self.toolbar.isAlt():
+                """
+                バックアップ用に稼働しているのでなければテクニカルデータを保存
+                ※ Github にアップするので上書きや衝突を防ぐため
+                """
+                path_dir = os.path.join(
+                    self.res.dir_output,
+                    conv_date_str_to_path(self.dict_ts["datetime_str"])
+                )
+                self.save_technicals(path_dir)
         else:
             pass
 
@@ -688,3 +693,5 @@ class Kabuto(QMainWindow):
         self.logger.info(
             f"{__name__}: データ準備完了フラグが {state} になりました。"
         )
+        # Play / Stop ボタンの状態変更
+        self.toolbar.switch_playstop(state)
