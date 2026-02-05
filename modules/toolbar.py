@@ -108,7 +108,7 @@ class ToolBar(QToolBar):
         self.addSeparator()
 
         # バックアップ稼働かの識別用
-        self.check_alt = check_alt = CheckBox("alt.")
+        self.check_alt = check_alt = CheckBox("控")
         self.addWidget(check_alt)
 
         pad = PadH()
