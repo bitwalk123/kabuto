@@ -28,6 +28,17 @@ def get_date_str_from_file(file: str) -> str:
     else:
         return "19700101"
 
+def get_format_date_from_date_str(date_str: str) -> str:
+    """
+    ファイル名から日付文字列を返す関数
+    :param date_str:
+    :return:
+    """
+    pattern = re.compile(r"(\d{4})(\d{2})(\d{2})")
+    if m := pattern.match(date_str):
+        return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
+    else:
+        return "1970-01-01"
 
 def get_date_str_from_file_2(file: str) -> str:
     """

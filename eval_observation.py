@@ -59,7 +59,7 @@ if __name__ == "__main__":
     tz = 9. * 60 * 60
 
     # 推論用データ
-    # file = "ticks_20251006.xlsx"
+    # date_str = "ticks_20251006.xlsx"
     file = "ticks_20251125.xlsx"
     code = "7011"
 

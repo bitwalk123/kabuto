@@ -56,7 +56,7 @@ class Prophet(QMainWindow):
         self.list_tick = []
         self.idx_tick = 0
         self.dict_all = {
-            "file": [],
+            "date_str": [],
             "code": [],
             "trade": [],
             "total": [],
@@ -441,13 +441,13 @@ class Prophet(QMainWindow):
 
         mode = self.dict_info["mode"]
         if mode == AppMode.ALL:
-            self.dict_all["file"].append(os.path.basename(self.path_excel))
+            self.dict_all["date_str"].append(os.path.basename(self.path_excel))
             self.dict_all["code"].append(self.code)
             self.dict_all["trade"].append(n_trade)
             self.dict_all["total"].append(total)
         if mode == AppMode.DOE:
-            # file
-            key = "file"
+            # date_str
+            key = "date_str"
             value = os.path.basename(self.path_excel)
             self.dict_doe.setdefault(key, []).append(value)
             # code

@@ -61,7 +61,7 @@ if __name__ == "__main__":
                     continue
 
                 # 結果格納用辞書を初期化
-                dict_doe = {key: [] for key in ["file", "code", "trade", "total"] + factor_doe}
+                dict_doe = {key: [] for key in ["date_str", "code", "trade", "total"] + factor_doe}
 
                 # DOE 条件ループ
                 for idx, row in df_matrix.iterrows():
@@ -77,7 +77,7 @@ if __name__ == "__main__":
                     print(f"取引回数: {n_trade} 回 / 総収益: {total} 円/100株")
 
                     # 結果を保存
-                    dict_doe["file"].append(excel)
+                    dict_doe["date_str"].append(excel)
                     dict_doe["code"].append(code)
                     dict_doe["trade"].append(n_trade)
                     dict_doe["total"].append(total)
