@@ -423,7 +423,7 @@ class Kabuto(QMainWindow):
             # 保持したテクニカルデータを保存
             if not self.toolbar.isAlt():
                 """
-                バックアップ用に稼働しているのでなければテクニカルデータを保存
+                バックアップ用に稼働しているのでなければ、テクニカルデータを保存
                 ※ Github にアップするので上書きや衝突を防ぐため
                 """
                 path_dir = os.path.join(
