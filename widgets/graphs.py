@@ -18,9 +18,10 @@ class CustomYAxisItem(pg.AxisItem):
 
 class TrendGraph(pg.PlotWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
-    COLOR_MA_2 = (255, 0, 255, 192)
-    COLOR_GOLDEN = (255, 0, 192, 192)
-    COLOR_DEAD = (0, 192, 255, 160)
+    COLOR_VWAP = (255, 0, 192, 192)
+    COLOR_GOLDEN = (255, 128, 255, 192)
+    COLOR_DEAD = (32, 255, 255, 160)
+    COLOR_IQR = (255, 255, 0, 128)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
@@ -66,8 +67,12 @@ class TrendGraph(pg.PlotWidget):
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
-        # 移動平均線 2
-        self.ma_2: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_2, width=1))
+        # VWA`
+        self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
+        # IQR Lower`
+        self.lower: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_IQR, width=0.75))
+        # IQR Upper`
+        self.upper: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_IQR, width=0.75))
         # ---------------------------------------------------------------------
         # 散布図の点
         # 最新値を示すドット
@@ -78,10 +83,10 @@ class TrendGraph(pg.PlotWidget):
         )
         self.addItem(self.last_dot)
 
-        self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=1))
+        self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75))
         self.addItem(self.vline_golden)
 
-        self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=1))
+        self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=0.75))
         self.addItem(self.vline_dead)
 
     def config_plot_item(self):
@@ -134,9 +139,18 @@ class TrendGraph(pg.PlotWidget):
         # 最新値
         self.last_dot.setData([t], [price])
 
-    def setTechnicals(self, line_ts, line_ma_1, line_ma_2):
+    def setTechnicals(
+            self,
+            line_ts,
+            line_ma_1,
+            line_vwap,
+            line_lower,
+            line_upper
+    ):
         self.ma_1.setData(line_ts, line_ma_1)
-        self.ma_2.setData(line_ts, line_ma_2)
+        self.vwap.setData(line_ts, line_vwap)
+        self.lower.setData(line_ts, line_lower)
+        self.upper.setData(line_ts, line_upper)
 
     def setTrendTitle(self, title: str):
         self.setTitle(trend_label_html(title, size=9))

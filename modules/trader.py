@@ -55,7 +55,8 @@ class Trader(QMainWindow):
         self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
         self.list_vwap = list()
         self.list_ma_1 = list()
-        self.list_ma_2 = list()
+        self.list_lower = list()
+        self.list_upper = list()
 
         # 銘柄コード別設定ファイルの取得
         dict_setting = load_setting(res, code)
@@ -165,11 +166,14 @@ class Trader(QMainWindow):
         self.list_ts.append(dict_technicals["ts"])
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        # self.list_ma_2.append(dict_technicals["ma2"])
+        self.list_lower.append(dict_technicals["lower"])
+        self.list_upper.append(dict_technicals["upper"])
         self.trend.setTechnicals(
             self.list_ts,
             self.list_ma_1,
             self.list_vwap,
+            self.list_lower,
+            self.list_upper,
         )
         # クロス時の縦線表示
         if 0 < dict_technicals["cross1"]:
