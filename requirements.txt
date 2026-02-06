@@ -27,11 +27,13 @@ rfc3987-syntax
 scikit-learn
 scipy-stubs
 seaborn
+sortedcontainers
 statsmodels
 ta
 ta-lib
 tinycss2
 tomli
+types-pytz
 uri-template
 webcolors
 xlrd

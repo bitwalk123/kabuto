@@ -3,6 +3,7 @@ from typing import Optional
 
 import pandas as pd
 from scipy.stats import iqr
+from sortedcontainers import SortedList
 
 
 def calc_vwap(df: pd.DataFrame):
@@ -159,7 +160,69 @@ class MovingAverage:
         return self.ma
 
 
-from collections import deque
+class MovingIQR:
+    def __init__(self, window_size: int = 100):
+        self.window_size = window_size
+        self.data = SortedList()
+        self.queue = []  # 古い値を削除するための FIFO
+
+        self.q1 = None
+        self.q3 = None
+        self.iqr = None
+
+    def clear(self):
+        self.data.clear()
+        self.queue.clear()
+        self.q1 = None
+        self.q3 = None
+        self.iqr = None
+
+    def update(self, value: float):
+        # 新しい値を追加
+        self.data.add(value)
+        self.queue.append(value)
+
+        # window_size を超えたら古い値を削除
+        if len(self.data) > self.window_size:
+            old = self.queue.pop(0)
+            self.data.remove(old)
+
+        n = len(self.data)
+        if n == 0:
+            return None
+
+        # Q1, Q3 のインデックス（window_size=100 なら 25, 75）
+        q1_idx = int(n * 0.25)
+        q3_idx = int(n * 0.75)
+
+        self.q1 = self.data[q1_idx]
+        self.q3 = self.data[q3_idx]
+        self.iqr = self.q3 - self.q1
+
+        return (self.q1, self.q3, self.iqr)
+
+    def getValue(self):
+        return (self.q1, self.q3, self.iqr)
+
+    def getLower(self) -> float:
+        # データがまだ無い
+        if self.q1 is None:
+            return None
+
+        # データが1つだけ → その値を返す
+        if self.iqr is None:
+            return self.q1
+
+        return self.q1 - 1.5 * self.iqr
+
+    def getUpper(self) -> float:
+        if self.q3 is None:
+            return None
+
+        if self.iqr is None:
+            return self.q3
+
+        return self.q3 + 1.5 * self.iqr
 
 
 class MovingMax:
