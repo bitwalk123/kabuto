@@ -94,7 +94,8 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
-        self.obj_miqr = MovingIQR(window_size=self.PERIOD_MA_1 * 2)
+        # self.obj_miqr = MovingIQR(window_size=self.PERIOD_MA_1)
+        self.obj_miqr = MovingIQR()
 
         # INIT_VALUES を一括適用
         for key, value in self.INIT_VALUES.items():
@@ -107,7 +108,7 @@ class FeatureProvider:
         # オブジェクト系は個別に clear()
         self.obj_vwap.clear()
         self.obj_ma1.clear()
-        #self.obj_ma2.clear()
+        # self.obj_ma2.clear()
         self.obj_miqr.clear()
 
         # 取引明細とポジションは特殊処理
