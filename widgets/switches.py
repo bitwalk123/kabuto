@@ -14,10 +14,11 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QAbstractButton
 
+
 # Reference:
 # https://www.programcreek.com/python/?code=decred%2Ftinydecred%2Ftinydecred-master%2Ftinywallet%2Ftinywallet%2Fqutilities.py
 class Switch(QAbstractButton):
-    """Implementation of a clean looking toggle switch translated from
+    """Implementation of a clean looking toggle disparity translated from
     https://stackoverflow.com/a/38102598/1124661
     QAbstractButton::setDisabled to disable
     """
@@ -100,3 +101,6 @@ class Switch(QAbstractButton):
         self.switchBrush = self.onBrush if on else self.slotBrush
         self.xPos = self.travel if on else 0
         self.update()
+
+    def isEnabled(self) -> bool:
+        return self.on

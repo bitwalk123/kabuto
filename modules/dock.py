@@ -52,6 +52,7 @@ class DockTrader(DockWidget):
         self.option = option = PanelOption(res, code)
         option.clickedSave.connect(self.on_save)
         option.clickedRepair.connect(self.on_repair)
+        option.changedDisparity.connect(self.switch_changed)
         self.layout.addWidget(option)
 
     def forceRepay(self):
@@ -103,6 +104,14 @@ class DockTrader(DockWidget):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.auto = False
+
+    def isDisparityChecked(self) -> bool:
+        return self.option.disparity.isEnabled()
+
+    def switch_changed(self, status: bool):
+        """for statusChanged signal
+        """
+        print('Switch is', status)
 
     def on_save(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

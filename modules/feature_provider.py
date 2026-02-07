@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 
 from structs.defaults import FeatureDefaults
-from funcs.technical import MovingAverage, MovingIQR, VWAP
+from funcs.technical import MovingAverage, VWAP
 from structs.app_enum import PositionType
 
 
@@ -94,8 +94,6 @@ class FeatureProvider:
         # インスタンス生成
         self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
-        self.obj_miqr = MovingIQR(window_size=self.PERIOD_MA_1 * 4)
-        # self.obj_miqr = MovingIQR()
 
         # INIT_VALUES を一括適用
         for key, value in self.INIT_VALUES.items():
@@ -108,8 +106,6 @@ class FeatureProvider:
         # オブジェクト系は個別に clear()
         self.obj_vwap.clear()
         self.obj_ma1.clear()
-        # self.obj_ma2.clear()
-        self.obj_miqr.clear()
 
         # 取引明細とポジションは特殊処理
         self.dict_transaction = self.transaction_init()
@@ -325,9 +321,6 @@ class FeatureProvider:
         self.cross_pre = self.cross
         self.cross = self._detect_cross(self.div_ma_prev, div_ma)
         self.div_ma_prev = div_ma
-
-        # Moving IQR
-        self.obj_miqr.update(price)
 
         # --- ロスカット判定 ---
         self.losscut_1 = self.getProfit() <= self.LOSSCUT_1

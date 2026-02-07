@@ -307,7 +307,7 @@ class TrendGraph(pg.PlotWidget):
         self.shm_data_x = np.ndarray(shape=(self.max_data,), dtype=INT_DTYPE, buffer=self.shm_x.data())
         self.shm_data_y = np.ndarray(shape=(self.max_data,), dtype=DTYPE, buffer=self.shm_y.data())
         self.shm_data_y_smoothed = np.ndarray(shape=(self.max_data,), dtype=DTYPE, buffer=self.shm_y_smoothed.data())
-        self.logger.info("TrendGraph: Shared memory views initialized.")
+        self.logger.info("TrendChart: Shared memory views initialized.")
 
     @Slot(int, float)
     def addPoints(self, x: int, y: float):
@@ -317,7 +317,7 @@ class TrendGraph(pg.PlotWidget):
         self.scatter_x_data.append(x)
         self.scatter_y_data.append(y)
         self.scatter_plot_item.setData(self.scatter_x_data, self.scatter_y_data)
-        self.logger.debug(f"TrendGraph: Added point ({x}, {y}) to scatter plot. Current points: {len(self.scatter_x_data)}")
+        self.logger.debug(f"TrendChart: Added point ({x}, {y}) to scatter plot. Current points: {len(self.scatter_x_data)}")
 
 
     @Slot(int)
@@ -328,7 +328,7 @@ class TrendGraph(pg.PlotWidget):
         """
         # 共有メモリがまだアタッチされていなければ処理をスキップ
         if not (self.shm_x.isAttached() and self.shm_y_smoothed.isAttached()):
-            self.logger.warning("TrendGraph: Shared memory not fully attached yet, skipping smooth line update.")
+            self.logger.warning("TrendChart: Shared memory not fully attached yet, skipping smooth line update.")
             return
 
         # 共有メモリを全てロックし、データを読み込む
@@ -340,10 +340,10 @@ class TrendGraph(pg.PlotWidget):
             self.logger.error(f"Failed to lock SHM_Y_SMOOTHED (graph): {self.shm_y_smoothed.errorString()}"); self.shm_x.unlock(); self.shm_y.unlock(); return
 
         try:
-            self.logger.debug(f"TrendGraph: updateSmoothedLine called. actual_data_count = {actual_data_count}")
+            self.logger.debug(f"TrendChart: updateSmoothedLine called. actual_data_count = {actual_data_count}")
 
             if actual_data_count == 0 or actual_data_count < 5:
-                self.logger.debug(f"TrendGraph: Not enough list_item for smoothing. actual_data_count = {actual_data_count}. Clearing smooth line.")
+                self.logger.debug(f"TrendChart: Not enough list_item for smoothing. actual_data_count = {actual_data_count}. Clearing smooth line.")
                 self.smoothed_line_item.setData([], []) # データが少ない場合はラインをクリアしておく
                 return
 
@@ -366,7 +366,7 @@ class TrendGraph(pg.PlotWidget):
         """
         TrendGraphオブジェクトが削除される際に共有メモリからデタッチする。
         """
-        self.logger.info("TrendGraph: __del__ called.")
+        self.logger.info("TrendChart: __del__ called.")
         try:
             if self.shm_x.isAttached():
                 self.logger.info(f"Detaching shared memory for X: {SHARED_MEMORY_KEY_X}")
@@ -378,7 +378,7 @@ class TrendGraph(pg.PlotWidget):
                 self.logger.info(f"Detaching shared memory for Y_SMOOTHED: {SHARED_MEMORY_KEY_Y_SMOOTHED}")
                 self.shm_y_smoothed.detach()
         except RuntimeError as e:
-            self.logger.warning(f"TrendGraph __del__ error: {e}. Shared memory might already be deleted by OS.")
+            self.logger.warning(f"TrendChart __del__ error: {e}. Shared memory might already be deleted by OS.")
 
 
 # --- メインウィンドウ ---

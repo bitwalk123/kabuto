@@ -8,7 +8,7 @@ from broker.dock import DockPortfolio
 from broker.technical import TechnicalDrawer
 from broker.toolbar import ToolBarBrokerClient
 from structs.res import AppRes
-from widgets.charts import MplChart, ChartNavigation
+from widgets.mpl_charts import MplChart, ChartNavigation
 
 
 class PortfolioViewer(QMainWindow):

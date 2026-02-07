@@ -15,7 +15,7 @@ from modules.agent import WorkerAgentRT
 from modules.dock import DockTrader
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
-from widgets.graphs import TrendGraph
+from modules.chart import TrendChart
 
 
 class Trader(QMainWindow):
@@ -55,8 +55,7 @@ class Trader(QMainWindow):
         self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
         self.list_vwap = list()
         self.list_ma_1 = list()
-        self.list_lower = list()
-        self.list_upper = list()
+        self.list_disparity = list()
 
         # 銘柄コード別設定ファイルの取得
         dict_setting = load_setting(res, code)
@@ -78,7 +77,7 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャートインスタンス
         # ---------------------------------------------------------------------
-        self.trend = trend = TrendGraph(res, dict_ts, dict_setting)
+        self.trend = trend = TrendChart(res, dict_ts, dict_setting)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -164,17 +163,25 @@ class Trader(QMainWindow):
     def on_technicals(self, dict_technicals: dict):
         # テクニカル指標
         self.list_ts.append(dict_technicals["ts"])
-        self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_lower.append(dict_technicals["lower"])
-        self.list_upper.append(dict_technicals["upper"])
-        self.trend.setTechnicals(
-            self.list_ts,
-            self.list_ma_1,
-            self.list_vwap,
-            self.list_lower,
-            self.list_upper,
-        )
+        self.list_vwap.append(dict_technicals["vwap"])
+
+        self.list_disparity.append(dict_technicals["ma1"] - dict_technicals["vwap"])
+        if self.dock.isDisparityChecked():
+            self.trend.setTechnicals(
+                self.list_ts,
+                [],
+                [],
+                self.list_disparity,
+            )
+        else:
+            self.trend.setTechnicals(
+                self.list_ts,
+                self.list_ma_1,
+                self.list_vwap,
+                [],
+            )
+
         # クロス時の縦線表示
         if 0 < dict_technicals["cross1"]:
             self.trend.setCrossGolden(dict_technicals["ts"])
@@ -220,7 +227,10 @@ class Trader(QMainWindow):
         self.list_v.append(volume)
 
         # 株価トレンド線
-        self.trend.setLine(self.list_x, self.list_y)
+        if self.dock.isDisparityChecked():
+            self.trend.setLine([], [])
+        else:
+            self.trend.setLine(self.list_x, self.list_y)
 
         # 銘柄単位の現在株価および含み益と収益を更新
         self.dock.setPrice(price)
@@ -273,6 +283,6 @@ class Trader(QMainWindow):
             self.requestPositionClose.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def saveTechnicals(self, path_dir:str):
+    def saveTechnicals(self, path_dir: str):
         path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
         self.requestSaveTechnicals.emit(path_csv)

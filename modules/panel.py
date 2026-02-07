@@ -15,6 +15,7 @@ from widgets.layouts import (
     GridLayout,
     HBoxLayout,
 )
+from widgets.switches import Switch
 
 
 class PanelTrading(Widget):
@@ -124,6 +125,7 @@ class PanelOption(QFrame):
     clickedSave = Signal()
     clickedSetting = Signal()
     clickedRepair = Signal()
+    changedDisparity = Signal(bool)
 
     def __init__(self, res: AppRes, code: str):
         super().__init__()
@@ -136,6 +138,12 @@ class PanelOption(QFrame):
         self.setLineWidth(1)
         layout = HBoxLayout()
         self.setLayout(layout)
+
+        # 乖離を表示するかどうかのスイッチ
+        self.disparity = disparity = Switch()
+        disparity.set(False)
+        disparity.statusChanged.connect(self.changedDisparity.emit)
+        layout.addWidget(disparity)
 
         pad = PadH()
         layout.addWidget(pad)

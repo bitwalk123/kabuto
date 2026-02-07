@@ -51,3 +51,4 @@ class DockWidget(QDockWidget):
 
     def setTitle(self, title: str):
         self.dock_title.setTitle(title)
+

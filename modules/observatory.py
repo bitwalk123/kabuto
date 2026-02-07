@@ -17,8 +17,6 @@ TECHNICALS = {
     "vwap": "getVWAP",  # VWAP
     "ma1": "getMA1",  # 移動平均線 MA1
     "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル
-    "lower": "getLower",  # IQR/lower bound
-    "upper": "getUpper",  # IQR/upper bound
     "profit": "getProfit",  # 含損益
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン
