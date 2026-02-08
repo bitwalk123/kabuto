@@ -28,6 +28,7 @@ def get_date_str_from_file(file: str) -> str:
     else:
         return "19700101"
 
+
 def get_format_date_from_date_str(date_str: str) -> str:
     """
     ファイル名から日付文字列を返す関数
@@ -39,6 +40,7 @@ def get_format_date_from_date_str(date_str: str) -> str:
         return f"{m.group(1)}-{m.group(2)}-{m.group(3)}"
     else:
         return "1970-01-01"
+
 
 def get_date_str_from_file_2(file: str) -> str:
     """
@@ -134,5 +136,6 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     # 日付文字列
     dict_ts["datetime_str"] = f"{year:04}{month:02}{day:02}"
     dict_ts["datetime_str_2"] = f"{year:04}-{month:02}-{day:02}"
+    dict_ts["datetime_str_3"] = os.path.join(f"{year:04}", f"{month:02}", f"{day:02}")
 
     return dict_ts

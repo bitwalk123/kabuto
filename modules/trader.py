@@ -158,8 +158,16 @@ class Trader(QMainWindow):
         getattr(self.dock, method_name)()
 
     def on_save(self):
-        file_img = f"{self.dict_ts['datetime_str']}_{self.code}_trend.png"
-        path_img = os.path.join(self.res.dir_output, file_img)
+        if self.dock.isDisparityChecked():
+            suffix = "2"
+        else:
+            suffix = "1"
+        file_img = f"{self.code}_trend_{suffix}.png"
+        path_img = os.path.join(
+            self.res.dir_output,
+            self.dict_ts['datetime_str_3'],
+            file_img
+        )
         self.trend.save(path_img)
 
     def on_technicals(self, dict_technicals: dict):
