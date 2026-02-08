@@ -19,7 +19,7 @@ class CustomYAxisItem(pg.AxisItem):
 class TrendChart(pg.PlotWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_VWAP = (255, 0, 192, 192)
-    COLOR_GOLDEN = (255, 128, 255, 192)
+    COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (32, 255, 255, 160)
     COLOR_DISPARITY = (255, 255, 0, 192)
     COLOR_LAST_DOT = (0, 255, 0, 255)
@@ -63,6 +63,9 @@ class TrendChart(pg.PlotWidget):
         self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
         # 乖離率
         self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
+        # y = 0 のライン
+        self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen('#fff', width=0.5))
+        self.addItem(self.zero_line)
         # ---------------------------------------------------------------------
         # 散布図の点
         # 最新値を示すドット
@@ -72,13 +75,13 @@ class TrendChart(pg.PlotWidget):
             pen=None
         )
         self.addItem(self.last_dot)
-
+        # クロス線（ゴールデン・クロス）
         self.vline_golden = pg.InfiniteLine(
             angle=90,
             pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75)
         )
         self.addItem(self.vline_golden)
-
+        # クロス線（デッド・クロス）
         self.vline_dead = pg.InfiniteLine(
             angle=90,
             pen=pg.mkPen(self.COLOR_DEAD, width=0.75)
@@ -121,15 +124,9 @@ class TrendChart(pg.PlotWidget):
         # トレンド線
         self.line.setData(line_x, line_y)
 
+    def setDot(self, x, y):
         # 最新値
-        # line_x, line_y が空でないことは保証されていない
-        if len(line_x) > 0:
-            t = [line_x[-1]]
-            price = [line_y[-1]]
-        else:
-            t = []
-            price=[]
-        self.last_dot.setData(t, price)
+        self.last_dot.setData(x, y)
 
     def setTechnicals(
             self,
@@ -144,6 +141,9 @@ class TrendChart(pg.PlotWidget):
 
     def setTrendTitle(self, title: str):
         self.setTitle(trend_label_html(title, size=9))
+
+    def setZeroLine(self, flag: bool):
+        self.zero_line.setVisible(flag)
 
     def save(self, path_img: str):
         """

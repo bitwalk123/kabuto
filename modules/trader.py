@@ -52,6 +52,7 @@ class Trader(QMainWindow):
         self.list_y = list()
         self.list_v = list()
         # テクニカル指標
+        self.vwap = 0
         self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
         self.list_vwap = list()
         self.list_ma_1 = list()
@@ -162,12 +163,22 @@ class Trader(QMainWindow):
 
     def on_technicals(self, dict_technicals: dict):
         # テクニカル指標
+        self.vwap = dict_technicals["vwap"]
         self.list_ts.append(dict_technicals["ts"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_vwap.append(dict_technicals["vwap"])
+        self.list_vwap.append(self.vwap)
+        self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
 
-        self.list_disparity.append(dict_technicals["ma1"] - dict_technicals["vwap"])
-        if self.dock.isDisparityChecked():
+        # クロス時の縦線表示
+        if 0 < dict_technicals["cross1"]:
+            self.trend.setCrossGolden(dict_technicals["ts"])
+        elif dict_technicals["cross1"] < 0:
+            self.trend.setCrossDead(dict_technicals["ts"])
+
+        self.update_technicals(self.dock.isDisparityChecked())
+
+    def update_technicals(self, flag: bool):
+        if flag:
             self.trend.setTechnicals(
                 self.list_ts,
                 [],
@@ -181,12 +192,6 @@ class Trader(QMainWindow):
                 self.list_vwap,
                 [],
             )
-
-        # クロス時の縦線表示
-        if 0 < dict_technicals["cross1"]:
-            self.trend.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross1"] < 0:
-            self.trend.setCrossDead(dict_technicals["ts"])
 
     def on_trading_completed(self):
         self.logger.info("取引が終了しました。")
@@ -227,10 +232,17 @@ class Trader(QMainWindow):
         self.list_v.append(volume)
 
         # 株価トレンド線
-        if self.dock.isDisparityChecked():
+        flag = self.dock.isDisparityChecked()
+        self.trend.setZeroLine(flag)
+        if flag:
             self.trend.setLine([], [])
+            if self.vwap > 0:
+                self.trend.setDot([ts], [price - self.vwap])
+            else:
+                self.trend.setDot([ts], [price - self.vwap])
         else:
             self.trend.setLine(self.list_x, self.list_y)
+            self.trend.setDot([ts], [price])
 
         # 銘柄単位の現在株価および含み益と収益を更新
         self.dock.setPrice(price)

@@ -6,7 +6,7 @@ from modules.panel import PanelOption, PanelTrading
 from structs.res import AppRes
 from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle
+from widgets.labels import LCDValueWithTitle, LabelSmall
 
 
 class DockTrader(DockWidget):
@@ -49,6 +49,10 @@ class DockTrader(DockWidget):
         # ---------------------------------------------------------------------
         # オプションパネル
         # ---------------------------------------------------------------------
+        # 「乖離度」用ラベル
+        lab_disparity = LabelSmall("乖離度")
+        self.layout.addWidget(lab_disparity)
+        # 「オプション」用パネル
         self.option = option = PanelOption(res, code)
         option.clickedSave.connect(self.on_save)
         option.clickedRepair.connect(self.on_repair)
