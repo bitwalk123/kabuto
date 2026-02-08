@@ -253,7 +253,8 @@ class FeatureProvider:
         reward += profit
 
         # 取引明細更新（建玉返済）
-        self.transaction_close(profit)
+        if self.position != PositionType.NONE:
+            self.transaction_close(profit)
 
         # エントリ価格をリセット
         self.price_entry = 0.0
