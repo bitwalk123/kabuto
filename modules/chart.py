@@ -20,7 +20,7 @@ class TrendChart(pg.PlotWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
-    COLOR_DEAD = (32, 255, 255, 160)
+    COLOR_DEAD = (0, 191, 255, 220)
     COLOR_DISPARITY = (255, 255, 0, 192)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
@@ -57,14 +57,19 @@ class TrendChart(pg.PlotWidget):
         # 折れ線
         # 株価
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
+        self.line.setZValue(90)
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
+        self.ma_1.setZValue(60)
         # VWAP
         self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
+        self.vwap.setZValue(50)
         # 乖離率
         self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
+        self.disparity.setZValue(50)
         # y = 0 のライン
         self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen('#fff', width=0.5))
+        self.zero_line.setZValue(0)
         self.addItem(self.zero_line)
         # ---------------------------------------------------------------------
         # 散布図の点
@@ -74,18 +79,21 @@ class TrendChart(pg.PlotWidget):
             brush=pg.mkBrush(self.COLOR_LAST_DOT),
             pen=None
         )
+        self.last_dot.setZValue(100)
         self.addItem(self.last_dot)
         # クロス線（ゴールデン・クロス）
         self.vline_golden = pg.InfiniteLine(
             angle=90,
             pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75)
         )
+        self.vline_golden.setZValue(20)
         self.addItem(self.vline_golden)
         # クロス線（デッド・クロス）
         self.vline_dead = pg.InfiniteLine(
             angle=90,
             pen=pg.mkPen(self.COLOR_DEAD, width=0.75)
         )
+        self.vline_dead.setZValue(20)
         self.addItem(self.vline_dead)
 
     def config_plot_item(self):
@@ -155,3 +163,10 @@ class TrendChart(pg.PlotWidget):
         exporter = pg.exporters.ImageExporter(self.plot_item)
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
+
+    def updateYAxisRange(self, flag: bool):
+        self.zero_line.setVisible(flag)
+        # self.plot_item.autoRange()
+        self.plot_item.enableAutoRange(axis="x", enable=False)
+        self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
+        self.plot_item.enableAutoRange(axis="y", enable=True)

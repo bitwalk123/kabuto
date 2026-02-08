@@ -13,6 +13,7 @@ class DockTrader(DockWidget):
     clickedBuy = Signal(str, float, str, bool)
     clickedSell = Signal(str, float, str, bool)
     clickedRepay = Signal(str, float, str, bool)
+    changedDisparityState = Signal(bool)
     clickedSave = Signal()
 
     def __init__(self, res: AppRes, code: str):
@@ -20,7 +21,14 @@ class DockTrader(DockWidget):
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.code = code
-        self.auto = False  # 自動オペレーション用フラグ
+
+        """
+        自動オペレーション用フラグ
+        マウスで売買ボタンをクリックしたか、
+        エージェントが売買シグナルを出したのかを
+        区別するためのフラグ
+        """
+        self.auto = False
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -56,7 +64,7 @@ class DockTrader(DockWidget):
         self.option = option = PanelOption(res, code)
         option.clickedSave.connect(self.on_save)
         option.clickedRepair.connect(self.on_repair)
-        option.changedDisparity.connect(self.switch_changed)
+        option.changedDisparity.connect(self.disparity_changed)
         self.layout.addWidget(option)
 
     def forceRepay(self):
@@ -112,10 +120,11 @@ class DockTrader(DockWidget):
     def isDisparityChecked(self) -> bool:
         return self.option.disparity.isEnabled()
 
-    def switch_changed(self, status: bool):
+    def disparity_changed(self, status: bool):
         """for statusChanged signal
         """
-        print('Switch is', status)
+        # print('Switch is', status)
+        self.changedDisparityState.emit(status)
 
     def on_save(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

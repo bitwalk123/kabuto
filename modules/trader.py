@@ -72,6 +72,7 @@ class Trader(QMainWindow):
         self.dock.clickedBuy.connect(self.on_buy)
         self.dock.clickedSell.connect(self.on_sell)
         self.dock.clickedRepay.connect(self.on_repay)
+        self.dock.changedDisparityState.connect(self.switch_chart)
         self.dock.clickedSave.connect(self.on_save)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
@@ -192,6 +193,29 @@ class Trader(QMainWindow):
                 self.list_vwap,
                 [],
             )
+
+    def switch_chart(self, flag: bool):
+        if len(self.list_x) > 0:
+            ts = self.list_x[-1]
+            price = self.list_y[-1]
+        else:
+            return
+
+        if flag:
+            self.trend.setLine([], [])
+            if self.vwap > 0:
+                self.trend.setDot([ts], [price - self.vwap])
+            else:
+                self.trend.setDot([ts], [price - self.vwap])
+        else:
+            self.trend.setLine(self.list_x, self.list_y)
+            self.trend.setDot([ts], [price])
+
+        # テクニカルデータの更新
+        self.update_technicals(flag)
+
+        # y 軸のスケールを更新
+        self.trend.updateYAxisRange(flag)
 
     def on_trading_completed(self):
         self.logger.info("取引が終了しました。")
