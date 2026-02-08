@@ -10,7 +10,7 @@ class FeatureDefaults:
     LOSSCUT_1 = -25.0
     N_MINUS_MAX = 90
     DD_PROFIT = 5.0
-    DD_RATIO = 0.5
+    DD_RATIO = 0.9
 
     @classmethod
     def as_dict(cls) -> dict:
