@@ -163,7 +163,17 @@ class Trader(QMainWindow):
         else:
             suffix = "1"
         file_img = f"{self.code}_trend_{suffix}.png"
-        output_dir = path_img = os.path.join(self.res.dir_output, self.dict_ts['datetime_str_3'])
+        if self.res.debug:
+            output_dir = os.path.join(
+                self.res.dir_temp,
+                self.dict_ts['datetime_str_3']
+            )
+        else:
+            output_dir = os.path.join(
+                self.res.dir_output,
+                self.dict_ts['datetime_str_3']
+            )
+
         os.makedirs(output_dir, exist_ok=True)
         path_img = os.path.join(output_dir, file_img)
         self.trend.save(path_img)
