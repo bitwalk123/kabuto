@@ -30,10 +30,10 @@ class PanelTrading(Widget):
     def __init__(self):
         super().__init__()
         self.flag_next_status = None
-        self.setContentsMargins(QMargins(0, 2, 0, 2))
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         layout = GridLayout()
-        layout.setSpacing(2)
+        layout.setSpacing(0)
         self.setLayout(layout)
 
         row = 0

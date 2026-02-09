@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
 )
 
 from widgets.containers import Widget
-from widgets.layouts import VBoxLayout
+from widgets.layouts import VBoxLayout, GridLayout, HBoxLayout
 
 
 class Label(QLabel):
@@ -160,7 +160,7 @@ class LCDValueWithTitle(Widget):
     def __init__(self, title: str):
         super().__init__()
         # layout
-        layout = VBoxLayout()
+        layout = HBoxLayout()
         self.setLayout(layout)
         # title
         lab_title = LabelSmall(title)

@@ -33,7 +33,7 @@ class DockTrader(DockWidget):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        self.setContentsMargins(QMargins(5, 2, 5, 2))
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
@@ -58,8 +58,8 @@ class DockTrader(DockWidget):
         # オプションパネル
         # ---------------------------------------------------------------------
         # 「乖離度」用ラベル
-        lab_disparity = LabelSmall("乖離度")
-        self.layout.addWidget(lab_disparity)
+        # lab_disparity = LabelSmall("乖離度")
+        # self.layout.addWidget(lab_disparity)
         # 「オプション」用パネル
         self.option = option = PanelOption(res, code)
         option.clickedSave.connect(self.on_save)
