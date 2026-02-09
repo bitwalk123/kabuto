@@ -7,7 +7,8 @@ from PySide6.QtCore import (
     QThread,
     QTimer,
     Qt,
-    Signal, Slot,
+    Signal,
+    Slot,
 )
 from PySide6.QtGui import (
     QCloseEvent,
@@ -39,7 +40,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.10"
+    __version__ = "0.3.11"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
