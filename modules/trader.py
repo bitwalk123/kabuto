@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Dict, Tuple
 
 import pandas as pd
 from PySide6.QtCore import (
@@ -19,17 +20,18 @@ from modules.chart import TrendChart
 
 
 class Trader(QMainWindow):
+    # 環境クラス用
     sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
 
-    # 売買
+    # 売買用
     requestPositionOpen = Signal(ActionType)
     requestPositionClose = Signal()
     requestTransactionResult = Signal()
 
     # --- 状態遷移表 ---
-    ACTION_DISPATCH = {
+    ACTION_DISPATCH: Dict[Tuple[ActionType, PositionType], str] = {
         (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
         (ActionType.BUY, PositionType.SHORT): "doRepay",  # 売建（ショート）であれば（買って）返済
         (ActionType.SELL, PositionType.NONE): "doSell",  # 建玉がなければ売建
@@ -44,13 +46,11 @@ class Trader(QMainWindow):
         self.code = code
         self.dict_ts = dict_ts
 
-        # タイムスタンプへ時差を加算・減算用（Asia/Tokyo)
-        # self.tz = 9. * 60 * 60
-
         # ティックデータ
         self.list_x = list()
         self.list_y = list()
         self.list_v = list()
+
         # テクニカル指標
         self.vwap = 0
         self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
@@ -77,13 +77,13 @@ class Trader(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
-        # チャートインスタンス
+        # チャート・インスタンス
         # ---------------------------------------------------------------------
         self.trend = trend = TrendChart(res, dict_ts, dict_setting)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-        # 強化学習モデル用スレッド
+        # 売買モデル用スレッド
         self.thread = QThread(self)
 
         # 学習済みモデルのパス
@@ -141,6 +141,12 @@ class Trader(QMainWindow):
         })
 
     def on_action(self, action: int, position: PositionType):
+        """
+        売買アクション
+        :param action:
+        :param position:
+        :return:
+        """
         action_enum = ActionType(action)
 
         # HOLD は即 return
@@ -158,22 +164,30 @@ class Trader(QMainWindow):
         getattr(self.dock, method_name)()
 
     def on_save(self):
+        """
+        チャートを保存
+        :return:
+        """
         if self.dock.isDisparityChecked():
+            # 株価/MA1 - VWAP 乖離度のトレンドチャート
             suffix = "2"
         else:
+            # 株価/MA1, VWAP トレンドチャート
             suffix = "1"
+        # 　保存先のパス
         file_img = f"{self.code}_trend_{suffix}.png"
         if self.res.debug:
-            output_dir = os.path.join(
+            output_dir: str = os.path.join(
                 self.res.dir_temp,
                 self.dict_ts['datetime_str_3']
             )
         else:
-            output_dir = os.path.join(
+            output_dir: str = os.path.join(
                 self.res.dir_output,
                 self.dict_ts['datetime_str_3']
             )
 
+        # パスの階層がなかったら生成して保存
         os.makedirs(output_dir, exist_ok=True)
         path_img = os.path.join(output_dir, file_img)
         self.trend.save(path_img)
@@ -327,7 +341,7 @@ class Trader(QMainWindow):
 
     def on_sell(self, code: str, price: float, note: str, auto: bool):
         if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 売建で建玉取得リクエストのシグナル
             self.requestPositionOpen.emit(ActionType.SELL)
@@ -335,12 +349,17 @@ class Trader(QMainWindow):
 
     def on_repay(self, code: str, price: float, note: str, auto: bool):
         if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 建玉返済リクエストのシグナル
             self.requestPositionClose.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def saveTechnicals(self, path_dir: str):
+        """
+        保持したテクニカル指標のデータを指定パスに保存
+        :param path_dir:
+        :return:
+        """
         path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
         self.requestSaveTechnicals.emit(path_csv)
