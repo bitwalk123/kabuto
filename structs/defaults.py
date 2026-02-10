@@ -5,7 +5,7 @@ class FeatureDefaults:
     """
     特徴量用パラメータ管理クラス
     """
-    PERIOD_WARMUP = 60
+    PERIOD_WARMUP = 300
     PERIOD_MA_1 = 30
     LOSSCUT_1 = -25.0
     N_MINUS_MAX = 90

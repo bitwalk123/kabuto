@@ -29,7 +29,7 @@ class TradingEnv(gym.Env):
         self.n_warmup: int = provider.getPeriodWarmup()
 
         # 現在の行位置
-        self.step_current: int = 0
+        self.provider.step_current: int = 0
 
         # 観測空間
         n_feature = self.obs_man.n_feature
@@ -50,7 +50,7 @@ class TradingEnv(gym.Env):
         - ナンピン取引の禁止
         :return:
         """
-        if self.step_current < self.n_warmup:
+        if self.provider.step_current < self.n_warmup:
             # ウォームアップ期間 → 強制 HOLD
             return np.array([1, 0, 0], dtype=np.int8)
         elif self.provider.position == PositionType.NONE:
@@ -117,7 +117,6 @@ class TradingEnv(gym.Env):
         :return:
         """
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
-        self.step_current = 0
         self.provider.clear()
         # self.reward_man.clear()
         obs = self.obs_man.getObsReset()
@@ -151,7 +150,7 @@ class TradingEnv(gym.Env):
         # 収益情報
         info["pnl_total"] = self.provider.pnl_total
 
-        self.step_current += 1
+        self.provider.step_current += 1
         return reward, terminated, truncated, info
 
     def openPosition(self, action_type: ActionType):
@@ -181,9 +180,9 @@ class TrainingEnv(TradingEnv):
         データフレームから 1 ステップ分のティックデータを読み込む
         :return:
         """
-        t: float = self.df.at[self.step_current, "Time"]
-        price: float = self.df.at[self.step_current, "Price"]
-        volume: float = self.df.at[self.step_current, "Volume"]
+        t: float = self.df.at[self.provider.step_current, "Time"]
+        price: float = self.df.at[self.provider.step_current, "Price"]
+        volume: float = self.df.at[self.provider.step_current, "Volume"]
         return t, price, volume
 
     @override
@@ -203,7 +202,7 @@ class TrainingEnv(TradingEnv):
         # ---------------------------------------------------------------------
         terminated = False
         truncated = False
-        if len(self.df) - 1 <= self.step_current:
+        if len(self.df) - 1 <= self.provider.step_current:
             # ティックデータのステップ上限チェック
             reward += self.reward_man.forceRepay()
             truncated = True  # ← ステップ数上限による終了
@@ -226,6 +225,6 @@ class TrainingEnv(TradingEnv):
         # モデルへ渡す観測値を取得
         obs, _ = self.obs_man.getObs()
         # step（行位置）をインクリメント
-        self.step_current += 1
+        self.provider.step_current += 1
 
         return obs, reward, terminated, truncated, info
