@@ -30,6 +30,7 @@ class PanelTrading(Widget):
     def __init__(self):
         super().__init__()
         self.flag_next_status = None
+        self.flag_disabled = True  # 全ての売買・返済ボタンを無効状態フラグ
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         layout = GridLayout()
@@ -63,8 +64,7 @@ class PanelTrading(Widget):
         layout.addWidget(but_repay, row, 0, 1, 2)
 
         # 初期状態ではポジション無し
-        # self.position_close()
-        self.switch_activate(True)
+        self.switchDeactivateAll()
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント
@@ -72,19 +72,19 @@ class PanelTrading(Widget):
     def receive_result(self, status: bool):
         if self.flag_next_status is None:
             # 初期状態で誤って呼ばれた場合の保険
-            self.switch_activate(True)
+            self.switchActivate(True)
             return
         if status:
-            self.switch_activate(self.flag_next_status)
+            self.switchActivate(self.flag_next_status)
         else:
-            self.switch_activate(not self.flag_next_status)
+            self.switchActivate(not self.flag_next_status)
 
     def request_buy(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.switch_deactivate_all()
+        self.switchDeactivateAll()
         self.flag_next_status = False
         self.ind_buy.setBuy()
 
@@ -93,7 +93,7 @@ class PanelTrading(Widget):
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.switch_deactivate_all()
+        self.switchDeactivateAll()
         self.flag_next_status = False
         self.ind_sell.setSell()
 
@@ -102,23 +102,33 @@ class PanelTrading(Widget):
         # 🧿 返却ボタンがクリックされたことを通知
         self.clickedRepay.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.switch_deactivate_all()
+        self.switchDeactivateAll()
         self.flag_next_status = True
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
 
-    def switch_deactivate_all(self):
+    def switchDeactivateAll(self):
         self.buy.setDisabled(True)
         self.sell.setDisabled(True)
         self.repay.setDisabled(True)
 
-    def switch_activate(self, state: bool):
+    def switchActivate(self, state: bool):
         self.buy.setEnabled(state)
         self.sell.setEnabled(state)
         self.repay.setDisabled(state)
         if state:
             self.ind_buy.setDefault()
             self.ind_sell.setDefault()
+
+    def lockButtons(self):
+        if not self.flag_disabled:
+            self.flag_disabled = True
+            self.switchDeactivateAll()
+
+    def unLockButtons(self):
+        if self.flag_disabled:
+            self.flag_disabled = False
+            self.switchActivate(True)
 
 
 class PanelOption(QFrame):

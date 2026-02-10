@@ -179,6 +179,12 @@ class Trader(QMainWindow):
         self.trend.save(path_img)
 
     def on_technicals(self, dict_technicals: dict):
+        if dict_technicals["warmup"]:
+            # self.switchActivate(True)
+            self.dock.trading.lockButtons()
+        else:
+            self.dock.trading.unLockButtons()
+
         # テクニカル指標
         self.vwap = dict_technicals["vwap"]
         self.list_ts.append(dict_technicals["ts"])

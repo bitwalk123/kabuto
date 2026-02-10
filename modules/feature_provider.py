@@ -25,6 +25,7 @@ class FeatureProvider:
         "price_open": None,
 
         # カウンタ
+        "step_current": 0,
         "n_trade": 0,
         "n_hold": None,
         "n_hold_position": None,
@@ -61,6 +62,7 @@ class FeatureProvider:
         "price_open": 0.0,
 
         # カウンタ関連
+        "step_current": 0,
         "n_trade": 0,
         "n_hold": 0.0,
         "n_hold_position": 0.0,
@@ -236,6 +238,9 @@ class FeatureProvider:
         :return:
         """
         return self.obj_vwap.getValue()
+
+    def isWarmUpPeriod(self):
+        return 1 if self.step_current < self.PERIOD_WARMUP else 0
 
     def position_close(self) -> float:
         reward = 0

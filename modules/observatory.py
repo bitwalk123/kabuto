@@ -22,6 +22,7 @@ TECHNICALS = {
     "drawdown": "getDrawDown",  # ドローダウン
     "dd_ratio": "getDDRatio",  # ドローダウン比率
     "n_minus": "getCounterMinus",  # 含み益が負の時のカウンタ
+    "warmup": "isWarmUpPeriod",  # ウォームアップ期間か？(1: Yes, 0: No)
 }
 
 
