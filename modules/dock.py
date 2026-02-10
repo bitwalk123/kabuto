@@ -136,7 +136,7 @@ class DockTrader(DockWidget):
         dlg = DlgRepair(self.res)
         if dlg.exec():
             flag = dlg.getStatus()
-            self.trading.switch_activate(flag)
+            self.trading.switchActivate(flag)
         else:
             return
 
