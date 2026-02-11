@@ -120,27 +120,29 @@ class Fetcher(QThread):
             self.finished.emit([])
 
 
-class NewsApp(QMainWindow):
+class NewsViewer(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("ニュース・ビューアー")
-        self.resize(800, 500)
+        self.resize(800, 600)
+        self.worker = None
 
         self.parsers: Dict[str, ParserBase] = {
             "住友化学 (4005)": Parser4005(),
             "LINEヤフー (4689)": Parser4689(),
         }
 
+        # ツールバー
         self.toolbar = toolbar = QToolBar()
         self.addToolBar(toolbar)
 
-        # ツールバーにコンボボックス追加
+        # 銘柄選択用コンボボックス
         self.combo = combo = QComboBox()
         combo.addItems(self.parsers.keys())
         combo.currentTextChanged.connect(self.fetch_news)
         toolbar.addWidget(combo)
 
-        # UIレイアウト
+        # レイアウト
         self.base = base = QWidget()
         self.setCentralWidget(base)
         self.layout = layout = QVBoxLayout(base)
@@ -161,6 +163,7 @@ class NewsApp(QMainWindow):
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)  # 日付は内容に合わせる
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)  # タイトルは伸ばす
 
+        # 更新ボタン
         self.btn_refresh = btn_refresh = QPushButton("ニュースを更新")
         btn_refresh.clicked.connect(self.fetch_news)
         self.layout.addWidget(btn_refresh)
@@ -173,7 +176,6 @@ class NewsApp(QMainWindow):
         selected_name = self.combo.currentText()
         # 対応するパーサーを取り出す
         parser = self.parsers[selected_name]
-
         # スレッドにそのパーサーを託す
         self.worker = worker = Fetcher(parser)
         worker.finished.connect(self.display_news)
@@ -205,8 +207,8 @@ class NewsApp(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = NewsApp()
-    window.show()
+    win = NewsViewer()
+    win.show()
     sys.exit(app.exec())
 
 
