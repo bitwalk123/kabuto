@@ -123,7 +123,7 @@ class Fetcher(QThread):
 class NewsApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("ニュースビューアー")
+        self.setWindowTitle("ニュース・ビューアー")
         self.resize(800, 500)
 
         self.parsers: Dict[str, ParserBase] = {
