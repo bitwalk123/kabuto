@@ -106,7 +106,9 @@ class Fetcher(QThread):
     def run(self):
         try:
             url = self.parser.get_url()
-            res = requests.get(url, timeout=10)
+            headers = {"User-Agent": "Mozilla/5.0"}
+            res = requests.get(url, headers=headers, timeout=10)
+
             res.encoding = res.apparent_encoding
             res.raise_for_status()
 
@@ -152,9 +154,15 @@ class NewsViewer(QMainWindow):
         table.setStyleSheet("QTableWidget {font-family: monospace;}")
         table.setHorizontalHeaderLabels(["日付", "タイトル"])
         # 行ヘッダー（垂直ヘッダー）を取得して、右寄せ＋垂直中央に設定
-        table.verticalHeader().setDefaultAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)  # 行選択
-        table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)  # 編集禁止
+        table.verticalHeader().setDefaultAlignment(
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter
+        )
+        table.setSelectionBehavior(
+            QAbstractItemView.SelectionBehavior.SelectRows
+        )  # 行選択
+        table.setEditTriggers(
+            QAbstractItemView.EditTrigger.NoEditTriggers
+        )  # 編集禁止
         table.cellDoubleClicked.connect(self.on_cell_clicked)  # クリックイベント
         self.layout.addWidget(table)
 
