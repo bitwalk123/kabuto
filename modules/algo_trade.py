@@ -30,15 +30,15 @@ class AlgoTrade:
 
     def predict(self, obs, masks) -> tuple[int, dict]:
         # --- 観測値の取り出し ---
-        # 1. クロスシグナル 1
+        # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])
-        # 2. ロスカット 1
+        # 2. ロスカット 1 [0, 1]
         losscut_1 = int(obs[self.idx_losscut_1])
-        # 3. ロスカット 2
+        # 3. ロスカット 2 [0, 1]
         losscut_2 = int(obs[self.idx_losscut_2])
-        # 4. 利確 1
+        # 4. 利確 1 [0, 1]
         takeprofit_1 = int(obs[self.idx_takeprofit_1])
-        # 5. ポジション（建玉）
+        # 5. ポジション（建玉） [SHORT, NONE, LONG]
         position = PositionType(int(obs[self.idx_position]))
 
         # --- エグジット判定 ---
