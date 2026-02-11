@@ -77,6 +77,8 @@ class AlgoTrade:
     def updateObs(self, list_obs_label):
         """
         疑似ロジックでは、観測値にラベルを付けておかないと、コーディングする側が間違える！
+        【課題】
+        ObservationManager クラスと整合・同期を取る仕組みを導入する必要がある。
         :param list_obs_label:
         :return:
         """
