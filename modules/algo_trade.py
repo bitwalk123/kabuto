@@ -41,17 +41,24 @@ class AlgoTrade:
         # 5. ポジション（建玉）
         position = PositionType(int(obs[self.idx_position]))
 
-        # デフォルトは HOLD
-        action = ActionType.HOLD.value
+        # --- エグジット判定 ---
+        # 1. 継続（HOLD）条件を先に判定して早期リターン（ガード句）
+        # ポジションとシグナルが一致している場合は、何もしない（HOLD）
+        if (position == PositionType.LONG and cross_1 > 0) or \
+                (position == PositionType.SHORT and cross_1 < 0):
+            return ActionType.HOLD.value, {}
 
-        # 建玉がある時のエグジット処理
-        if position != PositionType.NONE:
-            if any((cross_1, losscut_1, losscut_2, takeprofit_1)):
-                exit_act = self.exit_action(position)
-                if exit_act and self.can_execute(exit_act, masks):
-                    action = exit_act
+        # 2. エグジット判定が必要なシグナルがあるか確認
+        # いずれかのフラグが立っている場合のみ処理を続行
+        has_signal = any((cross_1, losscut_1, losscut_2, takeprofit_1))
+        if has_signal:
+            exit_act = self.exit_action(position)
+            # 有効なアクションかつ実行可能ならそのアクションを返す
+            if exit_act and self.can_execute(exit_act, masks):
+                return exit_act, {}
 
-        return action, {}
+        # 3. デフォルトは HOLD
+        return ActionType.HOLD.value, {}
 
     def updateObs(self, list_obs_label):
         self.list_obs_label = list_obs_label
