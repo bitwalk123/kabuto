@@ -40,7 +40,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.13"
+    __version__ = "0.3.14"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -76,9 +76,8 @@ class Kabuto(QMainWindow):
         else:
             # リアルタイム・モード
             self.logger.info(f"{__name__}: 通常モードで起動しました。")
-            # self.timer_interval = 1000  # タイマー間隔（ミリ秒）
-            self.timer_interval = 2000  # タイマー間隔（ミリ秒）
-        #
+            # タイマー間隔（ミリ秒）= マーケットスピード2 RSS の更新間隔のデフォルト
+            self.timer_interval = 2000
         #######################################################################
         # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
