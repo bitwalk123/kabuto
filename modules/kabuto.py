@@ -64,11 +64,11 @@ class Kabuto(QMainWindow):
     def __init__(self, debug: bool = True) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
-        self.res = res = AppRes()
-        res.debug = debug  # デバッグ・モードを保持
+        self.res = AppRes()
+        self.res.debug = debug  # デバッグ・モードを保持
         #######################################################################
         # リアルタイム / デバッグ モード固有の設定
-        if debug:
+        if self.res.debug:
             # デバッグ・モード
             self.logger.info(f"{__name__}: デバッグモードで起動しました。")
             self.timer_interval: int = 100  # タイマー間隔（ミリ秒）（デバッグ時）
@@ -118,17 +118,33 @@ class Kabuto(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+        self._setup_ui()
+        # ---------------------------------------------------------------------
+        # タイマー
+        # ---------------------------------------------------------------------
+        self.timer = timer = QTimer()
+        timer.setInterval(self.timer_interval)
+        if self.res.debug:
+            # デバッグモードではファイルを読み込んでからスレッドを起動
+            timer.timeout.connect(self.on_request_data_review)
+        else:
+            # リアルタイムモードでは、直ちにスレッドを起動
+            timer.timeout.connect(self.on_request_data)
+            # RSS用Excelファイルを指定してxlwingsを利用するスレッド
+            self.on_create_thread()
+
+    def _setup_ui(self) -> None:
         # ウィンドウアイコンとタイトルを設定
-        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "kabuto.png")))
+        self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
-        if debug:
+        if self.res.debug:
             # デバッグモードを示す文字列を追加
             title_win = f"{title_win} [debug mode]"
         self.setWindowTitle(title_win)
         # ---------------------------------------------------------------------
         # ツールバー
         # ---------------------------------------------------------------------
-        self.toolbar = toolbar = ToolBar(res)
+        self.toolbar = toolbar = ToolBar(self.res)
         toolbar.clickedAbout.connect(self.on_about)
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
@@ -138,7 +154,7 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # ステータスバー
         # ---------------------------------------------------------------------
-        self.statusbar = statusbar = StatusBar(res)
+        self.statusbar = statusbar = StatusBar(self.res)
         self.setStatusBar(statusbar)
         # ---------------------------------------------------------------------
         # メイン・ウィジェット
@@ -157,19 +173,6 @@ class Kabuto(QMainWindow):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
         base.setLayout(layout)
-        # ---------------------------------------------------------------------
-        # タイマー
-        # ---------------------------------------------------------------------
-        self.timer = timer = QTimer()
-        timer.setInterval(self.timer_interval)
-        if debug:
-            # デバッグモードではファイルを読み込んでからスレッドを起動
-            timer.timeout.connect(self.on_request_data_review)
-        else:
-            # リアルタイムモードでは、直ちにスレッドを起動
-            timer.timeout.connect(self.on_request_data)
-            # RSS用Excelファイルを指定してxlwingsを利用するスレッド
-            self.on_create_thread()
 
     def closeEvent(self, event: QCloseEvent) -> None:
         """
