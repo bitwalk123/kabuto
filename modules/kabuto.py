@@ -40,7 +40,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.3.14"
+    __version__ = "0.3.15"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -61,7 +61,7 @@ class Kabuto(QMainWindow):
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
     threadReady = Signal()
 
-    def __init__(self, debug: bool = True):
+    def __init__(self, debug: bool = True) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
         self.res = res = AppRes()
@@ -71,47 +71,50 @@ class Kabuto(QMainWindow):
         if debug:
             # デバッグ・モード
             self.logger.info(f"{__name__}: デバッグモードで起動しました。")
-            self.timer_interval = 100  # タイマー間隔（ミリ秒）（デバッグ時）
-            self.flag_data_ready = False
+            self.timer_interval: int = 100  # タイマー間隔（ミリ秒）（デバッグ時）
+            self.flag_data_ready: bool = False
         else:
             # リアルタイム・モード
             self.logger.info(f"{__name__}: 通常モードで起動しました。")
             # タイマー間隔（ミリ秒）= マーケットスピード2 RSS の更新間隔のデフォルト
-            self.timer_interval = 2000
+            self.timer_interval: int = 2000
         #######################################################################
         # ---------------------------------------------------------------------
         # 株価取得スレッド用インスタンス
         # ---------------------------------------------------------------------
         self.thread = QThread(self)
-        self.worker = None
+        self.worker: ExcelReviewWorker | RSSReaderWorker | None = None
         # ---------------------------------------------------------------------
         # Trader インスタンス
         # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
         # ---------------------------------------------------------------------
         self.trader: Trader | None = None
         # インスタンスを保持する辞書
-        self.dict_trader = dict()
+        # self.dict_trader = dict()
+        self.dict_trader: dict[str, Trader] = {}
         # 銘柄コードの全リスト
-        self.list_code = list()
+        # self.list_code = list()
+        self.list_code: list[str] = []
         # 選択した銘柄コードのリスト
-        self.list_code_selected = list()
+        self.list_code_selected: list[str] = []
         # ---------------------------------------------------------------------
         # 取引履歴
         # ---------------------------------------------------------------------
         # 取引明細用データフレーム
-        self.df_transaction = None
+        # self.df_transaction = None
+        self.df_transaction: pd.DataFrame | None = None
         # 取引明細用ダイアログ・インスタンス
         self.win_transaction: WinTransaction | None = None
         # ---------------------------------------------------------------------
         # 時刻関連
         # ---------------------------------------------------------------------
         # システム時刻（タイムスタンプ形式）
-        self.ts_system = 0
+        self.ts_system = 0.0
         # ザラ場の開始時間などのタイムスタンプ取得（本日分）
-        self.dict_ts = get_intraday_timestamp()
+        self.dict_ts: dict[str, float | str] = get_intraday_timestamp()
         # ---------------------------------------------------------------------
         # 取引が終了したかどうかのフラグ
-        self.finished_trading = False
+        self.finished_trading: bool = False
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -168,7 +171,7 @@ class Kabuto(QMainWindow):
             # RSS用Excelファイルを指定してxlwingsを利用するスレッド
             self.on_create_thread()
 
-    def closeEvent(self, event: QCloseEvent):
+    def closeEvent(self, event: QCloseEvent) -> None:
         """
         アプリ終了イベント
         :param event:
@@ -207,7 +210,7 @@ class Kabuto(QMainWindow):
         self.logger.info(f"{__name__} 停止して閉じました。")
         event.accept()
 
-    def create_trader(self, dict_name: dict):
+    def create_trader(self, dict_name: dict[str, str]) -> None:
         """
         選択した銘柄数分の Trader インスタンスの生成
         （リアルタイム・モード、デバッグ・モード共通）
@@ -217,7 +220,7 @@ class Kabuto(QMainWindow):
         # 配置済みの Trader インスタンスを消去
         clear_boxlayout(self.layout)
         # Trader 辞書のクリア
-        self.dict_trader = dict()
+        self.dict_trader.clear()
         # ---------------------------------------------------------------------
         # 選択した銘柄数分の Trader および Ticker インスタンスの生成
         # ---------------------------------------------------------------------
@@ -252,14 +255,14 @@ class Kabuto(QMainWindow):
             n = self.res.trend_n_max
         self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
 
-    def force_closing_position(self):
+    def force_closing_position(self) -> None:
         self.logger.info(f"{__name__} 売買を強制終了します。")
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
             dock.forceRepay()
 
-    def get_current_tick_data(self) -> dict:
+    def get_current_tick_data(self) -> dict[str, pd.DataFrame]:
         """
         チャートが保持しているティックデータをデータフレームで取得
         :return:
@@ -267,7 +270,7 @@ class Kabuto(QMainWindow):
         traders = self.dict_trader
         return {code: t.getTimePrice() for code, t in traders.items()}
 
-    def on_about(self):
+    def on_about(self) -> None:
         """
         このアプリについて（ダイアログ表示）
         :return:
@@ -281,7 +284,7 @@ class Kabuto(QMainWindow):
             "kabuto.png",
         ).exec()
 
-    def on_create_thread(self):
+    def on_create_thread(self) -> None:
         """
         リアルタイム用ティックデータ取得および売買用スレッドの生成
         :return:
@@ -337,7 +340,12 @@ class Kabuto(QMainWindow):
         # 20. スレッドを開始
         self.thread.start()
 
-    def on_create_trader(self, list_code: list, dict_name: dict):
+    # def on_create_trader(self, list_code: list, dict_name: dict):
+    def on_create_trader(
+            self,
+            list_code: list[str],
+            dict_name: dict[str, str]
+    ) -> None:
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_code:
@@ -389,7 +397,7 @@ class Kabuto(QMainWindow):
             self.timer.start()
             self.logger.info(f"{__name__}: タイマーを開始しました。")
 
-    def on_request_data(self):
+    def on_request_data(self) -> None:
         """
         タイマー処理（リアルタイム）
         """
@@ -441,13 +449,13 @@ class Kabuto(QMainWindow):
         # ツールバーの時刻を更新
         self.toolbar.updateTime(self.ts_system)
 
-    def on_save_completed(self, state: bool):
+    def on_save_completed(self, state: bool) -> None:
         if state:
             self.logger.info(f"{__name__}: ティック・データを正常に保存しました。")
         else:
             self.logger.info(f"{__name__}: ティック・データを正常に保存できませんでした。")
 
-    def on_show_transaction(self):
+    def on_show_transaction(self) -> None:
         """
         取引明細の表示
         :return:
@@ -455,7 +463,7 @@ class Kabuto(QMainWindow):
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
 
-    def on_thread_finished(self, result: bool):
+    def on_thread_finished(self, result: bool) -> None:
         """
         スレッド終了時のログ
         :param result:
@@ -470,10 +478,10 @@ class Kabuto(QMainWindow):
             self.timer.stop()
             self.logger.info(f"{__name__}: タイマーを停止しました。")
 
-    def on_ticker_ready(self, code: str):
+    def on_ticker_ready(self, code: str) -> None:
         self.logger.info(f"{__name__}: 銘柄コード {code} のスレッドの準備ができました。")
 
-    def on_transaction_result(self, df: pd.DataFrame):
+    def on_transaction_result(self, df: pd.DataFrame) -> None:
         """
         取引結果のデータフレームを取得（リアルタイム、デバッグ・モード共通）
         :param df:
@@ -497,7 +505,12 @@ class Kabuto(QMainWindow):
         # ツールバーの「取引履歴」ボタンを Enabled にする
         self.toolbar.set_transaction()
 
-    def on_update_data(self, dict_data: dict, dict_profit: dict, dict_total: dict):
+    def on_update_data(
+            self,
+            dict_data: dict[str, tuple[float, float, float]],
+            dict_profit: dict[str, float],
+            dict_total: dict[str, float]
+    ) -> None:
         """
         ティックデータ、含み益、損益の更新
         :param dict_data:
@@ -519,7 +532,7 @@ class Kabuto(QMainWindow):
                 trader: Trader = self.dict_trader[code]
                 trader.setTradeData(x, y, vol, profit, total)
 
-    def save_technicals(self, path_dir: str):
+    def save_technicals(self, path_dir: str) -> None:
         """
         取引終了後に銘柄毎にテクニカルデータを保存
         :param path_dir:
@@ -533,26 +546,26 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str):
+    def on_buy(self, code: str, price: float, note: str) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建リクエストのシグナル
         self.requestBuy.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, code: str, price: float, note: str):
+    def on_sell(self, code: str, price: float, note: str) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建リクエストのシグナル
         self.requestSell.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay(self, code: str, price: float, note: str):
+    def on_repay(self, code: str, price: float, note: str) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 建玉返済リクエストのシグナル
         self.requestRepay.emit(code, self.ts_system, price, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @Slot(bool)
-    def receive_result(self, code: str, status: bool):
+    @Slot(str, bool)
+    def receive_result(self, code: str, status: bool) -> None:
         """
         約定確認結果
         :param code:
@@ -567,7 +580,7 @@ class Kabuto(QMainWindow):
     # デバッグ（レビュー）用メソッド
     #
     ###########################################################################
-    def on_create_thread_review(self, excel_path: str, list_code_selected: list):
+    def on_create_thread_review(self, excel_path: str, list_code_selected: list[str]) -> None:
         """
         レビュー用ティックデータ取得スレッドの生成
         :param excel_path:
@@ -630,7 +643,7 @@ class Kabuto(QMainWindow):
         # 20. スレッドを開始
         self.thread.start()
 
-    def on_request_data_review(self):
+    def on_request_data_review(self) -> None:
         """
         タイマー処理（デバッグ/レビュー用）
         """
@@ -640,7 +653,7 @@ class Kabuto(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # システム時間のインクリメント（１秒）
-        self.ts_system += 1
+        self.ts_system += 1.0
 
         # 取引時間を過ぎたかをチェック
         if self.dict_ts["end_2h"] < self.ts_system <= self.dict_ts["ca"]:
@@ -664,7 +677,7 @@ class Kabuto(QMainWindow):
         # ツールバーの時刻を更新（現在時刻を表示するだけ）
         self.toolbar.updateTime(self.ts_system)
 
-    def on_review_play(self):
+    def on_review_play(self) -> None:
         """
         読み込んだデータ・レビュー開始（デバッグ/レビュー用）
         :return:
@@ -675,7 +688,7 @@ class Kabuto(QMainWindow):
             self.timer.start()
             self.logger.info(f"{__name__}: タイマーを開始しました。")
 
-    def on_review_stop(self):
+    def on_review_stop(self) -> None:
         """
         読み込んだデータ・レビュー停止（デバッグ/レビュー用）
         :return:
@@ -693,7 +706,7 @@ class Kabuto(QMainWindow):
             )
             self.save_technicals(path_dir)
 
-    def set_data_ready_status(self, state: bool):
+    def set_data_ready_status(self, state: bool) -> None:
         self.flag_data_ready = state
         self.logger.info(
             f"{__name__}: データ準備完了フラグが {state} になりました。"
