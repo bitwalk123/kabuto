@@ -27,17 +27,19 @@ class RSSReaderWorker(QObject):
     【Windows 専用】
     楽天証券マーケットスピード２ RSS が Excel シートに書き込んだ株価情報を読み取るワーカースレッド
     """
-    # 銘柄名（リスト）の通知
+    # 1. 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict)
-    # ティックデータを通知
+    # 2. ティックデータを通知
     notifyCurrentPrice = Signal(dict, dict, dict)
-    # 取引結果のデータフレームを通知
+    # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
-    # ティックデータ保存の終了を通知
-    saveCompleted = Signal(bool)
-    # 約定確認結果を通知
+    # 4. 約定確認結果を通知
     sendResult = Signal(str, bool)
-    # スレッド終了シグナル（成否の論理値）
+    # 5. ティックデータ保存の終了を通知（本番用）
+    saveCompleted = Signal(bool)
+    # 6. データ準備完了（デバッグ用 - 本番用ではダミー）
+    notifyDataReady = Signal(bool)
+    # 7. スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
     def __init__(self, res: AppRes):

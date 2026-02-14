@@ -14,22 +14,19 @@ class ExcelReviewWorker(QObject):
     """
     Excel 形式の過去データを読み込むスレッドワーカー
     """
-    # 銘柄名（リスト）通知シグナル
+    # 1. 銘柄名（リスト）通知シグナル
     notifyTickerN = Signal(list, dict)
-
-    # データ読み込み済み
-    notifyDataReady = Signal(bool)
-
-    # ティックデータ通知シグナル
+    # 2. ティックデータを通知
     notifyCurrentPrice = Signal(dict, dict, dict)
-
-    # 取引結果のデータフレーム通知シグナル
+    # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
-
-    # 約定確認結果を通知
+    # 4, 約定確認結果を通知
     sendResult = Signal(str, bool)
-
-    # スレッド終了シグナル（成否の論理値）
+    # 5. ティックデータ保存の終了を通知（本番のみ - デバッグ用ではダミー）
+    saveCompleted = Signal(bool)
+    # 6. データ準備完了（デバッグ用）
+    notifyDataReady = Signal(bool)
+    # 7. スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
     def __init__(self, excel_path: str):
