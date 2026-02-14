@@ -124,6 +124,12 @@ class ExcelReviewWorker(QObject):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def saveDataFrame(self):
+        """
+        デバッグ用ではダミー
+        """
+        pass
+
     def stop(self):
         self._running = False
 

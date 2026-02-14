@@ -294,8 +294,8 @@ class Kabuto(QMainWindow):
         self.worker = worker = RSSReaderWorker(self.res)
         worker.moveToThread(self.thread)
         # ---------------------------------------------------------------------
-        # 01. データ読み込み済みの通知（レビュー用のみ）
-        # リアルタイム用には本機能なし
+        # 01. データ読み込み済みの通知（リアルタイム用ではダミー）
+        worker.notifyDataReady.connect(self.set_data_ready_status)
         # =====================================================================
         # 02. スレッドが開始されたら、ワーカースレッド内で初期化処理を実行するシグナルを発行
         self.thread.started.connect(self.requestWorkerInit.emit)
@@ -334,6 +334,7 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # 14. 約定結果の通知
         worker.sendResult.connect(self.receive_result)
+        # ---------------------------------------------------------------------
         # 19. スレッド終了関連
         worker.threadFinished.connect(self.on_thread_finished)
         # =====================================================================
@@ -616,8 +617,8 @@ class Kabuto(QMainWindow):
         # 06. 現在株価を取得するメソッドへキューイング。
         self.requestCurrentPrice.connect(worker.readCurrentPrice)
         # ---------------------------------------------------------------------
-        # 07. データフレームを保存するメソッドへキューイング
-        # デバッグ/レビュー用では本機能なし
+        # 07. データフレームを保存するメソッドへキューイング（デバッグ用ではダミー）
+        self.requestSaveDataFrame.connect(worker.saveDataFrame)
         # ---------------------------------------------------------------------
         # 08. スレッドを終了する下記のメソッドへキューイング（リアルタイムでは xlwings 関連）。
         self.requestStopProcess.connect(worker.stopProcess)
@@ -631,8 +632,8 @@ class Kabuto(QMainWindow):
         # 12. 取引結果を通知
         worker.notifyTransactionResult.connect(self.on_transaction_result)
         # ---------------------------------------------------------------------
-        # 13. データフレームを保存終了を通知
-        # デバッグ/レビュー用では本機能なし
+        # 13. データフレームを保存終了を通知（デバッグ用ではダミー）
+        worker.saveCompleted.connect(self.on_save_completed)
         # ---------------------------------------------------------------------
         # 14. 約定結果の通知
         worker.sendResult.connect(self.receive_result)
