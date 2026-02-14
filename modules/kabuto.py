@@ -239,11 +239,6 @@ class Kabuto(QMainWindow):
             self.dict_trader[code] = trader
             # 「銘柄名　(code)」をタイトルにして設定し直し
             trader.setChartTitle(f"{dict_name[code]} ({code})")
-            # 当日ザラ場時間（x軸の範囲設定）
-            # trader.setTimeAxisRange(self.dict_ts["start"], self.dict_ts["end"])
-            # 前日終値
-            # if dict_lastclose[code] > 0:
-            #    trader.setLastCloseLine(dict_lastclose[code])
             # 配置
             self.layout.addWidget(trader)
         # ---------------------------------------------------------------------
