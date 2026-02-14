@@ -33,35 +33,33 @@ class ExcelReviewWorker(QObject):
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.prefix = self.__class__.__name__
-        self._running = True
+        self._running: bool = True
         self.excel_path = excel_path
-        self.dict_sheet = dict()
+        self.dict_sheet: dict[str, pd.DataFrame] = {}
 
         # 銘柄リスト
-        self.list_code = list()
+        self.list_code: list[str] = []
 
         # ポジション・マネージャのインスタンス
-        self.posman = PositionManager()
+        self.posman: PositionManager = PositionManager()
 
     @Slot()
-    def getTransactionResult(self):
+    def getTransactionResult(self) -> None:
         """
         取引結果を取得
-        :return:
         """
         df = self.posman.getTransactionResult()
         self.notifyTransactionResult.emit(df)
 
     @Slot()
-    def initWorker(self):
+    def initWorker(self) -> None:
         """
         ティックデータを保存した Excel ファイルの読み込み
-        :return:
         """
         try:
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
-            msg = "encountered error in reading Excel date_str:"
+            msg = f"encountered error in reading Excel, {self.excel_path}:"
             self.logger.critical(f"{__name__}: {msg} {e}")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 スレッドの異常終了を通知
@@ -73,14 +71,7 @@ class ExcelReviewWorker(QObject):
         self.list_code = list(self.dict_sheet.keys())
 
         # 銘柄コードから銘柄名を取得
-        dict_name = get_ticker_name_list(self.list_code)
-
-        """
-        # デバッグ・モードでは、現在のところは前日終値を 0 とする
-        dict_lastclose = dict()
-        for code in self.list_code:
-            dict_lastclose[code] = 0
-        """
+        dict_name: dict[str, str] = get_ticker_name_list(self.list_code)
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 銘柄名（リスト）などの情報を通知
@@ -98,24 +89,25 @@ class ExcelReviewWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot(float)
-    def readCurrentPrice(self, ts: float):
-        dict_data = dict()
-        dict_profit = dict()
-        dict_total = dict()
+    def readCurrentPrice(self, t: float) -> None:
+        dict_data: dict[str, tuple[float, float, float]] = {}
+        dict_profit: dict[str, float] = {}
+        dict_total: dict[str, float] = {}
+
         for code in self.list_code:
-            df = self.dict_sheet[code]
+            df: pd.DataFrame = self.dict_sheet[code]
             # 指定された時刻から +1 秒未満で株価が存在するか確認
-            df_tick = df[(ts <= df['Time']) & (df['Time'] < ts + 1)]
+            df_tick: pd.DataFrame = df[(t <= df["Time"]) & (df["Time"] < t + 1)]  # type: ignore
             if len(df_tick) > 0:
                 # 時刻が存在していれば、データにある時刻と株価を返値に設定
-                ts = df_tick.iloc[0, 0]
-                price = df_tick.iloc[0, 1]
-                volume = df_tick.iloc[0, 2]
-                dict_data[code] = [ts, price, volume]
+                row = df_tick.iloc[0]
+                ts = row["Time"]
+                price = row["Price"]
+                volume = row["Volume"]
+                # メイン・スレッドへ渡す情報を準備
+                dict_data[code] = (ts, price, volume)
                 dict_profit[code] = self.posman.getProfit(code, price)
                 dict_total[code] = self.posman.getTotal(code)
-            else:
-                continue
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価、含み損、総収益を通知
@@ -124,17 +116,17 @@ class ExcelReviewWorker(QObject):
         )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def saveDataFrame(self):
+    def saveDataFrame(self) -> None:
         """
         デバッグ用ではダミー
         """
         pass
 
-    def stop(self):
+    def stop(self) -> None:
         self._running = False
 
     @Slot()
-    def stopProcess(self):
+    def stopProcess(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 スレッドの正常終了を通知
         self.threadFinished.emit(True)
@@ -144,21 +136,21 @@ class ExcelReviewWorker(QObject):
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     @Slot(str, float, float, str)
-    def macro_do_buy(self, code: str, ts: float, price: float, note: str):
+    def macro_do_buy(self, code: str, ts: float, price: float, note: str) -> None:
         time.sleep(0.2)
         # 買建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.BUY, note)
         self.sendResult.emit(code, True)
 
     @Slot(str, float, float, str)
-    def macro_do_sell(self, code: str, ts: float, price: float, note: str):
+    def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
         time.sleep(0.2)
         # 売建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.SELL, note)
         self.sendResult.emit(code, True)
 
     @Slot(str, float, float, str)
-    def macro_do_repay(self, code: str, ts: float, price: float, note: str):
+    def macro_do_repay(self, code: str, ts: float, price: float, note: str) -> None:
         time.sleep(0.2)
         # 建玉返済
         self.posman.closePosition(code, ts, price, note)

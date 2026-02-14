@@ -23,7 +23,7 @@ def get_ticker_list() -> pd.DataFrame:
     return df
 
 
-def get_ticker_name_list(list_ticker: list) -> dict:
+def get_ticker_name_list(list_ticker: list) -> dict[str, str]:
     df = get_ticker_list()
     list_name = list(df[df["コード"].isin(list_ticker)]["銘柄名"])
     dict_name = dict()
