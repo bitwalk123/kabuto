@@ -44,6 +44,28 @@ class Kabuto(QMainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
+    # インスタンス変数の型宣言
+    logger: logging.Logger
+    res: AppRes
+    timer_interval: int
+    flag_data_ready: bool
+    thread: QThread
+    worker: ExcelReviewWorker | RSSReaderWorker | None
+    trader: Trader | None
+    dict_trader: dict[str, Trader]
+    list_code: list[str]
+    list_code_selected: list[str]
+    df_transaction: pd.DataFrame | None
+    win_transaction: WinTransaction | None
+    ts_system: float
+    dict_ts: dict[str, float | str]
+    finished_trading: bool
+    toolbar: ToolBar
+    statusbar: StatusBar
+    area_chart: ScrollArea
+    layout: VBoxLayout
+    timer: QTimer
+
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
 
@@ -63,58 +85,21 @@ class Kabuto(QMainWindow):
 
     def __init__(self, debug: bool = True) -> None:
         super().__init__()
-        self.logger = logging.getLogger(__name__)  # モジュール固有のロガーを取得
+        self.logger = logging.getLogger(__name__)
         self.res = AppRes()
-        self.res.debug = debug  # デバッグ・モードを保持
-        #######################################################################
-        # リアルタイム / デバッグ モード固有の設定
+        self.res.debug = debug
+
+        # モード設定
         if self.res.debug:
-            # デバッグ・モード
             self.logger.info(f"{__name__}: デバッグモードで起動しました。")
-            self.timer_interval: int = 100  # タイマー間隔（ミリ秒）（デバッグ時）
-            self.flag_data_ready: bool = False
+            self.timer_interval = 100
+            self.flag_data_ready = False
         else:
-            # リアルタイム・モード
             self.logger.info(f"{__name__}: 通常モードで起動しました。")
-            # タイマー間隔（ミリ秒）= マーケットスピード2 RSS の更新間隔のデフォルト
-            self.timer_interval: int = 2000
-        #######################################################################
-        # ---------------------------------------------------------------------
-        # 株価取得スレッド用インスタンス
-        # ---------------------------------------------------------------------
-        self.thread = QThread(self)
-        self.worker: ExcelReviewWorker | RSSReaderWorker | None = None
-        # ---------------------------------------------------------------------
-        # Trader インスタンス
-        # 銘柄コード別にチャートや売買情報および売買機能の UI を提供する
-        # ---------------------------------------------------------------------
-        self.trader: Trader | None = None
-        # インスタンスを保持する辞書
-        # self.dict_trader = dict()
-        self.dict_trader: dict[str, Trader] = {}
-        # 銘柄コードの全リスト
-        # self.list_code = list()
-        self.list_code: list[str] = []
-        # 選択した銘柄コードのリスト
-        self.list_code_selected: list[str] = []
-        # ---------------------------------------------------------------------
-        # 取引履歴
-        # ---------------------------------------------------------------------
-        # 取引明細用データフレーム
-        # self.df_transaction = None
-        self.df_transaction: pd.DataFrame | None = None
-        # 取引明細用ダイアログ・インスタンス
-        self.win_transaction: WinTransaction | None = None
-        # ---------------------------------------------------------------------
-        # 時刻関連
-        # ---------------------------------------------------------------------
-        # システム時刻（タイムスタンプ形式）
-        self.ts_system: float = 0.0
-        # ザラ場の開始時間などのタイムスタンプ取得（本日分）
-        self.dict_ts: dict[str, float | str] = get_intraday_timestamp()
-        # ---------------------------------------------------------------------
-        # 取引が終了したかどうかのフラグ
-        self.finished_trading: bool = False
+            self.timer_interval = 2000
+
+        # データ構造初期化
+        self._init_data_structures()
 
         # UI セットアップ
         self._setup_ui()
@@ -122,7 +107,29 @@ class Kabuto(QMainWindow):
         # タイマー初期化
         self._init_timer()
 
-    def _init_timer(self):
+    def _init_data_structures(self) -> None:
+        """データ構造の初期化"""
+        # スレッド/ワーカー
+        self.thread = QThread(self)
+        self.worker = None
+
+        # Trader関連
+        self.trader = None
+        self.dict_trader = {}
+        self.list_code = []
+        self.list_code_selected = []
+
+        # 取引履歴
+        self.df_transaction = None
+        self.win_transaction = None
+
+        # 時刻関連
+        self.ts_system = 0.0
+        self.dict_ts = get_intraday_timestamp()
+        self.finished_trading = False
+
+    def _init_timer(self) -> None:
+        """タイマーの初期化とシグナル接続"""
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
         if self.res.debug:
@@ -135,6 +142,7 @@ class Kabuto(QMainWindow):
             self.on_create_thread()
 
     def _setup_ui(self) -> None:
+        """UI コンポーネントの初期化"""
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
