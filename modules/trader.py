@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any, List
 
 import pandas as pd
 from PySide6.QtCore import (
@@ -39,7 +39,7 @@ class Trader(QMainWindow):
         # HOLD は何もしないので載せない
     }
 
-    def __init__(self, res: AppRes, code: str, dict_ts: dict):
+    def __init__(self, res: AppRes, code: str, dict_ts: Dict[str, Any]) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -47,19 +47,19 @@ class Trader(QMainWindow):
         self.dict_ts = dict_ts
 
         # ティックデータ
-        self.list_x = list()
-        self.list_y = list()
-        self.list_v = list()
+        self.list_x: List[float] = []
+        self.list_y: List[float] = []
+        self.list_v: List[float] = []
 
         # テクニカル指標
-        self.vwap = 0
-        self.list_ts = list()  # self.list_x と同一になってしまうかもしれない
-        self.list_vwap = list()
-        self.list_ma_1 = list()
-        self.list_disparity = list()
+        self.vwap: float = 0.0
+        self.list_ts: List[float] = []  # self.list_x と同一になってしまうかもしれない
+        self.list_vwap: List[float] = []
+        self.list_ma_1: List[float] = []
+        self.list_disparity: List[float] = []
 
         # 銘柄コード別設定ファイルの取得
-        dict_setting = load_setting(res, code)
+        dict_setting: Dict[str, Any] = load_setting(res, code)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -113,7 +113,7 @@ class Trader(QMainWindow):
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
-    def closeEvent(self, event: QCloseEvent):
+    def closeEvent(self, event: QCloseEvent) -> None:
         if self.thread is not None:
             self.thread.quit()
             self.thread.wait()
@@ -140,7 +140,7 @@ class Trader(QMainWindow):
             "Volume": self.list_v,
         })
 
-    def on_action(self, action: int, position: PositionType):
+    def on_action(self, action: int, position: PositionType) -> None:
         """
         売買アクション
         :param action:
@@ -163,7 +163,7 @@ class Trader(QMainWindow):
         # dock のメソッドを取得して実行
         getattr(self.dock, method_name)()
 
-    def on_save(self):
+    def on_save(self) -> None:
         """
         チャートを保存
         :return:
@@ -192,7 +192,7 @@ class Trader(QMainWindow):
         path_img = os.path.join(output_dir, file_img)
         self.trend.save(path_img)
 
-    def on_technicals(self, dict_technicals: dict):
+    def on_technicals(self, dict_technicals: dict) -> None:
         if dict_technicals["warmup"]:
             # self.switchActivate(True)
             self.dock.trading.lockButtons()
@@ -214,7 +214,7 @@ class Trader(QMainWindow):
 
         self.update_technicals(self.dock.isDisparityChecked())
 
-    def update_technicals(self, flag: bool):
+    def update_technicals(self, flag: bool) -> None:
         if flag:
             self.trend.setTechnicals(
                 self.list_ts,
@@ -230,7 +230,7 @@ class Trader(QMainWindow):
                 [],
             )
 
-    def switch_chart(self, flag: bool):
+    def switch_chart(self, flag: bool) -> None:
         if len(self.list_x) > 0:
             ts = self.list_x[-1]
             price = self.list_y[-1]
@@ -253,10 +253,10 @@ class Trader(QMainWindow):
         # y 軸のスケールを更新
         self.trend.updateYAxisRange(flag)
 
-    def on_trading_completed(self):
+    def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
 
-    def reset_env_completed(self):
+    def reset_env_completed(self) -> None:
         """
         環境をリセット済
         :return:
@@ -264,20 +264,21 @@ class Trader(QMainWindow):
         msg = f"{__name__}: 銘柄コード {self.code} 用の環境がリセットされました。"
         self.logger.info(msg)
 
-    def setLastCloseLine(self, price_close: float):
+    def setTradeData(
+            self,
+            ts: float,
+            price: float,
+            volume: float,
+            profit: float,
+            total: float
+    ) -> None:
         """
-        前日終値ラインの描画
-        :param price_close:
-        :return:
-        """
-        self.trend.ax.axhline(y=price_close, color="red", linewidth=0.75)
-
-    def setTradeData(self, ts: float, price: float, volume: float, profit: float, total: float):
-        """
-        ティックデータの取得
+        株価データなどをセット
         :param ts:
         :param price:
         :param volume:
+        :param profit:
+        :param total:
         :return:
         """
 
@@ -309,7 +310,7 @@ class Trader(QMainWindow):
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
 
-    def setTimeAxisRange(self, ts_start, ts_end):
+    def setTimeAxisRange(self, ts_start, ts_end) -> None:
         """
         x軸のレンジ
         固定レンジで使いたいため。
@@ -320,7 +321,7 @@ class Trader(QMainWindow):
         """
         self.trend.setXRange(ts_start, ts_end)
 
-    def setChartTitle(self, title: str):
+    def setChartTitle(self, title: str) -> None:
         """
         チャートのタイトルを設定
         :param title:
@@ -331,7 +332,7 @@ class Trader(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str, auto: bool):
+    def on_buy(self, code: str, price: float, note: str, auto: bool) -> None:
         if not auto:
             # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -339,7 +340,7 @@ class Trader(QMainWindow):
             self.requestPositionOpen.emit(ActionType.BUY)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, code: str, price: float, note: str, auto: bool):
+    def on_sell(self, code: str, price: float, note: str, auto: bool) -> None:
         if not auto:
             # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -347,7 +348,7 @@ class Trader(QMainWindow):
             self.requestPositionOpen.emit(ActionType.SELL)
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay(self, code: str, price: float, note: str, auto: bool):
+    def on_repay(self, code: str, price: float, note: str, auto: bool) -> None:
         if not auto:
             # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -355,11 +356,14 @@ class Trader(QMainWindow):
             self.requestPositionClose.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def saveTechnicals(self, path_dir: str):
+    def saveTechnicals(self, path_dir: str) -> None:
         """
         保持したテクニカル指標のデータを指定パスに保存
         :param path_dir:
         :return:
         """
         path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 テクニカルデータ保存リクエストのシグナル
         self.requestSaveTechnicals.emit(path_csv)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

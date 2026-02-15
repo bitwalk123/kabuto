@@ -1,4 +1,5 @@
 import logging
+from typing import Any
 
 import pyqtgraph as pg
 import pyqtgraph.exporters
@@ -12,7 +13,7 @@ from widgets.misc import TickFont
 
 
 class CustomYAxisItem(pg.AxisItem):
-    def tickStrings(self, values, scale, spacing):
+    def tickStrings(self, values: list[float], scale: float, spacing: float) -> list[str]:
         return [f"{value:6,.1f}" for value in values]
 
 
@@ -25,7 +26,12 @@ class TrendChart(pg.PlotWidget):
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
-    def __init__(self, res: AppRes, dict_ts: dict, dict_setting: dict):
+    def __init__(
+            self,
+            res: AppRes,
+            dict_ts: dict[str, Any],
+            dict_setting: dict[str, Any]
+    ) -> None:
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.dict_ts = dict_ts
@@ -96,7 +102,7 @@ class TrendChart(pg.PlotWidget):
         self.vline_dead.setZValue(20)
         self.addItem(self.vline_dead)
 
-    def config_plot_item(self):
+    def config_plot_item(self) -> None:
         """
         プロットアイテムの設定
         :return:
@@ -122,38 +128,39 @@ class TrendChart(pg.PlotWidget):
         # 高速化オプション
         self.plot_item.setClipToView(True)
 
-    def setCrossDead(self, x):
+    def setCrossDead(self, x: float) -> None:
         self.vline_dead.setPos(x)
 
-    def setCrossGolden(self, x):
+    def setCrossGolden(self, x: float) -> None:
         self.vline_golden.setPos(x)
 
-    def setLine(self, line_x, line_y):
+    # def setLine(self, line_x, line_y):
+    def setLine(self, line_x: list[float], line_y: list[float]) -> None:
         # トレンド線
-        self.line.setData(line_x, line_y)
+        self.line.setData(tuple(line_x), tuple(line_y))
 
-    def setDot(self, x, y):
+    def setDot(self, x: list[float], y: list[float]) -> None:
         # 最新値
         self.last_dot.setData(x, y)
 
     def setTechnicals(
             self,
-            line_ts,
-            line_ma_1,
-            line_vwap,
-            line_disparity,
-    ):
-        self.ma_1.setData(line_ts, line_ma_1)
-        self.vwap.setData(line_ts, line_vwap)
-        self.disparity.setData(line_ts, line_disparity)
+            line_ts: list[float],
+            line_ma_1: list[float],
+            line_vwap: list[float],
+            line_disparity: list[float],
+    ) -> None:
+        self.ma_1.setData(tuple(line_ts), tuple(line_ma_1))
+        self.vwap.setData(tuple(line_ts), tuple(line_vwap))
+        self.disparity.setData(tuple(line_ts), tuple(line_disparity))
 
-    def setTrendTitle(self, title: str):
+    def setTrendTitle(self, title: str) -> None:
         self.setTitle(trend_label_html(title, size=9))
 
-    def setZeroLine(self, flag: bool):
+    def setZeroLine(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)
 
-    def save(self, path_img: str):
+    def save(self, path_img: str) -> None:
         """
         チャートをイメージに保存
         https://pyqtgraph.readthedocs.io/en/latest/user_guide/exporting.html
@@ -164,7 +171,7 @@ class TrendChart(pg.PlotWidget):
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
 
-    def updateYAxisRange(self, flag: bool):
+    def updateYAxisRange(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)
         # self.plot_item.autoRange()
         self.plot_item.enableAutoRange(axis="x", enable=False)
