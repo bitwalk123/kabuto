@@ -29,7 +29,7 @@ class ExcelReviewWorker(QObject):
     # 7. スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
-    def __init__(self, excel_path: str):
+    def __init__(self, excel_path: str) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.prefix = self.__class__.__name__

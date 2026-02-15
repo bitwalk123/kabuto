@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+from typing import Optional, Callable
 
 import pandas as pd
 import xlwings as xw
@@ -42,7 +43,7 @@ class RSSReaderWorker(QObject):
     # 7. スレッド終了シグナル（成否の論理値）
     threadFinished = Signal(bool)
 
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.prefix = self.__class__.__name__
@@ -56,16 +57,16 @@ class RSSReaderWorker(QObject):
         # Excel と通信する COM オブジェクトがスレッドアフィニティ（特定のCOMオブジェクトは
         # 特定のシングルスレッドアパートメントでしか動作できないという制約）を持っているため
         # ---------------------------------------------------------------------
-        self.wb = None  # Excel のワークブックインスタンス
-        self.sheet = None  # Excel のワークシートインスタンス
-        self.clear_logs = None
-        self.do_buy = None
-        self.do_sell = None
-        self.do_repay = None
-        self.is_position_present = None
+        self.wb: Optional[xw.Book] = None  # Excel のワークブックインスタンス
+        self.sheet: Optional[xw.Sheet] = None  # Excel のワークシートインスタンス
+        self.clear_logs: Optional[Callable] = None
+        self.do_buy: Optional[Callable] = None
+        self.do_sell: Optional[Callable] = None
+        self.do_repay: Optional[Callable] = None
+        self.is_position_present: Optional[Callable] = None
 
-        self.max_row = None
-        self.min_row = None
+        self.max_row: Optional[int] = None
+        self.min_row: Optional[int] = None
 
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
@@ -75,17 +76,17 @@ class RSSReaderWorker(QObject):
         self.sec_sleep = 2  # 約定確認用のスリープ時間（秒）
 
         # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
-        self.dict_data = dict()
-        self.dict_profit = dict()
-        self.dict_total = dict()
+        self.dict_data: dict[str, tuple[float, float, float]] = {}
+        self.dict_profit: dict[str, float] = {}
+        self.dict_total: dict[str, float] = {}
         # ---------------------------------------------------------------------
 
         # Excel ワークシート情報
         self.cell_bottom = "------"
-        self.list_code = list()  # 銘柄リスト
-        self.dict_row = dict()  # 銘柄の行位置
-        self.dict_name = dict()  # 銘柄名
-        self.ticks = dict()  # 銘柄別データフレーム
+        self.list_code: list[str] = []  # 銘柄リスト
+        self.dict_row: dict[str, int] = {}  # 銘柄の行位置
+        self.dict_name: dict[str, str] = {}  # 銘柄名
+        self.ticks: dict[str, dict[str, list[float]]] = {}  # 銘柄別データフレーム
 
         # Excel の列情報（VBA準拠）
         self.col_code = 1  # 銘柄コード
@@ -101,7 +102,7 @@ class RSSReaderWorker(QObject):
         self.posman = PositionManager()
 
     @Slot()
-    def getTransactionResult(self):
+    def getTransactionResult(self) -> None:
         """
         取引結果を取得
         :return:
@@ -113,7 +114,7 @@ class RSSReaderWorker(QObject):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
-    def initWorker(self):
+    def initWorker(self) -> None:
         """
         スレッド開始後の初期化処理
         :return:
@@ -161,7 +162,7 @@ class RSSReaderWorker(QObject):
         self.macro_clear_logs()
 
     @Slot(float)
-    def readCurrentPrice(self, ts: float):
+    def readCurrentPrice(self, ts: float) -> None:
         """
         現在株価の読み取り（Excel 一括読み取り版）
         :param ts: タイムスタンプ
@@ -178,8 +179,14 @@ class RSSReaderWorker(QObject):
                 # -------------------------------------------------------------
                 # 株価情報を一括読み取り（列ごとに）
                 # -------------------------------------------------------------
-                prices = self.sheet.range((self.min_row, self.col_price), (self.max_row, self.col_price)).value
-                volumes = self.sheet.range((self.min_row, self.col_volume), (self.max_row, self.col_volume)).value
+                prices: list[float | None] = self.sheet.range(
+                    (self.min_row, self.col_price),
+                    (self.max_row, self.col_price)
+                ).value
+                volumes: list[float | None] = self.sheet.range(
+                    (self.min_row, self.col_volume),
+                    (self.max_row, self.col_volume)
+                ).value
 
                 # 読み取り結果を dict_data に格納
                 for i, code in enumerate(self.list_code):
@@ -231,7 +238,7 @@ class RSSReaderWorker(QObject):
                 d["Price"].append(price)
                 d["Volume"].append(volume)
 
-    def saveDataFrame(self):
+    def saveDataFrame(self) -> None:
         """
         最後にティックデータを保存する処理
         :return:
@@ -244,7 +251,7 @@ class RSSReaderWorker(QObject):
         )
 
         r = 0
-        dict_df = dict()  # 銘柄コード別にデータフレームを保存
+        dict_df: dict[str, pd.DataFrame] = {}  # 銘柄コード別にデータフレームを保存
         for code in self.list_code:
             df = pd.DataFrame(self.ticks[code])
             r += len(df)
@@ -270,11 +277,11 @@ class RSSReaderWorker(QObject):
         self.saveCompleted.emit(flag)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def stop(self):
+    def stop(self) -> None:
         self._running = False
 
     @Slot()
-    def stopProcess(self):
+    def stopProcess(self) -> None:
         """
         xlwings のインスタンスを明示的に開放する
         :return:
@@ -292,7 +299,7 @@ class RSSReaderWorker(QObject):
     # 取引ボタンがクリックされた時など　VBAマクロとやり取りをする処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     @Slot()
-    def macro_clear_logs(self):
+    def macro_clear_logs(self) -> None:
         if sys.platform != "win32":
             self.logger.info(f"{self.prefix}: ClearLogs: 非Windows 上では実行できません。")
             return
@@ -305,7 +312,7 @@ class RSSReaderWorker(QObject):
             self.logger.exception(f"{self.prefix}: Unexpected error in ClearLogs: {e}")
 
     @Slot(str, float, float, str)
-    def macro_do_buy(self, code: str, ts: float, price: float, note: str):
+    def macro_do_buy(self, code: str, ts: float, price: float, note: str) -> None:
         try:
             result = self.do_buy(code)
             self.logger.info(f"{self.prefix}: DoBuy returned {result}")
@@ -331,7 +338,7 @@ class RSSReaderWorker(QObject):
             self.posman.openPosition(code, ts, price, ActionType.BUY, note)
 
     @Slot(str, float, float, str)
-    def macro_do_sell(self, code: str, ts: float, price: float, note: str):
+    def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
         try:
             result = self.do_sell(code)
             self.logger.info(f"{self.prefix}: DoSell returned {result}")
@@ -356,7 +363,7 @@ class RSSReaderWorker(QObject):
             self.posman.openPosition(code, ts, price, ActionType.SELL, note)
 
     @Slot(str, float, float, str)
-    def macro_do_repay(self, code: str, ts: float, price: float, note: str):
+    def macro_do_repay(self, code: str, ts: float, price: float, note: str) -> None:
         try:
             result = self.do_repay(code)
             self.logger.info(f"{self.prefix}: DoRepay returned {result}")
