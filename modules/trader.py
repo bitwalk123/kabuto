@@ -34,6 +34,9 @@ class Trader(QMainWindow):
     requestPositionClose = Signal()
     requestTransactionResult = Signal()
 
+    # クリーンアップ要求用シグナル
+    requestCleanup = Signal()
+
     # --- 状態遷移表 ---
     ACTION_DISPATCH: dict[TradeKey, TradeAction] = {
         (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
@@ -110,6 +113,12 @@ class Trader(QMainWindow):
         worker.notifyAction.connect(self.on_action)
         worker.sendTechnicals.connect(self.on_technicals)
 
+        # クリーンアップシグナルを接続
+        self.requestCleanup.connect(self.worker.cleanup)
+
+        # スレッド終了時にワーカーを自動削除
+        self.thread.finished.connect(self.worker.deleteLater)
+
         # スレッドの開始
         self.thread.start()
         # エージェント環境のリセット → リセット終了で処理開始
@@ -118,19 +127,29 @@ class Trader(QMainWindow):
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.thread is not None:
+        """
+        ウィンドウを閉じる際のクリーンアップ処理
+        """
+        if self.thread.isRunning():
+            self.logger.info(f"{__name__}: スレッドの終了を開始します。")
+
+            # ワーカーにクリーンアップを実行させる
+            self.requestCleanup.emit()
+
+            # 少し待ってクリーンアップが完了するのを待つ
+            QThread.msleep(100)
+
+            # スレッドに終了を要求
             self.thread.quit()
-            self.thread.wait()
 
-        if self.worker is not None:
-            self.worker.deleteLater()
-            self.worker = None
+            # タイムアウト付きで待機（5秒）
+            if not self.thread.wait(5000):
+                self.logger.warning(f"{__name__}: スレッドが5秒以内に応答しませんでした。強制終了します。")
+                self.thread.terminate()
+                self.thread.wait(1000)
 
-        if self.thread is not None:
-            self.thread.deleteLater()
-            self.thread = None
+            self.logger.info(f"{__name__}: スレッドを終了しました。")
 
-        self.logger.info(f"{__name__}: スレッドを終了しました。")
         event.accept()
 
     def getTimePrice(self) -> pd.DataFrame:

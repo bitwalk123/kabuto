@@ -225,6 +225,7 @@ class Kabuto(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         """アプリ終了イベント"""
         self._stop_timer()
+        self._cleanup_traders()
         self._cleanup_thread()
         self.logger.info(f"{__name__} 停止して閉じました。")
         event.accept()
@@ -234,6 +235,41 @@ class Kabuto(QMainWindow):
         if self.timer.isActive():
             self.timer.stop()
             self.logger.info(f"{__name__}: タイマーを停止しました。")
+
+    def _cleanup_traders(self) -> None:
+        """Trader インスタンスのクリーンアップ"""
+        if self.dict_trader:
+            self.logger.info(f"{__name__}: Trader インスタンスの終了処理を開始します。")
+            for code, trader in self.dict_trader.items():
+                try:
+                    # Trader の終了処理を呼び出す
+                    if trader is not None and trader.thread.isRunning():
+                        self.logger.info(f"{__name__}: Trader ({code}) のスレッドを終了します。")
+
+                        # ワーカーにクリーンアップを実行させる
+                        trader.requestCleanup.emit()
+
+                        # 少し待ってクリーンアップが完了するのを待つ
+                        QThread.msleep(100)
+
+                        # スレッドに終了を要求
+                        trader.thread.quit()
+
+                        # タイムアウト付きで待機（5秒）
+                        if not trader.thread.wait(5000):
+                            self.logger.warning(
+                                f"{__name__}: Trader ({code}) のスレッドが応答しません。強制終了します。"
+                            )
+                            trader.thread.terminate()
+                            trader.thread.wait(1000)
+
+                        self.logger.info(f"{__name__}: Trader ({code}) のスレッドを終了しました。")
+                except Exception as e:
+                    self.logger.error(f"{__name__}: Trader ({code}) の終了処理でエラー: {e}")
+
+            # Trader 辞書をクリア
+            self.dict_trader.clear()
+            self.logger.info(f"{__name__}: すべての Trader インスタンスを終了しました。")
 
     def _cleanup_thread(self) -> None:
         """スレッドとワーカーのクリーンアップ"""
