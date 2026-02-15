@@ -16,7 +16,7 @@ class DockTrader(DockWidget):
     changedDisparityState = Signal(bool)
     clickedSave = Signal()
 
-    def __init__(self, res: AppRes, code: str):
+    def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -67,7 +67,7 @@ class DockTrader(DockWidget):
         option.changedDisparity.connect(self.disparity_changed)
         self.layout.addWidget(option)
 
-    def forceRepay(self):
+    def forceRepay(self) -> None:
         """
         強制返済（取引終了時）
         :return:
@@ -75,12 +75,12 @@ class DockTrader(DockWidget):
         if self.doRepay():
             self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
 
-    def on_buy(self):
+    def on_buy(self) -> None:
         """
         買建ボタンがクリックされた時の処理
         :return:
         """
-        note = ""
+        note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit(
@@ -89,12 +89,12 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.auto = False
 
-    def on_sell(self):
+    def on_sell(self) -> None:
         """
         売建ボタンがクリックされた時の処理
         :return:
         """
-        note = ""
+        note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit(
@@ -103,12 +103,12 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.auto = False
 
-    def on_repay(self):
+    def on_repay(self) -> None:
         """
         返済ボタンがクリックされた時の処理
         :return:
         """
-        note = ""
+        note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
         self.clickedRepay.emit(
@@ -120,27 +120,27 @@ class DockTrader(DockWidget):
     def isDisparityChecked(self) -> bool:
         return self.option.disparity.isEnabled()
 
-    def disparity_changed(self, status: bool):
+    def disparity_changed(self, status: bool) -> None:
         """for statusChanged signal
         """
         # print('Switch is', status)
         self.changedDisparityState.emit(status)
 
-    def on_save(self):
+    def on_save(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 保存ボタンがクリックされたことを通知
         self.clickedSave.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repair(self):
+    def on_repair(self) -> None:
         dlg = DlgRepair(self.res)
         if dlg.exec():
-            flag = dlg.getStatus()
+            flag: bool = dlg.getStatus()
             self.trading.switchActivate(flag)
         else:
             return
 
-    def setPrice(self, price: float):
+    def setPrice(self, price: float) -> None:
         """
         現在株価を表示
         :param price:
@@ -148,7 +148,7 @@ class DockTrader(DockWidget):
         """
         self.price.setValue(price)
 
-    def setProfit(self, profit: float):
+    def setProfit(self, profit: float) -> None:
         """
         現在の含み益を表示
         :param profit:
@@ -156,7 +156,7 @@ class DockTrader(DockWidget):
         """
         self.profit.setValue(profit)
 
-    def setTotal(self, total: float):
+    def setTotal(self, total: float) -> None:
         """
         現在の損益合計を表示
         :param total:
@@ -210,5 +210,5 @@ class DockTrader(DockWidget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # （実売買移行用）
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def receive_result(self, status: bool):
+    def receive_result(self, status: bool) -> None:
         self.trading.receive_result(status)
