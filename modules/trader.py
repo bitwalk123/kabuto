@@ -4,8 +4,8 @@ from typing import Any, Literal, TypeAlias
 
 import pandas as pd
 from PySide6.QtCore import (
-    QThread,
     Qt,
+    QThread,
     Signal,
 )
 from PySide6.QtGui import QCloseEvent
