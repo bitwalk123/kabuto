@@ -3,13 +3,15 @@ from PySide6.QtWidgets import QFrame
 
 from structs.res import AppRes
 from widgets.buttons import (
+    ButtonRepair,
     ButtonSave,
     ButtonSetting,
-    TradeButton, ButtonRepair,
+    TradeButton,
 )
 from widgets.containers import (
     IndicatorBuySell,
-    Widget, PadH,
+    PadH,
+    Widget,
 )
 from widgets.layouts import (
     GridLayout,
@@ -27,17 +29,17 @@ class PanelTrading(Widget):
     clickedRepay = Signal()
     clickedSell = Signal()
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
-        self.flag_next_status = None
-        self.flag_disabled = True  # 全ての売買・返済ボタンを無効状態フラグ
+        self.flag_next_status: bool = True
+        self.flag_disabled: bool = True  # 全ての売買・返済ボタンを無効状態フラグ
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         layout = GridLayout()
         layout.setSpacing(0)
         self.setLayout(layout)
 
-        row = 0
+        row: int = 0
         # 建玉の売建（インジケータ）
         self.ind_sell = ind_sell = IndicatorBuySell()
         layout.addWidget(ind_sell, row, 0)
@@ -69,17 +71,13 @@ class PanelTrading(Widget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def receive_result(self, status: bool):
-        if self.flag_next_status is None:
-            # 初期状態で誤って呼ばれた場合の保険
-            self.switchActivate(True)
-            return
+    def receive_result(self, status: bool) -> None:
         if status:
             self.switchActivate(self.flag_next_status)
         else:
             self.switchActivate(not self.flag_next_status)
 
-    def request_buy(self):
+    def request_buy(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
         self.clickedBuy.emit()
@@ -88,7 +86,7 @@ class PanelTrading(Widget):
         self.flag_next_status = False
         self.ind_buy.setBuy()
 
-    def request_sell(self):
+    def request_sell(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
         self.clickedSell.emit()
@@ -97,7 +95,7 @@ class PanelTrading(Widget):
         self.flag_next_status = False
         self.ind_sell.setSell()
 
-    def request_repay(self):
+    def request_repay(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返却ボタンがクリックされたことを通知
         self.clickedRepay.emit()
@@ -107,12 +105,12 @@ class PanelTrading(Widget):
         self.ind_buy.setDefault()
         self.ind_sell.setDefault()
 
-    def switchDeactivateAll(self):
+    def switchDeactivateAll(self) -> None:
         self.buy.setDisabled(True)
         self.sell.setDisabled(True)
         self.repay.setDisabled(True)
 
-    def switchActivate(self, state: bool):
+    def switchActivate(self, state: bool) -> None:
         self.buy.setEnabled(state)
         self.sell.setEnabled(state)
         self.repay.setDisabled(state)
@@ -120,12 +118,12 @@ class PanelTrading(Widget):
             self.ind_buy.setDefault()
             self.ind_sell.setDefault()
 
-    def lockButtons(self):
+    def lockButtons(self) -> None:
         if not self.flag_disabled:
             self.flag_disabled = True
             self.switchDeactivateAll()
 
-    def unLockButtons(self):
+    def unLockButtons(self) -> None:
         if self.flag_disabled:
             self.flag_disabled = False
             self.switchActivate(True)
@@ -137,7 +135,7 @@ class PanelOption(QFrame):
     clickedRepair = Signal()
     changedDisparity = Signal(bool)
 
-    def __init__(self, res: AppRes, code: str):
+    def __init__(self, res: AppRes, code: str) -> None:
         super().__init__()
         self.res = res
         self.code = code
