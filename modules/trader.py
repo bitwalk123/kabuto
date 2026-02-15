@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any
+from typing import Any, Literal, TypeAlias
 
 import pandas as pd
 from PySide6.QtCore import (
@@ -18,6 +18,10 @@ from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 from modules.chart import TrendChart
 
+# 型エイリアスの定義（クラスの外に配置）
+TradeAction: TypeAlias = Literal["doBuy", "doSell", "doRepay"]
+TradeKey: TypeAlias = tuple[ActionType, PositionType]
+
 
 class Trader(QMainWindow):
     # 環境クラス用
@@ -31,7 +35,7 @@ class Trader(QMainWindow):
     requestTransactionResult = Signal()
 
     # --- 状態遷移表 ---
-    ACTION_DISPATCH: dict[tuple[ActionType, PositionType], str] = {
+    ACTION_DISPATCH: dict[TradeKey, TradeAction] = {
         (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
         (ActionType.BUY, PositionType.SHORT): "doRepay",  # 売建（ショート）であれば（買って）返済
         (ActionType.SELL, PositionType.NONE): "doSell",  # 建玉がなければ売建
