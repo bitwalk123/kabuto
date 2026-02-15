@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Dict, Tuple, Any, List
+from typing import Any
 
 import pandas as pd
 from PySide6.QtCore import (
@@ -31,7 +31,7 @@ class Trader(QMainWindow):
     requestTransactionResult = Signal()
 
     # --- 状態遷移表 ---
-    ACTION_DISPATCH: Dict[Tuple[ActionType, PositionType], str] = {
+    ACTION_DISPATCH: dict[tuple[ActionType, PositionType], str] = {
         (ActionType.BUY, PositionType.NONE): "doBuy",  # 建玉がなければ買建
         (ActionType.BUY, PositionType.SHORT): "doRepay",  # 売建（ショート）であれば（買って）返済
         (ActionType.SELL, PositionType.NONE): "doSell",  # 建玉がなければ売建
@@ -39,7 +39,7 @@ class Trader(QMainWindow):
         # HOLD は何もしないので載せない
     }
 
-    def __init__(self, res: AppRes, code: str, dict_ts: Dict[str, Any]) -> None:
+    def __init__(self, res: AppRes, code: str, dict_ts: dict[str, Any]) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -47,19 +47,19 @@ class Trader(QMainWindow):
         self.dict_ts = dict_ts
 
         # ティックデータ
-        self.list_x: List[float] = []
-        self.list_y: List[float] = []
-        self.list_v: List[float] = []
+        self.list_x: list[float] = []
+        self.list_y: list[float] = []
+        self.list_v: list[float] = []
 
         # テクニカル指標
         self.vwap: float = 0.0
-        self.list_ts: List[float] = []  # self.list_x と同一になってしまうかもしれない
-        self.list_vwap: List[float] = []
-        self.list_ma_1: List[float] = []
-        self.list_disparity: List[float] = []
+        self.list_ts: list[float] = []  # self.list_x と同一になってしまうかもしれない
+        self.list_vwap: list[float] = []
+        self.list_ma_1: list[float] = []
+        self.list_disparity: list[float] = []
 
         # 銘柄コード別設定ファイルの取得
-        dict_setting: Dict[str, Any] = load_setting(res, code)
+        dict_setting: dict[str, Any] = load_setting(res, code)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -192,9 +192,8 @@ class Trader(QMainWindow):
         path_img = os.path.join(output_dir, file_img)
         self.trend.save(path_img)
 
-    def on_technicals(self, dict_technicals: dict) -> None:
+    def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:
-            # self.switchActivate(True)
             self.dock.trading.lockButtons()
         else:
             self.dock.trading.unLockButtons()
@@ -310,7 +309,7 @@ class Trader(QMainWindow):
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
 
-    def setTimeAxisRange(self, ts_start, ts_end) -> None:
+    def setTimeAxisRange(self, ts_start: float, ts_end: float) -> None:
         """
         x軸のレンジ
         固定レンジで使いたいため。
