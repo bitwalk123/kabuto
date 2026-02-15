@@ -77,7 +77,9 @@ class PositionManager:
         elif action == ActionType.SELL:
             profit = (self.dict_price[code] - price) * self.unit
         else:
-            raise ValueError(f"Cannot close position: invalid action type {action} for code {code}")
+            msg: str = f"{__name__}: Cannot close position: invalid action type {action} for code {code}"
+            self.logger.error(msg)
+            raise ValueError(msg)
 
         self.dict_total[code] += profit
 
