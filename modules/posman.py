@@ -70,15 +70,16 @@ class PositionManager:
         :return:
         """
         action = self.dict_action[code]
-        profit = 0.0
+
+        # 損益計算
         if action == ActionType.BUY:
             profit = (price - self.dict_price[code]) * self.unit
-            self.dict_total[code] += profit
         elif action == ActionType.SELL:
             profit = (self.dict_price[code] - price) * self.unit
-            self.dict_total[code] += profit
         else:
-            return
+            raise ValueError(f"Cannot close position: invalid action type {action} for code {code}")
+
+        self.dict_total[code] += profit
 
         # 取引履歴
         self.order += 1
@@ -87,7 +88,7 @@ class PositionManager:
         self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
             self.records["売買"].append("売埋")
-        elif action == ActionType.SELL:
+        else:  # ActionType.SELL
             self.records["売買"].append("買埋")
         self.records["約定単価"].append(price)
         self.records["約定数量"].append(self.unit)
