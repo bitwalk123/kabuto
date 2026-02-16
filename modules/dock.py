@@ -6,7 +6,7 @@ from modules.panel import PanelOption, PanelTrading
 from structs.res import AppRes
 from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle, LabelSmall
+from widgets.labels import LCDValueWithTitle
 
 
 class DockTrader(DockWidget):
