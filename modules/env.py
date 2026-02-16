@@ -1,4 +1,4 @@
-from typing import override
+from typing import Any
 
 import gymnasium as gym
 import numpy as np
@@ -16,7 +16,7 @@ class TradingEnv(gym.Env):
     取引用環境クラス
     """
 
-    def __init__(self, code: str, dict_setting: dict):
+    def __init__(self, code: str, dict_setting: dict[str, Any]):
         super().__init__()
         # 特徴量プロバイダ
         self.provider = provider = FeatureProvider(dict_setting)
@@ -29,7 +29,7 @@ class TradingEnv(gym.Env):
         self.n_warmup: int = provider.getPeriodWarmup()
 
         # 現在の行位置
-        self.provider.step_current: int = 0
+        self.provider.step_current = 0
 
         # 観測空間
         n_feature = self.obs_man.n_feature
@@ -92,7 +92,12 @@ class TradingEnv(gym.Env):
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.provider.dict_transaction)
 
-    def getObservation(self, ts: float, price: float, volume: float) -> tuple[np.ndarray, dict]:
+    def getObservation(
+            self,
+            ts: float,
+            price: float,
+            volume: float
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """
         観測値を取得（リアルタイム用）
         ティックデータから観測値を算出（デバッグ用）
@@ -109,7 +114,11 @@ class TradingEnv(gym.Env):
     def getObsList(self) -> list:
         return self.obs_man.getObsList()
 
-    def reset(self, seed=None, options=None) -> tuple[np.ndarray, dict]:
+    def reset(
+            self,
+            seed: int | None = None,
+            options: dict[str, Any] | None = None
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """
         リセット
         :param seed:
@@ -163,68 +172,3 @@ class TradingEnv(gym.Env):
 
     def closePosition(self):
         self.provider.position_close()
-
-
-class TrainingEnv(TradingEnv):
-    """
-    環境クラス
-    過去のティックデータを使った学習、推論用
-    """
-
-    def __init__(self, df: pd.DataFrame, code: str = "7011"):
-        super().__init__(code)
-        self.df = df.reset_index(drop=True)  # Time, Price, Volume のみ
-
-    def _get_tick(self) -> tuple[float, float, float]:
-        """
-        データフレームから 1 ステップ分のティックデータを読み込む
-        :return:
-        """
-        t: float = self.df.at[self.provider.step_current, "Time"]
-        price: float = self.df.at[self.provider.step_current, "Price"]
-        volume: float = self.df.at[self.provider.step_current, "Volume"]
-        return t, price, volume
-
-    @override
-    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict]:
-        """
-        過去のティックデータを使うことを前提とした step 処理
-        """
-        info = dict()
-
-        # ---------------------------------------------------------------------
-        # アクションに対する報酬
-        # ---------------------------------------------------------------------
-        reward = self.reward_man.evalReward(action)
-
-        # ---------------------------------------------------------------------
-        # ステップ終了判定
-        # ---------------------------------------------------------------------
-        terminated = False
-        truncated = False
-        if len(self.df) - 1 <= self.provider.step_current:
-            # ティックデータのステップ上限チェック
-            reward += self.reward_man.forceRepay()
-            truncated = True  # ← ステップ数上限による終了
-            info["done_reason"] = "terminated: last_tick"
-        elif self.provider.N_TRADE_MAX <= self.provider.n_trade:
-            # 取引回数上限チェック
-            reward += self.reward_man.forceRepay()
-            truncated = True  # 取引回数上限による終了を明示
-            info["done_reason"] = "terminated: max_trades"
-
-        # 収益情報
-        info["pnl_total"] = self.provider.pnl_total
-
-        # ---------------------------------------------------------------------
-        # 次の観測値
-        # ---------------------------------------------------------------------
-        # データフレームから次のティックデータを取得
-        # t, price, volume = self._get_tick()
-        self.provider.update(*self._get_tick())
-        # モデルへ渡す観測値を取得
-        obs, _ = self.obs_man.getObs()
-        # step（行位置）をインクリメント
-        self.provider.step_current += 1
-
-        return obs, reward, terminated, truncated, info

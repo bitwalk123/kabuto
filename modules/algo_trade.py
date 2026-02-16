@@ -1,3 +1,5 @@
+from typing import Any
+
 from structs.app_enum import ActionType, PositionType
 
 
@@ -42,7 +44,7 @@ class AlgoTrade:
             return ActionType.BUY.value
         return None
 
-    def predict(self, obs, masks) -> tuple[int, dict]:
+    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])

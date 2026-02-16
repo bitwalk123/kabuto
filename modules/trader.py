@@ -12,7 +12,7 @@ from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow
 
 from funcs.setting import load_setting
-from modules.agent import WorkerAgentRT
+from modules.agent import WorkerAgent
 from modules.dock import DockTrader
 from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
@@ -97,7 +97,7 @@ class Trader(QMainWindow):
         # path_model = get_trained_ppo_model_path(res, code)
 
         # ワーカースレッドの生成
-        self.worker = worker = WorkerAgentRT(code, dict_setting)
+        self.worker = worker = WorkerAgent(code, dict_setting)
         worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ

@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QMainWindow, QApplication
 
 from funcs.ios import get_excel_sheet
 from funcs.tide import get_datetime_str
-from modules.agent import WorkerAgent
+from modules.agent_obsolete import WorkerAgent
 from modules.kabuto import Kabuto
 from modules.win_obs import WinObs
 from widgets.toolbars import ToolBarProphet
