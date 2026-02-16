@@ -196,7 +196,7 @@ class Kabuto(QMainWindow):
         worker.notifyDataReady.connect(self.set_data_ready_status)
 
         # スレッド開始時の初期化
-        self.thread.started.connect(self.requestWorkerInit.emit)
+        self.thread.started.connect(self.requestWorkerInit.emit)  # type: ignore
         self.requestWorkerInit.connect(worker.initWorker)
 
         # 売買処理
