@@ -1,6 +1,6 @@
 import logging
 from collections import defaultdict
-from typing import Any
+from typing import Any, DefaultDict
 
 import numpy as np
 import pandas as pd
@@ -47,7 +47,7 @@ class WorkerAgent(QObject):
         self.model: AlgoTrade = AlgoTrade()
 
         # 取引内容（＋テクニカル指標）
-        self.dict_list_tech = defaultdict(list)
+        self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float) -> None:
@@ -63,18 +63,17 @@ class WorkerAgent(QObject):
 
         # モデルによる行動予測
         action, _states = self.model.predict(obs, masks=masks)
+
+        # メイン・スレッドへ通知する発注アクションを最優先
         position: PositionType = self.env.getCurrentPosition()
         if ActionType(action) != ActionType.HOLD:
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
             self.notifyAction.emit(action, position)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # プロット用テクニカル指標
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # メイン・スレッドへ通知するプロット用テクニカル指標
         # 🧿 テクニカル指標を通知するシグナル
         self.sendTechnicals.emit(dict_technicals)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # トレード後にまとめてデータフレームで出力するため
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
 
@@ -82,18 +81,20 @@ class WorkerAgent(QObject):
         # アクションによる環境の状態更新
         # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
         # ---------------------------------------------------------------------
-        reward, terminated, truncated, info = self.env.step(action)
+        reward, terminated, truncated, info = self.env.step_realtime(action)
         if terminated or truncated:
             flag_name = "terminated" if terminated else "truncated"
             self.logger.info(f"{flag_name} フラグが立ちました。")
             self.done = True
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 取引終了
+            # 🧿 取引終了シグナルの通知
             self.completedTrading.emit()
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot()
     def forceRepay(self) -> None:
+        """
+        建玉返済の強制処理通知
+        :return:
+        """
         self.env.forceRepay()
 
     @Slot()
@@ -108,10 +109,8 @@ class WorkerAgent(QObject):
         self.model.updateObs(self.list_obs_label)
         list_colname.extend(self.list_obs_label)
         self.df_obs = pd.DataFrame({col: [] for col in list_colname})
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 環境のリセット完了を通知
         self.completedResetEnv.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot(str)
     def saveTechnicals(self, path_csv: str) -> None:

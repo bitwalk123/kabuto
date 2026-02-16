@@ -65,7 +65,7 @@ class TradingEnv(gym.Env):
         else:
             raise TypeError(f"Unknown PositionType: {self.provider.position}")
 
-    def forceRepay(self):
+    def forceRepay(self) -> None:
         """
         建玉の強制返済
         :return:
@@ -79,7 +79,7 @@ class TradingEnv(gym.Env):
         """
         return self.provider.position
 
-    def getParams(self) -> dict:
+    def getParams(self) -> dict[str, Any]:
         """
         調整可能？なパラメータを辞書で返す
         :return:
@@ -111,7 +111,7 @@ class TradingEnv(gym.Env):
         obs, dict_technicals = self.obs_man.getObs()
         return obs, dict_technicals
 
-    def getObsList(self) -> list:
+    def getObsList(self) -> list[str]:
         return self.obs_man.getObsList()
 
     def reset(
@@ -127,33 +127,61 @@ class TradingEnv(gym.Env):
         """
         self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
         self.provider.clear()
-        # self.reward_man.clear()
         obs = self.obs_man.getObsReset()
 
         return obs, {}
 
-    def step(self, action: int) -> tuple[float, bool, bool, dict]:
+    def step(self, action: int) -> tuple[np.ndarray, float, bool, bool, dict[str, Any]]:
+        """
+        Gymnasium標準のstepメソッド（学習用）
+
+        Note:
+            このメソッドは過去データを使った学習・バックテスト用です。
+            リアルタイム推論では step_realtime() を使用してください。
+
+        Returns:
+            observation: 次の観測値
+            reward: 報酬
+            terminated: エピソード終了フラグ
+            truncated: エピソード打ち切りフラグ
+            info: 追加情報
+        """
+        raise NotImplementedError(
+            "標準のstepメソッドは未実装です。"
+            "リアルタイム推論には step_realtime() を使用してください。"
+            "学習用には TrainingEnv クラスの実装を検討してください。"
+        )
+
+    def step_realtime(self, action: int) -> tuple[float, bool, bool, dict[str, Any]]:
         """
         アクションによるステップ処理（リアルタイム用）
-        :param action:
-        :return:
-        """
-        info = dict()
 
-        # ---------------------------------------------------------------------
+        Note:
+            このメソッドは観測値を返しません。
+            観測値は事前に getObservation() で取得済みという前提です。
+
+        Args:
+            action: 実行するアクション
+
+        Returns:
+            reward: 報酬
+            terminated: エピソード終了フラグ（目標達成など）
+            truncated: エピソード打ち切りフラグ（取引上限など）
+            info: 追加情報（pnl_total, done_reasonなど）
+        """
+        info: dict[str, Any] = {}  # 型を明示
+
         # アクションに対する報酬
-        # ---------------------------------------------------------------------
         reward = self.reward_man.evalReward(action)
 
-        # ---------------------------------------------------------------------
         # ステップ終了判定
-        # ---------------------------------------------------------------------
         terminated = False
         truncated = False
+
         # 取引回数上限チェック
         if self.provider.N_TRADE_MAX <= self.provider.n_trade:
             reward += self.reward_man.forceRepay()
-            truncated = True  # 取引回数上限による終了を明示
+            truncated = True
             info["done_reason"] = "terminated:max_trades"
 
         # 収益情報
