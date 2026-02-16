@@ -6,7 +6,8 @@ from PySide6.QtCore import QObject, Signal, Slot
 from sb3_contrib import MaskablePPO
 from stable_baselines3.common.logger import configure
 
-from modules.env import TrainingEnv, TradingEnv
+from modules.env import TradingEnv
+from modules.env_training import TrainingEnv
 from structs.app_enum import PositionType, ActionType
 
 
