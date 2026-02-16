@@ -31,9 +31,9 @@ class WorkerAgentRT(QObject):
         super().__init__()
         self.logger = logging.getLogger(__name__)
 
-        self.obs = None
+        self.obs: np.ndarray | None = None
         self.done: bool = False
-        self.df_obs = None
+        self.df_obs: pd.DataFrame | None = None
         self._is_stopping: bool = False  # 終了フラグを追加
 
         # 学習環境の取得
@@ -58,7 +58,7 @@ class WorkerAgentRT(QObject):
             obs, dict_technicals = self.env.getObservation(ts, price, volume)
 
             # 現在の行動マスクを取得
-            masks = self.env.action_masks()
+            masks: np.ndarray = self.env.action_masks()
 
             # モデルによる行動予測
             action, _states = self.model.predict(obs, masks=masks)
@@ -163,8 +163,8 @@ class CronAgent:
         self.ts_end = dict_ts["end"]
 
         # モデルのインスタンス
-        self.df_obs = None
-        self.list_obs_label = list()
+        self.df_obs: pd.DataFrame | None = None
+        self.list_obs_label: list[str] = []
         self.model = AlgoTrade()
 
         self.list_ts = list()

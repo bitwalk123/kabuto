@@ -1,4 +1,4 @@
-from typing import override
+from typing import override, Any
 
 import gymnasium as gym
 import numpy as np
@@ -92,7 +92,12 @@ class TradingEnv(gym.Env):
     def getTransaction(self) -> pd.DataFrame:
         return pd.DataFrame(self.provider.dict_transaction)
 
-    def getObservation(self, ts: float, price: float, volume: float) -> tuple[np.ndarray, dict]:
+    def getObservation(
+            self,
+            ts: float,
+            price: float,
+            volume: float
+    ) -> tuple[np.ndarray, dict[str, Any]]:
         """
         観測値を取得（リアルタイム用）
         ティックデータから観測値を算出（デバッグ用）
