@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 
 from funcs.conv import conv_transaction_df2html
 from funcs.setting import update_setting
-from funcs.tide import get_intraday_timestamp, conv_date_str_to_path
+from funcs.tide import conv_date_str_to_path, get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.dock import DockTrader
