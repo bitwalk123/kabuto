@@ -60,7 +60,7 @@ class ExcelReviewWorker(QObject):
             self.dict_sheet = load_excel(self.excel_path)
         except Exception as e:
             msg = f"encountered error in reading Excel, {self.excel_path}:"
-            self.logger.critical(f"{__name__}: {msg} {e}")
+            self.logger.critical(f"{msg} {e}")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 スレッドの異常終了を通知
             self.threadFinished.emit(False)

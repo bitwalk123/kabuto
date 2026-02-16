@@ -203,23 +203,23 @@ class RSSReaderWorker(QObject):
                 # -------------------------------------------------------------
                 if attempt < self.max_retries - 1:
                     self.logger.warning(
-                        f"{__name__} COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
+                        f"COM error occurred, retrying... (Attempt {attempt + 1}/{self.max_retries}) Error: {e}"
                     )
                     time.sleep(self.retry_delay)
                 else:
                     self.logger.error(
-                        f"{__name__} COM error occurred after {self.max_retries} attempts. Giving up."
+                        f"COM error occurred after {self.max_retries} attempts. Giving up."
                     )
                     raise  # 最終的に失敗したら例外を再発生させる
             except TypeError as e:
-                self.logger.error(f"{__name__} TypeError occurred (likely 2D→1D issue): {e}")
+                self.logger.error(f"TypeError occurred (likely 2D→1D issue): {e}")
                 # リトライせず break して次の処理へ
                 break
             except Exception as e:
                 # -------------------------------------------------------------
                 # その他のエラー
                 # -------------------------------------------------------------
-                self.logger.exception(f"{__name__} unexpected error during bulk read: {e}")
+                self.logger.exception(f"unexpected error during bulk read: {e}")
                 raise
             #
             ###################################################################
@@ -260,16 +260,16 @@ class RSSReaderWorker(QObject):
 
         if r == 0:
             # データフレームの総行数が 0 の場合は保存しない。
-            self.logger.info(f"{__name__} データが無いため {name_excel} への保存はキャンセルされました。")
+            self.logger.info(f"データが無いため {name_excel} への保存はキャンセルされました。")
             flag = False
         else:
             # ティックデータの保存処理
             try:
                 save_dataframe_to_excel(name_excel, dict_df)
-                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+                self.logger.info(f"データが {name_excel} に保存されました。")
                 flag = True
             except ValueError as e:
-                self.logger.error(f"{__name__} error occurred!: {e}")
+                self.logger.error(f"error occurred!: {e}")
                 flag = False
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

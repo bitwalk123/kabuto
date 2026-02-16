@@ -131,7 +131,7 @@ class Trader(QMainWindow):
         ウィンドウを閉じる際のクリーンアップ処理
         """
         if self.thread.isRunning():
-            self.logger.info(f"{__name__}: スレッドの終了を開始します。")
+            self.logger.info(f"スレッドの終了を開始します。")
 
             # ワーカーにクリーンアップを実行させる
             self.requestCleanup.emit()
@@ -144,11 +144,11 @@ class Trader(QMainWindow):
 
             # タイムアウト付きで待機（5秒）
             if not self.thread.wait(5000):
-                self.logger.warning(f"{__name__}: スレッドが5秒以内に応答しませんでした。強制終了します。")
+                self.logger.warning(f"スレッドが5秒以内に応答しませんでした。強制終了します。")
                 self.thread.terminate()
                 self.thread.wait(1000)
 
-            self.logger.info(f"{__name__}: スレッドを終了しました。")
+            self.logger.info(f"スレッドを終了しました。")
 
         event.accept()
 
@@ -179,7 +179,7 @@ class Trader(QMainWindow):
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
             self.logger.error(
-                f"{__name__}: trade rule violation! action={action_enum}, pos={position}"
+                f"trade rule violation! action={action_enum}, pos={position}"
             )
             return
 
@@ -283,7 +283,7 @@ class Trader(QMainWindow):
         環境をリセット済
         :return:
         """
-        msg = f"{__name__}: 銘柄コード {self.code} 用の環境がリセットされました。"
+        msg = f"銘柄コード {self.code} 用の環境がリセットされました。"
         self.logger.info(msg)
 
     def setTradeData(

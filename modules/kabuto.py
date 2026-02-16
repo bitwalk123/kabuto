@@ -104,11 +104,11 @@ class Kabuto(QMainWindow):
     def _init_mode_settings(self) -> None:
         """モード別設定の初期化"""
         if self.res.debug:
-            self.logger.info(f"{__name__}: デバッグモードで起動しました。")
+            self.logger.info(f"デバッグモードで起動しました。")
             self.timer_interval = 100
             self.flag_data_ready = False
         else:
-            self.logger.info(f"{__name__}: 通常モードで起動しました。")
+            self.logger.info(f"通常モードで起動しました。")
             self.timer_interval = 2000
 
     def _init_data_structures(self) -> None:
@@ -227,24 +227,24 @@ class Kabuto(QMainWindow):
         self._stop_timer()
         self._cleanup_traders()
         self._cleanup_thread()
-        self.logger.info(f"{__name__} 停止して閉じました。")
+        self.logger.info(f"停止して閉じました。")
         event.accept()
 
     def _stop_timer(self) -> None:
         """タイマーの停止"""
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: タイマーを停止しました。")
+            self.logger.info(f"タイマーを停止しました。")
 
     def _cleanup_traders(self) -> None:
         """Trader インスタンスのクリーンアップ"""
         if self.dict_trader:
-            self.logger.info(f"{__name__}: Trader インスタンスの終了処理を開始します。")
+            self.logger.info(f"Trader インスタンスの終了処理を開始します。")
             for code, trader in self.dict_trader.items():
                 try:
                     # Trader の終了処理を呼び出す
                     if trader is not None and trader.thread.isRunning():
-                        self.logger.info(f"{__name__}: Trader ({code}) のスレッドを終了します。")
+                        self.logger.info(f"Trader ({code}) のスレッドを終了します。")
 
                         # ワーカーにクリーンアップを実行させる
                         trader.requestCleanup.emit()
@@ -258,18 +258,18 @@ class Kabuto(QMainWindow):
                         # タイムアウト付きで待機（5秒）
                         if not trader.thread.wait(5000):
                             self.logger.warning(
-                                f"{__name__}: Trader ({code}) のスレッドが応答しません。強制終了します。"
+                                f"Trader ({code}) のスレッドが応答しません。強制終了します。"
                             )
                             trader.thread.terminate()
                             trader.thread.wait(1000)
 
-                        self.logger.info(f"{__name__}: Trader ({code}) のスレッドを終了しました。")
+                        self.logger.info(f"Trader ({code}) のスレッドを終了しました。")
                 except Exception as e:
-                    self.logger.error(f"{__name__}: Trader ({code}) の終了処理でエラー: {e}")
+                    self.logger.error(f"Trader ({code}) の終了処理でエラー: {e}")
 
             # Trader 辞書をクリア
             self.dict_trader.clear()
-            self.logger.info(f"{__name__}: すべての Trader インスタンスを終了しました。")
+            self.logger.info(f"すべての Trader インスタンスを終了しました。")
 
     def _cleanup_thread(self) -> None:
         """スレッドとワーカーのクリーンアップ"""
@@ -281,18 +281,18 @@ class Kabuto(QMainWindow):
             if self.thread is not None:
                 self.thread.quit()
                 self.thread.wait()
-                self.logger.info(f"{__name__}: スレッド self.thread を削除しました。")
+                self.logger.info(f"スレッド self.thread を削除しました。")
 
             if self.worker is not None:
                 self.worker.deleteLater()
                 self.worker = None
-                self.logger.info(f"{__name__}: ワーカー self.worker を削除しました。")
+                self.logger.info(f"ワーカー self.worker を削除しました。")
 
             if self.thread is not None:
                 self.thread.deleteLater()
                 self.thread = None
         except RuntimeError as e:
-            self.logger.error(f"{__name__}: 終了時にエラー発生: {e}")
+            self.logger.error(f"終了時にエラー発生: {e}")
 
     def create_trader(self, dict_name: dict[str, str]) -> None:
         """
@@ -335,7 +335,7 @@ class Kabuto(QMainWindow):
         self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
 
     def force_closing_position(self) -> None:
-        self.logger.info(f"{__name__} 売買を強制終了します。")
+        self.logger.info(f"売買を強制終了します。")
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             dock: DockTrader = trader.dock
@@ -391,15 +391,15 @@ class Kabuto(QMainWindow):
             # -----------------------------------------------------------------
             # デバッグの場合はスタート・ボタンがクリックされるまでは待機
             # -----------------------------------------------------------------
-            self.logger.info(f"{__name__}: レビューの準備ができました。")
+            self.logger.info(f"レビューの準備ができました。")
             return
 
         # ---------------------------------------------------------------------
         # Excel から読み取った銘柄を標準出力（確認用）
         # ---------------------------------------------------------------------
-        self.logger.info(f"{__name__}: ティックデータ収集銘柄一覧")
+        self.logger.info(f"ティックデータ収集銘柄一覧")
         for code in list_code:
-            self.logger.info(f"{__name__}: {code}, {dict_name[code]}")
+            self.logger.info(f"{code}, {dict_name[code]}")
         # ---------------------------------------------------------------------
         # 銘柄コードに対応する銘柄名の取得
         # ---------------------------------------------------------------------
@@ -425,7 +425,7 @@ class Kabuto(QMainWindow):
             # リアルタイムの場合はここでタイマーを開始
             # -----------------------------------------------------------------
             self.timer.start()
-            self.logger.info(f"{__name__}: タイマーを開始しました。")
+            self.logger.info(f"タイマーを開始しました。")
 
     def on_request_data(self) -> None:
         """
@@ -450,7 +450,7 @@ class Kabuto(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["ca"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"{__name__}: タイマーを停止しました。")
+            self.logger.info(f"タイマーを停止しました。")
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 🧿 取引結果を取得
             self.requestTransactionResult.emit()
@@ -461,7 +461,7 @@ class Kabuto(QMainWindow):
             # 保持したテクニカルデータを保存
             if self.toolbar.isAlt():
                 self.logger.info(
-                    f"{__name__}: 代替環境なのでテクニカルデータの保存をキャンセルします。"
+                    f"代替環境なのでテクニカルデータの保存をキャンセルします。"
                 )
             else:
                 """
@@ -481,9 +481,9 @@ class Kabuto(QMainWindow):
 
     def on_save_completed(self, state: bool) -> None:
         if state:
-            self.logger.info(f"{__name__}: ティック・データを正常に保存しました。")
+            self.logger.info(f"ティック・データを正常に保存しました。")
         else:
-            self.logger.info(f"{__name__}: ティック・データを正常に保存できませんでした。")
+            self.logger.info(f"ティック・データを正常に保存できませんでした。")
 
     def on_show_transaction(self) -> None:
         """
@@ -500,16 +500,16 @@ class Kabuto(QMainWindow):
         :return:
         """
         if result:
-            self.logger.info(f"{__name__}: スレッドが正常終了しました。")
+            self.logger.info(f"スレッドが正常終了しました。")
         else:
-            self.logger.error(f"{__name__}: スレッドが異常終了しました。")
+            self.logger.error(f"スレッドが異常終了しました。")
         # タイマーの停止
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: タイマーを停止しました。")
+            self.logger.info(f"タイマーを停止しました。")
 
     def on_ticker_ready(self, code: str) -> None:
-        self.logger.info(f"{__name__}: 銘柄コード {code} のスレッドの準備ができました。")
+        self.logger.info(f"銘柄コード {code} のスレッドの準備ができました。")
 
     def on_transaction_result(self, df: pd.DataFrame) -> None:
         """
@@ -529,7 +529,7 @@ class Kabuto(QMainWindow):
         list_html = conv_transaction_df2html(df)
         with open(path_trans, mode="w", encoding="utf_8") as f:
             f.write('\n'.join(list_html))  # リストを改行文字で連結
-        self.logger.info(f"{__name__}: 取引明細が {path_trans} に保存されました。")
+        self.logger.info(f"取引明細が {path_trans} に保存されました。")
         # インスタンス変数に取引明細を保持
         self.df_transaction = df
         # ツールバーの「取引履歴」ボタンを Enabled にする
@@ -645,7 +645,7 @@ class Kabuto(QMainWindow):
                 self.finished_trading = True
         elif self.dict_ts["end"] < self.ts_system:
             self.timer.stop()
-            self.logger.info(f"{__name__}: タイマーを停止しました。")
+            self.logger.info(f"タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
             # 保持したテクニカルデータを保存
@@ -667,7 +667,7 @@ class Kabuto(QMainWindow):
             self.ts_system = self.dict_ts["start"]
             # タイマー開始
             self.timer.start()
-            self.logger.info(f"{__name__}: タイマーを開始しました。")
+            self.logger.info(f"タイマーを開始しました。")
 
     def on_review_stop(self) -> None:
         """
@@ -676,7 +676,7 @@ class Kabuto(QMainWindow):
         """
         if self.timer.isActive():
             self.timer.stop()
-            self.logger.info(f"{__name__}: タイマーを停止しました。")
+            self.logger.info(f"タイマーを停止しました。")
             # 取引結果を取得
             self.requestTransactionResult.emit()
 
@@ -690,7 +690,7 @@ class Kabuto(QMainWindow):
     def set_data_ready_status(self, state: bool) -> None:
         self.flag_data_ready = state
         self.logger.info(
-            f"{__name__}: データ準備完了フラグが {state} になりました。"
+            f"データ準備完了フラグが {state} になりました。"
         )
         # Play / Stop ボタンの状態変更
         self.toolbar.switch_playstop(state)
