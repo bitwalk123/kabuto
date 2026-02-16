@@ -3,7 +3,7 @@ import os
 from funcs.ios import get_excel_sheet
 from funcs.setting import load_setting
 from funcs.tide import get_date_str_from_file
-from modules.agent import CronAgent
+from modules.agent_obsolete import CronAgent
 from structs.res import AppRes
 
 

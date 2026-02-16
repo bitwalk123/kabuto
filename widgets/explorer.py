@@ -1,6 +1,6 @@
 import pandas as pd
 
-from modules.agent import CronAgent
+from modules.agent_obsolete import CronAgent
 
 
 class Explorer:
