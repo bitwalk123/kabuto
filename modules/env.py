@@ -29,7 +29,8 @@ class TradingEnv(gym.Env):
         self.n_warmup: int = provider.getPeriodWarmup()
 
         # 現在の行位置
-        self.provider.step_current = 0
+        # self.provider.step_current = 0
+        self.provider.setStepCurrent(0)
 
         # 観測空間
         n_feature = self.obs_man.n_feature
@@ -50,20 +51,21 @@ class TradingEnv(gym.Env):
         - ナンピン取引の禁止
         :return:
         """
-        if self.provider.step_current < self.n_warmup:
+        position: PositionType = self.provider.getCurrentPosition()
+        if self.provider.getStepCurrent() < self.n_warmup:
             # ウォームアップ期間 → 強制 HOLD
             return np.array([1, 0, 0], dtype=np.int8)
-        elif self.provider.position == PositionType.NONE:
+        elif position == PositionType.NONE:
             # 建玉なし → 取りうるアクション: HOLD, BUY, SELL
             return np.array([1, 1, 1], dtype=np.int8)
-        elif self.provider.position == PositionType.LONG:
+        elif position == PositionType.LONG:
             # 建玉あり LONG → 取りうるアクション: HOLD, SELL
             return np.array([1, 0, 1], dtype=np.int8)
-        elif self.provider.position == PositionType.SHORT:
+        elif position == PositionType.SHORT:
             # 建玉あり SHORT → 取りうるアクション: HOLD, BUY
             return np.array([1, 1, 0], dtype=np.int8)
         else:
-            raise TypeError(f"Unknown PositionType: {self.provider.position}")
+            raise TypeError(f"Unknown PositionType: {position}")
 
     def forceRepay(self) -> None:
         """
@@ -77,7 +79,7 @@ class TradingEnv(gym.Env):
         現在のポジションを返す
         :return:
         """
-        return self.provider.position
+        return self.provider.getCurrentPosition()
 
     def getParams(self) -> dict[str, Any]:
         """
@@ -87,10 +89,12 @@ class TradingEnv(gym.Env):
         return self.provider.getSetting()
 
     def getTimestamp(self) -> float:
-        return self.provider.ts
+        # return self.provider.ts
+        return self.provider.getTimestamp()
 
     def getTransaction(self) -> pd.DataFrame:
-        return pd.DataFrame(self.provider.dict_transaction)
+        #return pd.DataFrame(self.provider.dict_transaction)
+        return pd.DataFrame(self.provider.getTransaction())
 
     def getObservation(
             self,
@@ -179,15 +183,16 @@ class TradingEnv(gym.Env):
         truncated = False
 
         # 取引回数上限チェック
-        if self.provider.N_TRADE_MAX <= self.provider.n_trade:
+        if self.provider.N_TRADE_MAX <= self.provider.getNTrade():
             reward += self.reward_man.forceRepay()
             truncated = True
             info["done_reason"] = "terminated:max_trades"
 
         # 収益情報
-        info["pnl_total"] = self.provider.pnl_total
+        info["pnl_total"] = self.provider.getPnLTotal()
 
-        self.provider.step_current += 1
+        #self.provider.step_current += 1
+        self.provider.setStepCurrentInc(1)
         return reward, terminated, truncated, info
 
     def openPosition(self, action_type: ActionType):

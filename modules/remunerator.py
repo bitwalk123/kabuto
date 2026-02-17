@@ -28,13 +28,14 @@ class RewardManager:
     def evalReward(self, action: int) -> float:
         action_type = ActionType(action)
         reward = 0.0
-        if self.provider.position == PositionType.NONE:
+        position = self.provider.getCurrentPosition()
+        if position == PositionType.NONE:
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # ポジションが無い場合に取りうるアクションは HOLD, BUY, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
                 # HOLD カウンター（建玉なし）のインクリメント
-                self.provider.n_hold += 1
+                self.provider.setNHoldInc(1)
             elif action_type == ActionType.BUY:
                 # =============================================================
                 # 買建 (LONG)
@@ -49,13 +50,13 @@ class RewardManager:
                 reward += self.provider.position_open(PositionType.SHORT)
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
-        elif self.provider.position == PositionType.LONG:
+        elif position == PositionType.LONG:
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # LONG ポジションの場合に取りうるアクションは HOLD, SELL
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
                 # HOLD カウンター（建玉あり）のインクリメント
-                self.provider.n_hold_position += 1
+                self.provider.setNHoldPositionInc(1)
             elif action_type == ActionType.BUY:
                 # 取引ルール違反
                 raise TypeError(f"Violation of transaction rule: {action_type}")
@@ -66,13 +67,13 @@ class RewardManager:
                 reward += self.get_profit_scaled(self.provider.position_close())
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
-        elif self.provider.position == PositionType.SHORT:
+        elif position == PositionType.SHORT:
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             # SHORT ポジションの場合に取りうるアクションは HOLD, BUY
             # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
             if action_type == ActionType.HOLD:
                 # HOLD カウンター（建玉あり）のインクリメント
-                self.provider.n_hold_position += 1
+                self.provider.setNHoldPositionInc(1)
             elif action_type == ActionType.BUY:
                 # =============================================================
                 # 買埋
@@ -84,7 +85,7 @@ class RewardManager:
             else:
                 raise TypeError(f"Unknown ActionType: {action_type}")
         else:
-            raise TypeError(f"Unknown PositionType: {self.provider.position}")
+            raise TypeError(f"Unknown PositionType: {position}")
 
         return reward
 
@@ -95,13 +96,14 @@ class RewardManager:
         """
         reward = 0.0
         profit = self.provider.getProfit()
-        if self.provider.position == PositionType.LONG:
+        position = self.provider.getCurrentPosition()
+        if position == PositionType.LONG:
             # 返済: 買建 (LONG) → 売埋
             # -------------------------------------------------------------
             # 取引明細
             # -------------------------------------------------------------
             self.provider.transaction_add("売埋（強制返済）", profit)
-        elif self.provider.position == PositionType.SHORT:
+        elif position == PositionType.SHORT:
             # 返済: 売建 (SHORT) → 買埋
             # -------------------------------------------------------------
             # 取引明細
@@ -111,15 +113,16 @@ class RewardManager:
             # ポジション無し
             pass
         # 損益追加
-        self.provider.pnl_total += profit
+        self.provider.addPnLTotal(profit)
         # 報酬
         reward += self.get_profit_scaled(profit)  # シンプルにスケーリングされた報酬
 
         return reward
 
     def get_profit_scaled(self, profit) -> float:
-        return np.tanh(profit / self.provider.price_tick / self.DIVISOR_PROFIT_SCALED)
+        return np.tanh(profit / self.provider.getPriceTick() / self.DIVISOR_PROFIT_SCALED)
 
     def getNumberOfTransactions(self) -> int:
-        return len(self.provider.dict_transaction["注文日時"])
+        dict_transaction:dict[str, list] = self.provider.getTransaction()
+        return len(dict_transaction["注文日時"])
 
