@@ -71,7 +71,7 @@ class PanelTrading(Widget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def receive_result(self, status: bool) -> None:
+    def set_next_status(self, status: bool) -> None:
         if status:
             self.switchActivate(self.flag_next_status)
         else:
@@ -147,7 +147,7 @@ class PanelOption(QFrame):
         layout = HBoxLayout()
         self.setLayout(layout)
 
-        # 乖離を表示するかどうかのスイッチ
+        # VWAP との乖離を表示するかどうかのスイッチ
         self.disparity = disparity = Switch()
         disparity.set(False)
         disparity.statusChanged.connect(self.changedDisparity.emit)

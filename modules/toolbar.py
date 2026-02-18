@@ -15,6 +15,7 @@ from widgets.buttons import CheckBox
 from widgets.containers import PadH
 from widgets.dialogs import DlgTickFileSel, DlgCodeSel
 from widgets.labels import Label, LCDTime
+from widgets.switches import Switch
 
 
 class ToolBar(QToolBar):
@@ -113,6 +114,10 @@ class ToolBar(QToolBar):
 
         pad = PadH()
         self.addWidget(pad)
+
+        self.switch = switch = Switch()
+        switch.set(False)
+        self.addWidget(switch)
 
         lab_time = Label("システム時刻 ")
         self.addWidget(lab_time)

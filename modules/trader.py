@@ -126,6 +126,14 @@ class Trader(QMainWindow):
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
+    def changeDisparityStatus(self, state: bool) -> None:
+        """
+        ドックの Disparity スイッチの状態変更
+        :param state:
+        :return:
+        """
+        self.dock.changedDisparityState(state)
+
     def closeEvent(self, event: QCloseEvent) -> None:
         """
         ウィンドウを閉じる際のクリーンアップ処理
@@ -151,6 +159,13 @@ class Trader(QMainWindow):
             self.logger.info(f"スレッドを終了しました。")
 
         event.accept()
+
+    def forceRepay(self) -> None:
+        """
+        強制的に建玉返済
+        :return:
+        """
+        self.dock.force_repay()
 
     def getTimePrice(self) -> pd.DataFrame:
         """
@@ -217,9 +232,9 @@ class Trader(QMainWindow):
 
     def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:
-            self.dock.trading.lockButtons()
+            self.dock.panel_trading.lockButtons()
         else:
-            self.dock.trading.unLockButtons()
+            self.dock.panel_trading.unLockButtons()
 
         # テクニカル指標
         self.vwap = dict_technicals["vwap"]
@@ -229,54 +244,42 @@ class Trader(QMainWindow):
         self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
 
         # クロス時の縦線表示
-        if 0 < dict_technicals["cross1"]:
+        if 0.0 < dict_technicals["cross1"]:
             self.trend.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross1"] < 0:
+        elif dict_technicals["cross1"] < 0.0:
             self.trend.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals(self.dock.isDisparityChecked())
 
-    def update_technicals(self, flag: bool) -> None:
-        if flag:
-            self.trend.setTechnicals(
-                self.list_ts,
-                [],
-                [],
-                self.list_disparity,
-            )
-        else:
-            self.trend.setTechnicals(
-                self.list_ts,
-                self.list_ma_1,
-                self.list_vwap,
-                [],
-            )
-
-    def switch_chart(self, flag: bool) -> None:
-        if len(self.list_x) > 0:
-            ts = self.list_x[-1]
-            price = self.list_y[-1]
-        else:
-            return
-
-        if flag:
-            self.trend.setLine([], [])
-            if self.vwap > 0:
-                self.trend.setDot([ts], [price - self.vwap])
-            else:
-                self.trend.setDot([ts], [price - self.vwap])
-        else:
-            self.trend.setLine(self.list_x, self.list_y)
-            self.trend.setDot([ts], [price])
-
-        # テクニカルデータの更新
-        self.update_technicals(flag)
-
-        # y 軸のスケールを更新
-        self.trend.updateYAxisRange(flag)
-
     def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
+
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    # 取引ボタンがクリックされた時の処理
+    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
+    def on_buy(self, code: str, price: float, note: str, auto: bool) -> None:
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 買建で建玉取得リクエストのシグナル
+            self.requestPositionOpen.emit(ActionType.BUY)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_sell(self, code: str, price: float, note: str, auto: bool) -> None:
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 売建で建玉取得リクエストのシグナル
+            self.requestPositionOpen.emit(ActionType.SELL)
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def on_repay(self, code: str, price: float, note: str, auto: bool) -> None:
+        if not auto:
+            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            # 🧿 建玉返済リクエストのシグナル
+            self.requestPositionClose.emit()
+            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def reset_env_completed(self) -> None:
         """
@@ -285,6 +288,46 @@ class Trader(QMainWindow):
         """
         msg = f"銘柄コード {self.code} 用の環境がリセットされました。"
         self.logger.info(msg)
+
+    def saveTechnicals(self, path_dir: str) -> None:
+        """
+        保持したテクニカル指標のデータを指定パスに保存
+        :param path_dir:
+        :return:
+        """
+        path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 テクニカルデータ保存リクエストのシグナル
+        self.requestSaveTechnicals.emit(path_csv)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    def sendOrderExecutionResult(self, result: bool) -> None:
+        """
+        発注結果
+        :param result:
+        :return:
+        """
+        # 売買返済ボタンのロックを解除、次の状態設定
+        self.dock.next_trading_buttons_status(result)
+
+    def setChartTitle(self, title: str) -> None:
+        """
+        チャートのタイトルを設定
+        :param title:
+        :return:
+        """
+        self.trend.setTrendTitle(title)
+
+    def setTimeAxisRange(self, ts_start: float, ts_end: float) -> None:
+        """
+        x軸のレンジ
+        固定レンジで使いたいため。
+        ただし、前場と後場で分ける機能を検討する余地はアリ
+        :param ts_start:
+        :param ts_end:
+        :return:
+        """
+        self.trend.setXRange(ts_start, ts_end)
 
     def setTradeData(
             self,
@@ -332,60 +375,41 @@ class Trader(QMainWindow):
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
 
-    def setTimeAxisRange(self, ts_start: float, ts_end: float) -> None:
-        """
-        x軸のレンジ
-        固定レンジで使いたいため。
-        ただし、前場と後場で分ける機能を検討する余地はアリ
-        :param ts_start:
-        :param ts_end:
-        :return:
-        """
-        self.trend.setXRange(ts_start, ts_end)
+    def switch_chart(self, flag: bool) -> None:
+        if len(self.list_x) > 0:
+            ts: float = self.list_x[-1]
+            price: float = self.list_y[-1]
+        else:
+            return
 
-    def setChartTitle(self, title: str) -> None:
-        """
-        チャートのタイトルを設定
-        :param title:
-        :return:
-        """
-        self.trend.setTrendTitle(title)
+        if flag:
+            self.trend.setLine([], [])
+            if self.vwap > 0:
+                self.trend.setDot([ts], [price - self.vwap])
+            else:
+                self.trend.setDot([ts], [price - self.vwap])
+        else:
+            self.trend.setLine(self.list_x, self.list_y)
+            self.trend.setDot([ts], [price])
 
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 買建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.BUY)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # テクニカルデータの更新
+        self.update_technicals(flag)
 
-    def on_sell(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 売建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.SELL)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # y 軸のスケールを更新
+        self.trend.updateYAxisRange(flag)
 
-    def on_repay(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 建玉返済リクエストのシグナル
-            self.requestPositionClose.emit()
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def saveTechnicals(self, path_dir: str) -> None:
-        """
-        保持したテクニカル指標のデータを指定パスに保存
-        :param path_dir:
-        :return:
-        """
-        path_csv = os.path.join(path_dir, f"{self.code}_technicals.csv")
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 テクニカルデータ保存リクエストのシグナル
-        self.requestSaveTechnicals.emit(path_csv)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def update_technicals(self, flag: bool) -> None:
+        if flag:
+            self.trend.setTechnicals(
+                self.list_ts,
+                [],
+                [],
+                self.list_disparity,
+            )
+        else:
+            self.trend.setTechnicals(
+                self.list_ts,
+                self.list_ma_1,
+                self.list_vwap,
+                [],
+            )
