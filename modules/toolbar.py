@@ -116,11 +116,16 @@ class ToolBar(QToolBar):
         pad = PadH()
         self.addWidget(pad)
 
+        # 表示チャートの切り替え
+        lab_chart = Label("チャート切替 ")
+        self.addWidget(lab_chart)
+
         self.switch = switch = Switch()
         switch.set(False)
         switch.statusChanged.connect(self.requestSwicthCharts.emit)
         self.addWidget(switch)
 
+        self.addSeparator()
         lab_time = Label("システム時刻 ")
         self.addWidget(lab_time)
 
