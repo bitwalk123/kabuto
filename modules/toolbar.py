@@ -26,6 +26,7 @@ class ToolBar(QToolBar):
     clickedPlay = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
+    requestSwicthCharts = Signal(bool)
     selectedExcelFile = Signal(str, list)
 
     def __init__(self, res: AppRes):
@@ -117,6 +118,7 @@ class ToolBar(QToolBar):
 
         self.switch = switch = Switch()
         switch.set(False)
+        switch.statusChanged.connect(self.requestSwicthCharts.emit)
         self.addWidget(switch)
 
         lab_time = Label("システム時刻 ")

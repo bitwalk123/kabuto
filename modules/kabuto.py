@@ -161,6 +161,7 @@ class Kabuto(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
+        toolbar.requestSwicthCharts.connect(self.on_switch_charts)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
         # ---------------------------------------------------------------------
@@ -495,6 +496,12 @@ class Kabuto(QMainWindow):
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
 
+    def on_switch_charts(self, state: bool):
+        for code in self.dict_trader.keys():
+            trader: Trader = self.dict_trader[code]
+            trader.switchChartType(state)
+
+
     def on_thread_finished(self, result: bool) -> None:
         """
         スレッド終了時のログ
@@ -605,7 +612,7 @@ class Kabuto(QMainWindow):
         :return:
         """
         trader: Trader = self.dict_trader[code]
-        #trader.dock.update_trading_buttons_status(status)
+        # trader.dock.update_trading_buttons_status(status)
         # 発注確認結果
         trader.sendOrderExecutionResult(status)
 

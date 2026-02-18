@@ -126,14 +126,6 @@ class Trader(QMainWindow):
         #
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
 
-    def changeDisparityStatus(self, state: bool) -> None:
-        """
-        ドックの Disparity スイッチの状態変更
-        :param state:
-        :return:
-        """
-        self.dock.changedDisparityState(state)
-
     def closeEvent(self, event: QCloseEvent) -> None:
         """
         ウィンドウを閉じる際のクリーンアップ処理
@@ -397,6 +389,9 @@ class Trader(QMainWindow):
 
         # y 軸のスケールを更新
         self.trend.updateYAxisRange(flag)
+
+    def switchChartType(self, flag: bool) -> None:
+        self.dock.force_switch_chart_type(flag)
 
     def update_technicals(self, flag: bool) -> None:
         if flag:

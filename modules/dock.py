@@ -63,13 +63,6 @@ class DockTrader(DockWidget):
         panel_option.changedDisparity.connect(self.disparity_changed)
         self.layout.addWidget(panel_option)
 
-    def changeDisparityStatus(self, state: bool) -> None:
-        """
-        Disparity スイッチの状態変更
-        :param state:
-        :return:
-        """
-        self.panel_option.disparity.set(state)
 
     def force_repay(self) -> None:
         """
@@ -78,6 +71,14 @@ class DockTrader(DockWidget):
         """
         if self.doRepay():
             self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
+
+    def force_switch_chart_type(self, state: bool) -> None:
+        """
+        Disparity スイッチの状態変更
+        :param state:
+        :return:
+        """
+        self.panel_option.disparity.set(state)
 
     def on_buy(self) -> None:
         """
