@@ -48,26 +48,30 @@ class DockTrader(DockWidget):
         # ---------------------------------------------------------------------
         # 取引用パネル
         # ---------------------------------------------------------------------
-        self.trading = trading = PanelTrading()
-        trading.clickedBuy.connect(self.on_buy)
-        trading.clickedSell.connect(self.on_sell)
-        trading.clickedRepay.connect(self.on_repay)
-        self.layout.addWidget(trading)
+        self.panel_trading = panel_trading = PanelTrading()
+        panel_trading.clickedBuy.connect(self.on_buy)
+        panel_trading.clickedSell.connect(self.on_sell)
+        panel_trading.clickedRepay.connect(self.on_repay)
+        self.layout.addWidget(panel_trading)
 
         # ---------------------------------------------------------------------
         # オプションパネル
         # ---------------------------------------------------------------------
-        # 「乖離度」用ラベル
-        # lab_disparity = LabelSmall("乖離度")
-        # self.layout.addWidget(lab_disparity)
-        # 「オプション」用パネル
-        self.option = option = PanelOption(res, code)
-        option.clickedSave.connect(self.on_save)
-        option.clickedRepair.connect(self.on_repair)
-        option.changedDisparity.connect(self.disparity_changed)
-        self.layout.addWidget(option)
+        self.panel_option = panel_option = PanelOption(res, code)
+        panel_option.clickedSave.connect(self.on_save)
+        panel_option.clickedRepair.connect(self.on_repair)
+        panel_option.changedDisparity.connect(self.disparity_changed)
+        self.layout.addWidget(panel_option)
 
-    def forceRepay(self) -> None:
+    def changeDisparityStatus(self, state: bool) -> None:
+        """
+        Disparity スイッチの状態変更
+        :param state:
+        :return:
+        """
+        self.panel_option.disparity.set(state)
+
+    def force_repay(self) -> None:
         """
         強制返済（取引終了時）
         :return:
@@ -118,7 +122,7 @@ class DockTrader(DockWidget):
         self.auto = False
 
     def isDisparityChecked(self) -> bool:
-        return self.option.disparity.isEnabled()
+        return self.panel_option.disparity.isEnabled()
 
     def disparity_changed(self, status: bool) -> None:
         """for statusChanged signal
@@ -136,7 +140,7 @@ class DockTrader(DockWidget):
         dlg = DlgRepair(self.res)
         if dlg.exec():
             flag: bool = dlg.getStatus()
-            self.trading.switchActivate(flag)
+            self.panel_trading.switchActivate(flag)
         else:
             return
 
@@ -173,9 +177,9 @@ class DockTrader(DockWidget):
         「買建」ボタンをクリックして建玉を売る。
         :return:
         """
-        if self.trading.buy.isEnabled():
+        if self.panel_trading.buy.isEnabled():
             self.auto = True
-            self.trading.buy.animateClick()
+            self.panel_trading.buy.animateClick()
             return True
         else:
             self.auto = False
@@ -186,9 +190,9 @@ class DockTrader(DockWidget):
         「売建」ボタンをクリックして建玉を売る。
         :return:
         """
-        if self.trading.sell.isEnabled():
+        if self.panel_trading.sell.isEnabled():
             self.auto = True
-            self.trading.sell.animateClick()
+            self.panel_trading.sell.animateClick()
             return True
         else:
             self.auto = False
@@ -199,16 +203,16 @@ class DockTrader(DockWidget):
         「返済」ボタンをクリックして建玉を売る。
         :return:
         """
-        if self.trading.repay.isEnabled():
+        if self.panel_trading.repay.isEnabled():
             self.auto = True
-            self.trading.repay.animateClick()
+            self.panel_trading.repay.animateClick()
             return True
         else:
             self.auto = False
             return False
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # （実売買移行用）
+    # 実売買移行用
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def receive_result(self, status: bool) -> None:
-        self.trading.receive_result(status)
+    def next_trading_buttons_status(self, status: bool) -> None:
+        self.panel_trading.set_next_status(status)

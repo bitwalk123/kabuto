@@ -25,7 +25,6 @@ from funcs.setting import update_setting
 from funcs.tide import conv_date_str_to_path, get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
-from modules.dock import DockTrader
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.dialogs import DlgAboutThis, DlgCodeSel
@@ -219,7 +218,7 @@ class Kabuto(QMainWindow):
         worker.notifyCurrentPrice.connect(self.on_update_data)
         worker.notifyTransactionResult.connect(self.on_transaction_result)
         worker.saveCompleted.connect(self.on_save_completed)
-        worker.sendResult.connect(self.receive_result)
+        worker.sendResult.connect(self.order_execution_result)
         worker.threadFinished.connect(self.on_thread_finished)
 
     def closeEvent(self, event: QCloseEvent) -> None:
@@ -335,11 +334,14 @@ class Kabuto(QMainWindow):
         self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
 
     def force_closing_position(self) -> None:
+        """
+        強制的にポジションを解消
+        :return:
+        """
         self.logger.info(f"売買を強制終了します。")
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
-            dock: DockTrader = trader.dock
-            dock.forceRepay()
+            trader.forceRepay()
 
     def get_current_tick_data(self) -> dict[str, pd.DataFrame]:
         """
@@ -595,7 +597,7 @@ class Kabuto(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot(str, bool)
-    def receive_result(self, code: str, status: bool) -> None:
+    def order_execution_result(self, code: str, status: bool) -> None:
         """
         約定確認結果
         :param code:
@@ -603,7 +605,9 @@ class Kabuto(QMainWindow):
         :return:
         """
         trader: Trader = self.dict_trader[code]
-        trader.dock.receive_result(status)
+        #trader.dock.update_trading_buttons_status(status)
+        # 発注確認結果
+        trader.sendOrderExecutionResult(status)
 
     ###########################################################################
     #
