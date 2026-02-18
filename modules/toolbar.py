@@ -117,7 +117,7 @@ class ToolBar(QToolBar):
         self.addWidget(pad)
 
         # 表示チャートの切り替え
-        lab_chart = Label("チャート切替 ")
+        lab_chart = Label(" チャート切替 ")
         self.addWidget(lab_chart)
 
         self.switch = switch = Switch()
@@ -126,7 +126,7 @@ class ToolBar(QToolBar):
         self.addWidget(switch)
 
         self.addSeparator()
-        lab_time = Label("システム時刻 ")
+        lab_time = Label(" システム時刻 ")
         self.addWidget(lab_time)
 
         self.lcd_time = lcd_time = LCDTime()
