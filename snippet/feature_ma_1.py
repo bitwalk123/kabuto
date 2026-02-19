@@ -1,6 +1,6 @@
 from collections import deque
 
-from funcs.technical import MovingAverage
+from modules.technical import MovingAverage
 
 
 class RealTimeDMA:

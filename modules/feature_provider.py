@@ -4,8 +4,8 @@ from typing import Any
 
 import numpy as np
 
+from modules.technical import MovingAverage, VWAP
 from structs.defaults import FeatureDefaults
-from funcs.technical import MovingAverage, VWAP
 from structs.app_enum import PositionType
 
 
@@ -135,11 +135,13 @@ class FeatureProvider:
     def getNTrade(self) -> int:
         return self.s.n_trade
 
+    """
     def getLower(self) -> float:
         return self.obj_miqr.getLower()
 
     def getUpper(self) -> float:
         return self.obj_miqr.getUpper()
+    """
 
     def getPeriodWarmup(self) -> int:
         return self.PERIOD_WARMUP

@@ -12,7 +12,7 @@ from matplotlib.backends.backend_qtagg import (
 )
 from matplotlib.figure import Figure
 
-from funcs.technical import calc_ma, calc_mr
+from funcs.technical_backup import calc_ma, calc_mr
 from structs.res import AppRes
 from widgets.containers import Widget, ScrollArea
 from widgets.layouts import VBoxLayout
