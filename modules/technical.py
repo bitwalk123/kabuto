@@ -1,6 +1,8 @@
 from collections import deque
 from typing import Optional
 
+from sortedcontainers import SortedList
+
 
 class MovingAverage:
     def __init__(self, window_size: int):
@@ -37,6 +39,73 @@ class MovingAverage:
         self.ma = self.running_sum / len(self.queue)
 
         return self.ma
+
+
+class MovingIQR:
+    def __init__(self, window_size: int = 100):
+        self.window_size = window_size
+        self.data = SortedList()
+        self.queue: deque[float] = deque()
+
+        self.q1: Optional[float] = None
+        self.q3: Optional[float] = None
+        self.iqr: Optional[float] = None
+
+    def clear(self) -> None:
+        self.data.clear()
+        self.queue.clear()
+        self.q1 = None
+        self.q3 = None
+        self.iqr = None
+
+    def update(self, value: float) -> tuple[float | None, float | None, float | None]:
+        # 新しい値を追加
+        self.data.add(value)
+        self.queue.append(value)
+
+        # window_size を超えたら古い値を削除
+        if self.window_size < len(self.data):
+            old = self.queue.popleft()
+            self.data.remove(old)
+
+        n = len(self.data)
+        if n == 0:
+            return None, None, None
+
+        # Q1, Q3 のインデックス（window_size=100 なら 25, 75）
+        idx_q1 = int(n * 0.25)
+        idx_q3 = int(n * 0.75)
+
+        self.q1 = self.data[idx_q1]
+        self.q3 = self.data[idx_q3]
+        self.iqr = self.q3 - self.q1
+
+        return self.q1, self.q3, self.iqr
+
+    def getValue(self) -> tuple[float | None, float | None, float | None]:
+        if self.q1 is None:
+            return None, None, None
+        return self.q1, self.q3, self.iqr
+
+    def getLower(self) -> float | None:
+        # データがまだ無い
+        if self.q1 is None:
+            return None
+
+        # データが1つだけ → その値を返す
+        if self.iqr is None:
+            return self.q1
+
+        return self.q1 - 1.5 * self.iqr
+
+    def getUpper(self) -> float | None:
+        if self.q3 is None:
+            return None
+
+        if self.iqr is None:
+            return self.q3
+
+        return self.q3 + 1.5 * self.iqr
 
 
 class VWAP:
