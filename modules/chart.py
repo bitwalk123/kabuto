@@ -22,7 +22,9 @@ class TrendChart(pg.PlotWidget):
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 191, 255, 220)
-    COLOR_DISPARITY = (255, 255, 0, 192)
+    COLOR_DISPARITY = (255, 255, 0, 220)
+    COLOR_EDGE = (128, 255, 0, 0)
+    COLOR_FILL = (240, 230, 140, 128)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
@@ -73,6 +75,15 @@ class TrendChart(pg.PlotWidget):
         # 乖離率
         self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
         self.disparity.setZValue(50)
+        # 移動 IQR バンド
+        self.band_lower: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=1))
+        self.band_lower.setZValue(40)
+        self.band_upper: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=1))
+        self.band_upper.setZValue(40)
+        self.band = pg.FillBetweenItem(self.band_lower, self.band_upper, pg.mkBrush(self.COLOR_FILL))
+        self.band.setZValue(30)
+        self.addItem(self.band)
+
         # y = 0 のライン
         self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen('#fff', width=0.5))
         self.zero_line.setZValue(0)
@@ -143,16 +154,27 @@ class TrendChart(pg.PlotWidget):
         # 最新値
         self.last_dot.setData(x, y)
 
-    def setTechnicals(
-            self,
-            line_ts: list[float],
-            line_ma_1: list[float],
-            line_vwap: list[float],
-            line_disparity: list[float],
-    ) -> None:
-        self.ma_1.setData(tuple(line_ts), tuple(line_ma_1))
-        self.vwap.setData(tuple(line_ts), tuple(line_vwap))
-        self.disparity.setData(tuple(line_ts), tuple(line_disparity))
+    def setTechnicals(self, dict_lines: dict[str, list], visible: bool) -> None:
+        data_ts = tuple(dict_lines["ts"])
+        data_ma_1 = tuple(dict_lines["ma_1"])
+        data_vwap = tuple(dict_lines["vwap"])
+        data_disparity = tuple(dict_lines["disparity"])
+        data_lower = tuple(dict_lines["lower"])
+        data_upper = tuple(dict_lines["upper"])
+
+        self.ma_1.setData(data_ts, data_ma_1)
+        self.vwap.setData(data_ts, data_vwap)
+
+        self.disparity.setData(data_ts, data_disparity)
+        self.band_lower.setData(data_ts, data_lower)
+        self.band_upper.setData(data_ts, data_upper)
+
+        self.ma_1.setVisible(visible)
+        self.vwap.setVisible(visible)
+        self.disparity.setVisible(not visible)
+        self.band_lower.setVisible(not visible)
+        self.band_upper.setVisible(not visible)
+        self.band.setVisible(not visible)
 
     def setTrendTitle(self, title: str) -> None:
         self.setTitle(trend_label_html(title, size=9))

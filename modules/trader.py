@@ -64,6 +64,26 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_disparity: list[float] = []
+        self.list_lower: list[float] = []
+        self.list_upper: list[float] = []
+
+        self.dict_trend = {
+            "ts": self.list_ts,
+            "ma_1": self.list_ma_1,
+            "vwap": self.list_vwap,
+            "disparity": [],
+            "lower": [],
+            "upper": [],
+        }
+
+        self.dict_disparity = {
+            "ts": self.list_ts,
+            "ma_1": [],
+            "vwap": [],
+            "disparity": self.list_disparity,
+            "lower": self.list_lower,
+            "upper": self.list_upper,
+        }
 
         # 銘柄コード別設定ファイルの取得
         dict_setting: dict[str, Any] = load_setting(res, code)
@@ -234,6 +254,8 @@ class Trader(QMainWindow):
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_vwap.append(self.vwap)
         self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
+        self.list_lower.append(dict_technicals["lower"] - self.vwap)
+        self.list_upper.append(dict_technicals["upper"] - self.vwap)
 
         # クロス時の縦線表示
         if 0.0 < dict_technicals["cross1"]:
@@ -353,13 +375,11 @@ class Trader(QMainWindow):
         flag = self.dock.isDisparityChecked()
         self.trend.setZeroLine(flag)
         if flag:
-            self.trend.setLine([], [])
             if self.vwap > 0:
                 self.trend.setDot([ts], [price - self.vwap])
             else:
                 self.trend.setDot([ts], [price - self.vwap])
         else:
-            self.trend.setLine(self.list_x, self.list_y)
             self.trend.setDot([ts], [price])
 
         # 銘柄単位の現在株価および含み益と収益を更新
@@ -395,16 +415,7 @@ class Trader(QMainWindow):
 
     def update_technicals(self, flag: bool) -> None:
         if flag:
-            self.trend.setTechnicals(
-                self.list_ts,
-                [],
-                [],
-                self.list_disparity,
-            )
+            # disparity line
+            self.trend.setTechnicals(self.dict_disparity, False)
         else:
-            self.trend.setTechnicals(
-                self.list_ts,
-                self.list_ma_1,
-                self.list_vwap,
-                [],
-            )
+            self.trend.setTechnicals(self.dict_trend, True)
