@@ -363,15 +363,15 @@ class BaselineSwitch(QPushButton):
         if text == "abs":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #024;
+                    border: 1px solid #014;
                     border-radius: 4px;
-                    background-color: #036;
-                    color: gray;
+                    background-color: #026;
+                    color: lightgray;
                     margin-left: 2em;
                 }
                 QPushButton:checked {
-                    border: 1px solid #05a;
-                    background-color: #07e;
+                    border: 1px solid #028;
+                    background-color: #03c;
                     color: white;
                     font-weight: bold;
                 }
@@ -380,15 +380,15 @@ class BaselineSwitch(QPushButton):
         if text == "rel":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #420;
+                    border: 1px solid #410;
                     border-radius: 4px;
-                    background-color: #630;
-                    color: gray;
+                    background-color: #620;
+                    color: lightgray;
                     margin-right: 2em;
                 }
                 QPushButton:checked {
-                    border: 1px solid #840;
-                    background-color: #d60;
+                    border: 1px solid #820;
+                    background-color: #c30;
                     color: white;
                     font-weight: bold;
                 }
