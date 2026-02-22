@@ -261,6 +261,8 @@ class TradeButton(QPushButton):
             self.setText("買　建")
             self.setStyleSheet("""
             QPushButton {
+                border: 1px solid #512;
+                border-radius: 4px;
                 font-family: monospace;
                 background-color: #a24;
                 color: white;
@@ -281,6 +283,8 @@ class TradeButton(QPushButton):
             self.setText("売　建")
             self.setStyleSheet("""
             QPushButton {
+                border: 1px solid #016;
+                border-radius: 4px;
                 font-family: monospace;
                 background-color: #039;
                 color: white;
@@ -301,6 +305,8 @@ class TradeButton(QPushButton):
             self.setText("返　　済")
             self.setStyleSheet("""
             QPushButton {
+                border: 1px solid #032;
+                border-radius: 4px;
                 font-family: monospace;
                 background-color: #065;
                 color: white;
@@ -357,15 +363,15 @@ class BaselineSwitch(QPushButton):
         if text == "abs":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #002040;
+                    border: 1px solid #024;
                     border-radius: 4px;
-                    background-color: #003060;
+                    background-color: #036;
                     color: gray;
                     margin-left: 2em;
                 }
                 QPushButton:checked {
-                    border: 1px solid #0050a0;
-                    background-color: #0070e0;
+                    border: 1px solid #05a;
+                    background-color: #07e;
                     color: white;
                     font-weight: bold;
                 }
@@ -374,15 +380,15 @@ class BaselineSwitch(QPushButton):
         if text == "rel":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #402000;
+                    border: 1px solid #420;
                     border-radius: 4px;
-                    background-color: #603000;
+                    background-color: #630;
                     color: gray;
                     margin-right: 2em;
                 }
                 QPushButton:checked {
-                    border: 1px solid #a05000;
-                    background-color: #e07000;
+                    border: 1px solid #840;
+                    background-color: #d60;
                     color: white;
                     font-weight: bold;
                 }
