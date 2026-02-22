@@ -389,8 +389,8 @@ class BaselineSwitch(QPushButton):
                     margin-right: 2.5em;
                 }
                 QPushButton:checked {
-                    border: 1px solid #820;
-                    background-color: #c30;
+                    border: 1px solid #720;
+                    background-color: #b30;
                     color: white;
                     font-weight: bold;
                 }
