@@ -262,7 +262,7 @@ class TradeButton(QPushButton):
             self.setStyleSheet("""
             QPushButton {
                 border: 1px solid #512;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-family: monospace;
                 background-color: #a24;
                 color: white;
@@ -284,7 +284,7 @@ class TradeButton(QPushButton):
             self.setStyleSheet("""
             QPushButton {
                 border: 1px solid #016;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-family: monospace;
                 background-color: #039;
                 color: white;
@@ -306,7 +306,7 @@ class TradeButton(QPushButton):
             self.setStyleSheet("""
             QPushButton {
                 border: 1px solid #032;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-family: monospace;
                 background-color: #065;
                 color: white;
@@ -367,7 +367,8 @@ class BaselineSwitch(QPushButton):
                     border-radius: 4px;
                     background-color: #026;
                     color: lightgray;
-                    margin-left: 2em;
+                    font-weight: normal;
+                    margin-left: 2.5em;
                 }
                 QPushButton:checked {
                     border: 1px solid #028;
@@ -384,7 +385,8 @@ class BaselineSwitch(QPushButton):
                     border-radius: 4px;
                     background-color: #620;
                     color: lightgray;
-                    margin-right: 2em;
+                    font-weight: normal;
+                    margin-right: 2.5em;
                 }
                 QPushButton:checked {
                     border: 1px solid #820;
