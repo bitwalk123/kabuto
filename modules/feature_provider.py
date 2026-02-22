@@ -4,21 +4,10 @@ from typing import Any
 
 import numpy as np
 
+from funcs.commons import detect_cross, init_transaction
 from modules.technical import MovingAverage, MovingIQR, VWAP
 from structs.defaults import FeatureDefaults
 from structs.app_enum import PositionType
-
-
-def _transaction_init() -> dict[str, list]:
-    """取引明細用データ辞書の初期化（モジュールレベル関数）"""
-    return {
-        "注文日時": [],
-        "銘柄コード": [],
-        "売買": [],
-        "約定単価": [],
-        "約定数量": [],
-        "損益": [],
-    }
 
 
 @dataclass
@@ -35,6 +24,7 @@ class FeatureState:
     # 移動平均関連
     div_ma_prev: float | None = None
     cross_1: float = 0.0
+    cross_2: float = 0.0
 
     # ロスカット
     losscut_1: bool = False
@@ -50,7 +40,7 @@ class FeatureState:
 
     # 取引関連
     code: str | None = None
-    dict_transaction: dict[str, list] = field(default_factory=_transaction_init)
+    dict_transaction: dict[str, list] = field(default_factory=init_transaction)
     position: PositionType = PositionType.NONE
     pnl_total: float = 0.0
     price_tick: float = 1.0
@@ -112,8 +102,12 @@ class FeatureProvider:
         return float(self.s.n_minus)
 
     def getCrossSignal1(self) -> float:
-        """クロスシグナル（-1.0, 0.0, 1.0）"""
+        """クロスシグナル1（-1.0, 0.0, 1.0）"""
         return float(self.s.cross_1)
+
+    def getCrossSignal2(self) -> float:
+        """クロスシグナル2（-1.0, 0.0, 1.0）"""
+        return float(self.s.cross_2)
 
     def getDDRatio(self) -> float:
         """ドローダウン比率"""
@@ -241,6 +235,7 @@ class FeatureProvider:
 
         # HOLD カウンター（建玉あり）のリセット
         self.s.n_hold_position = 0
+
         # 取引回数のインクリメント
         self.s.n_trade += 1
 
@@ -271,12 +266,16 @@ class FeatureProvider:
 
         # HOLD カウンター（建玉なし）のリセット
         self.s.n_hold = 0
+
         # 取引回数のインクリメント
         self.s.n_trade += 1
+
         # エントリ価格
         self.s.price_entry = self.s.price
+
         # ポジションを更新
         self.s.position = position
+
         # 取引明細更新（新規建玉）
         self.transaction_open()
 
@@ -312,7 +311,7 @@ class FeatureProvider:
         div_ma = ma1 - vwap
 
         # --- クロス判定 ---
-        self.s.cross_1 = self._detect_cross(self.s.div_ma_prev, div_ma)
+        self.s.cross_1 = detect_cross(self.s.div_ma_prev, div_ma)
         self.s.div_ma_prev = div_ma
 
         # --- 移動 IQR ---
@@ -326,16 +325,6 @@ class FeatureProvider:
                 self.s.dd_ratio > self.DD_RATIO
                 and self.s.profit_max > self.DD_PROFIT
         )
-
-    def _detect_cross(self, prev: float | None, curr: float) -> float:
-        """移動平均の乖離の符号変化からクロスを検出"""
-        if prev is None:
-            return 0.0
-        if prev < 0 < curr:
-            return +1.0
-        if curr < 0 < prev:
-            return -1.0
-        return 0.0
 
     # ------------------------------------------------------------------
     # 取引明細系
@@ -359,10 +348,12 @@ class FeatureProvider:
         else:
             raise TypeError(f"Unknown PositionType: {self.s.position}")
 
+    '''
     @staticmethod
     def transaction_init() -> dict[str, list]:
         """取引明細用データ辞書の初期化"""
-        return _transaction_init()
+        return init_transaction()
+    '''
 
     def transaction_open(self) -> None:
         """新規建玉時の取引明細更新"""

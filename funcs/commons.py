@@ -7,6 +7,22 @@ from pathlib import Path
 from structs.res import AppRes
 
 
+def detect_cross(prev: float | None, curr: float) -> float:
+    """
+    移動平均の乖離の符号変化からクロスを検出
+    :param prev:
+    :param curr:
+    :return:
+    """
+    if prev is None:
+        return 0.0
+    if prev < 0 < curr:
+        return +1.0
+    if curr < 0 < prev:
+        return -1.0
+    return 0.0
+
+
 def get_collection_path(res: AppRes, file: str) -> str:
     path_excel = str(Path(os.path.join(res.dir_collection, file)).resolve())
     return path_excel
@@ -58,7 +74,7 @@ def get_date_str_from_report(file_excel: str) -> str:
     return date_str
 
 
-def get_sources_for_collection(dir_path: str) -> list:
+def get_sources_for_collection(dir_path: str) -> list[str]:
     """
     シミュレーション対象のファイルリストを返す
     :return:
@@ -67,3 +83,16 @@ def get_sources_for_collection(dir_path: str) -> list:
     return sorted(list_excel)
 
 
+def init_transaction() -> dict[str, list]:
+    """
+    取引明細用データ辞書の初期化
+    :return:
+    """
+    return {
+        "注文日時": [],
+        "銘柄コード": [],
+        "売買": [],
+        "約定単価": [],
+        "約定数量": [],
+        "損益": [],
+    }
