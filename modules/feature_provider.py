@@ -34,7 +34,7 @@ class FeatureState:
 
     # 移動平均関連
     div_ma_prev: float | None = None
-    cross: float = 0.0
+    cross_1: float = 0.0
 
     # ロスカット
     losscut_1: bool = False
@@ -113,7 +113,7 @@ class FeatureProvider:
 
     def getCrossSignal1(self) -> float:
         """クロスシグナル（-1.0, 0.0, 1.0）"""
-        return float(self.s.cross)
+        return float(self.s.cross_1)
 
     def getDDRatio(self) -> float:
         """ドローダウン比率"""
@@ -135,14 +135,6 @@ class FeatureProvider:
 
     def getNTrade(self) -> int:
         return self.s.n_trade
-
-    """
-    def getLower(self) -> float:
-        return self.obj_miqr.getLower()
-
-    def getUpper(self) -> float:
-        return self.obj_miqr.getUpper()
-    """
 
     def getPeriodWarmup(self) -> int:
         return self.PERIOD_WARMUP
@@ -320,7 +312,7 @@ class FeatureProvider:
         div_ma = ma1 - vwap
 
         # --- クロス判定 ---
-        self.s.cross = self._detect_cross(self.s.div_ma_prev, div_ma)
+        self.s.cross_1 = self._detect_cross(self.s.div_ma_prev, div_ma)
         self.s.div_ma_prev = div_ma
 
         # --- 移動 IQR ---
