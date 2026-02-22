@@ -3,10 +3,10 @@ from PySide6.QtWidgets import QFrame, QButtonGroup
 
 from structs.res import AppRes
 from widgets.buttons import (
+    BaselineSwitch,
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
-    ToggleButtonSmall,
     TradeButton,
 )
 from widgets.containers import (
@@ -72,11 +72,11 @@ class PanelTrading(Widget):
 
         row += 1
         # 基準線（相対）
-        self.rel = but_rel = ToggleButtonSmall("rel")
+        self.rel = but_rel = BaselineSwitch("rel")
         layout.addWidget(but_rel, row, 0)
 
         # 基準線（絶対）
-        self.abs = but_abs = ToggleButtonSmall("abs")
+        self.abs = but_abs = BaselineSwitch("abs")
         but_abs.setChecked(True)
         layout.addWidget(but_abs, row, 1)
 

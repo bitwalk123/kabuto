@@ -340,7 +340,7 @@ class ToggleButtonOverDrive(QPushButton):
         self.setToolTip("Over Drive")
 
 
-class ToggleButtonSmall(QPushButton):
+class BaselineSwitch(QPushButton):
     def __init__(self, text: str):
         super().__init__(text)
         self.setCheckable(True)
@@ -357,9 +357,9 @@ class ToggleButtonSmall(QPushButton):
         if text == "abs":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #003060;
+                    border: 1px solid #002040;
                     border-radius: 4px;
-                    background-color: #004080;
+                    background-color: #003060;
                     color: white;
                     margin-left: 2em;
                 }
@@ -374,9 +374,9 @@ class ToggleButtonSmall(QPushButton):
         if text == "rel":
             self.setStyleSheet("""
                 QPushButton {
-                    border: 1px solid #603000;
+                    border: 1px solid #402000;
                     border-radius: 4px;
-                    background-color: #804000;
+                    background-color: #603000;
                     color: white;
                     margin-right: 2em;
                 }
