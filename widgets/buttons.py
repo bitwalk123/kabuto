@@ -245,26 +245,6 @@ class RadioButtonInt(QRadioButton):
         return self.value
 
 
-class ToggleButtonAutoPilot(QPushButton):
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.setCheckable(True)
-        imgname = os.path.join(res.dir_image, "autopilot.png")
-        self.setIcon(QIcon(imgname))
-        self.setToolTip("Auto Pilot")
-
-
-class ToggleButtonOverDrive(QPushButton):
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.setCheckable(True)
-        imgname = os.path.join(res.dir_image, "overdrive.png")
-        self.setIcon(QIcon(imgname))
-        self.setToolTip("Over Drive")
-
-
 class TradeButton(QPushButton):
     def __init__(self, act: str):
         super().__init__()
@@ -338,3 +318,72 @@ class TradeButton(QPushButton):
             """)
         else:
             self.setText("不明")
+
+
+class ToggleButtonAutoPilot(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setCheckable(True)
+        imgname = os.path.join(res.dir_image, "autopilot.png")
+        self.setIcon(QIcon(imgname))
+        self.setToolTip("Auto Pilot")
+
+
+class ToggleButtonOverDrive(QPushButton):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setCheckable(True)
+        imgname = os.path.join(res.dir_image, "overdrive.png")
+        self.setIcon(QIcon(imgname))
+        self.setToolTip("Over Drive")
+
+
+class ToggleButtonSmall(QPushButton):
+    def __init__(self, text: str):
+        super().__init__(text)
+        self.setCheckable(True)
+        self.setAutoExclusive(True)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(6)
+        self.setFont(font)
+
+        if text == "abs":
+            self.setStyleSheet("""
+                QPushButton {
+                    border: 1px solid #003060;
+                    border-radius: 4px;
+                    background-color: #004080;
+                    color: white;
+                    margin-left: 2em;
+                }
+                QPushButton:checked {
+                    border: 1px solid #0050a0;
+                    background-color: #0070e0;
+                    color: white;
+                    font-weight: bold;
+                }
+            """)
+
+        if text == "rel":
+            self.setStyleSheet("""
+                QPushButton {
+                    border: 1px solid #603000;
+                    border-radius: 4px;
+                    background-color: #804000;
+                    color: white;
+                    margin-right: 2em;
+                }
+                QPushButton:checked {
+                    border: 1px solid #a05000;
+                    background-color: #e07000;
+                    color: white;
+                    font-weight: bold;
+                }
+            """)

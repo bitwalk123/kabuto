@@ -1,17 +1,18 @@
 from PySide6.QtCore import QMargins, Signal
-from PySide6.QtWidgets import QFrame
+from PySide6.QtWidgets import QFrame, QButtonGroup
 
 from structs.res import AppRes
 from widgets.buttons import (
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
+    ToggleButtonSmall,
     TradeButton,
 )
 from widgets.containers import (
     IndicatorBuySell,
     PadH,
-    Widget,
+    Widget, NarrowLine,
 )
 from widgets.layouts import (
     GridLayout,
@@ -64,6 +65,25 @@ class PanelTrading(Widget):
         self.repay = but_repay = TradeButton("repay")
         but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, row, 0, 1, 2)
+
+        row += 1
+        line = NarrowLine()
+        layout.addWidget(line, row, 0, 1, 2)
+
+        row += 1
+        # 基準線（相対）
+        self.rel = but_rel = ToggleButtonSmall("rel")
+        layout.addWidget(but_rel, row, 0)
+
+        # 基準線（絶対）
+        self.abs = but_abs = ToggleButtonSmall("abs")
+        but_abs.setChecked(True)
+        layout.addWidget(but_abs, row, 1)
+
+        # ボタングループ
+        self.baseline = baseline = QButtonGroup()
+        baseline.addButton(but_rel)
+        baseline.addButton(but_abs)
 
         # 初期状態ではポジション無し
         self.switchDeactivateAll()
