@@ -21,7 +21,7 @@ class FeatureState:
     price: float = 0.0
     volume: float = 0.0
 
-    # 移動平均関連
+    # 移動平均 & VWAP 関連
     div_ma_prev: float | None = None
     cross_1: float = 0.0
     cross_2: float = 0.0
@@ -109,6 +109,9 @@ class FeatureProvider:
         """クロスシグナル2（-1.0, 0.0, 1.0）"""
         return float(self.s.cross_2)
 
+    def getCurrentPosition(self) -> PositionType:
+        return self.s.position
+
     def getDDRatio(self) -> float:
         """ドローダウン比率"""
         return self.s.dd_ratio
@@ -132,9 +135,6 @@ class FeatureProvider:
 
     def getPeriodWarmup(self) -> int:
         return self.PERIOD_WARMUP
-
-    def getCurrentPosition(self) -> PositionType:
-        return self.s.position
 
     def getPositionValue(self) -> float:
         return float(self.s.position.value)
@@ -312,6 +312,7 @@ class FeatureProvider:
 
         # --- クロス判定 ---
         self.s.cross_1 = detect_cross(self.s.div_ma_prev, div_ma)
+
         self.s.div_ma_prev = div_ma
 
         # --- 移動 IQR ---
@@ -347,13 +348,6 @@ class FeatureProvider:
             self.transaction_add("買埋", profit)
         else:
             raise TypeError(f"Unknown PositionType: {self.s.position}")
-
-    '''
-    @staticmethod
-    def transaction_init() -> dict[str, list]:
-        """取引明細用データ辞書の初期化"""
-        return init_transaction()
-    '''
 
     def transaction_open(self) -> None:
         """新規建玉時の取引明細更新"""

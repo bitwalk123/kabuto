@@ -63,7 +63,6 @@ class DockTrader(DockWidget):
         panel_option.changedDisparity.connect(self.disparity_changed)
         self.layout.addWidget(panel_option)
 
-
     def force_repay(self) -> None:
         """
         強制返済（取引終了時）

@@ -1,10 +1,8 @@
 from PySide6.QtCore import QMargins, Signal
-from PySide6.QtWidgets import QFrame, QButtonGroup, QAbstractButton
+from PySide6.QtWidgets import QFrame
 
-from structs.app_enum import BaselineMode
 from structs.res import AppRes
 from widgets.buttons import (
-    BaselineSwitch,
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
@@ -12,7 +10,6 @@ from widgets.buttons import (
 )
 from widgets.containers import (
     IndicatorBuySell,
-    NarrowLine,
     PadH,
     Widget,
 )
@@ -36,7 +33,6 @@ class PanelTrading(Widget):
         super().__init__()
         self.flag_next_status: bool = True
         self.flag_disabled: bool = True  # 全ての売買・返済ボタンを無効状態フラグ
-        self.mode_baseline: BaselineMode = BaselineMode.ABSOLUTE
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         layout = GridLayout()
@@ -69,45 +65,8 @@ class PanelTrading(Widget):
         but_repay.clicked.connect(self.request_repay)
         layout.addWidget(but_repay, row, 0, 1, 2)
 
-        row += 1
-        line = NarrowLine()
-        layout.addWidget(line, row, 0, 1, 2)
-
-        row += 1
-        # 基準線（相対）
-        self.rel = but_rel = BaselineSwitch("rel")
-        layout.addWidget(but_rel, row, 0)
-
-        # 基準線（絶対）
-        self.abs = but_abs = BaselineSwitch("abs")
-        but_abs.setChecked(True)
-        layout.addWidget(but_abs, row, 1)
-
-        # ボタングループ
-        self.baseline = baseline = QButtonGroup()
-        baseline.addButton(but_abs, 0)
-        baseline.addButton(but_rel, 1)
-        baseline.buttonToggled.connect(self.changed_baseline)
-
         # 初期状態ではポジション無し
         self.switchDeactivateAll()
-
-    def changed_baseline(self, but: QAbstractButton) -> None:
-        """基準線VWAPのベースラインのモード"""
-        if not but.isChecked():
-            return
-
-        mode = but.text()
-        if mode == "abs":
-            # 絶対値（デフォルト）
-            self.mode_baseline = BaselineMode.ABSOLUTE
-        elif mode == "rel":
-            # 相対値（バイアス付き）
-            self.mode_baseline = BaselineMode.RELATIVE
-        else:
-            raise TypeError(f"Unknown BaselineMode: {mode}")
-
-        print(self.mode_baseline)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント

@@ -14,7 +14,10 @@ from PySide6.QtWidgets import QMainWindow
 from funcs.setting import load_setting
 from modules.agent import WorkerAgent
 from modules.dock import DockTrader
-from structs.app_enum import ActionType, PositionType
+from structs.app_enum import (
+    ActionType,
+    PositionType,
+)
 from structs.res import AppRes
 from modules.chart import TrendChart
 
@@ -224,7 +227,7 @@ class Trader(QMainWindow):
         else:
             # 株価/MA1, VWAP トレンドチャート
             suffix = "1"
-        # 　保存先のパス
+        # 保存先のパス
         file_img = f"{self.code}_trend_{suffix}.png"
         if self.res.debug:
             output_dir: str = os.path.join(
@@ -257,10 +260,15 @@ class Trader(QMainWindow):
         self.list_lower.append(dict_technicals["lower"] - self.vwap)
         self.list_upper.append(dict_technicals["upper"] - self.vwap)
 
-        # クロス時の縦線表示
+        # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
             self.trend.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross1"] < 0.0:
+            self.trend.setCrossDead(dict_technicals["ts"])
+        # クロス時の縦線表示 2
+        if 0.0 < dict_technicals["cross2"]:
+            self.trend.setCrossGolden(dict_technicals["ts"])
+        elif dict_technicals["cross2"] < 0.0:
             self.trend.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals(self.dock.isDisparityChecked())
@@ -375,10 +383,7 @@ class Trader(QMainWindow):
         flag = self.dock.isDisparityChecked()
         self.trend.setZeroLine(flag)
         if flag:
-            if self.vwap > 0:
-                self.trend.setDot([ts], [price - self.vwap])
-            else:
-                self.trend.setDot([ts], [price - self.vwap])
+            self.trend.setDot([ts], [price - self.vwap])
         else:
             self.trend.setDot([ts], [price])
 
@@ -396,10 +401,7 @@ class Trader(QMainWindow):
 
         if flag:
             self.trend.setLine([], [])
-            if self.vwap > 0:
-                self.trend.setDot([ts], [price - self.vwap])
-            else:
-                self.trend.setDot([ts], [price - self.vwap])
+            self.trend.setDot([ts], [price - self.vwap])
         else:
             self.trend.setLine(self.list_x, self.list_y)
             self.trend.setDot([ts], [price])

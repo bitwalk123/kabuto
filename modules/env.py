@@ -93,7 +93,7 @@ class TradingEnv(gym.Env):
         return self.provider.getTimestamp()
 
     def getTransaction(self) -> pd.DataFrame:
-        #return pd.DataFrame(self.provider.dict_transaction)
+        # return pd.DataFrame(self.provider.dict_transaction)
         return pd.DataFrame(self.provider.getTransaction())
 
     def getObservation(
@@ -191,7 +191,7 @@ class TradingEnv(gym.Env):
         # 収益情報
         info["pnl_total"] = self.provider.getPnLTotal()
 
-        #self.provider.step_current += 1
+        # self.provider.step_current += 1
         self.provider.setStepCurrentInc(1)
         return reward, terminated, truncated, info
 

@@ -145,7 +145,6 @@ class TrendChart(pg.PlotWidget):
     def setCrossGolden(self, x: float) -> None:
         self.vline_golden.setPos(x)
 
-    # def setLine(self, line_x, line_y):
     def setLine(self, line_x: list[float], line_y: list[float]) -> None:
         # トレンド線
         self.line.setData(tuple(line_x), tuple(line_y))
