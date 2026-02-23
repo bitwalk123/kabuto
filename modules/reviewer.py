@@ -21,7 +21,7 @@ class ExcelReviewWorker(QObject):
     # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
     # 4, 約定確認結果を通知
-    sendResult = Signal(str, bool)
+    sendResult = Signal(str, float)
     # 5. ティックデータ保存の終了を通知（本番のみ - デバッグ用ではダミー）
     saveCompleted = Signal(bool)
     # 6. データ準備完了（デバッグ用）
@@ -140,18 +140,18 @@ class ExcelReviewWorker(QObject):
         time.sleep(0.2)
         # 買建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.BUY, note)
-        self.sendResult.emit(code, True)
+        self.sendResult.emit(code, price)
 
     @Slot(str, float, float, str)
     def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
         time.sleep(0.2)
         # 売建で新規建玉
         self.posman.openPosition(code, ts, price, ActionType.SELL, note)
-        self.sendResult.emit(code, True)
+        self.sendResult.emit(code, price)
 
     @Slot(str, float, float, str)
     def macro_do_repay(self, code: str, ts: float, price: float, note: str) -> None:
         time.sleep(0.2)
         # 建玉返済
         self.posman.closePosition(code, ts, price, note)
-        self.sendResult.emit(code, True)
+        self.sendResult.emit(code, price)

@@ -35,7 +35,7 @@ class RSSReaderWorker(QObject):
     # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
     # 4. 約定確認結果を通知
-    sendResult = Signal(str, bool)
+    sendResult = Signal(str, float)
     # 5. ティックデータ保存の終了を通知（本番用）
     saveCompleted = Signal(bool)
     # 6. データ準備完了（デバッグ用 - 本番用ではダミー）
@@ -316,16 +316,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"DoBuy returned {result}")
         except com_error as e:
             self.logger.error(f"DoBuy failed for code={code}: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoBuy: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         # 約定後、買建では建玉一覧に銘柄コードあり (True)
         expected_state = True
@@ -334,6 +334,9 @@ class RSSReaderWorker(QObject):
         if self.confirm_execution(code, expected_state):
             # 買建で新規建玉
             self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+            self.sendResult.emit(code, price)
+        else:
+            self.sendResult.emit(code, 0.0)
 
     @Slot(str, float, float, str)
     def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
@@ -342,16 +345,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"DoSell returned {result}")
         except com_error as e:
             self.logger.error(f"DoSell failed for code={code}: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoSell: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         # 約定後、売建では建玉一覧に銘柄コードあり (True)
         expected_state = True
@@ -359,6 +362,9 @@ class RSSReaderWorker(QObject):
         if self.confirm_execution(code, expected_state):
             # 売建で新規建玉
             self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+            self.sendResult.emit(code, price)
+        else:
+            self.sendResult.emit(code, 0.0)
 
     @Slot(str, float, float, str)
     def macro_do_repay(self, code: str, ts: float, price: float, note: str) -> None:
@@ -367,16 +373,16 @@ class RSSReaderWorker(QObject):
             self.logger.info(f"DoRepay returned {result}")
         except com_error as e:
             self.logger.error(f"DoRepay failed for code={code}: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         except Exception as e:
             self.logger.exception(f"Unexpected error in DoRepay: {e}")
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
 
         # 注文結果が False の場合はここで終了
         if not result:
-            self.sendResult.emit(code, False)
+            self.sendResult.emit(code, 0.0)
             return
         # 約定後、返済では建玉一覧に銘柄コードなし (False)
         expected_state = False
@@ -385,6 +391,9 @@ class RSSReaderWorker(QObject):
         if self.confirm_execution(code, expected_state):
             # 建玉返済
             self.posman.closePosition(code, ts, price, note)
+            self.sendResult.emit(code, price)
+        else:
+            self.sendResult.emit(code, 0.0)
 
     def confirm_execution(self, code: str, expected_state: bool) -> bool:
         # 約定確認
@@ -394,7 +403,6 @@ class RSSReaderWorker(QObject):
                 current = bool(self.is_position_present(code))  # 論理値が返ってくるはずだけど保険に
                 if current == expected_state:
                     self.logger.info(f"約定が反映されました (attempt {attempt + 1}).")
-                    self.sendResult.emit(code, True)
                     return True
                 else:
                     self.logger.info(
@@ -409,6 +417,4 @@ class RSSReaderWorker(QObject):
 
         # self.max_retries 回確認しても変化なし → 注文未反映
         self.logger.info(f"約定を確認できませんでした。")
-        self.sendResult.emit(code, False)
-
         return False

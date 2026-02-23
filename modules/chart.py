@@ -24,6 +24,7 @@ class TrendChart(pg.PlotWidget):
     COLOR_DEAD = (0, 191, 255, 220)
     COLOR_DISPARITY = (255, 220, 0, 220)
     COLOR_EDGE = (128, 255, 0, 0)
+    COLOR_EVEN = (255, 192, 0, 255)
     COLOR_FILL = (255, 255, 255, 96)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
@@ -84,6 +85,11 @@ class TrendChart(pg.PlotWidget):
         self.band.setZValue(30)
         self.addItem(self.band)
 
+        self.even_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_EVEN, width=0.5))
+        self.even_line.setZValue(0)
+        self.even_line.setVisible(False)
+        self.addItem(self.even_line)
+
         # y = 0 のライン
         self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen('#fff', width=0.5))
         self.zero_line.setZValue(0)
@@ -99,17 +105,11 @@ class TrendChart(pg.PlotWidget):
         self.last_dot.setZValue(100)
         self.addItem(self.last_dot)
         # クロス線（ゴールデン・クロス）
-        self.vline_golden = pg.InfiniteLine(
-            angle=90,
-            pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75)
-        )
+        self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75))
         self.vline_golden.setZValue(20)
         self.addItem(self.vline_golden)
         # クロス線（デッド・クロス）
-        self.vline_dead = pg.InfiniteLine(
-            angle=90,
-            pen=pg.mkPen(self.COLOR_DEAD, width=0.75)
-        )
+        self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=0.75))
         self.vline_dead.setZValue(20)
         self.addItem(self.vline_dead)
 
@@ -145,13 +145,18 @@ class TrendChart(pg.PlotWidget):
     def setCrossGolden(self, x: float) -> None:
         self.vline_golden.setPos(x)
 
-    def setLine(self, line_x: list[float], line_y: list[float]) -> None:
-        # トレンド線
-        self.line.setData(tuple(line_x), tuple(line_y))
-
     def setDot(self, x: list[float], y: list[float]) -> None:
         # 最新値
         self.last_dot.setData(x, y)
+
+    def setEvenLine(self, price: float):
+        self.even_line.setPos(price)
+        if price == 0.0:
+            self.even_line.setVisible(False)
+
+    def setLine(self, line_x: list[float], line_y: list[float]) -> None:
+        # トレンド線
+        self.line.setData(tuple(line_x), tuple(line_y))
 
     def setTechnicals(self, dict_lines: dict[str, list], visible: bool) -> None:
         data_ts = tuple(dict_lines["ts"])
@@ -174,6 +179,12 @@ class TrendChart(pg.PlotWidget):
         self.band_lower.setVisible(not visible)
         self.band_upper.setVisible(not visible)
         self.band.setVisible(not visible)
+
+        # 損益分岐線
+        if self.even_line.value() > 0.0:
+            self.even_line.setVisible(visible)
+        else:
+            self.even_line.setVisible(False)
 
     def setTrendTitle(self, title: str) -> None:
         self.setTitle(trend_label_html(title, size=9))

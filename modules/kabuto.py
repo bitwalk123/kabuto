@@ -604,7 +604,7 @@ class Kabuto(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @Slot(str, bool)
-    def order_execution_result(self, code: str, status: bool) -> None:
+    def order_execution_result(self, code: str, price: float) -> None:
         """
         約定確認結果
         :param code:
@@ -612,9 +612,8 @@ class Kabuto(QMainWindow):
         :return:
         """
         trader: Trader = self.dict_trader[code]
-        # trader.dock.update_trading_buttons_status(status)
         # 発注確認結果
-        trader.sendOrderExecutionResult(status)
+        trader.orderExecResult(price)
 
     ###########################################################################
     #

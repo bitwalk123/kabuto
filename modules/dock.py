@@ -214,5 +214,5 @@ class DockTrader(DockWidget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 実売買移行用
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def next_trading_buttons_status(self, status: bool) -> None:
-        self.panel_trading.set_next_status(status)
+    def next_trading_buttons_status(self, price: float) -> bool:
+        return self.panel_trading.set_next_status(price)

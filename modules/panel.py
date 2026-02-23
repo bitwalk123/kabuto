@@ -71,11 +71,18 @@ class PanelTrading(Widget):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def set_next_status(self, status: bool) -> None:
-        if status:
+    def set_next_status(self, price: float) -> bool:
+        """
+        約定結果を確認してからロックを外して次の状態へ
+        :param price:
+        :return:
+        """
+        if price > 0.0:  # 約定成功の場合、株価 > 0 になる。
             self.switchActivate(self.flag_next_status)
+            return not self.flag_next_status
         else:
             self.switchActivate(not self.flag_next_status)
+            return self.flag_next_status
 
     def request_buy(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

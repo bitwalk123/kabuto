@@ -323,14 +323,17 @@ class Trader(QMainWindow):
         self.requestSaveTechnicals.emit(path_csv)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def sendOrderExecutionResult(self, result: bool) -> None:
+    def orderExecResult(self, price: float) -> None:
         """
         発注結果
         :param result:
         :return:
         """
         # 売買返済ボタンのロックを解除、次の状態設定
-        self.dock.next_trading_buttons_status(result)
+        if self.dock.next_trading_buttons_status(price):
+            self.trend.setEvenLine(price)
+        else:
+            self.trend.setEvenLine(0.0)
 
     def setChartTitle(self, title: str) -> None:
         """
