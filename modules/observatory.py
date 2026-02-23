@@ -4,6 +4,7 @@ from modules.feature_provider import FeatureProvider
 
 FEATURES = [
     ("クロスS1", "getCrossSignal1"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
+    ("クロスS2", "getCrossSignal2"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
     ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
     ("ロス2", "getLosscut2"),  # ロスカット 2 [0, 1]
     ("利確1", "doesTakeProfit"),  # 利確 1 [0, 1]
@@ -16,7 +17,8 @@ TECHNICALS = {
     "volume": "getVolume",  # 累積出来高
     "vwap": "getVWAP",  # VWAP
     "ma1": "getMA1",  # 移動平均線 MA1
-    "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル
+    "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル 1
+    "cross2": "getCrossSignal2",  # MA1 と MA2 のクロスシグナル 2
     "lower": "getLower",  # 移動 IQR 下限
     "upper": "getUpper",  # 移動 IQR 上限
     "profit": "getProfit",  # 含損益

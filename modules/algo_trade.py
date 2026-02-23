@@ -9,11 +9,14 @@ class AlgoTrade:
     """
 
     def __init__(self):
-        self.list_obs_label = None
-        self.idx_cross_1 = None
-        self.idx_losscut_1 = None
-        self.idx_takeprofit_1 = None
-        self.idx_position = None
+        self.list_obs_label: list | None = None
+        # 観測値のインデックス
+        self.idx_cross_1: int | None = None
+        self.idx_cross_2: int | None = None
+        self.idx_losscut_1: int | None = None
+        self.idx_losscut_2: int | None = None
+        self.idx_takeprofit_1: int | None = None
+        self.idx_position: int | None = None
 
     def getListObs(self) -> list:
         return self.list_obs_label
@@ -48,13 +51,15 @@ class AlgoTrade:
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])
-        # 2. ロスカット 1 [0, 1]
+        # 2. クロスシグナル 1 [-1, 0, 1]
+        cross_2 = int(obs[self.idx_cross_2])
+        # 3. ロスカット 1 [0, 1]
         losscut_1 = int(obs[self.idx_losscut_1])
-        # 3. ロスカット 2 [0, 1]
+        # 4. ロスカット 2 [0, 1]
         losscut_2 = int(obs[self.idx_losscut_2])
-        # 4. 利確 1 [0, 1]
+        # 5. 利確 1 [0, 1]
         takeprofit_1 = int(obs[self.idx_takeprofit_1])
-        # 5. ポジション（建玉） [SHORT, NONE, LONG]
+        # 6. ポジション（建玉） [SHORT, NONE, LONG]
         position = PositionType(int(obs[self.idx_position]))
 
         # --- エグジット判定 ---
@@ -66,7 +71,7 @@ class AlgoTrade:
 
         # 2. エグジット判定が必要なシグナルがあるか確認
         # いずれかのフラグが立っている場合のみ処理を続行
-        has_signal = any((cross_1, losscut_1, losscut_2, takeprofit_1))
+        has_signal = any((cross_1, cross_2, losscut_1, losscut_2, takeprofit_1))
         if has_signal:
             exit_act = self.exit_action(position)
             # 有効なアクションかつ実行可能ならそのアクションを返す
@@ -86,6 +91,7 @@ class AlgoTrade:
         """
         self.list_obs_label = list_obs_label
         self.idx_cross_1 = self.list_obs_label.index("クロスS1")
+        self.idx_cross_2 = self.list_obs_label.index("クロスS2")
         self.idx_losscut_1 = self.list_obs_label.index("ロス1")
         self.idx_losscut_2 = self.list_obs_label.index("ロス2")
         self.idx_takeprofit_1 = self.list_obs_label.index("利確1")
