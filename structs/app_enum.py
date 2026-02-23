@@ -1,6 +1,12 @@
 from enum import Enum, auto
 
 
+class BaselineMode(Enum):
+    """VWAP のベースラインモード"""
+    ABSOLUTE = 0  # 絶対値（デフォルト）
+    RELATIVE = 1  # 相対値（バイアス付き）
+
+
 class FollowType(Enum):
     PARABOLIC = auto()  # Parabolic SAR の設定によるトレンドフォロー
     OVERDRIVE = auto()  # 価格と PSAR の値幅が大きくなったので追跡フォロー

@@ -1,6 +1,7 @@
 from PySide6.QtCore import QMargins, Signal
-from PySide6.QtWidgets import QFrame, QButtonGroup
+from PySide6.QtWidgets import QFrame, QButtonGroup, QAbstractButton
 
+from structs.app_enum import BaselineMode
 from structs.res import AppRes
 from widgets.buttons import (
     BaselineSwitch,
@@ -11,8 +12,9 @@ from widgets.buttons import (
 )
 from widgets.containers import (
     IndicatorBuySell,
+    NarrowLine,
     PadH,
-    Widget, NarrowLine,
+    Widget,
 )
 from widgets.layouts import (
     GridLayout,
@@ -34,6 +36,7 @@ class PanelTrading(Widget):
         super().__init__()
         self.flag_next_status: bool = True
         self.flag_disabled: bool = True  # 全ての売買・返済ボタンを無効状態フラグ
+        self.mode_baseline: BaselineMode = BaselineMode.ABSOLUTE
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         layout = GridLayout()
@@ -82,11 +85,29 @@ class PanelTrading(Widget):
 
         # ボタングループ
         self.baseline = baseline = QButtonGroup()
-        baseline.addButton(but_rel)
-        baseline.addButton(but_abs)
+        baseline.addButton(but_abs, 0)
+        baseline.addButton(but_rel, 1)
+        baseline.buttonToggled.connect(self.changed_baseline)
 
         # 初期状態ではポジション無し
         self.switchDeactivateAll()
+
+    def changed_baseline(self, but: QAbstractButton) -> None:
+        """基準線VWAPのベースラインのモード"""
+        if not but.isChecked():
+            return
+
+        mode = but.text()
+        if mode == "abs":
+            # 絶対値（デフォルト）
+            self.mode_baseline = BaselineMode.ABSOLUTE
+        elif mode == "rel":
+            # 相対値（バイアス付き）
+            self.mode_baseline = BaselineMode.RELATIVE
+        else:
+            raise TypeError(f"Unknown BaselineMode: {mode}")
+
+        print(self.mode_baseline)
 
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 売買イベント
