@@ -108,7 +108,7 @@ class Apostle:
 
         # 結果を出力
         df_doe.to_csv(path_result, index=False)
-        print(f"結果が {path_result} に保存されました。")
+        print(f"結果を {path_result} に保存しました。")
 
     def run(self):
         files = sorted(os.listdir(self.res.dir_collection))

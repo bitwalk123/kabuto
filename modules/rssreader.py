@@ -265,7 +265,7 @@ class RSSReaderWorker(QObject):
             # ティックデータの保存処理
             try:
                 save_dataframe_to_excel(name_excel, dict_df)
-                self.logger.info(f"データが {name_excel} に保存されました。")
+                self.logger.info(f"データを {name_excel} に保存しました。")
                 flag = True
             except ValueError as e:
                 self.logger.error(f"error occurred!: {e}")

@@ -201,7 +201,7 @@ class TrendChart(pg.PlotWidget):
         """
         exporter = pg.exporters.ImageExporter(self.plot_item)
         exporter.export(path_img)
-        self.logger.info(f"{__name__}: チャートが {path_img} に保存されました。")
+        self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
 
     def updateYAxisRange(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)

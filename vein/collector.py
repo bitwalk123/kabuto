@@ -218,7 +218,7 @@ class StockCollectorWorker(QObject):
             # ティックデータの保存処理
             try:
                 save_dataframe_to_excel(name_excel, self.dict_df)
-                self.logger.info(f"{__name__} データが {name_excel} に保存されました。")
+                self.logger.info(f"{__name__} データを {name_excel} に保存しました。")
                 flag = True
             except ValueError as e:
                 self.logger.error(f"{__name__} error occurred!: {e}")
