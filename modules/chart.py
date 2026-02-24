@@ -25,7 +25,7 @@ class TrendChart(pg.PlotWidget):
     COLOR_DISPARITY = (128, 255, 0, 255)
     COLOR_EDGE = (128, 255, 0, 0)
     COLOR_EVEN = (255, 192, 0, 255)
-    COLOR_FILL = (255, 255, 255, 96)
+    COLOR_FILL = (255, 255, 255, 192)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
