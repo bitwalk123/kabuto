@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.4.0"
+    __version__ = "0.4.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -344,6 +344,7 @@ class Kabuto(QMainWindow):
             trader: Trader = self.dict_trader[code]
             trader.forceRepay()
 
+    '''
     def get_current_tick_data(self) -> dict[str, pd.DataFrame]:
         """
         チャートが保持しているティックデータをデータフレームで取得
@@ -351,6 +352,7 @@ class Kabuto(QMainWindow):
         """
         traders = self.dict_trader
         return {code: t.getTimePrice() for code, t in traders.items()}
+    '''
 
     def on_about(self) -> None:
         """

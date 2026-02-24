@@ -57,13 +57,15 @@ class Trader(QMainWindow):
         self.dict_ts = dict_ts
 
         # ティックデータ
-        self.list_x: list[float] = []
-        self.list_y: list[float] = []
-        self.list_v: list[float] = []
+        # self.list_x: list[float] = []
+        # self.list_y: list[float] = []
+        # self.list_v: list[float] = []
+        self.ts = 0
+        self.price = 0
 
         # テクニカル指標
         self.vwap: float = 0.0
-        self.list_ts: list[float] = []  # self.list_x と同一になってしまうかもしれない
+        self.list_ts: list[float] = []
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_disparity: list[float] = []
@@ -182,6 +184,7 @@ class Trader(QMainWindow):
         """
         self.dock.force_repay()
 
+    '''
     def getTimePrice(self) -> pd.DataFrame:
         """
         保持している時刻、株価情報をデータフレームで返す。
@@ -192,6 +195,7 @@ class Trader(QMainWindow):
             "Price": self.list_y,
             "Volume": self.list_v,
         })
+    '''
 
     def on_action(self, action: int, position: PositionType) -> None:
         """
@@ -378,9 +382,11 @@ class Trader(QMainWindow):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # リストに保持
-        self.list_x.append(ts)
-        self.list_y.append(price)
-        self.list_v.append(volume)
+        # self.list_x.append(ts)
+        # self.list_y.append(price)
+        # self.list_v.append(volume)
+        self.ts = ts
+        self.price = price
 
         # 株価トレンド線
         flag = self.dock.isDisparityChecked()
@@ -396,18 +402,19 @@ class Trader(QMainWindow):
         self.dock.setTotal(total)
 
     def switch_chart(self, flag: bool) -> None:
+        """
         if len(self.list_x) > 0:
             ts: float = self.list_x[-1]
             price: float = self.list_y[-1]
         else:
             return
-
+        """
         if flag:
-            self.trend.setLine([], [])
-            self.trend.setDot([ts], [price - self.vwap])
+            # self.trend.setLine([], [])
+            self.trend.setDot([self.ts], [self.price - self.vwap])
         else:
-            self.trend.setLine(self.list_x, self.list_y)
-            self.trend.setDot([ts], [price])
+            # self.trend.setLine(self.list_x, self.list_y)
+            self.trend.setDot([self.ts], [self.price])
 
         # テクニカルデータの更新
         self.update_technicals(flag)

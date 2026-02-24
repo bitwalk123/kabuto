@@ -65,8 +65,8 @@ class TrendChart(pg.PlotWidget):
         # ---------------------------------------------------------------------
         # 折れ線
         # 株価
-        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
-        self.line.setZValue(90)
+        #self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
+        #self.line.setZValue(90)
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
         self.ma_1.setZValue(60)
@@ -153,10 +153,11 @@ class TrendChart(pg.PlotWidget):
         self.even_line.setPos(price)
         if price == 0.0:
             self.even_line.setVisible(False)
-
+    """
     def setLine(self, line_x: list[float], line_y: list[float]) -> None:
         # トレンド線
         self.line.setData(tuple(line_x), tuple(line_y))
+    """
 
     def setTechnicals(self, dict_lines: dict[str, list], visible: bool) -> None:
         data_ts = tuple(dict_lines["ts"])
