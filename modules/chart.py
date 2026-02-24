@@ -22,10 +22,10 @@ class TrendChart(pg.PlotWidget):
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 191, 255, 220)
-    COLOR_DISPARITY = (128, 255, 0, 255)
+    COLOR_DISPARITY = (96, 192, 0, 255)
     COLOR_EDGE = (128, 255, 0, 0)
     COLOR_EVEN = (255, 192, 0, 255)
-    COLOR_FILL = (255, 255, 255, 192)
+    COLOR_FILL = (255, 255, 255, 128)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
