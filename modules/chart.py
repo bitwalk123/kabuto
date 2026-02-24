@@ -22,10 +22,10 @@ class TrendChart(pg.PlotWidget):
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 191, 255, 220)
-    COLOR_DISPARITY = (96, 192, 0, 255)
+    COLOR_DISPARITY = (255, 192, 0, 255)
     COLOR_EDGE = (128, 255, 0, 0)
     COLOR_EVEN = (255, 192, 0, 255)
-    COLOR_FILL = (255, 255, 255, 128)
+    COLOR_FILL = (128, 0, 255, 128)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
@@ -74,7 +74,7 @@ class TrendChart(pg.PlotWidget):
         self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
         self.vwap.setZValue(50)
         # 乖離率
-        self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=0.75))
+        self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
         self.disparity.setZValue(50)
         # 移動 IQR バンド
         self.band_lower: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=1))
