@@ -4,12 +4,11 @@ from PySide6.QtWidgets import (
     QFrame,
     QLabel,
     QLCDNumber,
-    QPlainTextEdit,
     QSizePolicy,
 )
 
 from widgets.containers import Widget
-from widgets.layouts import VBoxLayout, GridLayout, HBoxLayout
+from widgets.layouts import VBoxLayout, HBoxLayout
 
 
 class Label(QLabel):
@@ -212,15 +211,3 @@ class LCDIntWithTitle(Widget):
         :return:
         """
         self.lcd_int.display(f"{value:d}")
-
-
-class PlainTextEdit(QPlainTextEdit):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.setStyleSheet("""
-            QPlainTextEdit {
-                border-width: 0;
-                border-style: none;
-                padding: 0;
-            }
-        """)
