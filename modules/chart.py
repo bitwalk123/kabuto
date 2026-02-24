@@ -25,7 +25,7 @@ class TrendChart(pg.PlotWidget):
     COLOR_DISPARITY = (255, 192, 0, 255)
     COLOR_EDGE = (128, 255, 0, 0)
     COLOR_EVEN = (255, 192, 0, 255)
-    COLOR_FILL = (128, 0, 255, 128)
+    COLOR_FILL = (128, 128, 255, 192)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     SIZE_LAST_DOT = 4
 
@@ -82,7 +82,7 @@ class TrendChart(pg.PlotWidget):
         self.band_upper: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=1))
         self.band_upper.setZValue(40)
         self.band = pg.FillBetweenItem(self.band_lower, self.band_upper, pg.mkBrush(self.COLOR_FILL))
-        self.band.setZValue(30)
+        self.band.setZValue(10)
         self.addItem(self.band)
 
         self.even_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_EVEN, width=0.5))
