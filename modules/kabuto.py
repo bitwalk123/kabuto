@@ -161,7 +161,7 @@ class Kabuto(QMainWindow):
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.requestSwicthCharts.connect(self.on_switch_charts)
+        toolbar.requestSwitchCharts.connect(self.on_switch_charts)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
         # ---------------------------------------------------------------------

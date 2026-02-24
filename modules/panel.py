@@ -157,7 +157,7 @@ class PanelOption(QFrame):
         # VWAP との乖離を表示するかどうかのスイッチ
         self.disparity = disparity = Switch()
         disparity.set(False)
-        disparity.statusChanged.connect(self.changedDisparity.emit)
+        disparity.statusChanged.connect(self.changed_disparity)
         layout.addWidget(disparity)
 
         pad = PadH()
@@ -180,3 +180,6 @@ class PanelOption(QFrame):
         but_save.setToolTip("チャートの保存")
         but_save.clicked.connect(self.clickedSave.emit)
         layout.addWidget(but_save)
+
+    def changed_disparity(self, flag: bool) -> None:
+        self.changedDisparity.emit(flag)

@@ -78,6 +78,7 @@ class DockTrader(DockWidget):
         :return:
         """
         self.panel_option.disparity.set(state)
+        self.panel_option.changed_disparity(state)
 
     def on_buy(self) -> None:
         """

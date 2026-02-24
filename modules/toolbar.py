@@ -26,7 +26,7 @@ class ToolBar(QToolBar):
     clickedPlay = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
-    requestSwicthCharts = Signal(bool)
+    requestSwitchCharts = Signal(bool)
     selectedExcelFile = Signal(str, list)
 
     def __init__(self, res: AppRes):
@@ -122,7 +122,7 @@ class ToolBar(QToolBar):
 
         self.switch = switch = Switch()
         switch.set(False)
-        switch.statusChanged.connect(self.requestSwicthCharts.emit)
+        switch.statusChanged.connect(self.requestSwitchCharts.emit)
         self.addWidget(switch)
 
         self.addSeparator()
