@@ -74,7 +74,7 @@ class TrendChart(pg.PlotWidget):
         self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
         self.vwap.setZValue(50)
         # 乖離率
-        self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
+        self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=0.75))
         self.disparity.setZValue(50)
         # 移動 IQR バンド
         self.band_lower: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=1))
