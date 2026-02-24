@@ -1,3 +1,7 @@
+import datetime
+import os
+from typing import Any
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -7,6 +11,9 @@ from matplotlib import (
     dates as mdates, ticker,
 )
 from scipy.interpolate import griddata
+
+from funcs.tide import get_format_date_from_date_str
+from funcs.tse import get_ticker_name_list
 
 
 def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
@@ -230,3 +237,137 @@ def plot_contour(df, col_x: str, col_y: str, col_z: str, output: str):
 
 def trend_label_html(text: str, size: int = 9) -> str:
     return f'<span style="font-size: {size}pt; font-family: monospace;">{text}</span>'
+
+
+def plot_trend_review(
+        code: str,
+        df: pd.DataFrame,
+        target_dir: str,
+        dict_ts: dict[str, datetime.datetime],
+        dict_setting: dict[str, Any],
+        date_str: str
+) -> None:
+    """
+    レビュー用チャートの作成と保存（Jupyter 用）
+    :param code:
+    :param df:
+    :param target_dir:
+    :param dict_ts:
+    :param dict_setting:
+    :param date_str:
+    :return:
+    """
+    n = 4
+
+    # Matplotlib の共通設定
+    FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
+    fm.fontManager.addfont(FONT_PATH)
+
+    # FontPropertiesオブジェクト生成（名前の取得のため）
+    font_prop = fm.FontProperties(fname=FONT_PATH)
+    font_prop.get_name()
+
+    plt.rcParams["font.family"] = font_prop.get_name()
+
+    if n == 1:
+        fig, ax = plt.subplots(figsize=(6, 3))
+        ax.grid(axis="y")
+    else:
+        fig = plt.figure(figsize=(6, 6))
+        ax = dict()
+        gs = fig.add_gridspec(
+            n,
+            1,
+            wspace=0.0,
+            hspace=0.0,
+            height_ratios=[2 if i <= 1 else 1 for i in range(n)],
+        )
+        for i, axis in enumerate(gs.subplots(sharex="col")):
+            ax[i] = axis
+            ax[i].grid(axis="y")
+
+    name = get_ticker_name_list([code])[code]
+    format_date = get_format_date_from_date_str(date_str)
+    ax[0].plot(df["price"], linewidth=0.5, color="gray", alpha=0.5, label="株価")
+    ax[0].plot(df["ma1"], linewidth=0.5, color="#008000", label="移動平均線 MA1")
+    ax[0].plot(df["vwap"], linewidth=0.75, color="#ff00ff", label="VWAP")
+
+    td = datetime.timedelta(minutes=15)
+    ax[0].set_xlim(dict_ts["start"] - td, dict_ts["end"] + td)
+    # ax[0].set_xlabel(title_str, fontsize=5)
+
+    ax[0].set_ylabel("株価")
+    ax[0].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+    ax[0].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+    ax[0].legend(fontsize=6)
+
+    ax[1].plot(
+        df["price"] - df["vwap"],
+        linewidth=0.5,
+        color="gray",
+        alpha=0.5,
+        label="株価 - VWAP",
+    )
+    ax[1].plot(
+        df["ma1"] - df["vwap"], linewidth=0.25, color="#804000", label="MA1 - VWAP"
+    )
+    x = df.index
+    y_upper = df["upper"] - df["vwap"]
+    y_lower = df["lower"] - df["vwap"]
+    ax[1].fill_between(
+        x, y_lower, y_upper, color="#ff8000", alpha=0.25, label="IQR band"
+    )
+
+    ax[1].axhline(y=0, linewidth=0.5, color="black")
+    ax[1].set_ylabel("乖離度")
+    ax[1].legend(fontsize=6)
+
+    ax[2].plot(
+        df["profit"], linewidth=0.5, color="#ff00ff", alpha=0.75, label="含み損益"
+    )
+    ax[2].plot(df["profit_max"], linewidth=0.75, color="#ff0000", label="最大含み損益")
+    ax[2].axhline(
+        y=dict_setting["DD_PROFIT"],
+        linewidth=0.75,
+        color="C1",
+        alpha=1,
+        label="トレーリング",
+    )
+    ax[2].set_ylabel("含み損益")
+    ax[2].legend(fontsize=6)
+
+    ax[3].plot(df["dd_ratio"], linewidth=0.5, color="C0", alpha=0.75, label="DD ratio")
+    ax[3].axhline(
+        y=dict_setting["DD_RATIO"], linewidth=0.75, color="C1", label="利確ライン"
+    )
+    ax[3].set_ylabel("DD ratio")
+    ax[3].legend(fontsize=6)
+    ax[3].set_ylim(0, 1.1)
+
+    list_cross = df[df["cross1"] != 0].index
+    print(f"# of cross: {len(list_cross)}")
+    for i in range(n):
+        for t in list_cross:
+            if 0 < df.at[t, "cross1"]:
+                cname = "#f00000"
+            else:
+                cname = "#0000d0"
+            ax[i].axvline(
+                x=t, color=cname, linestyle="solid", alpha=0.25, linewidth=0.75
+            )
+
+        x = [dict_ts["start"], dict_ts["trade"]]
+        ax[i].fill_between(
+            x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
+        )
+
+    ax[0].set_title(f"{format_date}: {name} ({code})")
+    ax[n - 1].set_xlabel(f"# of crossed: {len(list_cross)} times")
+
+    # plt.suptitle(title_str, fontsize=5)
+    plt.tight_layout()
+    # plt.subplots_adjust(top=0.89)
+    output = os.path.join(target_dir, f"{code}_trend_technical.png")
+    print(output)
+    plt.savefig(output)
+    plt.show()

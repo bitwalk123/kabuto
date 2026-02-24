@@ -116,7 +116,7 @@ class Kabuto(QMainWindow):
         self.thread = QThread(self)
         self.worker = None
 
-        # Trader関連
+        # Trader 関連
         self.trader = None
         self.dict_trader = {}
         self.list_code = []
@@ -136,12 +136,12 @@ class Kabuto(QMainWindow):
         self.timer = timer = QTimer()
         timer.setInterval(self.timer_interval)
         if self.res.debug:
-            # デバッグモードではファイルを読み込んでからスレッドを起動
+            # デバッグモードではティックデータを読み込んでからスレッドを起動
             timer.timeout.connect(self.on_request_data_review)
         else:
             # リアルタイムモードでは、直ちにスレッドを起動
             timer.timeout.connect(self.on_request_data)
-            # RSS用Excelファイルを指定してxlwingsを利用するスレッド
+            # RSS 用 Excel ファイルを指定して xlwings を利用するスレッド
             self.on_create_thread()
 
     def _setup_ui(self) -> None:

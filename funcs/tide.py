@@ -16,6 +16,24 @@ def conv_date_str_to_path(date_str: str) -> str:
         return os.path.join("1970", "01", "01")
 
 
+def conv_str_to_datetime(date_str: str) -> dict[str, datetime.datetime]:
+    pattern = re.compile(r"(\d{4})(\d{2})(\d{2})")
+    if m := pattern.match(date_str):
+        year = int(m.group(1))
+        month = int(m.group(2))
+        day = int(m.group(3))
+    else:
+        year = 1970
+        month = 1
+        day = 1
+
+    return {
+        "start": datetime.datetime(year, month, day, 9, 0, 0, 0),
+        "trade": datetime.datetime(year, month, day, 9, 10, 0, 0),
+        "end": datetime.datetime(year, month, day, 15, 30, 0, 0),
+    }
+
+
 def get_date_str_from_file(file: str) -> str:
     """
     ファイル名から日付文字列を返す関数
