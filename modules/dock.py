@@ -78,7 +78,7 @@ class DockTrader(DockWidget):
         :return:
         """
         self.panel_option.disparity.set(state)
-        self.panel_option.changed_disparity(state)
+        self.panel_option.on_changed_disparity(state)
 
     def on_buy(self) -> None:
         """
@@ -122,6 +122,20 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.auto = False
 
+    def on_repair(self) -> None:
+        dlg = DlgRepair(self.res)
+        if dlg.exec():
+            flag: bool = dlg.getStatus()
+            self.panel_trading.switchActivate(flag)
+        else:
+            return
+
+    def on_save(self) -> None:
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 保存ボタンがクリックされたことを通知
+        self.clickedSave.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     def isDisparityChecked(self) -> bool:
         return self.panel_option.disparity.isEnabled()
 
@@ -130,20 +144,6 @@ class DockTrader(DockWidget):
         """
         # print('Switch is', status)
         self.changedDisparityState.emit(status)
-
-    def on_save(self) -> None:
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 保存ボタンがクリックされたことを通知
-        self.clickedSave.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_repair(self) -> None:
-        dlg = DlgRepair(self.res)
-        if dlg.exec():
-            flag: bool = dlg.getStatus()
-            self.panel_trading.switchActivate(flag)
-        else:
-            return
 
     def setPrice(self, price: float) -> None:
         """
