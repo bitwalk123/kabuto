@@ -60,7 +60,8 @@ class DockTrader(DockWidget):
         self.panel_option = panel_option = PanelOption(res, code)
         panel_option.clickedSave.connect(self.on_save)
         panel_option.clickedRepair.connect(self.on_repair)
-        panel_option.changedDisparity.connect(self.disparity_changed)
+        panel_option.clickedSetting.connect(self.on_setting)
+        panel_option.changedDisparity.connect(self.on_changed_disparity)
         self.layout.addWidget(panel_option)
 
     def force_repay(self) -> None:
@@ -130,20 +131,25 @@ class DockTrader(DockWidget):
         else:
             return
 
+    def on_changed_disparity(self, status: bool) -> None:
+        """
+        for statusChanged signal
+        :param status:
+        :return:
+        """
+        self.changedDisparityState.emit(status)
+
     def on_save(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 保存ボタンがクリックされたことを通知
         self.clickedSave.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    def on_setting(self):
+        print("DEBUG!")
+
     def isDisparityChecked(self) -> bool:
         return self.panel_option.disparity.isEnabled()
-
-    def disparity_changed(self, status: bool) -> None:
-        """for statusChanged signal
-        """
-        # print('Switch is', status)
-        self.changedDisparityState.emit(status)
 
     def setPrice(self, price: float) -> None:
         """
