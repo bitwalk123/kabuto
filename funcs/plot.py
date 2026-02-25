@@ -294,45 +294,26 @@ def plot_trend_review(
 
     td = datetime.timedelta(minutes=15)
     ax[0].set_xlim(dict_ts["start"] - td, dict_ts["end"] + td)
-    # ax[0].set_xlabel(title_str, fontsize=5)
 
     ax[0].set_ylabel("株価")
     ax[0].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
     ax[0].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
     ax[0].legend(fontsize=6)
 
-    ax[1].plot(
-        df["price"] - df["vwap"],
-        linewidth=0.5,
-        color="gray",
-        alpha=0.5,
-        label="株価 - VWAP",
-    )
-    ax[1].plot(
-        df["ma1"] - df["vwap"], linewidth=0.25, color="#804000", label="MA1 - VWAP"
-    )
+    ax[1].plot(df["price"] - df["vwap"], linewidth=0.5, color="gray", alpha=0.5, label="株価 - VWAP", )
+    ax[1].plot(df["ma1"] - df["vwap"], linewidth=0.25, color="#804000", label="MA1 - VWAP")
     x = df.index
     y_upper = df["upper"] - df["vwap"]
     y_lower = df["lower"] - df["vwap"]
-    ax[1].fill_between(
-        x, y_lower, y_upper, color="#ff8000", alpha=0.25, label="IQR band"
-    )
+    ax[1].fill_between(x, y_lower, y_upper, color="#ff8000", alpha=0.25, label="IQR band")
 
     ax[1].axhline(y=0, linewidth=0.5, color="black")
     ax[1].set_ylabel("乖離度")
     ax[1].legend(fontsize=6)
 
-    ax[2].plot(
-        df["profit"], linewidth=0.5, color="#ff00ff", alpha=0.75, label="含み損益"
-    )
+    ax[2].plot(df["profit"], linewidth=0.5, color="#ff00ff", alpha=0.75, label="含み損益")
     ax[2].plot(df["profit_max"], linewidth=0.75, color="#ff0000", label="最大含み損益")
-    ax[2].axhline(
-        y=dict_setting["DD_PROFIT"],
-        linewidth=0.75,
-        color="C1",
-        alpha=1,
-        label="トレーリング",
-    )
+    ax[2].axhline(y=dict_setting["DD_PROFIT"], linewidth=0.75, color="C0", alpha=1, label="トレーリング")
     ax[2].set_ylabel("含み損益")
     ax[2].legend(fontsize=6)
 
@@ -348,18 +329,11 @@ def plot_trend_review(
     print(f"# of cross: {len(list_cross)}")
     for i in range(n):
         for t in list_cross:
-            if 0 < df.at[t, "cross1"]:
-                cname = "#f00000"
-            else:
-                cname = "#0000d0"
-            ax[i].axvline(
-                x=t, color=cname, linestyle="solid", alpha=0.25, linewidth=0.75
-            )
+            cname = "#f00000" if 0 < df.at[t, "cross1"] else "#0000d0"
+            ax[i].axvline(x=t, color=cname, linestyle="solid", alpha=0.25, linewidth=0.75)
 
         x = [dict_ts["start"], dict_ts["trade"]]
-        ax[i].fill_between(
-            x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
-        )
+        ax[i].fill_between(x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform())
 
     ax[0].set_title(f"{format_date}: {name} ({code})")
     ax[n - 1].set_xlabel(f"# of crossed: {len(list_cross)} times")
