@@ -55,33 +55,38 @@ class FeatureState:
 
 class FeatureProvider:
 
-    def __init__(self, dict_setting: dict) -> None:
-        # defaults をベースに dict_setting を上書きして「完全版」を作る
-        defaults = FeatureDefaults.as_dict()
-        self.dict_setting: dict[str, Any] = {**defaults, **dict_setting}
-
+    def __init__(self, dict_setting: dict[str, Any]) -> None:
+        # 1. 最初に dict_setting を初期化
+        self.dict_setting: dict[str, Any] = self._merge_with_defaults(dict_setting)
         print("パラメータ")
         for key, value in self.dict_setting.items():
-            setattr(self, key, value)
             print(f"{key} : {value}")
 
-        # 最大取引回数
+        # 2. 固定パラメータを使ってインスタンス生成
         self.N_TRADE_MAX: int = 100
-
-        # テクニカル指標のインスタンス生成
         self.obj_vwap = VWAP()
-        self.obj_ma1 = MovingAverage(window_size=self.PERIOD_MA_1)
-        self.obj_miqr = MovingIQR(window_size=self.PERIOD_MA_1)
+        self.obj_ma1 = MovingAverage(window_size=self.dict_setting["PERIOD_MA_1"])
+        self.obj_miqr = MovingIQR(window_size=self.dict_setting["PERIOD_MA_1"])
 
         self.s: FeatureState = FeatureState()
-
-        # 状態変数の初期化
         self.clear()
+
+    @staticmethod
+    def _merge_with_defaults(dict_setting: dict[str, Any]) -> dict[str, Any]:
+        """
+        デフォルト値とマージするヘルパー
+
+        :param dict_setting:
+        :return:
+        """
+        defaults = FeatureDefaults.as_dict()
+        return {**defaults, **dict_setting}
 
     def clear(self) -> None:
         # オブジェクト系は個別に clear()
         self.obj_vwap.clear()
         self.obj_ma1.clear()
+        self.obj_miqr.clear()
 
         # FeatureState を新規生成するだけでリセット完了
         self.s = FeatureState()
@@ -124,7 +129,7 @@ class FeatureProvider:
         return 1.0 if self.s.losscut_1 else 0.0
 
     def getLosscut2(self) -> float:
-        return 1.0 if self.s.n_minus > self.N_MINUS_MAX else 0.0
+        return 1.0 if self.s.n_minus > self.dict_setting["N_MINUS_MAX"] else 0.0
 
     def getMA1(self) -> float:
         """移動平均 1 の取得"""
@@ -134,7 +139,7 @@ class FeatureProvider:
         return self.s.n_trade
 
     def getPeriodWarmup(self) -> int:
-        return self.PERIOD_WARMUP
+        return self.dict_setting["PERIOD_WARMUP"]
 
     def getPositionValue(self) -> float:
         return float(self.s.position.value)
@@ -197,7 +202,7 @@ class FeatureProvider:
         return self.obj_miqr.getUpper()
 
     def isWarmUpPeriod(self) -> float:
-        return 1.0 if self.s.step_current < self.PERIOD_WARMUP else 0.0
+        return 1.0 if self.s.step_current < self.dict_setting["PERIOD_WARMUP"] else 0.0
 
     def getStepCurrent(self) -> int:
         return self.s.step_current
@@ -245,8 +250,8 @@ class FeatureProvider:
         reward += profit
 
         # 取引明細更新（建玉返済）
-        if self.s.position != PositionType.NONE:
-            self.transaction_close(profit)
+        # if self.s.position != PositionType.NONE:
+        #    self.transaction_close(profit)
 
         # 含み益関連のリセット
         self.s.price_entry = 0.0
@@ -277,7 +282,7 @@ class FeatureProvider:
         self.s.position = position
 
         # 取引明細更新（新規建玉）
-        self.transaction_open()
+        # self.transaction_open()
 
         return reward
 
@@ -288,6 +293,32 @@ class FeatureProvider:
     def setCode(self, code: str) -> None:
         """銘柄コードの設定"""
         self.s.code = code
+
+    def updateSetting(self, dict_setting: dict[str, Any]) -> None:
+        """
+        実行時に動的設定を変更。
+        注意: PERIOD_MA_1 などを変更しても obj_ma1 は再生成されない。
+
+        :param dict_setting:
+        :return:
+        """
+        # 変更禁止キーのチェック
+        frozen_keys = {"PERIOD_MA_1", "PERIOD_WARMUP"}
+
+        # 変更可能なキーのみ抽出
+        updatable_settings = {}
+        for key, value in dict_setting.items():
+            if key in frozen_keys:
+                print(f"  {key} は変更できません（スキップします）")
+            else:
+                updatable_settings[key] = value
+
+        # 変更可能な設定のみ更新
+        self.dict_setting.update(updatable_settings)
+
+        print("設定を更新しました")
+        for key, value in updatable_settings.items():
+            print(f"  {key} : {value}")
 
     # ------------------------------------------------------------------
     # 更新系
@@ -312,25 +343,25 @@ class FeatureProvider:
 
         # --- クロス判定 ---
         self.s.cross_1 = detect_cross(self.s.div_ma_prev, div_ma)
-
         self.s.div_ma_prev = div_ma
 
         # --- 移動 IQR ---
         _, _, _ = self.obj_miqr.update(price)
 
         # --- ロスカット判定 ---
-        self.s.losscut_1 = self.getProfit() <= self.LOSSCUT_1
+        self.s.losscut_1 = self.getProfit() <= self.dict_setting["LOSSCUT_1"]
 
         # --- 利確判定 ---
         self.s.takeprofit = (
-                self.s.dd_ratio > self.DD_RATIO
-                and self.s.profit_max > self.DD_PROFIT
+                self.dict_setting["DD_RATIO"] < self.s.dd_ratio
+                and self.dict_setting["DD_PROFIT"] < self.s.profit_max
         )
 
     # ------------------------------------------------------------------
     # 取引明細系
     # ------------------------------------------------------------------
 
+    '''
     def transaction_add(self, transaction: str, profit: float = np.nan) -> None:
         """取引明細用データ辞書の更新"""
         self.s.dict_transaction["注文日時"].append(self.get_datetime(self.s.ts))
@@ -357,3 +388,4 @@ class FeatureProvider:
             self.transaction_add("売建")
         else:
             raise TypeError(f"Unknown PositionType: {self.s.position}")
+    '''
