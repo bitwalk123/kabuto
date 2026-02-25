@@ -17,8 +17,8 @@ from widgets.labels import (
     LabelRaised,
     LabelRaisedLeft,
     LabelRight,
-    PlainTextEdit,
 )
+from widgets.textedits import TextEdit
 from widgets.layouts import GridLayout, VBoxLayout
 from widgets.listviews import CheckList
 
@@ -30,7 +30,7 @@ class DlgAboutThis(QDialog):
             progname: str,
             progver: str,
             author: str,
-            license: str,
+            dist_license: str,
             name_icon: str = "kabuto.png",
     ):
         super().__init__()
@@ -76,19 +76,21 @@ class DlgAboutThis(QDialog):
         lab_license_0 = LabelRight("ライセンス")
         layout.addWidget(lab_license_0, r, 0)
 
-        lab_license_1 = LabelLeft(license)
+        lab_license_1 = LabelLeft(dist_license)
         layout.addWidget(lab_license_1, r, 1)
 
         r += 1
-        lab_desc = PlainTextEdit()
+        lab_desc = TextEdit()
         msg = (
-            "これはデイトレード用アプリです。\n"
-            "Python の xlwings パッケージを利用して、"
-            "Excel シート (MARKET SPEED II RSS) とやりとりをします。\n"
-            "MARKET SPEED II RSS は、Microsoftの表計算ソフト Excel の"
-            "アドインとして利用できるトレーディングツールです。"
+            '<p>これは Qt for Python (PySide6) を利用した、デイトレード用 GUI アプリです。</p>'
+            '<p>Python の xlwings パッケージを介して、'
+            'Excel シート上のデータへのアクセスおよび、VBA マクロを実行して '
+            'MARKET SPEED II RSS とやりとりをします。</p>'
+            '<p style="font-size: small;">MARKET SPEED II RSS は、Microsoftの表計算ソフト'
+            ' Excel のアドインとして利用できる、楽天証券のトレーディングツールです。</p>'
         )
-        lab_desc.setPlainText(msg)
+        # lab_desc.setPlainText(msg)
+        lab_desc.setHtml(msg)
         lab_desc.setReadOnly(True)
         layout.addWidget(lab_desc, r, 0, 1, 3)
 

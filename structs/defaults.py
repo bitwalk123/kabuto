@@ -8,7 +8,7 @@ class FeatureDefaults:
     PERIOD_WARMUP = 300
     PERIOD_MA_1 = 30
     LOSSCUT_1 = -25.0
-    N_MINUS_MAX = 90
+    N_MINUS_MAX = 300
     DD_PROFIT = 5.0
     DD_RATIO = 0.9
 

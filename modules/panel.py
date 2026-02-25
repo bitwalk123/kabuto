@@ -157,7 +157,7 @@ class PanelOption(QFrame):
         # VWAP との乖離を表示するかどうかのスイッチ
         self.disparity = disparity = Switch()
         disparity.set(False)
-        disparity.statusChanged.connect(self.changed_disparity)
+        disparity.statusChanged.connect(self.on_changed_disparity)
         layout.addWidget(disparity)
 
         pad = PadH()
@@ -166,20 +166,29 @@ class PanelOption(QFrame):
         # 売買ボタンの状態修正
         but_repair = ButtonRepair(res)
         but_repair.setToolTip("売買ボタンの状態修正")
-        but_repair.clicked.connect(self.clickedRepair.emit)
+        but_repair.clicked.connect(self.on_clicked_repair)
         layout.addWidget(but_repair)
 
         # 設定
         but_setting = ButtonSetting(res)
         but_setting.setToolTip("設定")
-        but_setting.clicked.connect(self.clickedSetting.emit)
+        but_setting.clicked.connect(self.on_clicked_setting)
         layout.addWidget(but_setting)
 
         # チャートの保存
         but_save = ButtonSave(res)
         but_save.setToolTip("チャートの保存")
-        but_save.clicked.connect(self.clickedSave.emit)
+        but_save.clicked.connect(self.on_clicked_save)
         layout.addWidget(but_save)
 
-    def changed_disparity(self, flag: bool) -> None:
+    def on_changed_disparity(self, flag: bool) -> None:
         self.changedDisparity.emit(flag)
+
+    def on_clicked_repair(self):
+        self.clickedRepair.emit()
+
+    def on_clicked_save(self):
+        self.clickedSave.emit()
+
+    def on_clicked_setting(self):
+        self.clickedSetting.emit()
