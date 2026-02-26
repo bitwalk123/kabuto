@@ -58,9 +58,6 @@ class Trader(QMainWindow):
         self.dict_ts = dict_ts
 
         # ティックデータ
-        # self.list_x: list[float] = []
-        # self.list_y: list[float] = []
-        # self.list_v: list[float] = []
         self.ts = 0
         self.price = 0
 
@@ -70,8 +67,6 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_disparity: list[float] = []
-        #self.list_lower: list[float] = []
-        #self.list_upper: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
