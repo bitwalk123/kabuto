@@ -343,36 +343,3 @@ class FeatureProvider:
                 self.dict_setting["DD_RATIO"] < self.s.dd_ratio
                 and self.dict_setting["DD_PROFIT"] < self.s.profit_max
         )
-
-    # ------------------------------------------------------------------
-    # 取引明細系
-    # ------------------------------------------------------------------
-
-    '''
-    def transaction_add(self, transaction: str, profit: float = np.nan) -> None:
-        """取引明細用データ辞書の更新"""
-        self.s.dict_transaction["注文日時"].append(self.get_datetime(self.s.ts))
-        self.s.dict_transaction["銘柄コード"].append(self.s.code)
-        self.s.dict_transaction["売買"].append(transaction)
-        self.s.dict_transaction["約定単価"].append(self.s.price)
-        self.s.dict_transaction["約定数量"].append(self.s.unit)
-        self.s.dict_transaction["損益"].append(profit)
-
-    def transaction_close(self, profit: float) -> None:
-        """建玉返済時の取引明細更新"""
-        if self.s.position == PositionType.LONG:
-            self.transaction_add("売埋", profit)
-        elif self.s.position == PositionType.SHORT:
-            self.transaction_add("買埋", profit)
-        else:
-            raise TypeError(f"Unknown PositionType: {self.s.position}")
-
-    def transaction_open(self) -> None:
-        """新規建玉時の取引明細更新"""
-        if self.s.position == PositionType.LONG:
-            self.transaction_add("買建")
-        elif self.s.position == PositionType.SHORT:
-            self.transaction_add("売建")
-        else:
-            raise TypeError(f"Unknown PositionType: {self.s.position}")
-    '''

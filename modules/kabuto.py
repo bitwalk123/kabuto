@@ -344,16 +344,6 @@ class Kabuto(QMainWindow):
             trader: Trader = self.dict_trader[code]
             trader.forceRepay()
 
-    '''
-    def get_current_tick_data(self) -> dict[str, pd.DataFrame]:
-        """
-        チャートが保持しているティックデータをデータフレームで取得
-        :return:
-        """
-        traders = self.dict_trader
-        return {code: t.getTimePrice() for code, t in traders.items()}
-    '''
-
     def on_about(self) -> None:
         """
         このアプリについて（ダイアログ表示）

@@ -96,24 +96,6 @@ class RewardManager:
         """
         reward = 0.0
         profit = self.provider.getProfit()
-        '''
-        position = self.provider.getCurrentPosition()
-        if position == PositionType.LONG:
-            # 返済: 買建 (LONG) → 売埋
-            # -------------------------------------------------------------
-            # 取引明細
-            # -------------------------------------------------------------
-            self.provider.transaction_add("売埋（強制返済）", profit)
-        elif position == PositionType.SHORT:
-            # 返済: 売建 (SHORT) → 買埋
-            # -------------------------------------------------------------
-            # 取引明細
-            # -------------------------------------------------------------
-            self.provider.transaction_add("買埋（強制返済）", profit)
-        else:
-            # ポジション無し
-            pass
-        '''
         # 損益追加
         self.provider.addPnLTotal(profit)
         # 報酬
@@ -124,6 +106,8 @@ class RewardManager:
     def get_profit_scaled(self, profit) -> float:
         return np.tanh(profit / self.provider.getPriceTick() / self.DIVISOR_PROFIT_SCALED)
 
+    '''
     def getNumberOfTransactions(self) -> int:
         dict_transaction: dict[str, list] = self.provider.getTransaction()
         return len(dict_transaction["注文日時"])
+    '''

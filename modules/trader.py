@@ -2,7 +2,6 @@ import logging
 import os
 from typing import Any, Literal, TypeAlias
 
-import pandas as pd
 from PySide6.QtCore import (
     Qt,
     QThread,
@@ -176,19 +175,6 @@ class Trader(QMainWindow):
         :return:
         """
         self.dock.force_repay()
-
-    '''
-    def getTimePrice(self) -> pd.DataFrame:
-        """
-        保持している時刻、株価情報をデータフレームで返す。
-        :return:
-        """
-        return pd.DataFrame({
-            "Time": self.list_x,
-            "Price": self.list_y,
-            "Volume": self.list_v,
-        })
-    '''
 
     def on_action(self, action: int, position: PositionType) -> None:
         """

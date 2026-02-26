@@ -280,7 +280,7 @@ def plot_trend_review(
             1,
             wspace=0.0,
             hspace=0.0,
-            height_ratios=[2 if i <= 1 else 1 for i in range(n)],
+            height_ratios=[1.5 if i <= 2 else 1 for i in range(n)],
         )
         for i, axis in enumerate(gs.subplots(sharex="col")):
             ax[i] = axis
