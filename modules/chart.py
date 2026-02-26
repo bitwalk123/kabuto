@@ -9,7 +9,6 @@ from pyqtgraph import DateAxisItem
 from funcs.plot import trend_label_html
 from funcs.setting import get_trend_footer
 from structs.res import AppRes
-from widgets.misc import TickFont
 
 
 class CustomYAxisItem(pg.AxisItem):
@@ -44,9 +43,8 @@ class TrendChart(pg.PlotWidget):
         axis_bottom = DateAxisItem(orientation='bottom')
         axis_left = CustomYAxisItem(orientation='left')
         # フォント設定
-        font_mono = TickFont(self.res)
-        axis_bottom.setStyle(tickFont=font_mono)
-        axis_left.setStyle(tickFont=font_mono)
+        axis_bottom.setStyle(tickFont=res.font_mono.font_name)
+        axis_left.setStyle(tickFont=res.font_mono.font_name)
 
         super().__init__(
             axisItems={'bottom': axis_bottom, 'left': axis_left},

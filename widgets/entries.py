@@ -2,6 +2,8 @@ from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QDoubleValidator, QIntValidator
 from PySide6.QtWidgets import QLineEdit
 
+from structs.res import AppRes
+
 
 class Entry(QLineEdit):
     def __init__(self, *args):
@@ -62,6 +64,14 @@ class EntryRight(Entry):
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
 
 
+class EntrySetting(EntryRight):
+    def __init__(self, text: str, res: AppRes):
+        super().__init__(text)
+        self.setMinimumWidth(10)
+        self.setAlignment(Qt.AlignmentFlag.AlignRight)
+        self.setStyleSheet("QLineEdit {font-family: '%s';}" % res.font_mono.font_name)
+
+
 class EntryFloat(EntryRight):
     def __init__(self, *args):
         super().__init__(*args)
@@ -69,6 +79,7 @@ class EntryFloat(EntryRight):
         validator = QDoubleValidator()
         # 科学技術表記（指数表記）を許可しない
         validator.setNotation(QDoubleValidator.Notation.StandardNotation)
+        validator.setDecimals(1)
         self.setValidator(validator)
 
     def getValue(self) -> float:

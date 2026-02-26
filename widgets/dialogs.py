@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 
 from structs.res import AppRes
 from widgets.buttons import RadioButton, ButtonGroup
-from widgets.entries import EntryFloat, EntryInt
+from widgets.entries import EntryFloat, EntryInt, EntrySetting
 from widgets.labels import (
     Label,
     LabelLeft,
@@ -301,7 +301,7 @@ class DlgSetting(QDialog):
             r += 1
             lab_param = LabelRaisedLeft(key)
             layout.addWidget(lab_param, r, 0)
-            ent_param = EntryInt(str(value))
+            ent_param = EntrySetting(str(value), res)
             layout.addWidget(ent_param, r, 1)
 
         r += 1

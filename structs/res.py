@@ -4,6 +4,8 @@ import pandas as pd
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QStyle, QWidget
 
+from widgets.misc import TickFont
+
 
 class AppRes:
     # トレンドチャートの幅、高さ
@@ -45,6 +47,7 @@ class AppRes:
     path_monospace = "fonts/RictyDiminished-Regular.ttf"
 
     def __init__(self):
+        self.font_mono = TickFont(self.path_monospace)
         # システムディレクトリのチェック
         list_dir = [
             self.dir_collection,

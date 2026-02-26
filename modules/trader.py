@@ -8,7 +8,7 @@ from PySide6.QtCore import (
     Signal,
 )
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import QMainWindow
+from PySide6.QtWidgets import QMainWindow, QDialog
 
 from funcs.setting import load_setting
 from modules.agent import WorkerAgent
@@ -229,16 +229,12 @@ class Trader(QMainWindow):
         self.trend.save(path_img)
 
     def on_setting(self):
-        print("DEBUG!")
         dialog = DlgSetting(self.res, self.code, self.dict_setting)
         result = dialog.exec()
-        print(result)
-        '''
-        if result == QDialog.Accepted:
+        if result == QDialog.DialogCode.Accepted:
             print("OKが押されました")
-        elif result == QDialog.Rejected:
+        elif result == QDialog.DialogCode.Rejected:
             print("キャンセルされました")
-        '''
 
     def on_switch_chart(self, flag: bool) -> None:
         if flag:
