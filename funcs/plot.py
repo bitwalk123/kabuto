@@ -288,8 +288,8 @@ def plot_trend_review(
 
     name = get_ticker_name_list([code])[code]
     format_date = get_format_date_from_date_str(date_str)
-    ax[0].plot(df["price"], linewidth=0.5, color="gray", alpha=0.5, label="株価")
-    ax[0].plot(df["ma1"], linewidth=0.5, color="#008000", label="移動平均線 MA1")
+    ax[0].plot(df["price"], linewidth=0.5, color="lightgray", alpha=0.5, label="株価")
+    ax[0].plot(df["ma1"], linewidth=0.75, color="#008000", label="移動平均線 MA1")
     ax[0].plot(df["vwap"], linewidth=0.75, color="#ff00ff", label="VWAP")
 
     td = datetime.timedelta(minutes=15)
@@ -300,8 +300,8 @@ def plot_trend_review(
     ax[0].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
     ax[0].legend(fontsize=6)
 
-    ax[1].plot(df["price"] - df["vwap"], linewidth=0.5, color="gray", alpha=0.5, label="株価 - VWAP", )
-    ax[1].plot(df["ma1"] - df["vwap"], linewidth=0.25, color="#804000", label="MA1 - VWAP")
+    ax[1].plot(df["price"] - df["vwap"], linewidth=0.5, color="lightgray", alpha=0.5, label="株価 - VWAP", )
+    ax[1].plot(df["ma1"] - df["vwap"], linewidth=0.75, color="#c06000", label="MA1 - VWAP")
 
     ax[1].axhline(y=0, linewidth=0.5, color="black")
     ax[1].set_ylabel("乖離度")
