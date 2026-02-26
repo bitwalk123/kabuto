@@ -71,7 +71,7 @@ class DockTrader(DockWidget):
         :return:
         """
         if self.doRepay():
-            self.logger.info(f"{__name__}: '{self.code}'の強制返済をしました。")
+            self.logger.info(f"'{self.code}'の強制返済をしました。")
 
     def force_switch_chart_type(self, state: bool) -> None:
         """
