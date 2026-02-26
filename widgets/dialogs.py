@@ -271,3 +271,26 @@ class DlgRepair(QDialog):
         super().showEvent(event)
         # 表示後の最終サイズを固定
         self.setFixedSize(self.size())
+
+class DlgSetting(QDialog):
+    def __init__(self, res: AppRes, code: str, dict_setting: dict):
+        super().__init__()
+        self.res = res
+        self.code = code
+        self.dict_setting = dict_setting
+
+        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle(f"パラメータ ({code})")
+
+        self.setStyleSheet("QDialog {font-family: monospace;}")
+
+        layout = GridLayout()
+        self.setLayout(layout)
+
+        r = 0
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        layout.addWidget(bbox, r, 0, 1, 2)
