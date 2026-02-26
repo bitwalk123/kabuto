@@ -307,8 +307,9 @@ def plot_trend_review(
     ax[1].set_ylabel("乖離度")
     ax[1].legend(fontsize=6)
 
-    ax[2].plot(df["profit"], linewidth=0.5, color="#ff40ff", alpha=0.75, label="含み損益")
-    ax[2].plot(df["profit_max"], linewidth=0.75, color="#800000", label="最大含み損益")
+    ax[2].plot(df["profit"], linewidth=0.1, color="#ff00ff", label="含み損益")
+    ax[2].fill_between(df.index, df["profit"], color="#ff00ff", alpha=0.15)
+    ax[2].plot(df["profit_max"], linewidth=0.75, color="#c00000", label="最大含み損益")
     ax[2].axhline(y=dict_setting["DD_PROFIT"], linewidth=0.75, color="C0", alpha=1, label="トレーリング")
     ax[2].set_ylabel("含み損益")
     ax[2].legend(fontsize=6)
