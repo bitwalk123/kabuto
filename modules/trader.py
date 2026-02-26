@@ -20,6 +20,7 @@ from structs.app_enum import (
 )
 from structs.res import AppRes
 from modules.chart import TrendChart
+from widgets.dialogs import DlgSetting
 
 # 型エイリアスの定義（クラスの外に配置）
 TradeAction: TypeAlias = Literal["doBuy", "doSell", "doRepay"]
@@ -69,16 +70,14 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_disparity: list[float] = []
-        self.list_lower: list[float] = []
-        self.list_upper: list[float] = []
+        #self.list_lower: list[float] = []
+        #self.list_upper: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
             "disparity": [],
-            "lower": [],
-            "upper": [],
         }
 
         self.dict_disparity = {
@@ -86,12 +85,10 @@ class Trader(QMainWindow):
             "ma_1": [],
             "vwap": [],
             "disparity": self.list_disparity,
-            "lower": self.list_lower,
-            "upper": self.list_upper,
         }
 
         # 銘柄コード別設定ファイルの取得
-        dict_setting: dict[str, Any] = load_setting(res, code)
+        self.dict_setting: dict[str, Any] = load_setting(res, code)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -104,14 +101,15 @@ class Trader(QMainWindow):
         self.dock.clickedBuy.connect(self.on_buy)
         self.dock.clickedSell.connect(self.on_sell)
         self.dock.clickedRepay.connect(self.on_repay)
-        self.dock.changedDisparityState.connect(self.switch_chart)
+        self.dock.clickedSetting.connect(self.on_setting)
         self.dock.clickedSave.connect(self.on_save)
+        self.dock.changedDisparityState.connect(self.on_switch_chart)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
         # チャート・インスタンス
         # ---------------------------------------------------------------------
-        self.trend = trend = TrendChart(res, dict_ts, dict_setting)
+        self.trend = trend = TrendChart(res, dict_ts, self.dict_setting)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -122,7 +120,7 @@ class Trader(QMainWindow):
         # path_model = get_trained_ppo_model_path(res, code)
 
         # ワーカースレッドの生成
-        self.worker = worker = WorkerAgent(code, dict_setting)
+        self.worker = worker = WorkerAgent(code, self.dict_setting)
         worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
@@ -249,6 +247,30 @@ class Trader(QMainWindow):
         path_img = os.path.join(output_dir, file_img)
         self.trend.save(path_img)
 
+    def on_setting(self):
+        print("DEBUG!")
+        dialog = DlgSetting(self.res, self.code, self.dict_setting)
+        result = dialog.exec()
+        print(result)
+        '''
+        if result == QDialog.Accepted:
+            print("OKが押されました")
+        elif result == QDialog.Rejected:
+            print("キャンセルされました")
+        '''
+
+    def on_switch_chart(self, flag: bool) -> None:
+        if flag:
+            self.trend.setDot([self.ts], [self.price - self.vwap])
+        else:
+            self.trend.setDot([self.ts], [self.price])
+
+        # テクニカルデータの更新
+        self.update_technicals(flag)
+
+        # y 軸のスケールを更新
+        self.trend.updateYAxisRange(flag)
+
     def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:
             self.dock.panel_trading.lockButtons()
@@ -261,8 +283,8 @@ class Trader(QMainWindow):
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_vwap.append(self.vwap)
         self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
-        self.list_lower.append(dict_technicals["lower"] - self.vwap)
-        self.list_upper.append(dict_technicals["upper"] - self.vwap)
+        #self.list_lower.append(dict_technicals["lower"] - self.vwap)
+        #self.list_upper.append(dict_technicals["upper"] - self.vwap)
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
@@ -400,27 +422,6 @@ class Trader(QMainWindow):
         self.dock.setPrice(price)
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
-
-    def switch_chart(self, flag: bool) -> None:
-        """
-        if len(self.list_x) > 0:
-            ts: float = self.list_x[-1]
-            price: float = self.list_y[-1]
-        else:
-            return
-        """
-        if flag:
-            # self.trend.setLine([], [])
-            self.trend.setDot([self.ts], [self.price - self.vwap])
-        else:
-            # self.trend.setLine(self.list_x, self.list_y)
-            self.trend.setDot([self.ts], [self.price])
-
-        # テクニカルデータの更新
-        self.update_technicals(flag)
-
-        # y 軸のスケールを更新
-        self.trend.updateYAxisRange(flag)
 
     def switchChartType(self, flag: bool) -> None:
         self.dock.force_switch_chart_type(flag)

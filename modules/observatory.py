@@ -19,8 +19,6 @@ TECHNICALS = {
     "ma1": "getMA1",  # 移動平均線 MA1
     "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル 1
     "cross2": "getCrossSignal2",  # MA1 と MA2 のクロスシグナル 2
-    "lower": "getLower",  # 移動 IQR 下限
-    "upper": "getUpper",  # 移動 IQR 上限
     "profit": "getProfit",  # 含損益
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン

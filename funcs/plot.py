@@ -302,10 +302,6 @@ def plot_trend_review(
 
     ax[1].plot(df["price"] - df["vwap"], linewidth=0.5, color="gray", alpha=0.5, label="株価 - VWAP", )
     ax[1].plot(df["ma1"] - df["vwap"], linewidth=0.25, color="#804000", label="MA1 - VWAP")
-    x = df.index
-    y_upper = df["upper"] - df["vwap"]
-    y_lower = df["lower"] - df["vwap"]
-    ax[1].fill_between(x, y_lower, y_upper, color="#ff8000", alpha=0.25, label="IQR band")
 
     ax[1].axhline(y=0, linewidth=0.5, color="black")
     ax[1].set_ylabel("乖離度")

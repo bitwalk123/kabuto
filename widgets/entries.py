@@ -79,8 +79,7 @@ class EntryInt(EntryRight):
     def __init__(self, *args):
         super().__init__(*args)
         self.setMinimumWidth(50)
-        validator = QIntValidator()
-        self.setValidator(validator)
+        self.setValidator(QIntValidator())
 
     def getValue(self) -> int:
         return int(self.text())

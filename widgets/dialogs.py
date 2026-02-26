@@ -204,6 +204,7 @@ class DlgParam(QDialog):
         bbox.addButton(QDialogButtonBox.StandardButton.Ok)
         bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
         bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
         layout.addWidget(bbox, r, 0, 1, 2)
 
     def getParam(self) -> dict:
@@ -271,3 +272,42 @@ class DlgRepair(QDialog):
         super().showEvent(event)
         # 表示後の最終サイズを固定
         self.setFixedSize(self.size())
+
+
+class DlgSetting(QDialog):
+    def __init__(self, res: AppRes, code: str, dict_setting: dict):
+        super().__init__()
+        self.res = res
+        self.code = code
+        self.dict_setting = dict_setting
+
+        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle(f"パラメータ ({code})")
+
+        self.setStyleSheet("QDialog {font-family: monospace;}")
+
+        layout = GridLayout()
+        self.setLayout(layout)
+
+        r = 0
+        lab_head_name = LabelRaised("パラメータ")
+        layout.addWidget(lab_head_name, r, 0)
+
+        lab_head_value = LabelRaised("設定値")
+        layout.addWidget(lab_head_value, r, 1)
+
+        for key, value in self.dict_setting.items():
+            r += 1
+            lab_param = LabelRaisedLeft(key)
+            layout.addWidget(lab_param, r, 0)
+            ent_param = EntryInt(str(value))
+            layout.addWidget(ent_param, r, 1)
+
+        r += 1
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        layout.addWidget(bbox, r, 0, 1, 2)

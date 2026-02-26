@@ -13,8 +13,9 @@ class DockTrader(DockWidget):
     clickedBuy = Signal(str, float, str, bool)
     clickedSell = Signal(str, float, str, bool)
     clickedRepay = Signal(str, float, str, bool)
-    changedDisparityState = Signal(bool)
     clickedSave = Signal()
+    clickedSetting = Signal()
+    changedDisparityState = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
@@ -146,7 +147,7 @@ class DockTrader(DockWidget):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_setting(self):
-        print("DEBUG!")
+        self.clickedSetting.emit()
 
     def isDisparityChecked(self) -> bool:
         return self.panel_option.disparity.isEnabled()
