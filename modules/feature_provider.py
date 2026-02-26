@@ -2,10 +2,8 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Any
 
-import numpy as np
-
 from funcs.commons import detect_cross, init_transaction
-from modules.technical import MovingAverage, MovingIQR, VWAP
+from modules.technical import MovingAverage, VWAP
 from structs.defaults import FeatureDefaults
 from structs.app_enum import PositionType
 
@@ -66,7 +64,6 @@ class FeatureProvider:
         self.N_TRADE_MAX: int = 100
         self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.dict_setting["PERIOD_MA_1"])
-        self.obj_miqr = MovingIQR(window_size=self.dict_setting["PERIOD_MA_1"])
 
         self.s: FeatureState = FeatureState()
         self.clear()
@@ -86,7 +83,6 @@ class FeatureProvider:
         # オブジェクト系は個別に clear()
         self.obj_vwap.clear()
         self.obj_ma1.clear()
-        self.obj_miqr.clear()
 
         # FeatureState を新規生成するだけでリセット完了
         self.s = FeatureState()
@@ -194,12 +190,6 @@ class FeatureProvider:
     def getVWAP(self) -> float:
         """VWAP"""
         return self.obj_vwap.getValue()
-
-    def getLower(self) -> float:
-        return self.obj_miqr.getLower()
-
-    def getUpper(self) -> float:
-        return self.obj_miqr.getUpper()
 
     def isWarmUpPeriod(self) -> float:
         return 1.0 if self.s.step_current < self.dict_setting["PERIOD_WARMUP"] else 0.0
@@ -344,9 +334,6 @@ class FeatureProvider:
         # --- クロス判定 ---
         self.s.cross_1 = detect_cross(self.s.div_ma_prev, div_ma)
         self.s.div_ma_prev = div_ma
-
-        # --- 移動 IQR ---
-        _, _, _ = self.obj_miqr.update(price)
 
         # --- ロスカット判定 ---
         self.s.losscut_1 = self.getProfit() <= self.dict_setting["LOSSCUT_1"]

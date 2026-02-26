@@ -20,6 +20,7 @@ from structs.app_enum import (
 )
 from structs.res import AppRes
 from modules.chart import TrendChart
+from widgets.dialogs import DlgSetting
 
 # 型エイリアスの定義（クラスの外に配置）
 TradeAction: TypeAlias = Literal["doBuy", "doSell", "doRepay"]
@@ -69,16 +70,14 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_disparity: list[float] = []
-        self.list_lower: list[float] = []
-        self.list_upper: list[float] = []
+        #self.list_lower: list[float] = []
+        #self.list_upper: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
             "disparity": [],
-            "lower": [],
-            "upper": [],
         }
 
         self.dict_disparity = {
@@ -86,8 +85,6 @@ class Trader(QMainWindow):
             "ma_1": [],
             "vwap": [],
             "disparity": self.list_disparity,
-            "lower": self.list_lower,
-            "upper": self.list_upper,
         }
 
         # 銘柄コード別設定ファイルの取得
@@ -252,7 +249,15 @@ class Trader(QMainWindow):
 
     def on_setting(self):
         print("DEBUG!")
-        print(self.dict_setting)
+        dialog = DlgSetting(self.res, self.code, self.dict_setting)
+        result = dialog.exec()
+        print(result)
+        '''
+        if result == QDialog.Accepted:
+            print("OKが押されました")
+        elif result == QDialog.Rejected:
+            print("キャンセルされました")
+        '''
 
     def on_switch_chart(self, flag: bool) -> None:
         if flag:
@@ -278,8 +283,8 @@ class Trader(QMainWindow):
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_vwap.append(self.vwap)
         self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
-        self.list_lower.append(dict_technicals["lower"] - self.vwap)
-        self.list_upper.append(dict_technicals["upper"] - self.vwap)
+        #self.list_lower.append(dict_technicals["lower"] - self.vwap)
+        #self.list_upper.append(dict_technicals["upper"] - self.vwap)
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:

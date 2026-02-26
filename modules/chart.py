@@ -24,9 +24,8 @@ class TrendChart(pg.PlotWidget):
     COLOR_DEAD = (0, 191, 255, 220)
     COLOR_DISPARITY = (192, 192, 0, 255)
     COLOR_EVEN = (255, 192, 0, 255)
-    COLOR_EDGE = (128, 128, 255, 255)
-    COLOR_FILL = (64, 64, 160, 255)
     COLOR_LAST_DOT = (0, 255, 0, 255)
+    COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
 
     def __init__(
@@ -64,9 +63,6 @@ class TrendChart(pg.PlotWidget):
         self.config_plot_item()
         # ---------------------------------------------------------------------
         # 折れ線
-        # 株価
-        # self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.25))
-        # self.line.setZValue(90)
         # 移動平均線 1
         self.ma_1: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_MA_1, width=1))
         self.ma_1.setZValue(60)
@@ -76,14 +72,6 @@ class TrendChart(pg.PlotWidget):
         # 乖離率
         self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
         self.disparity.setZValue(50)
-        # 移動 IQR バンド
-        self.band_lower: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=0.5))
-        self.band_lower.setZValue(10)
-        self.band_upper: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_EDGE, width=0.5))
-        self.band_upper.setZValue(10)
-        self.band = pg.FillBetweenItem(self.band_lower, self.band_upper, pg.mkBrush(self.COLOR_FILL))
-        self.band.setZValue(10)
-        self.addItem(self.band)
 
         self.even_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_EVEN, width=0.5))
         self.even_line.setZValue(0)
@@ -91,9 +79,10 @@ class TrendChart(pg.PlotWidget):
         self.addItem(self.even_line)
 
         # y = 0 のライン
-        self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen('#fff', width=0.5))
+        self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_ZERO, width=0.5))
         self.zero_line.setZValue(0)
         self.addItem(self.zero_line)
+
         # ---------------------------------------------------------------------
         # 散布図の点
         # 最新値を示すドット
@@ -154,33 +143,19 @@ class TrendChart(pg.PlotWidget):
         if price == 0.0:
             self.even_line.setVisible(False)
 
-    """
-    def setLine(self, line_x: list[float], line_y: list[float]) -> None:
-        # トレンド線
-        self.line.setData(tuple(line_x), tuple(line_y))
-    """
-
     def setTechnicals(self, dict_lines: dict[str, list], visible: bool) -> None:
         data_ts = tuple(dict_lines["ts"])
         data_ma_1 = tuple(dict_lines["ma_1"])
         data_vwap = tuple(dict_lines["vwap"])
         data_disparity = tuple(dict_lines["disparity"])
-        data_lower = tuple(dict_lines["lower"])
-        data_upper = tuple(dict_lines["upper"])
 
         self.ma_1.setData(data_ts, data_ma_1)
         self.vwap.setData(data_ts, data_vwap)
-
         self.disparity.setData(data_ts, data_disparity)
-        self.band_lower.setData(data_ts, data_lower)
-        self.band_upper.setData(data_ts, data_upper)
 
         self.ma_1.setVisible(visible)
         self.vwap.setVisible(visible)
         self.disparity.setVisible(not visible)
-        self.band_lower.setVisible(not visible)
-        self.band_upper.setVisible(not visible)
-        self.band.setVisible(not visible)
 
         # 損益分岐線
         if self.even_line.value() > 0.0:
@@ -207,7 +182,6 @@ class TrendChart(pg.PlotWidget):
 
     def updateYAxisRange(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)
-        # self.plot_item.autoRange()
         self.plot_item.enableAutoRange(axis="x", enable=False)
         self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
         self.plot_item.enableAutoRange(axis="y", enable=True)
