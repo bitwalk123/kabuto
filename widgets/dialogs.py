@@ -285,23 +285,27 @@ class DlgSetting(QDialog):
         self.setWindowIcon(icon)
         self.setWindowTitle(f"パラメータ ({code})")
 
-        self.setStyleSheet("QDialog {font-family: monospace;}")
+        self.setStyleSheet("QDialog {font-family: %s;}" % res.font_mono.font_name)
 
         layout = GridLayout()
         self.setLayout(layout)
 
         r = 0
         lab_head_name = LabelRaised("パラメータ")
+        lab_head_name.setStyleSheet("QLabel {font-family: %s;}" % res.font_mono.font_name)
         layout.addWidget(lab_head_name, r, 0)
 
         lab_head_value = LabelRaised("設定値")
+        lab_head_value.setStyleSheet("QLabel {font-family: %s;}" % res.font_mono.font_name)
         layout.addWidget(lab_head_value, r, 1)
 
         for key, value in self.dict_setting.items():
             r += 1
             lab_param = LabelRaisedLeft(key)
+            lab_param.setStyleSheet("QLabel {font-family: %s;}" % res.font_mono.font_name)
             layout.addWidget(lab_param, r, 0)
-            ent_param = EntrySetting(str(value), res)
+            ent_param = EntrySetting(str(value))
+            ent_param.setStyleSheet("QLineEdit {font-family: %s;}" % res.font_mono.font_name)
             layout.addWidget(ent_param, r, 1)
 
         r += 1

@@ -65,11 +65,10 @@ class EntryRight(Entry):
 
 
 class EntrySetting(EntryRight):
-    def __init__(self, text: str, res: AppRes):
+    def __init__(self, text: str):
         super().__init__(text)
         self.setMinimumWidth(10)
         self.setAlignment(Qt.AlignmentFlag.AlignRight)
-        self.setStyleSheet("QLineEdit {font-family: '%s';}" % res.font_mono.font_name)
 
 
 class EntryFloat(EntryRight):
