@@ -11,7 +11,6 @@ if __name__ == "__main__":
     debug = False
 
     res = AppRes()
-    print("DEBUG!")
     date_str = "20260227"
     dict_ts = conv_str_to_datetime(date_str)
 
