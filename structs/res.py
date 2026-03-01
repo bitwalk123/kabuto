@@ -4,47 +4,49 @@ import pandas as pd
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QStyle, QWidget
 
-#from widgets.misc import TickFont
+
+# from widgets.misc import TickFont
 
 
 class AppRes:
     # トレンドチャートの幅、高さ
-    trend_width = 1500
-    trend_height = 250
-    trend_n_max = 3  # ビューに表示できるチャートの数
+    trend_width: int = 1500
+    trend_height: int = 250
+    trend_n_max: int = 3  # ビューに表示できるチャートの数
 
-    #code_default = "7011"  # デフォルトの銘柄コード
-    code_default = "4005"  # デフォルトの銘柄コード
+    # code_default = "7011"  # デフォルトの銘柄コード
+    code_default: str = "4005"  # デフォルトの銘柄コード
 
-    dir_collection = "collection"
-    dir_conf = "conf"
-    url_conf = "https://192.168.0.36/~bitwalk/conf"
-    dir_doe = "doe"
-    dir_excel = "excel"
-    dir_font = "fonts"
-    dir_image = "images"
-    dir_info = "info"
-    dir_log = "logs"
-    dir_model = "models"
-    dir_output = "output"
-    dir_report = "report"
-    dir_temp = "tmp"
-    dir_training = "training"
-    dir_transaction = "transaction"
+    dir_collection: str = "collection"
+    dir_conf: str = "conf"
+    url_conf: str = "https://192.168.0.36/~bitwalk/conf"
+    dir_doe: str = "doe"
+    dir_excel: str = "excel"
+    dir_font: str = "fonts"
+    dir_image: str = "images"
+    dir_info: str = "info"
+    dir_log: str = "logs"
+    dir_model: str = "models"
+    dir_output: str = "output"
+    dir_report: str = "report"
+    dir_temp: str = "tmp"
+    dir_training: str = "training"
+    dir_transaction: str = "transaction"
 
-    ssh_key_path = "~/.ssh/id_rsa"
-    remote_user  = "bitwalk"
-    remote_host  = "192.168.0.36"
-    remote_conf_dir  = "/home/bitwalk/public_html/conf/"
+    ssh_key_path: str = "~/.ssh/id_rsa"
+    remote_user: str = "bitwalk"
+    remote_host: str = "192.168.0.36"
+    remote_conf_dir: str = "/home/bitwalk/public_html/conf/"
 
-    excel_collector = "collector.xlsm"
-    excel_portfolio = "portfolio.xlsm"
+    excel_collector: str = "collector.xlsm"
+    excel_portfolio: str = "portfolio.xlsm"
 
-    debug = False
+    debug: bool = False
 
-    tse = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
+    tse: str = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
 
-    path_monospace = "fonts/RictyDiminished-Regular.ttf"
+    path_monospace: str = "fonts/RictyDiminished-Regular.ttf"
+    name_tick_font: str | None = None
 
     def __init__(self):
         # システムディレクトリのチェック

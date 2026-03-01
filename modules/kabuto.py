@@ -28,6 +28,7 @@ from funcs.uis import clear_boxlayout
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.dialogs import DlgAboutThis, DlgCodeSel
+from widgets.misc import TickFont
 from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBar
 from modules.trader import Trader
@@ -64,6 +65,7 @@ class Kabuto(QMainWindow):
     area_chart: ScrollArea
     layout: VBoxLayout
     timer: QTimer
+    font_tick: TickFont
 
     # ワーカーの初期化シグナル
     requestWorkerInit = Signal()
@@ -88,10 +90,10 @@ class Kabuto(QMainWindow):
         self.res = AppRes()
         self.res.debug = debug
 
-        # モード設定
+        # リアルタイム／デバッグモード設定
         self._init_mode_settings()
 
-        # データ構造初期化
+        # データ構造初期化（スレッド関連）
         self._init_data_structures()
 
         # UI セットアップ
@@ -146,6 +148,9 @@ class Kabuto(QMainWindow):
 
     def _setup_ui(self) -> None:
         """UI コンポーネントの初期化"""
+        # アプリケーション・フォント
+        self.font_tick = TickFont(self.res.path_monospace)
+        self.res.name_tick_font = self.font_tick.name
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
@@ -492,7 +497,6 @@ class Kabuto(QMainWindow):
         for code in self.dict_trader.keys():
             trader: Trader = self.dict_trader[code]
             trader.switchChartType(state)
-
 
     def on_thread_finished(self, result: bool) -> None:
         """
