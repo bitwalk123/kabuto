@@ -345,16 +345,16 @@ def plot_trend_review(
     plt.show()
 
 
-def plot_diff(code: str, df: pd.DataFrame):
+def trend_diff(code: str, df: pd.DataFrame):
     # 出力イメージ名
-    dt_start = df.head(1).index[0].date()
     dt_end = df.tail(1).index[0].date()
     str_year = f"{dt_end.year:04d}"
     str_month = f"{dt_end.month:02d}"
+    str_day = f"{dt_end.day:02d}"
 
     dir_name = os.path.join(str_year, str_month)
     os.makedirs(dir_name, exist_ok=True)
-    img_name = os.path.join(dir_name, f"{code}_{dt_start}_{dt_end}.png")
+    img_name = os.path.join(dir_name, f"{str_day}_{code}_trend_diff.png")
 
     n = len(df)
     mean = df["Diff"].mean()
