@@ -15,7 +15,7 @@ class AppRes:
     trend_n_max: int = 3  # ビューに表示できるチャートの数
 
     # code_default = "7011"  # デフォルトの銘柄コード
-    code_default: str = "4005"  # デフォルトの銘柄コード
+    code_default: str = "8306"  # デフォルトの銘柄コード
 
     dir_collection: str = "collection"
     dir_conf: str = "conf"
