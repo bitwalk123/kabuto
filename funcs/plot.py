@@ -361,7 +361,7 @@ def plot_diff(code: str, df: pd.DataFrame):
     std = df["Diff"].std()
     median = df["Diff"].median()
     iqr = df["Diff"].quantile(0.75) - df["Diff"].quantile(0.25)
-    footer = f"High - Low: n={n} / mean={mean:.1f}, stdev={std:.1f} / median={median:.0f}, IQR={iqr:.0f}"
+    footer = f"High - Low: n={n} / mean={mean:.1f}, stdev={std:.1f} / median={median:.1f}, IQR={iqr:.1f}"
 
     FONT_PATH = "../fonts/RictyDiminished-Regular.ttf"
     fm.fontManager.addfont(FONT_PATH)
