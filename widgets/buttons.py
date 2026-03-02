@@ -4,17 +4,18 @@ from PySide6.QtCore import QMargins
 from PySide6.QtGui import QIcon, QFont
 from PySide6.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QPushButton,
     QRadioButton,
     QSizePolicy,
-    QStyle, QCheckBox,
+    QStyle,
 )
 
 from structs.res import AppRes
 
 
 class Button(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setSizePolicy(
             QSizePolicy.Policy.Preferred,
@@ -28,7 +29,7 @@ class Button(QPushButton):
 
 
 class ButtonBuy(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setCheckable(True)
         self.setStyleSheet("""
@@ -51,7 +52,7 @@ class ButtonBuy(QPushButton):
 
 
 class ButtonList(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setIcon(
             self.style().standardIcon(
@@ -61,7 +62,7 @@ class ButtonList(QPushButton):
 
 
 class ButtonRepay(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setCheckable(True)
         self.setStyleSheet("""
@@ -77,7 +78,7 @@ class ButtonRepay(QPushButton):
 
 
 class ButtonConf(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setIcon(
@@ -88,36 +89,36 @@ class ButtonConf(QPushButton):
 
 
 class ButtonGroup(QButtonGroup):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
 
 
 class ButtonPig(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        imgname = os.path.join(res.dir_image, 'pig.png')
+        imgname: str = os.path.join(res.dir_image, 'pig.png')
         self.setIcon(QIcon(imgname))
 
 
 class ButtonRepair(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        imgname = os.path.join(res.dir_image, "repair.png")
+        imgname: str = os.path.join(res.dir_image, "repair.png")
         self.setIcon(QIcon(imgname))
 
 
 class ButtonSave(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        imgname = os.path.join(res.dir_image, "save.png")
+        imgname: str = os.path.join(res.dir_image, "save.png")
         self.setIcon(QIcon(imgname))
 
 
 class ButtonSave2(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setIcon(
             self.style().standardIcon(
@@ -127,7 +128,7 @@ class ButtonSave2(QPushButton):
 
 
 class ButtonSell(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setCheckable(True)
         self.setStyleSheet("""
@@ -150,7 +151,7 @@ class ButtonSell(QPushButton):
 
 
 class ButtonSemiAuto(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setCheckable(True)
         self.setStyleSheet("""
@@ -174,24 +175,24 @@ class ButtonSemiAuto(QPushButton):
 
 
 class ButtonSetting(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        imgname = os.path.join(res.dir_image, "setting.png")
+        imgname: str = os.path.join(res.dir_image, "setting.png")
         self.setIcon(QIcon(imgname))
 
 
 class ButtonSmall(QPushButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setStyleSheet("QPushButton {font-size: 7pt;}")
 
 
 class ButtonTicker(QPushButton):
-    def __init__(self, code: str, name: str):
+    def __init__(self, code: str, name: str) -> None:
         super().__init__()
-        self.code = code
-        self.name = name
+        self.code: str = code
+        self.name: str = name
         self.setText(f"{code} {name}")
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -217,7 +218,7 @@ class ButtonTicker(QPushButton):
 
 
 class CheckBox(QCheckBox):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setStyleSheet("""
             QCheckBox {
@@ -229,16 +230,16 @@ class CheckBox(QCheckBox):
 
 
 class RadioButton(QRadioButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
 
 
 class RadioButtonInt(QRadioButton):
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         super().__init__(*args)
         self.value: int = 0
 
-    def setValue(self, val: int):
+    def setValue(self, val: int) -> None:
         self.value = val
 
     def getValue(self) -> int:
@@ -246,7 +247,7 @@ class RadioButtonInt(QRadioButton):
 
 
 class TradeButton(QPushButton):
-    def __init__(self, act: str):
+    def __init__(self, act: str) -> None:
         super().__init__()
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -327,27 +328,27 @@ class TradeButton(QPushButton):
 
 
 class ToggleButtonAutoPilot(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setCheckable(True)
-        imgname = os.path.join(res.dir_image, "autopilot.png")
+        imgname: str = os.path.join(res.dir_image, "autopilot.png")
         self.setIcon(QIcon(imgname))
         self.setToolTip("Auto Pilot")
 
 
 class ToggleButtonOverDrive(QPushButton):
-    def __init__(self, res: AppRes):
+    def __init__(self, res: AppRes) -> None:
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setCheckable(True)
-        imgname = os.path.join(res.dir_image, "overdrive.png")
+        imgname: str = os.path.join(res.dir_image, "overdrive.png")
         self.setIcon(QIcon(imgname))
         self.setToolTip("Over Drive")
 
 
 class BaselineSwitch(QPushButton):
-    def __init__(self, text: str):
+    def __init__(self, text: str) -> None:
         super().__init__(text)
         self.setCheckable(True)
         self.setAutoExclusive(True)
