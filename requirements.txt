@@ -5,8 +5,6 @@ atomicwrites
 autopep8
 backports.tarfile
 beaker
-blivet
-blivet-gui
 bottleneck
 brlapi
 brotli
