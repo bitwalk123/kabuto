@@ -1,5 +1,5 @@
 from modules.technical import MovingAverage
-from funcs.technical_backup import SimpleSlope
+from funcs.technical_alt import SimpleSlope
 
 
 class RealTimeDMA:
