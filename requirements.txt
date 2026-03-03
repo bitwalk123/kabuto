@@ -14,12 +14,6 @@ cson
 cupshelpers
 cython
 dasbus
-dbus-next
-dbus-python
-deprecated
-distro
-dnf
-fedora-third-party
 file-magic
 flake8
 fqdn
