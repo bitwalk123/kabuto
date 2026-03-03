@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import time
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap
@@ -34,17 +35,34 @@ def gen_parser_for_app_cmdline_options() -> argparse.ArgumentParser:
     return parser
 
 
-def show_splash_screen(app: QApplication) -> QSplashScreen | None:
-    """スプラッシュスクリーンの表示"""
+def show_splash_screen_with_timer(
+        app: QApplication,
+        win: Kabuto,
+        min_duration: int = 1000
+) -> None:
+    """
+    スプラッシュスクリーンを最低時間表示してからメインウィンドウを表示
+
+    Args:
+        app: QApplicationインスタンス
+        win: メインウィンドウ
+        min_duration: 最低表示時間（ミリ秒）
+    """
     splash_pix = QPixmap("splash_image.png")
     if splash_pix.isNull():
-        return None
+        win.show()
+        return
 
     splash = QSplashScreen(splash_pix, Qt.WindowType.WindowStaysOnTopHint)
     splash.show()
-
     app.processEvents()
-    return splash
+
+    # タイマーで指定時間後にメインウィンドウを表示
+    def show_main_window():
+        splash.finish(win)
+        win.show()
+
+    QTimer.singleShot(min_duration, show_main_window)
 
 
 def main() -> None:
@@ -53,15 +71,10 @@ def main() -> None:
     debug = determine_debug_mode(args)
 
     app = QApplication(sys.argv)
-    splash = show_splash_screen(app)
-
     win = Kabuto(debug)
-    win.show()
 
-    if splash is not None:  # ← None チェックを追加
-        splash.finish(win)
-    # if splash:  # 最低 2 秒は表示する
-    #    QTimer.singleShot(1000, lambda: splash.finish(win))
+    # スプラッシュを2秒間表示してからメインウィンドウ表示
+    show_splash_screen_with_timer(app, win, min_duration=2000)
 
     sys.exit(app.exec())
 
