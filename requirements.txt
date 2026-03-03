@@ -5,7 +5,6 @@ atomicwrites
 autopep8
 backports.tarfile
 beaker
-bottleneck
 brlapi
 brotli
 cockpit
