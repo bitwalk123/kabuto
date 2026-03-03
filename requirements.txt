@@ -1,14 +1,9 @@
 autopep8
-backports.tarfile
 cython
 flake8
 fqdn
 gymnasium
-importlib-metadata
 isoduration
-jaraco-context
-jaraco-functools
-jaraco.text
 jsonpointer
 jupyterlab
 mplfinance
@@ -27,7 +22,6 @@ sortedcontainers
 ta
 ta-lib
 tinycss2
-tomli
 uri-template
 webcolors
 xlrd
