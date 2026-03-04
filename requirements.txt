@@ -1,8 +1,11 @@
 autopep8
 cython
 flake8
-jupyterlab
+fqdn
 gymnasium
+isoduration
+jsonpointer
+jupyterlab
 mplfinance
 numpy-typing-compat
 odfpy
@@ -13,10 +16,14 @@ pip-chill
 pip-review
 pyqtgraph
 pyside6
+rfc3987-syntax
 scipy-stubs
 sortedcontainers
 ta
 ta-lib
+tinycss2
+uri-template
+webcolors
 xlrd
 xlsxwriter
 xlwings
