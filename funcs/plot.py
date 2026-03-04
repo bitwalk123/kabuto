@@ -352,9 +352,9 @@ def trend_diff(code: str, df: pd.DataFrame):
     str_month = f"{dt_end.month:02d}"
     str_day = f"{dt_end.day:02d}"
 
-    dir_name = os.path.join(str_year, str_month)
+    dir_name = os.path.join(str_year, str_month, str_day)
     os.makedirs(dir_name, exist_ok=True)
-    img_name = os.path.join(dir_name, f"{str_day}_{code}_trend_diff.png")
+    img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
 
     n = len(df)
     mean = df["Diff"].mean()
