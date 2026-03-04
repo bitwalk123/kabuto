@@ -1,10 +1,13 @@
 autopep8
+black
 cython
 flake8
 fqdn
 gymnasium
 isoduration
+isort
 jsonpointer
+jupyterlab-code-formatter
 jupyterlab
 mplfinance
 numpy-typing-compat

@@ -9,7 +9,8 @@ import seaborn as sns
 from matplotlib import (
     font_manager as fm,
     pyplot as plt,
-    dates as mdates, ticker, ticker as ticker,
+    dates as mdates,
+    ticker as ticker,
 )
 from scipy.interpolate import griddata
 
