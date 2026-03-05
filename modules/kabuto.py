@@ -27,7 +27,7 @@ from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
-from widgets.dialogs import DlgAboutThis, DlgCodeSel
+from widgets.dialogs import DlgAboutThis, DlgCodeSel, DlgSystemSetting
 from widgets.misc import TickFont
 from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBar
@@ -40,7 +40,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.4.7"
+    __version__ = "0.4.8"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -165,6 +165,7 @@ class Kabuto(QMainWindow):
         toolbar.clickedAbout.connect(self.on_about)
         toolbar.clickedPlay.connect(self.on_review_play)
         toolbar.clickedStop.connect(self.on_review_stop)
+        toolbar.clickedSetting.connect(self.on_setting)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
         toolbar.requestSwitchCharts.connect(self.on_switch_charts)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
@@ -484,6 +485,14 @@ class Kabuto(QMainWindow):
             self.logger.info(f"ティック・データを正常に保存しました。")
         else:
             self.logger.info(f"ティック・データを正常に保存できませんでした。")
+
+    def on_setting(self):
+        dialog = DlgSystemSetting(self.res)
+        result = dialog.exec()
+        if result == QDialog.DialogCode.Accepted:
+            print("OKが押されました")
+        elif result == QDialog.DialogCode.Rejected:
+            print("キャンセルされました")
 
     def on_show_transaction(self) -> None:
         """

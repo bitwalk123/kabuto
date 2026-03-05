@@ -315,3 +315,28 @@ class DlgSetting(QDialog):
         bbox.accepted.connect(self.accept)
         bbox.rejected.connect(self.reject)
         layout.addWidget(bbox, r, 0, 1, 2)
+
+
+class DlgSystemSetting(QDialog):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+
+        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
+        self.setWindowIcon(icon)
+        self.setWindowTitle("システム設定")
+
+        self.setStyleSheet("QDialog {font-family: %s;}" % res.name_tick_font)
+
+        layout = GridLayout()
+        self.setLayout(layout)
+
+        r = 0
+
+        r += 1
+        bbox = QDialogButtonBox()
+        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
+        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
+        bbox.accepted.connect(self.accept)
+        bbox.rejected.connect(self.reject)
+        layout.addWidget(bbox, r, 0, 1, 2)

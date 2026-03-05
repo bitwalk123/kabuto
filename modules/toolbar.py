@@ -24,6 +24,7 @@ class ToolBar(QToolBar):
     """
     clickedAbout = Signal()
     clickedPlay = Signal()
+    clickedSetting = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
     requestSwitchCharts = Signal(bool)
@@ -158,7 +159,10 @@ class ToolBar(QToolBar):
         self.switch_playstop(False)
 
     def on_setting(self):
-        print("未実装です。")
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 「システム設定」ボタンがクリックされたことを通知
+        self.clickedSetting.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_select_excel(self):
         """
