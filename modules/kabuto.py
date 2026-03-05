@@ -27,7 +27,8 @@ from funcs.tse import get_ticker_name_list
 from funcs.uis import clear_boxlayout
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
-from widgets.dialogs import DlgAboutThis, DlgCodeSel, DlgSystemSetting
+from widgets.dialogs import DlgAboutThis, DlgCodeSel
+from modules.dlg_system_settings import DlgSystemSettings
 from widgets.misc import TickFont
 from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBar
@@ -487,7 +488,7 @@ class Kabuto(QMainWindow):
             self.logger.info(f"ティック・データを正常に保存できませんでした。")
 
     def on_setting(self):
-        dialog = DlgSystemSetting(self.res)
+        dialog = DlgSystemSettings(self.res)
         result = dialog.exec()
         if result == QDialog.DialogCode.Accepted:
             print("OKが押されました")

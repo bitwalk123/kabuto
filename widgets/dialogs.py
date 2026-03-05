@@ -23,6 +23,12 @@ from widgets.layouts import GridLayout, VBoxLayout
 from widgets.listviews import CheckList
 
 
+class DialogButtonBox(QDialogButtonBox):
+    def __init__(self):
+        super().__init__()
+        self.setContentsMargins(QMargins(5, 2, 5, 2))
+
+
 class DlgAboutThis(QDialog):
     def __init__(
             self,
@@ -307,31 +313,6 @@ class DlgSetting(QDialog):
             ent_param = EntrySetting(str(value))
             ent_param.setStyleSheet("QLineEdit {font-family: %s;}" % res.name_tick_font)
             layout.addWidget(ent_param, r, 1)
-
-        r += 1
-        bbox = QDialogButtonBox()
-        bbox.addButton(QDialogButtonBox.StandardButton.Ok)
-        bbox.addButton(QDialogButtonBox.StandardButton.Cancel)
-        bbox.accepted.connect(self.accept)
-        bbox.rejected.connect(self.reject)
-        layout.addWidget(bbox, r, 0, 1, 2)
-
-
-class DlgSystemSetting(QDialog):
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.res = res
-
-        icon = QIcon(os.path.join(res.dir_image, "setting.png"))
-        self.setWindowIcon(icon)
-        self.setWindowTitle("システム設定")
-
-        self.setStyleSheet("QDialog {font-family: %s;}" % res.name_tick_font)
-
-        layout = GridLayout()
-        self.setLayout(layout)
-
-        r = 0
 
         r += 1
         bbox = QDialogButtonBox()
