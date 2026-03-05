@@ -20,6 +20,7 @@ pip-review
 pyqtgraph
 pyside6
 rfc3987-syntax
+scikit-learn
 scipy-stubs
 sortedcontainers
 ta
