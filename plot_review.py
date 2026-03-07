@@ -41,11 +41,11 @@ class PlotReview(QMainWindow):
             print("Canceled!")
 
     def gen_chart(self, filename: str):
-        fig = Figure(figsize=(6, 6), dpi=100)
+        fig = Figure(figsize=(6, 6))
         canvas = FigureCanvas(fig)  # 描画に必要
         ax = fig.add_subplot(111)
 
-        #ax.plot(df['close'])
+        # ax.plot(df['close'])
 
         # 画面に表示（layout.addWidget）せずに保存だけ実行
         fig.savefig("temp.png")
