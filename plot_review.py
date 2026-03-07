@@ -3,23 +3,24 @@ import re
 import sys
 from typing import Any
 
-from matplotlib import (
-    font_manager as fm,
-    pyplot as plt,
-)
+import pandas as pd
+from matplotlib import font_manager as fm
+from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
-import pandas as pd
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
     QMainWindow,
+    QSizePolicy,
     QStyle,
     QToolBar,
-    QToolButton, QSizePolicy, QWidget, QVBoxLayout,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
 )
 
-from funcs.plot import plot_price_vwap, plot_profit, plot_drawdown, plot_verticals
+from funcs.plot import plot_drawdown, plot_price_vwap, plot_profit, plot_verticals
 from funcs.setting import load_setting
 from funcs.tse import get_ticker_name_list
 from structs.res import AppRes
