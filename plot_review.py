@@ -1,6 +1,17 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QMainWindow, QToolBar, QStyle, QToolButton
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import pandas as pd
+from PySide6.QtWidgets import (
+    QApplication,
+    QFileDialog,
+    QMainWindow,
+    QStyle,
+    QToolBar,
+    QToolButton,
+)
 
 
 class PlotReview(QMainWindow):
@@ -21,7 +32,23 @@ class PlotReview(QMainWindow):
         toolbar.addWidget(but_open)
 
     def on_open_clicked(self):
-        print("DEBUG!")
+        dlg = QFileDialog()
+        dlg.setOption(QFileDialog.Option.DontUseNativeDialog)
+        if dlg.exec():
+            filename = dlg.selectedFiles()[0]
+            self.gen_chart(filename)
+        else:
+            print("Canceled!")
+
+    def gen_chart(self, filename: str):
+        fig = Figure(figsize=(6, 6), dpi=100)
+        canvas = FigureCanvas(fig)  # 描画に必要
+        ax = fig.add_subplot(111)
+
+        #ax.plot(df['close'])
+
+        # 画面に表示（layout.addWidget）せずに保存だけ実行
+        fig.savefig("temp.png")
 
 
 def main():
