@@ -12,6 +12,7 @@ from matplotlib import (
     dates as mdates,
     ticker as ticker,
 )
+from pandas import DataFrame
 from scipy.interpolate import griddata
 
 from funcs.tide import get_format_date_from_date_str
@@ -415,3 +416,118 @@ def trend_diff(code: str, df: pd.DataFrame):
     plt.tight_layout()
     plt.savefig(img_name)
     plt.show()
+
+
+def mpl_plot_review(
+        df: pd.DataFrame,
+        title: str,
+        dict_ts: dict[str, Any],
+        dict_setting: dict[str, Any]
+) -> plt.Figure:
+    # Matplotlib の共通設定
+    FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
+    fm.fontManager.addfont(FONT_PATH)
+
+    # FontPropertiesオブジェクト生成（名前の取得のため）
+    font_prop = fm.FontProperties(fname=FONT_PATH)
+    font_prop.get_name()
+
+    plt.rcParams["font.family"] = font_prop.get_name()
+    plt.rcParams["font.size"] = 9
+
+    n = 3
+    fig = plt.figure(figsize=(6, 6))
+    ax = dict()
+    gs = fig.add_gridspec(
+        n,
+        1,
+        wspace=0.0,
+        hspace=0.0,
+        height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
+    )
+    for i, axis in enumerate(gs.subplots(sharex="col")):
+        ax[i] = axis
+        ax[i].grid(axis="y")
+
+    # 株価と VWAP
+    plot_price_vwap(ax[0], df, title, dict_ts)
+
+    # 含み益
+    plot_profit(ax[1], df, dict_setting)
+
+    # ドローダウン
+    ax2 = ax[2]
+    plot_drawdown(ax2, df, dict_setting)
+
+    # クロス・シグナル、その他縦線系
+    plot_verticals(n, ax, df, dict_ts)
+
+    fig.tight_layout()
+    return fig
+
+
+def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, Any]):
+    ax.set_title(title)
+    td = datetime.timedelta(minutes=15)
+    ax.set_xlim(dict_ts["start"] - td, dict_ts["end"] + td)
+    ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+
+    # 株価と VWAP
+    ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, label="株価")
+    ax.plot(df["ma1"], linewidth=0.75, color="#0c0", label="移動平均線 MA1")
+    ax.plot(df["vwap"], linewidth=0.75, color="#f0f", label="VWAP")
+
+    ax.set_ylabel("株価")
+    ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+
+
+def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
+    # 含み益
+    x = df.index
+    y1 = df["profit"]
+    y2 = df["profit_max"]
+    y_dd_th = dict_setting["DD_PROFIT"]
+
+    ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fcf", ec="#f00", alpha=0.5, lw=0.5, label="含み益")
+    ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5, label="含み損")
+
+    ax.plot(y2, linewidth=0.75, color="#a00", label="最大含み損益")
+    ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, label="トレーリング")
+
+    ax.set_ylabel("含み損益")
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+
+
+def plot_drawdown(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
+    # ドローダウン
+    y_dd_th = dict_setting["DD_PROFIT"]
+
+    df["dd_ratio_2"] = [
+        k2 if y_dd_th <= k1 else 0 for k1, k2 in zip(df["profit"], df["dd_ratio"])
+    ]
+    y_ddr_1 = df["dd_ratio_2"]
+    y_ddr_2 = dict_setting["DD_RATIO"]
+
+    ax.plot(y_ddr_1, linewidth=0.75, color="C0", label="DD ratio")
+    ax.axhline(y=y_ddr_2, linewidth=0.75, color="C1", label="利確ライン")
+
+    ax.set_ylim(0, y_ddr_2 + 0.1)
+    ax.set_ylabel("DD ratio")
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+
+
+def plot_verticals(n: int, ax: dict[int, plt.Axes], df: DataFrame, dict_ts: dict[str, Any]):
+    # クロス・シグナル、ウォームアップ期間
+    list_cross = df[df["cross1"] != 0].index
+    ax[n - 1].set_xlabel(f"# of crossed: {len(list_cross)} times")
+    for i in range(n):
+        for t in list_cross:
+            cname = "#f00" if 0 < df.at[t, "cross1"] else "#00f"
+            ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
+
+        td = datetime.timedelta(minutes=10)
+        x = [dict_ts["start"], df.index[0] + td]
+        ax[i].fill_between(
+            x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
+        )
