@@ -10,9 +10,6 @@ class PlotReview(QMainWindow):
         self.addToolBar(toolbar)
 
 
-
-
-
 def main():
     # QApplication は sys.argv を処理するので、そのまま引数を渡すのが一般的。
     app = QApplication(sys.argv)
