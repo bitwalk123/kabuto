@@ -12,7 +12,11 @@ class PlotReview(QMainWindow):
         but_open = QToolButton()
         but_open.setText('Open')
         but_open.setToolTip('Open file')
-        but_open.setIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon))
+        but_open.setIcon(
+            self.style().standardIcon(
+                QStyle.StandardPixmap.SP_DirOpenIcon
+            )
+        )
         but_open.clicked.connect(self.on_open_clicked)
         toolbar.addWidget(but_open)
 
