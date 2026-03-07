@@ -25,10 +25,74 @@ from funcs.tse import get_ticker_name_list
 from structs.res import AppRes
 
 
+class ReviewChart(QWidget):
+    IMAGE_WIDTH = 680
+    IMAGE_HEIGHT = 600
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.setMinimumSize(self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        # Matplotlib の共通設定
+        fm.fontManager.addfont(res.path_monospace)
+
+        # FontPropertiesオブジェクト生成（名前の取得のため）
+        font_prop = fm.FontProperties(fname=res.path_monospace)
+        font_prop.get_name()
+
+        plt.rcParams["font.family"] = font_prop.get_name()
+        plt.rcParams["font.size"] = 9
+
+        self.fig = fig = Figure(figsize=(self.IMAGE_WIDTH / 100., self.IMAGE_HEIGHT / 100.))
+        # キャンバスを表示
+        canvas = FigureCanvas(fig)
+        layout.addWidget(canvas)
+
+        self.n = n = 3
+        self.ax = ax = dict()
+        gs = fig.add_gridspec(
+            n, 1, wspace=0.0, hspace=0.0,
+            height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
+        )
+        for i, axis in enumerate(gs.subplots(sharex="col")):
+            ax[i] = axis
+            ax[i].grid(axis="y")
+
+    def draw(
+            self,
+            df: pd.DataFrame,
+            title: str,
+            dict_ts: dict[str, Any],
+            dict_setting: dict[str, Any]
+    ) -> None:
+        # 株価と VWAP
+        plot_price_vwap(self.ax[0], df, title, dict_ts)
+
+        # 含み益
+        plot_profit(self.ax[1], df, dict_setting)
+
+        # ドローダウン
+        plot_drawdown(self.ax[2], df, dict_setting)
+
+        # クロス・シグナル、その他縦線系
+        plot_verticals(self.n, self.ax, df, dict_ts)
+
+        self.fig.tight_layout()
+
+        # 保存だけ実行
+        output = "temp.png"
+        self.fig.savefig(output)
+        print(f"{output} に保存しました。")
+
+
 class PlotReview(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.res = AppRes()
+        self.res = res = AppRes()
         self.pattern_code = re.compile(r".*([0-9A-X]{4})_.+\.csv")
 
         toolbar = QToolBar()
@@ -45,15 +109,8 @@ class PlotReview(QMainWindow):
         but_open.clicked.connect(self.on_open_clicked)
         toolbar.addWidget(but_open)
 
-        base = QWidget()
-        base.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Expanding
-        )
-        base.setMinimumSize(900, 400)
-        self.setCentralWidget(base)
-        self.layout = layout = QVBoxLayout()
-        base.setLayout(layout)
+        self.chart = chart = ReviewChart(res)
+        self.setCentralWidget(chart)
 
     def on_open_clicked(self):
         dlg = QFileDialog()
@@ -80,58 +137,10 @@ class PlotReview(QMainWindow):
         t_end = datetime.time(15, 30)
         dt_end = datetime.datetime.combine(dt_date, t_end)
         dict_ts: dict[str, datetime.datetime] = {"start": dt_start, "end": dt_end}
-
+        # プロットタイトル
         title: str = f"{dt_date}: {name} ({code})"
-
-        # Matplotlib の共通設定
-        FONT_PATH = "fonts/RictyDiminished-Regular.ttf"
-        fm.fontManager.addfont(FONT_PATH)
-
-        # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=FONT_PATH)
-        font_prop.get_name()
-
-        plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 9
-
-        fig = Figure(figsize=(6.8, 6))
-        canvas = FigureCanvas(fig)  # 描画に必要
-
-        n = 3
-        ax = dict()
-        gs = fig.add_gridspec(
-            n,
-            1,
-            wspace=0.0,
-            hspace=0.0,
-            height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
-        )
-        for i, axis in enumerate(gs.subplots(sharex="col")):
-            ax[i] = axis
-            ax[i].grid(axis="y")
-
-        # 株価と VWAP
-        plot_price_vwap(ax[0], df, title, dict_ts)
-
-        # 含み益
-        plot_profit(ax[1], df, dict_setting)
-
-        # ドローダウン
-        ax2 = ax[2]
-        plot_drawdown(ax2, df, dict_setting)
-
-        # クロス・シグナル、その他縦線系
-        plot_verticals(n, ax, df, dict_ts)
-
-        fig.tight_layout()
-
-        # 画面に表示（layout.addWidget）せずに保存だけ実行
-        output = "temp.png"
-        fig.savefig(output)
-        print(f"{output} に保存しました。")
-
-        # キャンバスを表示
-        self.layout.addWidget(canvas)
+        # チャートの生成
+        self.chart.draw(df, title, dict_ts, dict_setting)
 
 
 def main():
