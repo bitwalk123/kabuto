@@ -86,7 +86,7 @@ class ReviewChart(QWidget):
 
         # 保存だけ実行
         output = "temp.png"
-        self.fig.savefig(output)
+        self.fig.savefig(output, dpi=100)
         print(f"{output} に保存しました。")
 
 
