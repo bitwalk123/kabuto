@@ -8,9 +8,6 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
     QStatusBar,
-    QStyle,
-    QToolBar,
-    QToolButton,
 )
 
 from funcs.setting import load_setting
@@ -20,6 +17,7 @@ from modules.review_chart import ReviewChart
 from structs.res import AppRes
 from widgets.containers import MainWindow
 from widgets.mpl_charts import ChartNavigation
+from widgets.toolbars import ToolBarBeetle
 
 
 class Beetle(MainWindow):
@@ -39,19 +37,9 @@ class Beetle(MainWindow):
         self.setWindowTitle(title_win)
 
         # ツール・バー
-        toolbar = QToolBar()
+        toolbar = ToolBarBeetle(res)
+        toolbar.clickedOpen.connect(self.on_open_clicked)
         self.addToolBar(toolbar)
-
-        but_open = QToolButton()
-        but_open.setText("Open")
-        but_open.setToolTip("Open file")
-        but_open.setIcon(
-            self.style().standardIcon(
-                QStyle.StandardPixmap.SP_DirOpenIcon
-            )
-        )
-        but_open.clicked.connect(self.on_open_clicked)
-        toolbar.addWidget(but_open)
 
         # メイン・チャート
         self.chart = chart = ReviewChart(res)
