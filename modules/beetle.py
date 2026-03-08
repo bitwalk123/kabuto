@@ -1,6 +1,7 @@
 import datetime
 import os
 import re
+from pathlib import Path
 from typing import Any
 
 import pandas as pd
@@ -50,6 +51,7 @@ class Beetle(MainWindow):
 
     def on_open_clicked(self):
         dlg = QFileDialog()
+        dlg.setNameFilters("CSV files (*.csv)")
         dlg.setOption(QFileDialog.Option.DontUseNativeDialog)
         if dlg.exec():
             filename = dlg.selectedFiles()[0]
@@ -79,5 +81,10 @@ class Beetle(MainWindow):
         # プロットタイトル
         title: str = f"{dt_date}: {name} ({code})"
 
+        # ファイルパスの定義
+        path_src = Path(filename)
+        # 拡張子を.csvに変更
+        path_img = path_src.with_suffix('.png')
+
         # チャートの生成
-        self.chart.draw(df, title, dict_ts, dict_setting)
+        self.chart.draw(df, title, dict_ts, dict_setting, str(path_img))

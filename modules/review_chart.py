@@ -65,7 +65,8 @@ class ReviewChart(Widget):
             df: pd.DataFrame,
             title: str,
             dict_ts: dict[str, Any],
-            dict_setting: dict[str, Any]
+            dict_setting: dict[str, Any],
+            name_img: str
     ) -> None:
         # 1. 株価と VWAP
         plot_price_vwap(self.ax[0], df, title, dict_ts)
@@ -85,9 +86,8 @@ class ReviewChart(Widget):
         self.fig.tight_layout()
 
         # 保存だけ実行
-        output = "temp.png"
-        self.fig.savefig(output, dpi=100)
-        print(f"{output} に保存しました。")
+        self.fig.savefig(name_img, dpi=100)
+        print(f"{name_img} に保存しました。")
 
     def getCanvas(self) -> FigureCanvas:
         return self.canvas

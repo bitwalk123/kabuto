@@ -9,6 +9,7 @@ isort
 jsonpointer
 jupyterlab-code-formatter
 jupyterlab
+lxml
 mplfinance
 numpy-typing-compat
 odfpy
