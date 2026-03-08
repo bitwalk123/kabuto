@@ -1,4 +1,5 @@
 import datetime
+import os
 import re
 import sys
 from typing import Any
@@ -8,25 +9,26 @@ from matplotlib import font_manager as fm
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
-    QMainWindow,
     QSizePolicy,
     QStyle,
     QToolBar,
     QToolButton,
-    QVBoxLayout,
-    QWidget,
 )
 
 from funcs.plot import plot_drawdown, plot_price_vwap, plot_profit, plot_verticals
 from funcs.setting import load_setting
 from funcs.tse import get_ticker_name_list
+from modules.kabuto import Kabuto
 from structs.res import AppRes
+from widgets.containers import MainWindow, Widget
+from widgets.layouts import VBoxLayout
 
 
-class ReviewChart(QWidget):
+class ReviewChart(Widget):
     IMAGE_WIDTH = 680
     IMAGE_HEIGHT = 600
 
@@ -35,7 +37,8 @@ class ReviewChart(QWidget):
         self.res = res
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
-        layout = QVBoxLayout()
+
+        layout = VBoxLayout()
         self.setLayout(layout)
 
         # Matplotlib の共通設定
@@ -70,16 +73,16 @@ class ReviewChart(QWidget):
             dict_ts: dict[str, Any],
             dict_setting: dict[str, Any]
     ) -> None:
-        # 株価と VWAP
+        # 1. 株価と VWAP
         plot_price_vwap(self.ax[0], df, title, dict_ts)
 
-        # 含み益
+        # 2. 含み益
         plot_profit(self.ax[1], df, dict_setting)
 
-        # ドローダウン
+        # 3. ドローダウン
         plot_drawdown(self.ax[2], df, dict_setting)
 
-        # クロス・シグナル、その他縦線系
+        # --- クロス・シグナル、その他縦線系 ---
         plot_verticals(self.n, self.ax, df, dict_ts)
 
         self.fig.tight_layout()
@@ -90,18 +93,28 @@ class ReviewChart(QWidget):
         print(f"{output} に保存しました。")
 
 
-class PlotReview(QMainWindow):
+class Beetle(MainWindow):
+    __app_name__ = "Beetle"
+    __version__ = Kabuto.__version__
+    __author__ = "Fuhito Suguri"
+    __license__ = "MIT"
+
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
         self.pattern_code = re.compile(r".*([0-9A-X]{4})_.+\.csv")
 
+        # ウィンドウアイコンとタイトルを設定
+        self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "beetle.png")))
+        title_win = f"{self.__app_name__} - {self.__version__}"
+        self.setWindowTitle(title_win)
+
         toolbar = QToolBar()
         self.addToolBar(toolbar)
 
         but_open = QToolButton()
-        but_open.setText('Open')
-        but_open.setToolTip('Open file')
+        but_open.setText("Open")
+        but_open.setToolTip("Open file")
         but_open.setIcon(
             self.style().standardIcon(
                 QStyle.StandardPixmap.SP_DirOpenIcon
@@ -148,7 +161,7 @@ def main():
     # QApplication は sys.argv を処理するので、そのまま引数を渡すのが一般的。
     app = QApplication(sys.argv)
 
-    win = PlotReview()
+    win = Beetle()
     win.show()
     sys.exit(app.exec())
 
