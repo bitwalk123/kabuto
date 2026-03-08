@@ -7,14 +7,13 @@ from matplotlib import (
     ticker,
 )
 from matplotlib.backends.backend_qtagg import (
-    NavigationToolbar2QT as NavigationToolbar,
     FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar,
 )
 from matplotlib.figure import Figure
 
-from funcs.technical_alt import calc_ma, calc_mr
 from structs.res import AppRes
-from widgets.containers import Widget, ScrollArea
+from widgets.containers import ScrollArea, Widget
 from widgets.layouts import VBoxLayout
 
 
@@ -122,116 +121,6 @@ def get_param_string(dict_param: dict) -> str:
         f"THRESHOLD_MR = {dict_param['THRESHOLD_MR']}"
     )
     return param
-
-
-class TickChart(Chart):
-    """
-    ティックチャート用
-    """
-
-    def __init__(self, res: AppRes):
-        super().__init__(res)
-        self.ax2 = self.ax.twinx()
-        # 余白設定
-        self.fig.subplots_adjust(
-            left=0.05,
-            right=0.96,
-            top=0.92,
-            bottom=0.06,
-        )
-        plt.rcParams['font.size'] = 14
-        self.space = "            "
-
-        # タイムスタンプへ時差を加算用（Asia/Tokyo)
-        self.tz = 9. * 60 * 60
-
-        self.removeAxes()
-
-    def removeAxes(self):
-        self.ax.remove()
-        self.ax2.remove()
-        self.ax = self.fig.add_subplot(111)
-        self.ax2 = self.ax.twinx()
-        self.ax.xaxis.set_major_formatter(
-            mdates.DateFormatter("%H:%M")
-        )
-
-    def updateData(self, df: pd.DataFrame, dict_param: dict, title: str):
-        # トレンドライン（株価と指標）
-        #df.index = [pd.Timestamp(ts + self.tz, unit='s') for ts in df["Time"]]
-        df.index = pd.to_datetime(df["Time"], unit="s") + pd.Timedelta(self.tz, unit="s")
-        period_ma_1 = dict_param["PERIOD_MA_1"]
-        period_ma_2 = dict_param["PERIOD_MA_2"]
-        period_mr = dict_param["PERIOD_MR"]
-        threshold_mr = dict_param["THRESHOLD_MR"]
-        colname_ma_1, colname_ma_2 = calc_ma(df, period_ma_1, period_ma_2)
-        colname_mr = calc_mr(df, period_mr)
-
-        # プロット用データ
-        ser_price = df["Price"]
-        ser_ma_1 = df[colname_ma_1]
-        ser_ma_2 = df[colname_ma_2]
-        ser_mr = df[colname_mr]
-
-        # 消去
-        self.removeAxes()
-
-        # プロット (y)
-        lns1 = self.ax.plot(ser_price, color="lightgray", linewidth=0.5, linestyle="solid", label="Price")
-        lns2 = self.ax.plot(ser_ma_1, linewidth=1, linestyle="solid", label=colname_ma_1)
-        lns3 = self.ax.plot(ser_ma_2, linewidth=1, linestyle="solid", label=colname_ma_2)
-
-        self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
-        self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-        self.ax.grid(True, lw=0.5)
-        self.ax.set_title(title)
-
-        # y 軸調整
-        y_min, y_max = self.ax.get_ylim()
-        y_min_2 = 2 * y_min - y_max
-        if y_min_2 < 0:
-            y_min_2 = 0
-        self.ax.set_ylim(y_min_2, y_max)
-        yticks = self.ax.get_yticklabels()
-        idx_min = len(yticks) // 2 - 1
-        for i in range(idx_min):
-            yticks[i].set_visible(False)
-        self.ax.set_ylabel(f"{self.space}Price [JPY]")
-
-        # プロット (y2)
-        lns4 = self.ax2.plot(ser_mr, color="C2", linewidth=0.75, linestyle="solid", label=colname_mr)
-        x = ser_mr.index
-        y = ser_mr.values
-        self.ax2.fill_between(
-            x, 0, 1,
-            where=y < threshold_mr,
-            color='black',
-            alpha=0.05,
-            transform=self.ax2.get_xaxis_transform()
-        )
-        # y2 軸調整
-        y_min, y_max = self.ax2.get_ylim()
-        y_min = 0.0
-        y_max_2 = 2 * y_max - y_min
-        self.ax2.set_ylim(y_min, y_max_2)
-        y2ticks = self.ax2.get_yticklabels()
-        idx_max = len(y2ticks) // 2 + 2
-        for i in range(idx_max, len(y2ticks)):
-            y2ticks[i].set_visible(False)
-        self.ax2.yaxis.set_label_position("right")
-        self.ax2.set_ylabel(f"{colname_mr}{self.space}")
-
-        # added these three lines
-        lns = lns1 + lns2 + lns3 + lns4
-        labs = [l.get_label() for l in lns]
-        self.ax.legend(lns, labs, bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.25, fontsize=7)
-        # self.ax.legend(bbox_to_anchor=(1, 1), loc='upper right', borderaxespad=0.5, fontsize=7)
-
-        # パラメータ情報
-        self.fig.suptitle(get_param_string(dict_param), fontsize=7)
-
-        # 再描画
-        self.canvas.draw()
 
 
 class ObsChart(ScrollArea):

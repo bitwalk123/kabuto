@@ -3,7 +3,8 @@ import logging
 import pandas as pd
 
 from structs.res import AppRes
-from widgets.mpl_charts import ChartNavigation, TickChart
+from widgets.mpl_charts import ChartNavigation
+from widgets.mpl_charts_alt import TickChart
 from widgets.containers import MainWindow
 from widgets.statusbars import StatusBar
 

@@ -5,18 +5,15 @@ from typing import Any
 
 import pandas as pd
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (
-    QFileDialog,
-    QStatusBar,
-)
+from PySide6.QtWidgets import QFileDialog
 
 from funcs.setting import load_setting
 from funcs.tse import get_ticker_name_list
 from modules.kabuto import Kabuto
-from modules.review_chart import ReviewChart
+from modules.review_chart import ReviewChart, ReviewChartNavigation
 from structs.res import AppRes
 from widgets.containers import MainWindow
-from widgets.mpl_charts import ChartNavigation
+from widgets.statusbars import StatusBar
 from widgets.toolbars import ToolBarBeetle
 
 
@@ -46,9 +43,9 @@ class Beetle(MainWindow):
         self.setCentralWidget(chart)
 
         # ステータス・バー
-        statusbar = QStatusBar()
+        statusbar = StatusBar(res)
         canvas = chart.getCanvas()
-        statusbar.addWidget(ChartNavigation(canvas))
+        statusbar.addWidget(ReviewChartNavigation(canvas))
         self.setStatusBar(statusbar)
 
     def on_open_clicked(self):

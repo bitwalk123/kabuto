@@ -37,6 +37,7 @@ class StatusBar(QStatusBar):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
 
 
 class TotalBar(QStatusBar):

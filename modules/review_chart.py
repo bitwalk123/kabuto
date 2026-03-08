@@ -3,7 +3,10 @@ from typing import Any
 import pandas as pd
 from PySide6.QtWidgets import QSizePolicy
 from matplotlib import font_manager as fm, pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar,
+)
 from matplotlib.figure import Figure
 
 from funcs.plot import (
@@ -88,3 +91,7 @@ class ReviewChart(Widget):
 
     def getCanvas(self) -> FigureCanvas:
         return self.canvas
+
+class ReviewChartNavigation(NavigationToolbar):
+    def __init__(self, canvas: FigureCanvas):
+        super().__init__(canvas)
