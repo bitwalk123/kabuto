@@ -6,7 +6,13 @@ from matplotlib import font_manager as fm, pyplot as plt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 
-from funcs.plot import plot_price_vwap, plot_profit, plot_drawdown, plot_verticals
+from funcs.plot import (
+    plot_drawdown,
+    plot_momentum,
+    plot_price_vwap,
+    plot_profit,
+    plot_verticals,
+)
 from structs.res import AppRes
 from widgets.containers import Widget
 from widgets.layouts import VBoxLayout
@@ -19,7 +25,7 @@ class ReviewChart(Widget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        #self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
         layout = VBoxLayout()
@@ -38,9 +44,10 @@ class ReviewChart(Widget):
         self.fig = fig = Figure(figsize=(self.IMAGE_WIDTH / 100., self.IMAGE_HEIGHT / 100.))
         # キャンバスを表示
         self.canvas = canvas = FigureCanvas(fig)
+        canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout.addWidget(canvas)
 
-        self.n = n = 3
+        self.n = n = 4
         self.ax = ax = dict()
         gs = fig.add_gridspec(
             n, 1, wspace=0.0, hspace=0.0,
@@ -60,11 +67,14 @@ class ReviewChart(Widget):
         # 1. 株価と VWAP
         plot_price_vwap(self.ax[0], df, title, dict_ts)
 
-        # 2. 含み益
-        plot_profit(self.ax[1], df, dict_setting)
+        # 2. モメンタム
+        plot_momentum(self.ax[1], df, dict_setting)
 
-        # 3. ドローダウン
-        plot_drawdown(self.ax[2], df, dict_setting)
+        # 3. 含み益
+        plot_profit(self.ax[2], df, dict_setting)
+
+        # 4. ドローダウン
+        plot_drawdown(self.ax[3], df, dict_setting)
 
         # --- クロス・シグナル、その他縦線系 ---
         plot_verticals(self.n, self.ax, df, dict_ts)
