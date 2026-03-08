@@ -110,8 +110,8 @@ class MplChart(FigureCanvas):
 
 
 class ChartNavigation(NavigationToolbar):
-    def __init__(self, chart: FigureCanvas):
-        super().__init__(chart)
+    def __init__(self, canvas: FigureCanvas):
+        super().__init__(canvas)
 
 
 def get_param_string(dict_param: dict) -> str:
