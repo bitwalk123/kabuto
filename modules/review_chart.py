@@ -28,7 +28,6 @@ class ReviewChart(Widget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
-        #self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setMinimumSize(self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
         layout = VBoxLayout()
@@ -60,6 +59,13 @@ class ReviewChart(Widget):
             ax[i] = axis
             ax[i].grid(axis="y")
 
+    def clearAxes(self):
+        axs = self.fig.axes
+        for ax in axs:
+            ax.cla()
+            ax.grid(axis="y")
+
+
     def draw(
             self,
             df: pd.DataFrame,
@@ -68,6 +74,8 @@ class ReviewChart(Widget):
             dict_setting: dict[str, Any],
             name_img: str
     ) -> None:
+        self.clearAxes()
+
         # 1. 株価と VWAP
         plot_price_vwap(self.ax[0], df, title, dict_ts)
 
@@ -84,6 +92,7 @@ class ReviewChart(Widget):
         plot_verticals(self.n, self.ax, df, dict_ts)
 
         self.fig.tight_layout()
+        self.canvas.draw()
 
         # 保存だけ実行
         self.fig.savefig(name_img, dpi=100)

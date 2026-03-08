@@ -51,7 +51,7 @@ class Beetle(MainWindow):
 
     def on_open_clicked(self):
         dlg = QFileDialog()
-        dlg.setNameFilters("CSV files (*.csv)")
+        dlg.setNameFilters(["CSV files (*.csv)"])
         dlg.setOption(QFileDialog.Option.DontUseNativeDialog)
         if dlg.exec():
             filename = dlg.selectedFiles()[0]
