@@ -74,6 +74,7 @@ class ReviewChart(Widget):
             dict_setting: dict[str, Any],
             name_img: str
     ) -> None:
+        # 一旦、Axes うぃクリア
         self.clearAxes()
 
         # 1. 株価と VWAP
@@ -91,7 +92,10 @@ class ReviewChart(Widget):
         # --- クロス・シグナル、その他縦線系 ---
         plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
 
+        # タイト・レイアウト
         self.fig.tight_layout()
+
+        # 再描画
         self.canvas.draw()
 
         # 保存だけ実行
