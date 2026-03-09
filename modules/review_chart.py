@@ -89,7 +89,7 @@ class ReviewChart(Widget):
         plot_drawdown(self.ax[3], df, dict_setting)
 
         # --- クロス・シグナル、その他縦線系 ---
-        plot_verticals(self.n, self.ax, df, dict_ts)
+        plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
 
         self.fig.tight_layout()
         self.canvas.draw()

@@ -529,16 +529,24 @@ def plot_drawdown(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
 
-def plot_verticals(n: int, ax: dict[int, plt.Axes], df: DataFrame, dict_ts: dict[str, Any]):
+def plot_verticals(
+        n: int,
+        ax: dict[int, plt.Axes],
+        df: DataFrame,
+        dict_setting: dict[str, Any],
+        dict_ts: dict[str, Any],
+):
     # クロス・シグナル、ウォームアップ期間
     list_cross = df[df["cross1"] != 0].index
     ax[n - 1].set_xlabel(f"# of crossed: {len(list_cross)} times")
     for i in range(n):
+        # クロス・シグナル
         for t in list_cross:
             cname = "#f00" if 0 < df.at[t, "cross1"] else "#00f"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
-        td = datetime.timedelta(minutes=10)
+        # ウォークアップ期間
+        td = datetime.timedelta(seconds=dict_setting["PERIOD_WARMUP"] * 2)
         x = [dict_ts["start"], df.index[0] + td]
         ax[i].fill_between(
             x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
