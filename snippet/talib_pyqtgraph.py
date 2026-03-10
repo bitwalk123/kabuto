@@ -1,9 +1,11 @@
 import sys
 
+import numpy as np
 import pandas as pd
 import pyqtgraph as pg
 from PySide6.QtCore import QTimer
 from PySide6.QtWidgets import QApplication, QMainWindow, QToolBar, QToolButton, QStyle
+from talib import stream
 
 
 class SampleChart(pg.PlotWidget):
@@ -11,14 +13,18 @@ class SampleChart(pg.PlotWidget):
         super().__init__()
         self.list_x: list[float] = []
         self.list_y: list[float] = []
+        self.list_ma: list[float] = []
 
-        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=1))
-        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=1))
+        self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
+        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen((0, 255, 0, 192), width=1))
 
     def setLine(self, x, y):
         self.list_x.append(x)
         self.list_y.append(y)
+        self.list_ma.append(stream.SMA(np.array(self.list_y, dtype=float), timeperiod=100))
+
         self.line.setData(tuple(self.list_x), tuple(self.list_y))
+        self.ma.setData(tuple(self.list_x), tuple(self.list_ma))
 
 
 class SampleTaLib(QMainWindow):
@@ -45,7 +51,7 @@ class SampleTaLib(QMainWindow):
         self.setCentralWidget(chart)
 
         self.timer = timer = QTimer()
-        timer.setInterval(1000)
+        timer.setInterval(100)
         timer.timeout.connect(self.set_new_data)
         self.row: int = 0
 
