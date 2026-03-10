@@ -6,12 +6,11 @@ import mplfinance as mpf
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from matplotlib import (
-    font_manager as fm,
-    pyplot as plt,
-    dates as mdates,
-    ticker as ticker,
-)
+import talib as ta
+from matplotlib import dates as mdates
+from matplotlib import font_manager as fm
+from matplotlib import pyplot as plt
+from matplotlib import ticker as ticker
 from pandas import DataFrame
 from scipy.interpolate import griddata
 
@@ -484,13 +483,25 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 
 def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # モメンタム
-    for n in [150, 300]:
+    for n in [300]:
         # ax.plot(df["price"].diff(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
         ax.plot(df["price"].pct_change(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
 
     ax.axhline(y=0, linewidth=0.75, color="black", alpha=0.5)
 
     ax.set_ylabel("モメンタム")
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+
+def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
+    for period in [150]:
+        arr_price = np.array(df["price"])
+        colname = f"rsi_{period}"
+        df[colname] = ta.RSI(arr_price, timeperiod=period)
+        ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
+
+    ax.axhline(y=50, linewidth=0.75, color="black", alpha=0.5)
+
+    ax.set_ylabel("RSI")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
 

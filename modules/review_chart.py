@@ -14,7 +14,7 @@ from funcs.plot import (
     plot_momentum,
     plot_price_vwap,
     plot_profit,
-    plot_verticals,
+    plot_verticals, plot_rsi,
 )
 from structs.res import AppRes
 from widgets.containers import Widget
@@ -81,7 +81,8 @@ class ReviewChart(Widget):
         plot_price_vwap(self.ax[0], df, title, dict_ts)
 
         # 2. モメンタム
-        plot_momentum(self.ax[1], df, dict_setting)
+        #plot_momentum(self.ax[1], df, dict_setting)
+        plot_rsi(self.ax[1], df, dict_setting)
 
         # 3. 含み益
         plot_profit(self.ax[2], df, dict_setting)
