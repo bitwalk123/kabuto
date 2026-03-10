@@ -484,8 +484,9 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 
 def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # モメンタム
-    for n in [300]:
-        ax.plot(df["price"].diff(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
+    for n in [150, 300]:
+        # ax.plot(df["price"].diff(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
+        ax.plot(df["price"].pct_change(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
 
     ax.axhline(y=0, linewidth=0.75, color="black", alpha=0.5)
 
