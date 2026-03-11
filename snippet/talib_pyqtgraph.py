@@ -16,7 +16,7 @@ class SampleChart(pg.PlotWidget):
         self.list_ma: list[float] = []
 
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
-        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen((255, 128, 0, 192), width=1))
+        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen((0, 255, 0, 192), width=1))
 
     def setLine(self, x, y):
         self.list_x.append(x)
@@ -30,7 +30,7 @@ class SampleChart(pg.PlotWidget):
 class SampleTaLib(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.file_csv = "sample_data.csv"
+        self.file_csv = "sample_data.zip" # ZIP圧縮されたCSVファイルを読み込む
         self.df: pd.DataFrame | None = None
 
         toolbar = QToolBar()
