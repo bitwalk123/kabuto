@@ -16,12 +16,12 @@ class SampleChart(pg.PlotWidget):
         self.list_ma: list[float] = []
 
         self.line: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(width=0.5))
-        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen((0, 255, 0, 192), width=1))
+        self.ma: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen((255, 128, 0, 192), width=1))
 
     def setLine(self, x, y):
         self.list_x.append(x)
         self.list_y.append(y)
-        self.list_ma.append(stream.SMA(np.array(self.list_y, dtype=float), timeperiod=100))
+        self.list_ma.append(stream.SMA(np.array(self.list_y, dtype=float), timeperiod=30))
 
         self.line.setData(tuple(self.list_x), tuple(self.list_y))
         self.ma.setData(tuple(self.list_x), tuple(self.list_ma))
@@ -58,9 +58,11 @@ class SampleTaLib(QMainWindow):
     def on_play_clicked(self):
         self.df = pd.read_csv(self.file_csv)
         self.timer.start()
+        print("タイマーを動かしました。")
 
     def on_stop_clicked(self):
         self.timer.stop()
+        print("タイマーを止めました。")
 
     def set_new_data(self):
         x, y = self.df.iloc[self.row]
