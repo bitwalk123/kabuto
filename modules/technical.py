@@ -162,21 +162,17 @@ class RSI:
         self.rsi = 50.0
         self.prev_rsi = 50.0
         self.prev_value = None
-        self.avg_gain = None  # 初期化されていないことを明示
-        self.avg_loss = None
-
-        # 初期SMA計算用（最初のwindow_size期間のみ使用）
-        self.init_gains = deque()
-        self.init_losses = deque()
-
-    def clear(self) -> None:
-        self.rsi = 50.0
-        self.prev_rsi = 50.0
-        self.prev_value = None
         self.avg_gain = None
         self.avg_loss = None
-        self.init_gains.clear()
-        self.init_losses.clear()
+        # 初期化フェーズ用
+        self.init_gain_sum = 0.0
+        self.init_loss_sum = 0.0
+        self.init_count = 0
+        self.alpha = 1.0 / window_size
+        self.one_minus_alpha = 1.0 - self.alpha  # 事前計算
+
+    def clear(self):
+        self.__init__(self.window_size)
 
     def getValue(self) -> float:
         return self.rsi
@@ -189,37 +185,40 @@ class RSI:
             self.prev_value = value
             return self.rsi
 
-        # 価格変化を計算
         change = value - self.prev_value
-        gain = change if change > 0.0 else 0.0
-        loss = -change if change < 0.0 else 0.0
 
-        # 平均が初期化されていない場合（最初のwindow_size期間）
-        if self.avg_gain is None:
-            self.init_gains.append(gain)
-            self.init_losses.append(loss)
-
-            # window_size個のデータが揃ったら初期平均を計算
-            if len(self.init_gains) == self.window_size:
-                self.avg_gain = sum(self.init_gains) / self.window_size
-                self.avg_loss = sum(self.init_losses) / self.window_size
-                # 初期データは不要になるのでクリア（メモリ節約）
-                self.init_gains.clear()
-                self.init_losses.clear()
+        # max()を2回呼ぶより条件分岐の方が高速
+        if change > 0.0:
+            gain = change
+            loss = 0.0
+        elif change < 0.0:
+            gain = 0.0
+            loss = -change
         else:
-            # Wilder's Smoothing
-            self.avg_gain = (self.avg_gain * (self.window_size - 1) + gain) / self.window_size
-            self.avg_loss = (self.avg_loss * (self.window_size - 1) + loss) / self.window_size
+            gain = 0.0
+            loss = 0.0
 
-        # RSIを計算
+        # 初期 SMA フェーズ
+        if self.avg_gain is None:
+            self.init_gain_sum += gain
+            self.init_loss_sum += loss
+            self.init_count += 1
+            if self.init_count == self.window_size:
+                self.avg_gain = self.init_gain_sum / self.window_size
+                self.avg_loss = self.init_loss_sum / self.window_size
+        else:
+            # Wilder smoothing - 事前計算した値を使用
+            self.avg_gain = self.one_minus_alpha * self.avg_gain + self.alpha * gain
+            self.avg_loss = self.one_minus_alpha * self.avg_loss + self.alpha * loss
+
+        # RSI 計算
         self.prev_rsi = self.rsi
-
         if self.avg_gain is not None:
             if self.avg_loss == 0.0:
                 self.rsi = 100.0 if self.avg_gain > 0.0 else 50.0
             else:
                 rs = self.avg_gain / self.avg_loss
-                self.rsi = 100.0 - (100.0 / (1.0 + rs))
+                self.rsi = 100.0 - 100.0 / (1.0 + rs)
 
         self.prev_value = value
         return self.rsi
