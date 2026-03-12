@@ -474,6 +474,9 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
     # 株価と VWAP
     ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, label="株価")
     ax.plot(df["ma1"], linewidth=0.75, color="#0c0", label="移動平均線 MA1")
+    # 評価用の移動平均 MA2
+    df["ma2"]=df["price"].rolling(300, min_periods=1).mean()
+    ax.plot(df["ma2"], linewidth=0.5, color="#00c", label="移動平均線 MA2")
     ax.plot(df["vwap"], linewidth=0.75, color="#f0f", label="VWAP")
 
     ax.set_ylabel("株価")
