@@ -156,7 +156,7 @@ class VWAP:
         return self.vwap
 
 
-class RSI:
+class RSI_OLD:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.rsi = 50.0
@@ -214,7 +214,7 @@ class RSI:
         return self.rsi
 
 
-class RSI_ALT:
+class RSI:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.rsi = 50.0
