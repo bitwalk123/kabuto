@@ -504,7 +504,7 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
     x = df.index
     y = df["rsi"]
-    ax.fill_between(x, 50, y, where=(50 < y), fc="#fcf", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 50, y, where=(50 < y), fc="#fcc", ec="#f00", alpha=0.5, lw=0.5)
     ax.fill_between(x, 50, y, where=(y < 50), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5)
 
     ax.axhline(y=50, linewidth=0.75, color="black", alpha=0.5)
@@ -520,7 +520,7 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     y2 = df["profit_max"]
     y_dd_th = dict_setting["DD_PROFIT"]
 
-    ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fcf", ec="#f00", alpha=0.5, lw=0.5, label="含み益")
+    ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fcc", ec="#f00", alpha=0.5, lw=0.5, label="含み益")
     ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5, label="含み損")
 
     ax.plot(y2, linewidth=0.75, color="#a00", label="最大含み損益")
