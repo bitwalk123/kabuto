@@ -498,7 +498,7 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
 
 
 def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
-    period = 300
+    period = 150
     rsi = RSI(window_size=period)
     df["rsi"] = [rsi.update(df.loc[t, "price"]) for t in df.index]
     # ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
