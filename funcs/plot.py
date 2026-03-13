@@ -16,6 +16,7 @@ from scipy.interpolate import griddata
 
 from funcs.tide import get_format_date_from_date_str
 from funcs.tse import get_ticker_name_list
+from modules.technical import RSI
 
 
 def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
@@ -475,7 +476,7 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
     ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, label="株価")
     ax.plot(df["ma1"], linewidth=0.75, color="#0c0", label="移動平均線 MA1")
     # 評価用の移動平均 MA2
-    df["ma2"]=df["price"].rolling(300, min_periods=1).mean()
+    df["ma2"] = df["price"].rolling(300, min_periods=1).mean()
     ax.plot(df["ma2"], linewidth=0.5, color="#00c", label="移動平均線 MA2")
     ax.plot(df["vwap"], linewidth=0.75, color="#f0f", label="VWAP")
 
@@ -495,17 +496,21 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.set_ylabel("モメンタム")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
+
 def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
-    for period in [150]:
-        arr_price = np.array(df["price"])
-        colname = f"rsi_{period}"
-        df[colname] = ta.RSI(arr_price, timeperiod=period)
-        ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
+    period = 300
+    rsi = RSI(window_size=period)
+    df["rsi"] = [rsi.update(df.loc[t, "price"]) for t in df.index]
+    # ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
+    x = df.index
+    y = df["rsi"]
+    ax.fill_between(x, 50, y, where=(50 < y), fc="#fcf", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 50, y, where=(y < 50), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5)
 
     ax.axhline(y=50, linewidth=0.75, color="black", alpha=0.5)
 
-    ax.set_ylabel("RSI")
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.set_ylabel(f"RSI, {period}sec")
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
 
 def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):

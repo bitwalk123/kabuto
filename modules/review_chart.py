@@ -14,7 +14,8 @@ from funcs.plot import (
     plot_momentum,
     plot_price_vwap,
     plot_profit,
-    plot_verticals, plot_rsi,
+    plot_rsi,
+    plot_verticals,
 )
 from structs.res import AppRes
 from widgets.containers import Widget
