@@ -509,7 +509,7 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
 
     ax.axhline(y=50, linewidth=0.75, color="black", alpha=0.5)
 
-    ax.set_ylabel(f"RSI, {period}sec")
+    ax.set_ylabel(f"RSI / n={period}")
     # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
 

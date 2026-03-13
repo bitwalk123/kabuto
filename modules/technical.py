@@ -156,64 +156,6 @@ class VWAP:
         return self.vwap
 
 
-class RSI_OLD:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.rsi = 50.0
-        self.prev_rsi = 50.0
-        self.prev_value = None
-        self.avg_gain = None
-        self.avg_loss = None
-        # 初期化フェーズ用
-        self.init_gain_sum = 0.0
-        self.init_loss_sum = 0.0
-        self.init_count = 0
-        self.alpha = 1.0 / window_size
-
-    def clear(self):
-        self.__init__(self.window_size)
-
-    def getValue(self) -> float:
-        return self.rsi
-
-    def getSlope(self) -> float:
-        return self.rsi - self.prev_rsi
-
-    def update(self, value: float) -> float:
-        if self.prev_value is None:
-            self.prev_value = value
-            return self.rsi
-
-        change = value - self.prev_value
-        gain = max(change, 0.0)
-        loss = max(-change, 0.0)
-
-        # 初期 SMA フェーズ
-        if self.avg_gain is None:
-            self.init_gain_sum += gain
-            self.init_loss_sum += loss
-            self.init_count += 1
-            if self.init_count == self.window_size:
-                self.avg_gain = self.init_gain_sum / self.window_size
-                self.avg_loss = self.init_loss_sum / self.window_size
-        else:
-            # Wilder smoothing (指数平滑化の標準形)
-            self.avg_gain += self.alpha * (gain - self.avg_gain)
-            self.avg_loss += self.alpha * (loss - self.avg_loss)
-
-        # RSI 計算
-        self.prev_rsi = self.rsi
-        if self.avg_gain is not None:
-            if self.avg_loss == 0.0:
-                self.rsi = 100.0
-            else:
-                rs = self.avg_gain / self.avg_loss
-                self.rsi = 100.0 - 100.0 / (1.0 + rs)
-
-        self.prev_value = value
-        return self.rsi
-
-
 class RSI:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -227,7 +169,7 @@ class RSI:
         self.init_loss_sum = 0.0
         self.init_count = 0
         self.alpha = 1.0 / window_size
-        self.one_minus_alpha = 1.0 - self.alpha  # 事前計算
+        self.one_minus_alpha = 1.0 - self.alpha
 
     def clear(self):
         self.__init__(self.window_size)
@@ -245,7 +187,6 @@ class RSI:
 
         change = value - self.prev_value
 
-        # max()を2回呼ぶより条件分岐の方が高速
         if change > 0.0:
             gain = change
             loss = 0.0
@@ -265,18 +206,15 @@ class RSI:
                 self.avg_gain = self.init_gain_sum / self.window_size
                 self.avg_loss = self.init_loss_sum / self.window_size
         else:
-            # Wilder smoothing - 事前計算した値を使用
+            # Wilder smoothing
             self.avg_gain = self.one_minus_alpha * self.avg_gain + self.alpha * gain
             self.avg_loss = self.one_minus_alpha * self.avg_loss + self.alpha * loss
 
-        # RSI 計算
+        # RSI 計算（簡略版）
         self.prev_rsi = self.rsi
         if self.avg_gain is not None:
-            if self.avg_loss == 0.0:
-                self.rsi = 100.0 if self.avg_gain > 0.0 else 50.0
-            else:
-                rs = self.avg_gain / self.avg_loss
-                self.rsi = 100.0 - 100.0 / (1.0 + rs)
+            total = self.avg_gain + self.avg_loss
+            self.rsi = 100.0 * self.avg_gain / total if total > 0.0 else 50.0
 
         self.prev_value = value
         return self.rsi
