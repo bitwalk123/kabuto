@@ -95,6 +95,7 @@ class TabWidget(QTabWidget):
     def __init__(self):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setTabPosition(QTabWidget.TabPosition.South)
         self.setStyleSheet(
             """
             QTabWidget {

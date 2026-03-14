@@ -27,7 +27,7 @@ class ToolBar(QToolBar):
     clickedSetting = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
-    requestSwitchCharts = Signal(bool)
+    # requestSwitchCharts = Signal(bool)
     selectedExcelFile = Signal(str, list)
 
     def __init__(self, res: AppRes):
@@ -117,6 +117,7 @@ class ToolBar(QToolBar):
         pad = PadH()
         self.addWidget(pad)
 
+        '''
         # 表示チャートの切り替え
         lab_chart = Label(" チャート切替 ")
         self.addWidget(lab_chart)
@@ -126,6 +127,7 @@ class ToolBar(QToolBar):
         switch.statusChanged.connect(self.requestSwitchCharts.emit)
         self.addWidget(switch)
 
+        '''
         self.addSeparator()
         lab_time = Label(" システム時刻 ")
         self.addWidget(lab_time)

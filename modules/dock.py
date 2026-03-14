@@ -15,7 +15,6 @@ class DockTrader(DockWidget):
     clickedRepay = Signal(str, float, str, bool)
     clickedSave = Signal()
     clickedSetting = Signal()
-    changedDisparityState = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
@@ -62,7 +61,6 @@ class DockTrader(DockWidget):
         panel_option.clickedSave.connect(self.on_save)
         panel_option.clickedRepair.connect(self.on_repair)
         panel_option.clickedSetting.connect(self.on_setting)
-        panel_option.changedDisparity.connect(self.on_changed_disparity)
         self.layout.addWidget(panel_option)
 
     def force_repay(self) -> None:
@@ -72,15 +70,6 @@ class DockTrader(DockWidget):
         """
         if self.doRepay():
             self.logger.info(f"'{self.code}'の強制返済をしました。")
-
-    def force_switch_chart_type(self, state: bool) -> None:
-        """
-        Disparity スイッチの状態変更
-        :param state:
-        :return:
-        """
-        self.panel_option.disparity.set(state)
-        self.panel_option.on_changed_disparity(state)
 
     def on_buy(self) -> None:
         """
@@ -132,14 +121,6 @@ class DockTrader(DockWidget):
         else:
             return
 
-    def on_changed_disparity(self, status: bool) -> None:
-        """
-        for statusChanged signal
-        :param status:
-        :return:
-        """
-        self.changedDisparityState.emit(status)
-
     def on_save(self) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 保存ボタンがクリックされたことを通知
@@ -149,8 +130,10 @@ class DockTrader(DockWidget):
     def on_setting(self):
         self.clickedSetting.emit()
 
+    """
     def isDisparityChecked(self) -> bool:
         return self.panel_option.disparity.isEnabled()
+    """
 
     def setPrice(self, price: float) -> None:
         """

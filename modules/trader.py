@@ -2,11 +2,7 @@ import logging
 import os
 from typing import Any, Literal, TypeAlias
 
-from PySide6.QtCore import (
-    Qt,
-    QThread,
-    Signal,
-)
+from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QCloseEvent
 from PySide6.QtWidgets import QMainWindow, QDialog
 
@@ -71,14 +67,6 @@ class Trader(QMainWindow):
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
-            "disparity": [],
-        }
-
-        self.dict_disparity = {
-            "ts": self.list_ts,
-            "ma_1": [],
-            "vwap": [],
-            "disparity": self.list_disparity,
         }
 
         # 銘柄コード別設定ファイルの取得
@@ -97,7 +85,6 @@ class Trader(QMainWindow):
         self.dock.clickedRepay.connect(self.on_repay)
         self.dock.clickedSetting.connect(self.on_setting)
         self.dock.clickedSave.connect(self.on_save)
-        self.dock.changedDisparityState.connect(self.on_switch_chart)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -204,14 +191,8 @@ class Trader(QMainWindow):
         チャートを保存
         :return:
         """
-        if self.dock.isDisparityChecked():
-            # 株価/MA1 - VWAP 乖離度のトレンドチャート
-            suffix = "2"
-        else:
-            # 株価/MA1, VWAP トレンドチャート
-            suffix = "1"
         # 保存先のパス
-        file_img = f"{self.code}_trend_{suffix}.png"
+        file_img = f"{self.code}_trend.png"
         if self.res.debug:
             output_dir: str = os.path.join(
                 self.res.dir_temp,
@@ -236,18 +217,6 @@ class Trader(QMainWindow):
         elif result == QDialog.DialogCode.Rejected:
             print("キャンセルされました")
 
-    def on_switch_chart(self, flag: bool) -> None:
-        if flag:
-            self.trend.setDot([self.ts], [self.price - self.vwap])
-        else:
-            self.trend.setDot([self.ts], [self.price])
-
-        # テクニカルデータの更新
-        self.update_technicals(flag)
-
-        # y 軸のスケールを更新
-        self.trend.updateYAxisRange(flag)
-
     def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:
             self.dock.panel_trading.lockButtons()
@@ -259,22 +228,20 @@ class Trader(QMainWindow):
         self.list_ts.append(dict_technicals["ts"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_vwap.append(self.vwap)
-        self.list_disparity.append(dict_technicals["ma1"] - self.vwap)
-        #self.list_lower.append(dict_technicals["lower"] - self.vwap)
-        #self.list_upper.append(dict_technicals["upper"] - self.vwap)
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
             self.trend.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross1"] < 0.0:
             self.trend.setCrossDead(dict_technicals["ts"])
+
         # クロス時の縦線表示 2
         if 0.0 < dict_technicals["cross2"]:
             self.trend.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross2"] < 0.0:
             self.trend.setCrossDead(dict_technicals["ts"])
 
-        self.update_technicals(self.dock.isDisparityChecked())
+        self.update_technicals()
 
     def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
@@ -329,7 +296,7 @@ class Trader(QMainWindow):
     def orderExecResult(self, price: float) -> None:
         """
         発注結果
-        :param result:
+        :param price:
         :return:
         """
         # 売買返済ボタンのロックを解除、次の状態設定
@@ -380,32 +347,22 @@ class Trader(QMainWindow):
         self.sendTradeData.emit(ts, price, volume)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        # リストに保持
-        # self.list_x.append(ts)
-        # self.list_y.append(price)
-        # self.list_v.append(volume)
         self.ts = ts
         self.price = price
 
         # 株価トレンド線
-        flag = self.dock.isDisparityChecked()
-        self.trend.setZeroLine(flag)
-        if flag:
-            self.trend.setDot([ts], [price - self.vwap])
-        else:
-            self.trend.setDot([ts], [price])
+        self.trend.setDot([ts], [price])
 
         # 銘柄単位の現在株価および含み益と収益を更新
         self.dock.setPrice(price)
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
 
-    def switchChartType(self, flag: bool) -> None:
-        self.dock.force_switch_chart_type(flag)
-
-    def update_technicals(self, flag: bool) -> None:
+    def update_technicals(self) -> None:
+        """
         if flag:
-            # disparity line
-            self.trend.setTechnicals(self.dict_disparity, False)
+        disparity line
+           self.trend.setTechnicals(self.dict_disparity, False)
         else:
-            self.trend.setTechnicals(self.dict_trend, True)
+        """
+        self.trend.setTechnicals(self.dict_trend)

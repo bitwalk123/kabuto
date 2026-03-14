@@ -35,13 +35,13 @@ from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.win_transaction import WinTransaction
 from structs.res import AppRes
-from widgets.containers import ScrollArea, Widget
+from widgets.containers import ScrollArea, Widget, TabWidget
 from widgets.layouts import VBoxLayout
 
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.5.4"
+    __version__ = "0.6.0"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -168,7 +168,6 @@ class Kabuto(QMainWindow):
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedSetting.connect(self.on_setting)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.requestSwitchCharts.connect(self.on_switch_charts)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
         # ---------------------------------------------------------------------
@@ -179,20 +178,12 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # メイン・ウィジェット
         # ---------------------------------------------------------------------
-        self.area_chart = sa = ScrollArea()
-        self.setCentralWidget(sa)
-        # ベース・ウィジェット
-        base = Widget()
-        base.setSizePolicy(
+        self.tab = tab = TabWidget()
+        tab.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Fixed
         )
-        sa.setWidget(base)
-        self.layout = layout = VBoxLayout()
-        layout.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
-        base.setLayout(layout)
+        self.setCentralWidget(tab)
 
     def _connect_worker_signals(
             self,
@@ -309,7 +300,8 @@ class Kabuto(QMainWindow):
         :return:
         """
         # 配置済みの Trader インスタンスを消去
-        clear_boxlayout(self.layout)
+        # clear_boxlayout(self.layout)
+        self.tab.clear()
         # Trader 辞書のクリア
         self.dict_trader.clear()
         # ---------------------------------------------------------------------
@@ -330,16 +322,15 @@ class Kabuto(QMainWindow):
             self.dict_trader[code] = trader
             # 「銘柄名　(code)」をタイトルにして設定し直し
             trader.setChartTitle(f"{dict_name[code]} ({code})")
+
             # 配置
-            self.layout.addWidget(trader)
+            # self.layout.addWidget(trader)
+            self.tab.addTab(trader, code)
+
         # ---------------------------------------------------------------------
         # チャートエリアの面積を更新
         # ---------------------------------------------------------------------
-        self.area_chart.setMinimumWidth(self.res.trend_width)
-        n = len(self.list_code_selected)
-        if self.res.trend_n_max < n:
-            n = self.res.trend_n_max
-        self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
+        self.tab.setMinimumWidth(self.res.trend_width)
 
     def force_closing_position(self) -> None:
         """
@@ -372,12 +363,7 @@ class Kabuto(QMainWindow):
         self._connect_worker_signals(self.worker)
         self.thread.start()
 
-    # def on_create_trader(self, list_code: list, dict_name: dict):
-    def on_create_trader(
-            self,
-            list_code: list[str],
-            dict_name: dict[str, str]
-    ) -> None:
+    def on_create_trader(self, list_code: list[str], dict_name: dict[str, str]) -> None:
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_code:
@@ -502,11 +488,6 @@ class Kabuto(QMainWindow):
         """
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
-
-    def on_switch_charts(self, state: bool):
-        for code in self.dict_trader.keys():
-            trader: Trader = self.dict_trader[code]
-            trader.switchChartType(state)
 
     def on_thread_finished(self, result: bool) -> None:
         """

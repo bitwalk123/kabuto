@@ -17,7 +17,6 @@ from widgets.layouts import (
     GridLayout,
     HBoxLayout,
 )
-from widgets.switches import Switch
 
 
 class PanelTrading(Widget):
@@ -154,12 +153,6 @@ class PanelOption(QFrame):
         layout = HBoxLayout()
         self.setLayout(layout)
 
-        # VWAP との乖離を表示するかどうかのスイッチ
-        self.disparity = disparity = Switch()
-        disparity.set(False)
-        disparity.statusChanged.connect(self.on_changed_disparity)
-        layout.addWidget(disparity)
-
         pad = PadH()
         layout.addWidget(pad)
 
@@ -180,9 +173,6 @@ class PanelOption(QFrame):
         but_save.setToolTip("チャートの保存")
         but_save.clicked.connect(self.on_clicked_save)
         layout.addWidget(but_save)
-
-    def on_changed_disparity(self, flag: bool) -> None:
-        self.changedDisparity.emit(flag)
 
     def on_clicked_repair(self):
         self.clickedRepair.emit()
