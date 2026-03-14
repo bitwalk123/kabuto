@@ -19,7 +19,7 @@ class CustomYAxisItem2(pg.AxisItem):
 class TrendCharts(pg.GraphicsLayoutWidget):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(600, 400)
+        self.setFixedSize(1000, 400)
 
         # 価格チャート（上段）- CustomYAxisItem1 を適用
         self.plot_price = self.addPlot(
