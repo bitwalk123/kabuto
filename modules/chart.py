@@ -13,7 +13,7 @@ from structs.res import AppRes
 
 class CustomYAxisItem(pg.AxisItem):
     def tickStrings(self, values: list[float], scale: float, spacing: float) -> list[str]:
-        return [f"{value:6,.1f}" for value in values]
+        return [f"{value: 7,.1f}" for value in values]
 
 
 class TrendChart(pg.PlotWidget):
@@ -21,18 +21,12 @@ class TrendChart(pg.PlotWidget):
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 191, 255, 220)
-    COLOR_DISPARITY = (192, 192, 0, 255)
     COLOR_EVEN = (255, 192, 0, 255)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
 
-    def __init__(
-            self,
-            res: AppRes,
-            dict_ts: dict[str, Any],
-            dict_setting: dict[str, Any]
-    ) -> None:
+    def __init__(self, res: AppRes, dict_ts: dict[str, Any], dict_setting: dict[str, Any]) -> None:
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.dict_ts = dict_ts
@@ -69,19 +63,11 @@ class TrendChart(pg.PlotWidget):
         # VWAP
         self.vwap: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_VWAP, width=1))
         self.vwap.setZValue(50)
-        # 乖離率
-        self.disparity: pg.PlotDataItem = self.plot([], [], pen=pg.mkPen(self.COLOR_DISPARITY, width=1))
-        self.disparity.setZValue(50)
 
         self.even_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_EVEN, width=0.5))
         self.even_line.setZValue(0)
         self.even_line.setVisible(False)
         self.addItem(self.even_line)
-
-        # y = 0 のライン
-        self.zero_line = pg.InfiniteLine(pos=0, angle=0, pen=pg.mkPen(self.COLOR_ZERO, width=0.5))
-        self.zero_line.setZValue(0)
-        self.addItem(self.zero_line)
 
         # ---------------------------------------------------------------------
         # 散布図の点
@@ -93,10 +79,12 @@ class TrendChart(pg.PlotWidget):
         )
         self.last_dot.setZValue(100)
         self.addItem(self.last_dot)
+
         # クロス線（ゴールデン・クロス）
         self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75))
         self.vline_golden.setZValue(20)
         self.addItem(self.vline_golden)
+
         # クロス線（デッド・クロス）
         self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=0.75))
         self.vline_dead.setZValue(20)
@@ -111,20 +99,25 @@ class TrendChart(pg.PlotWidget):
         # x軸範囲（ザラ場時間に固定）
         self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
         # ---------------------------------------------------------------------
+
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
         self.plot_item.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
+
         # x軸の余白を設定
         self.plot_item.getAxis('bottom').setHeight(28)
+
         # ---------------------------------------------------------------------
         # グリッド
         self.plot_item.showGrid(x=True, y=True, alpha=0.5)
+
         # ---------------------------------------------------------------------
         # マウス操作無効化
         self.plot_item.setMouseEnabled(x=False, y=False)
         self.plot_item.hideButtons()
         self.plot_item.setMenuEnabled(False)
         # ---------------------------------------------------------------------
+
         # 高速化オプション
         self.plot_item.setClipToView(True)
 
@@ -143,31 +136,33 @@ class TrendChart(pg.PlotWidget):
         if price == 0.0:
             self.even_line.setVisible(False)
 
-    def setTechnicals(self, dict_lines: dict[str, list], visible: bool) -> None:
+    def setTechnicals(self, dict_lines: dict[str, list]) -> None:
         data_ts = tuple(dict_lines["ts"])
         data_ma_1 = tuple(dict_lines["ma_1"])
         data_vwap = tuple(dict_lines["vwap"])
-        data_disparity = tuple(dict_lines["disparity"])
+        #data_disparity = tuple(dict_lines["disparity"])
 
         self.ma_1.setData(data_ts, data_ma_1)
         self.vwap.setData(data_ts, data_vwap)
-        self.disparity.setData(data_ts, data_disparity)
+        # self.disparity.setData(data_ts, data_disparity)
 
-        self.ma_1.setVisible(visible)
-        self.vwap.setVisible(visible)
-        self.disparity.setVisible(not visible)
+        # self.ma_1.setVisible(visible)
+        # self.vwap.setVisible(visible)
+        # self.disparity.setVisible(not visible)
 
         # 損益分岐線
         if self.even_line.value() > 0.0:
-            self.even_line.setVisible(visible)
+            self.even_line.setVisible(True)
         else:
             self.even_line.setVisible(False)
 
     def setTrendTitle(self, title: str) -> None:
         self.setTitle(trend_label_html(title, size=9))
 
+    """
     def setZeroLine(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)
+    """
 
     def save(self, path_img: str) -> None:
         """

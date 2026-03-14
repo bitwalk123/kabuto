@@ -168,7 +168,6 @@ class Kabuto(QMainWindow):
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedSetting.connect(self.on_setting)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
-        toolbar.requestSwitchCharts.connect(self.on_switch_charts)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
         # ---------------------------------------------------------------------
@@ -372,12 +371,7 @@ class Kabuto(QMainWindow):
         self._connect_worker_signals(self.worker)
         self.thread.start()
 
-    # def on_create_trader(self, list_code: list, dict_name: dict):
-    def on_create_trader(
-            self,
-            list_code: list[str],
-            dict_name: dict[str, str]
-    ) -> None:
+    def on_create_trader(self, list_code: list[str], dict_name: dict[str, str]) -> None:
         """
         Trader インスタンスの生成（リアルタイム）
         :param list_code:
@@ -502,11 +496,6 @@ class Kabuto(QMainWindow):
         """
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
-
-    def on_switch_charts(self, state: bool):
-        for code in self.dict_trader.keys():
-            trader: Trader = self.dict_trader[code]
-            trader.switchChartType(state)
 
     def on_thread_finished(self, result: bool) -> None:
         """
