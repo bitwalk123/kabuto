@@ -185,23 +185,6 @@ class Kabuto(QMainWindow):
         )
         self.setCentralWidget(tab)
 
-        """
-        self.area_chart = sa = ScrollArea()
-        self.setCentralWidget(sa)
-        # ベース・ウィジェット
-        base = Widget()
-        base.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Fixed
-        )
-        sa.setWidget(base)
-        self.layout = layout = VBoxLayout()
-        layout.setAlignment(
-            Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
-        )
-        base.setLayout(layout)
-        """
-
     def _connect_worker_signals(
             self,
             worker: ExcelReviewWorker | RSSReaderWorker
@@ -344,16 +327,6 @@ class Kabuto(QMainWindow):
             # self.layout.addWidget(trader)
             self.tab.addTab(trader, code)
 
-        '''
-        # ---------------------------------------------------------------------
-        # チャートエリアの面積を更新
-        # ---------------------------------------------------------------------
-        self.area_chart.setMinimumWidth(self.res.trend_width)
-        n = len(self.list_code_selected)
-        if self.res.trend_n_max < n:
-            n = self.res.trend_n_max
-        self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
-        '''
         # ---------------------------------------------------------------------
         # チャートエリアの面積を更新
         # ---------------------------------------------------------------------
