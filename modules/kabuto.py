@@ -35,7 +35,7 @@ from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.win_transaction import WinTransaction
 from structs.res import AppRes
-from widgets.containers import ScrollArea, Widget
+from widgets.containers import ScrollArea, Widget, TabWidget
 from widgets.layouts import VBoxLayout
 
 
@@ -178,6 +178,14 @@ class Kabuto(QMainWindow):
         # ---------------------------------------------------------------------
         # メイン・ウィジェット
         # ---------------------------------------------------------------------
+        self.tab = tab = TabWidget()
+        tab.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Fixed
+        )
+        self.setCentralWidget(tab)
+
+        """
         self.area_chart = sa = ScrollArea()
         self.setCentralWidget(sa)
         # ベース・ウィジェット
@@ -192,6 +200,7 @@ class Kabuto(QMainWindow):
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft
         )
         base.setLayout(layout)
+        """
 
     def _connect_worker_signals(
             self,
@@ -308,7 +317,8 @@ class Kabuto(QMainWindow):
         :return:
         """
         # 配置済みの Trader インスタンスを消去
-        clear_boxlayout(self.layout)
+        # clear_boxlayout(self.layout)
+        self.tab.clear()
         # Trader 辞書のクリア
         self.dict_trader.clear()
         # ---------------------------------------------------------------------
@@ -329,8 +339,12 @@ class Kabuto(QMainWindow):
             self.dict_trader[code] = trader
             # 「銘柄名　(code)」をタイトルにして設定し直し
             trader.setChartTitle(f"{dict_name[code]} ({code})")
+
             # 配置
-            self.layout.addWidget(trader)
+            # self.layout.addWidget(trader)
+            self.tab.addTab(trader, code)
+
+        '''
         # ---------------------------------------------------------------------
         # チャートエリアの面積を更新
         # ---------------------------------------------------------------------
@@ -339,6 +353,11 @@ class Kabuto(QMainWindow):
         if self.res.trend_n_max < n:
             n = self.res.trend_n_max
         self.area_chart.setFixedHeight(self.res.trend_height * n + 4)
+        '''
+        # ---------------------------------------------------------------------
+        # チャートエリアの面積を更新
+        # ---------------------------------------------------------------------
+        self.tab.setMinimumWidth(self.res.trend_width)
 
     def force_closing_position(self) -> None:
         """

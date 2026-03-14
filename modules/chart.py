@@ -49,6 +49,7 @@ class TrendChart(pg.PlotWidget):
         # ---------------------------------------------------------------------
         # ウィンドウのサイズ制約（高さのみ）
         self.setFixedHeight(res.trend_height)
+        # self.setMidLineWidth(res.trend_width)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         # ---------------------------------------------------------------------
         # プロットアイテム
@@ -140,7 +141,7 @@ class TrendChart(pg.PlotWidget):
         data_ts = tuple(dict_lines["ts"])
         data_ma_1 = tuple(dict_lines["ma_1"])
         data_vwap = tuple(dict_lines["vwap"])
-        #data_disparity = tuple(dict_lines["disparity"])
+        # data_disparity = tuple(dict_lines["disparity"])
 
         self.ma_1.setData(data_ts, data_ma_1)
         self.vwap.setData(data_ts, data_vwap)
