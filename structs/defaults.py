@@ -7,6 +7,7 @@ class FeatureDefaults:
     """
     PERIOD_WARMUP = 300
     PERIOD_MA_1 = 30
+    PERIOD_RSI = 150
     LOSSCUT_1 = -25.0
     N_MINUS_MAX = 300
     DD_PROFIT = 5.0

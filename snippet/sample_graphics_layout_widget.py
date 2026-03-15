@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QFontDatabase
@@ -50,6 +51,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_rsi.setXLink(self.plot_price)
 
         self.curve_rsi = self.plot_rsi.plot(pen=pg.mkPen((255, 255, 0), width=0.75), name='RSI')
+
+        # 基準線を追加
+        self.plot_rsi.addLine(y=70, pen=pg.mkPen((255, 0, 255, 192), width=0.75))
+        self.plot_rsi.addLine(y=50, pen=pg.mkPen((255, 255, 255, 160), width=0.75))
+        self.plot_rsi.addLine(y=30, pen=pg.mkPen((0, 255, 255, 128), width=0.75))
 
         # プロットの設定
         self._config_plot_items()

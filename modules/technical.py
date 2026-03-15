@@ -159,9 +159,9 @@ class VWAP:
 class RSI:
     def __init__(self, window_size: int):
         self.window_size = window_size
-        self.rsi = 50.0
-        self.prev_rsi = 50.0
-        self.prev_value = None
+        self.rsi = 0.5
+        self.prev_rsi = 0.5
+        self.value_prev = None
         self.avg_gain = None
         self.avg_loss = None
         # 初期化フェーズ用
@@ -181,11 +181,11 @@ class RSI:
         return self.rsi - self.prev_rsi
 
     def update(self, value: float) -> float:
-        if self.prev_value is None:
-            self.prev_value = value
+        if self.value_prev is None:
+            self.value_prev = value
             return self.rsi
 
-        change = value - self.prev_value
+        change = value - self.value_prev
 
         if change > 0.0:
             gain = change
@@ -214,7 +214,7 @@ class RSI:
         self.prev_rsi = self.rsi
         if self.avg_gain is not None:
             total = self.avg_gain + self.avg_loss
-            self.rsi = 100.0 * self.avg_gain / total if total > 0.0 else 50.0
+            self.rsi = self.avg_gain / total if total > 0.0 else 0.5
 
-        self.prev_value = value
+        self.value_prev = value
         return self.rsi

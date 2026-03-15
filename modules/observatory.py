@@ -17,6 +17,7 @@ TECHNICALS = {
     "volume": "getVolume",  # 累積出来高
     "vwap": "getVWAP",  # VWAP
     "ma1": "getMA1",  # 移動平均線 MA1
+    "rsi": "getRSI",  # RSI
     "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル 1
     "cross2": "getCrossSignal2",  # MA1 と MA2 のクロスシグナル 2
     "profit": "getProfit",  # 含損益
