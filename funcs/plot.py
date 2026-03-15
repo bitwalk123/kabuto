@@ -498,19 +498,16 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
 
 
 def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
-    period = 150
-    rsi = RSI(window_size=period)
-    df["rsi"] = [rsi.update(df.loc[t, "price"]) for t in df.index]
-    # ax.plot(df[colname], linewidth=0.5, alpha=0.75, label=f"{period * 2:d} sec")
+    ax.plot(df["rsi"], color="#ff0", linewidth=0.5, alpha=0.75, label=f"n = {dict_setting["PERIOD_RSI"]}")
     x = df.index
     y = df["rsi"]
-    ax.fill_between(x, 50, y, where=(50 < y), fc="#fcc", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 50, y, where=(y < 50), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.5, y, where=(0.5 < y), fc="#faa", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.5, y, where=(y < 0.5), fc="#aaf", ec="#00f", alpha=0.5, lw=0.5)
 
-    ax.axhline(y=50, linewidth=0.75, color="black", alpha=0.5)
-
-    ax.set_ylabel(f"RSI / n={period}")
-    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.axhline(y=0.5, linewidth=0.75, color="black", alpha=0.5)
+    ax.set_ylim(0, 1)
+    ax.set_ylabel(f"RSI")
+    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
 
 def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):

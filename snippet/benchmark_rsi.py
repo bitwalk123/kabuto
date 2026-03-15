@@ -67,7 +67,7 @@ def benchmark_rsi(window_size: int = 300, n_ticks: int = 100000):
             sys.getsizeof(rsi.avg_loss) +
             sys.getsizeof(rsi.rsi) +
             sys.getsizeof(rsi.prev_rsi) +
-            sys.getsizeof(rsi.prev_value) +
+            sys.getsizeof(rsi.value_prev) +
             sys.getsizeof(rsi.init_gain_sum) +
             sys.getsizeof(rsi.init_loss_sum) +
             sys.getsizeof(rsi.init_count)
