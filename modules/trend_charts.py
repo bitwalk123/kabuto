@@ -110,9 +110,9 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.rsi = self.plot_rsi.plot(pen=pg.mkPen(self.COLOR_RSI, width=1), name='RSI')
 
         # 基準線を追加
-        self.plot_rsi.addLine(y=0.7, pen=pg.mkPen((255, 0, 255, 192), width=0.75))
-        self.plot_rsi.addLine(y=0.5, pen=pg.mkPen((255, 255, 255, 160), width=0.75))
-        self.plot_rsi.addLine(y=0.3, pen=pg.mkPen((0, 255, 255, 128), width=0.75))
+        self.plot_rsi.addLine(y=0.7, pen=pg.mkPen((255, 0, 255, 128), width=0.75))
+        self.plot_rsi.addLine(y=0.5, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        self.plot_rsi.addLine(y=0.3, pen=pg.mkPen((0, 255, 255, 96), width=0.75))
 
     def _config_plot_items(self) -> None:
         self.ci.layout.setSpacing(0)
