@@ -9,6 +9,7 @@ from PySide6.QtWidgets import QMainWindow, QDialog
 from funcs.setting import load_setting
 from modules.agent import WorkerAgent
 from modules.dock import DockTrader
+from modules.trend_charts import TrendCharts
 from structs.app_enum import (
     ActionType,
     PositionType,
@@ -57,16 +58,17 @@ class Trader(QMainWindow):
         self.price = 0
 
         # テクニカル指標
-        self.vwap: float = 0.0
+        # self.vwap: float = 0.0
         self.list_ts: list[float] = []
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
-        self.list_disparity: list[float] = []
+        self.list_rsi: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
+            "rsi": self.list_rsi,
         }
 
         # 銘柄コード別設定ファイルの取得
@@ -90,7 +92,8 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャート・インスタンス
         # ---------------------------------------------------------------------
-        self.trend = trend = TrendChart(res, dict_ts, self.dict_setting)
+        # self.trend = trend = TrendChart(res, dict_ts, self.dict_setting)
+        self.trend = trend = TrendCharts(res, dict_ts, self.dict_setting)
         self.setCentralWidget(trend)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
@@ -224,10 +227,11 @@ class Trader(QMainWindow):
             self.dock.panel_trading.unLockButtons()
 
         # テクニカル指標
-        self.vwap = dict_technicals["vwap"]
         self.list_ts.append(dict_technicals["ts"])
+        # self.vwap = dict_technicals["vwap"]
+        self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_vwap.append(self.vwap)
+        self.list_rsi.append(dict_technicals["rsi"])
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
