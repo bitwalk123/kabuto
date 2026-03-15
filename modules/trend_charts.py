@@ -42,8 +42,8 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # ---------------------------------------------------------------------
         # ウィンドウのサイズ制約（高さのみ）
-        self.setFixedHeight(400)
-        # self.setFixedHeight(res.trend_height)
+        # self.setFixedHeight(400)
+        self.setFixedHeight(res.trend_height)
         # self.setMidLineWidth(res.trend_width)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
