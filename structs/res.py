@@ -11,7 +11,7 @@ from PySide6.QtWidgets import QStyle, QWidget
 class AppRes:
     # トレンドチャートの幅、高さ
     trend_width: int = 1500
-    trend_height: int = 250
+    trend_height: int = 350
     trend_n_max: int = 3  # ビューに表示できるチャートの数
 
     # code_default = "7011"  # デフォルトの銘柄コード
