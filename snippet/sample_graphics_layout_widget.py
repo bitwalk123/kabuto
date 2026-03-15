@@ -5,6 +5,8 @@ from PySide6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 import pyqtgraph as pg
 import sys
 
+from modules.technical import RSI
+
 
 class CustomYAxisItem1(pg.AxisItem):
     def tickStrings(self, values: list[float], scale: float, spacing: float) -> list[str]:
@@ -77,11 +79,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
             # 高速化オプション
             plot_item.setClipToView(True)
 
-    def update_data(self, times: list, ma_1: list, vwap, rsi: list):
+    def update_data(self, list_ts: list, list_ma_1: list, list_vwap, list_rsi: list):
         """データ更新"""
-        self.curve_ma_1.setData(times, ma_1)
-        self.curve_vwap.setData(times, vwap)
-        self.curve_rsi.setData(times, rsi)
+        self.curve_ma_1.setData(list_ts, list_ma_1)
+        self.curve_vwap.setData(list_ts, list_vwap)
+        self.curve_rsi.setData(list_ts, list_rsi)
 
     def setTrendTitle(self, title: str) -> None:
         self.plot_price.setTitle(title)
@@ -93,10 +95,11 @@ class SampleCharts(QMainWindow):
         # サンプル・データ
         file_csv = "sample_rsi.zip"
         df = pd.read_csv(file_csv, index_col=0)
-        ts = list(df["ts"])
-        ma1 = list(df["ma1"])
-        vwap = list(df["vwap"])
-        rsi = list(df["rsi"])
+        list_ts = list(df["ts"])
+        list_ma_1 = list(df["ma1"])
+        list_vwap = list(df["vwap"])
+        obj_rsi = RSI(150)
+        list_rsi = [obj_rsi.update(v) for v in list_ma_1]
 
         self.setWindowTitle("pg.GraphicsLayoutWidget を利用したチャート・サンプル")
         base = QWidget()
@@ -109,7 +112,7 @@ class SampleCharts(QMainWindow):
         self.trends = trends = TrendCharts()
         trends.setTrendTitle("銘柄名 (銘柄コード)")
         layout.addWidget(trends)
-        trends.update_data(ts, ma1, vwap, rsi)
+        trends.update_data(list_ts, list_ma_1, list_vwap, list_rsi)
 
 
 def main() -> None:
