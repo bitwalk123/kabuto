@@ -1,0 +1,11 @@
+flowchart LR
+    MS2["楽天証券<br/>マーケットスピードⅡ"]
+    Excel["Microsoft Excel, VBA<br/>マーケットスピードⅡ RSS"]
+    Kabuto["Kabuto (Pythonアプリ)<br/>xlwings, PySide6, PyQtGraph"]
+
+    MS2 <--> Excel
+    Excel <--> Kabuto
+
+    style MS2 fill:#d4e6f1,stroke:#2874a6,stroke-width:2px
+    style Excel fill:#d6eaf8,stroke:#2874a6,stroke-width:2px
+    style Kabuto fill:#fdebd0,stroke:#d68910,stroke-width:2px
