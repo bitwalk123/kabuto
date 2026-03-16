@@ -18,8 +18,8 @@ TECHNICALS = {
     "vwap": "getVWAP",  # VWAP
     "ma1": "getMA1",  # 移動平均線 MA1
     "rsi": "getRSI",  # RSI
-    "cross1": "getCrossSignal1",  # MA1 と MA2 のクロスシグナル 1
-    "cross2": "getCrossSignal2",  # MA1 と MA2 のクロスシグナル 2
+    "cross1": "getCrossSignal1",  # クロスシグナル 1（MA1 と VWAP）
+    "cross2": "getCrossSignal2",  # クロスシグナル 2（予備）
     "profit": "getProfit",  # 含損益
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン

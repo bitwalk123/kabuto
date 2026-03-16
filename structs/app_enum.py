@@ -41,3 +41,13 @@ class SignalSign(Enum):
 class TakeProfit(Enum):
     YES = 1
     NO = 0
+
+
+class TradeType(Enum):
+    NONE = auto()
+    MANUAL = auto()
+    CROSS1 = auto()
+    CROSS2 = auto()
+    LOSS1 = auto()
+    LOSS2 = auto()
+    DD_PROFIT = auto()
