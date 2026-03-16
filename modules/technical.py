@@ -218,3 +218,43 @@ class RSI:
 
         self.value_prev = value
         return self.rsi
+
+
+class Momentum:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque()
+        self.momentum = 0.0
+        self.prev_momentum = 0.0  # 直前の Momentum を保持
+
+    def clear(self) -> None:
+        self.queue.clear()
+        self.momentum = 0.0
+        self.prev_momentum = 0.0
+
+    def getValue(self) -> float:
+        return self.momentum
+
+    def getSlope(self) -> float:
+        # モメンタムの変化率（加速度的な情報）
+        return self.momentum - self.prev_momentum
+
+    def update(self, value: float) -> float:
+        # 新しい値を追加
+        self.queue.append(value)
+
+        # キューがwindow_sizeに達するまでは0を返す
+        if len(self.queue) < self.window_size:
+            return self.momentum
+
+        # window_sizeを超えたら古い値を削除
+        if len(self.queue) > self.window_size:
+            self.queue.popleft()
+
+        # Momentum を更新（更新前に prev_momentum を保存）
+        self.prev_momentum = self.momentum
+
+        # Momentum = 現在値 - window_size期間前の値
+        self.momentum = self.queue[-1] - self.queue[0]
+
+        return self.momentum

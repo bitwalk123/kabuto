@@ -16,7 +16,7 @@ from scipy.interpolate import griddata
 
 from funcs.tide import get_format_date_from_date_str
 from funcs.tse import get_ticker_name_list
-from modules.technical import RSI
+from modules.technical import RSI, Momentum
 
 
 def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
@@ -494,10 +494,11 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # モメンタム
     for n in [300]:
-        # ax.plot(df["price"].diff(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
-        ax.plot(df["price"].pct_change(periods=n), linewidth=0.5, alpha=0.75, label=f"{n * 2:d} sec")
+        mom = Momentum(n)
+        df["momentum"] = [mom.update(v) for v in df["ma1"]]
+        ax.plot(df["momentum"], linewidth=0.75, label=f"n = {n:d}")
 
-    ax.axhline(y=0, linewidth=0.75, color="black", alpha=0.5)
+    #ax.axhline(y=0, linewidth=0.75, color="black", alpha=0.5)
 
     ax.set_ylabel("モメンタム")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
