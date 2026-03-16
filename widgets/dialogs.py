@@ -52,31 +52,10 @@ class DlgAboutThis(QDialog):
 
         r = 0
         lab_name_0 = LabelRight("プロジェクト")
-        lab_name_0.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.Expanding
-        )
-        lab_name_0.setStyleSheet("""
-            QLabel {
-                font-family: monospace;
-                vertical-align: bottom;
-            }
-        """)
-
         layout.addWidget(lab_name_0, r, 0)
 
         lab_name_1 = LabelLeft(f"Project {progname}")
-        lab_name_1.setSizePolicy(
-            QSizePolicy.Policy.Preferred,
-            QSizePolicy.Policy.Expanding
-        )
-        lab_name_1.setStyleSheet("""
-            QLabel {
-                font-family: %s;
-                font-size: 18pt;
-                vertical-align: bottom;
-            }
-        """ % res.name_title_font)
+        lab_name_1.setStyleSheet("QLabel {font-family: %s; font-size: 18pt;}" % res.name_title_font)
         layout.addWidget(lab_name_1, r, 1)
 
         lab_name_2 = Label()
