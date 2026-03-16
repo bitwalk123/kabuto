@@ -49,6 +49,9 @@ class AppRes:
     path_monospace: str = "fonts/RictyDiminished-Regular.ttf"
     name_tick_font: str | None = None
 
+    path_title_font: str = "fonts/Daughter_of_Fortune.ttf"
+    name_title_font: str | None = None
+
     def __init__(self):
         # システムディレクトリのチェック
         list_dir = [

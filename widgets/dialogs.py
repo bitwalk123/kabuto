@@ -5,7 +5,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog,
+    QFileDialog, QSizePolicy,
 )
 
 from structs.res import AppRes
@@ -51,10 +51,11 @@ class DlgAboutThis(QDialog):
         self.setLayout(layout)
 
         r = 0
-        lab_name_0 = LabelRight("アプリ名")
+        lab_name_0 = LabelRight("プロジェクト")
         layout.addWidget(lab_name_0, r, 0)
 
-        lab_name_1 = LabelLeft(progname)
+        lab_name_1 = LabelLeft(f"Project {progname}")
+        lab_name_1.setStyleSheet("QLabel {font-family: %s; font-size: 18pt;}" % res.name_title_font)
         layout.addWidget(lab_name_1, r, 1)
 
         lab_name_2 = Label()
@@ -88,14 +89,17 @@ class DlgAboutThis(QDialog):
         r += 1
         lab_desc = TextEdit()
         msg = (
-            '<p>これは Qt for Python (PySide6) を利用した、デイトレード用 GUI アプリです。</p>'
+            f'<p>{progname} は、デイトレード用アプリです。</p>'
+            '<p>GUI は Qt for Python (PySide6)、'
+            'リアルタイム用のチャートには PyQtGraph を利用しています。</p>'
             '<p>Python の xlwings パッケージを介して、'
-            'Excel シート上のデータへのアクセスおよび、VBA マクロを実行して '
+            'Excel シート上にアクセスして情報を取得、'
+            '売買は VBA マクロを実行して '
             'MARKET SPEED II RSS とやりとりをします。</p>'
-            '<p style="font-size: small;">MARKET SPEED II RSS は、Microsoftの表計算ソフト'
-            ' Excel のアドインとして利用できる、楽天証券のトレーディングツールです。</p>'
+            '<p style="font-size: small;">MARKET SPEED II RSS は、'
+            'Microsoftの表計算ソフト Excel のアドインとして利用できる、'
+            '楽天証券のトレーディングツールです。</p>'
         )
-        # lab_desc.setPlainText(msg)
         lab_desc.setHtml(msg)
         lab_desc.setReadOnly(True)
         layout.addWidget(lab_desc, r, 0, 1, 3)

@@ -39,7 +39,7 @@ from widgets.layouts import VBoxLayout
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.6.1"
+    __version__ = "0.6.2"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -147,9 +147,14 @@ class Kabuto(QMainWindow):
 
     def _setup_ui(self) -> None:
         """UI コンポーネントの初期化"""
-        # アプリケーション・フォント
+
+        # アプリケーション・フォント（チャートのティック）
         self.font_tick = TickFont(self.res.path_monospace)
         self.res.name_tick_font = self.font_tick.name
+        # アプリケーション・フォント（アプリケーション・タイトル）
+        self.font_title = TickFont(self.res.path_title_font)
+        self.res.name_title_font = self.font_title.name
+
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "kabuto.png")))
         title_win = f"{self.__app_name__} - {self.__version__}"
