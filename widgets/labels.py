@@ -26,7 +26,9 @@ class LabelLeft(QLabel):
     def __init__(self, *args):
         super().__init__(*args)
         self.setStyleSheet("""
-            QLabel {font-family: monospace;}
+            QLabel {
+                font-family: monospace;
+            }
         """)
         self.setContentsMargins(QMargins(5, 1, 5, 1))
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
