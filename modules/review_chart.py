@@ -24,7 +24,7 @@ from widgets.layouts import VBoxLayout
 
 class ReviewChart(Widget):
     IMAGE_WIDTH = 680
-    IMAGE_HEIGHT = 600
+    IMAGE_HEIGHT = 700
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -50,7 +50,7 @@ class ReviewChart(Widget):
         canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout.addWidget(canvas)
 
-        self.n = n = 4
+        self.n = n = 5
         self.ax = ax = dict()
         gs = fig.add_gridspec(
             n, 1, wspace=0.0, hspace=0.0,
@@ -82,14 +82,16 @@ class ReviewChart(Widget):
         plot_price_vwap(self.ax[0], df, title, dict_ts)
 
         # 2. モメンタム
-        #plot_momentum(self.ax[1], df, dict_setting)
         plot_rsi(self.ax[1], df, dict_setting)
 
-        # 3. 含み益
-        plot_profit(self.ax[2], df, dict_setting)
+        # 3. モメンタム
+        plot_momentum(self.ax[2], df, dict_setting)
 
-        # 4. ドローダウン
-        plot_drawdown(self.ax[3], df, dict_setting)
+        # 4. 含み益
+        plot_profit(self.ax[3], df, dict_setting)
+
+        # 5. ドローダウン
+        plot_drawdown(self.ax[4], df, dict_setting)
 
         # --- クロス・シグナル、その他縦線系 ---
         plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
