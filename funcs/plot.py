@@ -389,8 +389,14 @@ def trend_diff(code: str, df: pd.DataFrame):
         ax[i] = axis
         ax[i].grid()
 
+    # 銘柄情報
     name = get_ticker_name_list([code])[code]
-    ax[0].set_title(f"{name} ({code})")
+    # 今日の High - Low
+    price_high = df.tail(1)["High"].iloc[0]
+    price_low = df.tail(1)["Low"].iloc[0]
+    price_delta = price_high - price_low
+    today = df.tail(1).index[0].date()
+    ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.1f} JPY")
 
     apds = [
         mpf.make_addplot(df["Diff"], width=0.75, color="C1", ax=ax[1]),
