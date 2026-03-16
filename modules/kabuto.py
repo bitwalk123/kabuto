@@ -6,7 +6,6 @@ import pandas as pd
 from PySide6.QtCore import (
     QThread,
     QTimer,
-    Qt,
     Signal,
     Slot,
 )
@@ -24,7 +23,6 @@ from funcs.conv import conv_transaction_df2html
 from funcs.setting import update_setting
 from funcs.tide import conv_date_str_to_path, get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
-from funcs.uis import clear_boxlayout
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
 from widgets.dialogs import DlgAboutThis, DlgCodeSel
@@ -35,7 +33,7 @@ from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.win_transaction import WinTransaction
 from structs.res import AppRes
-from widgets.containers import ScrollArea, Widget, TabWidget
+from widgets.containers import ScrollArea, TabWidget
 from widgets.layouts import VBoxLayout
 
 
@@ -595,7 +593,7 @@ class Kabuto(QMainWindow):
         """
         約定確認結果
         :param code:
-        :param status:
+        :param price:
         :return:
         """
         trader: Trader = self.dict_trader[code]
