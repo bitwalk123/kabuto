@@ -8,11 +8,11 @@ class AlgoTradeBase(ABC):
     """
     強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのベース・クラス
     """
+    name: str = "AlgoTradeBase"
+    version: str = "1.0.0"
 
     def __init__(self):
         self.list_obs_label: list | None = None
-        self.name: str = self.__class__.__name__
-        self.version: str = "1.0.0"
 
     def getListObs(self) -> list:
         return self.list_obs_label
@@ -41,7 +41,7 @@ class AlgoTradeBase(ABC):
         ポジションに応じた返済アクション
         【備考】
         以前は返済アクションにREPAYMENTを用意していたが、
-        モデルの学習に合わないので削除した。→ 疑似モデルでも維持
+        強化モデルの学習に合わないので削除した。→ 疑似モデルでも維持
         :param position:
         :return:
         """
@@ -120,6 +120,19 @@ class AlgoTrade(AlgoTradeBase):
             # 有効なアクションかつ実行可能ならそのアクションを返す
             if exit_act and self.can_execute(exit_act, masks):
                 return exit_act, {}
+
+        if position == PositionType.NONE:
+            # --- クロスシグナルによる自動エントリー ---
+
+            # ゴールデンクロス（MA1 > VWAP）
+            if cross_1 > 0:  # クロスS1: MA1 が VWAP を上抜け
+                if self.can_execute(ActionType.BUY.value, masks):
+                    return ActionType.BUY.value, {'reason': 'golden_cross_1'}
+
+            # デッドクロス（MA1 < VWAP）
+            if cross_1 < 0:  # クロスS1: MA1 が VWAP を下抜け
+                if self.can_execute(ActionType.SELL.value, masks):
+                    return ActionType.SELL.value, {'reason': 'dead_cross_1'}
 
         # 3. デフォルトは HOLD
         return ActionType.HOLD.value, {}
