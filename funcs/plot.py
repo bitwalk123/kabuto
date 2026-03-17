@@ -425,7 +425,7 @@ def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
             df,
             type="candle",
             style="default",
-            datetime_format="%H:%M",
+            datetime_format="%m/%d",
             xrotation=0,
             update_width_config=dict(candle_linewidth=0.75),
             ax=ax,
