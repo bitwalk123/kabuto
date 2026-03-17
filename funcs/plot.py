@@ -347,7 +347,7 @@ def plot_trend_review(
     plt.show()
 
 
-def trend_diff(code: str, df: pd.DataFrame):
+def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
     # 出力イメージ名
     dt_end = df.tail(1).index[0].date()
     str_year = f"{dt_end.year:04d}"
@@ -390,13 +390,23 @@ def trend_diff(code: str, df: pd.DataFrame):
         ax[i].grid()
 
     # 銘柄情報
-    name = get_ticker_name_list([code])[code]
+    if name == "":
+        # 東証銘柄
+        name = get_ticker_name_list([code])[code]
+        tse = True
+    else:
+        # 米国 ADR
+        tse = False
+
     # 今日の High - Low
     price_high = df.tail(1)["High"].iloc[0]
     price_low = df.tail(1)["Low"].iloc[0]
     price_delta = price_high - price_low
     today = df.tail(1).index[0].date()
-    ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.1f} JPY")
+    if tse:
+        ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.1f} JPY")
+    else:
+        ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.2f} USD")
 
     apds = [
         mpf.make_addplot(df["Diff"], width=0.75, color="C1", ax=ax[1]),
