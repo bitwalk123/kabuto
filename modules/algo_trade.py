@@ -1,25 +1,29 @@
+from abc import ABC, abstractmethod
 from typing import Any
 
 from structs.app_enum import ActionType, PositionType
 
 
-class AlgoTrade:
+class AlgoTradeBase(ABC):
     """
-    強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのクラス
+    強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのベース・クラス
     """
 
     def __init__(self):
         self.list_obs_label: list | None = None
-        # 観測値のインデックス
-        self.idx_cross_1: int | None = None
-        self.idx_cross_2: int | None = None
-        self.idx_losscut_1: int | None = None
-        self.idx_losscut_2: int | None = None
-        self.idx_takeprofit_1: int | None = None
-        self.idx_position: int | None = None
+        self.name: str = self.__class__.__name__
+        self.version: str = "1.0.0"
 
     def getListObs(self) -> list:
         return self.list_obs_label
+
+    def getName(self) -> str:
+        """戦略名を返す"""
+        return self.name
+
+    def getVersion(self) -> str:
+        """バージョンを返す"""
+        return self.version
 
     @staticmethod
     def can_execute(action, masks):
@@ -46,6 +50,45 @@ class AlgoTrade:
         if position == PositionType.SHORT:
             return ActionType.BUY.value
         return None
+
+    @abstractmethod
+    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
+        """
+        観測値から行動を予測（必須実装）
+
+        :param obs: 観測値（numpy配列）
+        :param masks: 行動マスク
+        :return: (action, info_dict)
+        """
+        ...
+
+    @abstractmethod
+    def updateObs(self, list_obs_label):
+        """
+        観測値ラベルの更新（必須実装）
+
+        疑似ロジックでは、観測値にラベルを付けておかないと、コーディングする側が間違える！
+        【課題】
+        ObservationManager クラスと整合・同期を取る仕組みを導入する必要がある。
+
+        :param list_obs_label: 観測値ラベルのリスト
+        :return:
+        """
+        ...
+
+
+class AlgoTrade(AlgoTradeBase):
+    """疑似モデルのクラス"""
+
+    def __init__(self):
+        super().__init__()
+        # 観測値のインデックス
+        self.idx_cross_1: int | None = None
+        self.idx_cross_2: int | None = None
+        self.idx_losscut_1: int | None = None
+        self.idx_losscut_2: int | None = None
+        self.idx_takeprofit_1: int | None = None
+        self.idx_position: int | None = None
 
     def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
         # --- 観測値の取り出し ---
