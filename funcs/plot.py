@@ -356,7 +356,6 @@ def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
 
     dir_name = os.path.join(str_year, str_month, str_day)
     os.makedirs(dir_name, exist_ok=True)
-    img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
 
     n = len(df)
     mean = df["Diff"].mean()
@@ -376,6 +375,7 @@ def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
 
     if name == "":
         # 東証銘柄
+        img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
         plt.rcParams["font.size"] = 9
         n = 2
         fig = plt.figure(figsize=(6, 3))
@@ -419,6 +419,7 @@ def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
         ax[1].set_ylabel("High - Low")
     else:
         # 米国 ADR
+        img_name = os.path.join(dir_name, f"{code}_trend.png")
         plt.rcParams["font.size"] = 8
         fig, ax = plt.subplots(figsize=(3, 1.8))
         mpf.plot(
