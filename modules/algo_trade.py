@@ -94,7 +94,7 @@ class AlgoTrade(AlgoTradeBase):
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])
-        # 2. クロスシグナル 1 [-1, 0, 1]
+        # 2. クロスシグナル 2 [-1, 0, 1]
         cross_2 = int(obs[self.idx_cross_2])
         # 3. ロスカット 1 [0, 1]
         losscut_1 = int(obs[self.idx_losscut_1])
