@@ -512,7 +512,7 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.fill_between(x, 0.5, y, where=(y < 0.5), fc="#aaf", ec="#00f", alpha=0.5, lw=0.5)
 
     ax.axhline(y=0.5, linewidth=0.75, color="black", alpha=0.5)
-    ax.set_ylim(0, 1)
+    ax.set_ylim(-0.05, 1.05)
     ax.set_ylabel(f"RSI")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
 
