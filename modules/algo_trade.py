@@ -12,18 +12,8 @@ class AlgoTradeBase(ABC):
     version: str = "1.0.0"
 
     def __init__(self):
+        self.autopilot = False
         self.list_obs_label: list | None = None
-
-    def getListObs(self) -> list:
-        return self.list_obs_label
-
-    def getName(self) -> str:
-        """戦略名を返す"""
-        return self.name
-
-    def getVersion(self) -> str:
-        """バージョンを返す"""
-        return self.version
 
     @staticmethod
     def can_execute(action, masks):
@@ -51,6 +41,17 @@ class AlgoTradeBase(ABC):
             return ActionType.BUY.value
         return None
 
+    def getListObs(self) -> list:
+        return self.list_obs_label
+
+    def getName(self) -> str:
+        """戦略名を返す"""
+        return self.name
+
+    def getVersion(self) -> str:
+        """バージョンを返す"""
+        return self.version
+
     @abstractmethod
     def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
         """
@@ -61,6 +62,9 @@ class AlgoTradeBase(ABC):
         :return: (action, info_dict)
         """
         ...
+
+    def setAutoPlot(self, flag: bool):
+        self.autopilot = flag
 
     @abstractmethod
     def updateObs(self, list_obs_label):
@@ -121,9 +125,8 @@ class AlgoTrade(AlgoTradeBase):
             if exit_act and self.can_execute(exit_act, masks):
                 return exit_act, {}
 
-        if position == PositionType.NONE:
-            # --- クロスシグナルによる自動エントリー ---
-
+        # 3. クロスシグナルによる自動エントリー ---
+        if self.autopilot and position == PositionType.NONE:
             # ゴールデンクロス（MA1 > VWAP）
             if cross_1 > 0:  # クロスS1: MA1 が VWAP を上抜け
                 if self.can_execute(ActionType.BUY.value, masks):
@@ -134,7 +137,7 @@ class AlgoTrade(AlgoTradeBase):
                 if self.can_execute(ActionType.SELL.value, masks):
                     return ActionType.SELL.value, {'reason': 'dead_cross_1'}
 
-        # 3. デフォルトは HOLD
+        # 4. デフォルトは HOLD
         return ActionType.HOLD.value, {}
 
     def updateObs(self, list_obs_label):

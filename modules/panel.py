@@ -140,6 +140,7 @@ class PanelOption(QFrame):
     clickedSetting = Signal()
     clickedRepair = Signal()
     changedDisparity = Signal(bool)
+    toggledAutoPilot = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__()
@@ -190,5 +191,5 @@ class PanelOption(QFrame):
     def on_clicked_setting(self):
         self.clickedSetting.emit()
 
-    def on_toggled_autopilot(self, flag:bool):
-        print(flag)
+    def on_toggled_autopilot(self, flag: bool):
+        self.toggledAutoPilot.emit(flag)

@@ -90,6 +90,20 @@ class WorkerAgent(QObject):
             self.completedTrading.emit()
 
     @Slot()
+    def cleanup(self) -> None:
+        """
+        スレッド終了前のクリーンアップ処理
+        Trader.closeEvent から呼び出される想定（オプション）
+        """
+        self.logger.info(f"ワーカーのクリーンアップを開始します。")
+        self._is_stopping = True
+
+        # 必要に応じてリソースの解放処理を追加
+        # 例：self.env.close() などがあれば呼び出す
+
+        self.logger.info(f"ワーカーのクリーンアップが完了しました。")
+
+    @Slot()
     def forceRepay(self) -> None:
         """
         建玉返済の強制処理通知
@@ -128,16 +142,6 @@ class WorkerAgent(QObject):
         except (KeyError, ValueError, IOError) as e:
             self.logger.error(f"テクニカル指標の保存に失敗しました: {e}")
 
-    @Slot()
-    def cleanup(self) -> None:
-        """
-        スレッド終了前のクリーンアップ処理
-        Trader.closeEvent から呼び出される想定（オプション）
-        """
-        self.logger.info(f"ワーカーのクリーンアップを開始します。")
-        self._is_stopping = True
-
-        # 必要に応じてリソースの解放処理を追加
-        # 例：self.env.close() などがあれば呼び出す
-
-        self.logger.info(f"ワーカーのクリーンアップが完了しました。")
+    @Slot(bool)
+    def setAutoPilot(self, flag: bool):
+        self.model.setAutoPlot(flag)

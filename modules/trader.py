@@ -25,9 +25,9 @@ TradeKey: TypeAlias = tuple[ActionType, PositionType]
 
 class Trader(QMainWindow):
     # 環境クラス用
-    sendTradeData = Signal(float, float, float)
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
+    sendTradeData = Signal(float, float, float)
 
     # 売買用
     requestPositionOpen = Signal(ActionType)
@@ -36,6 +36,9 @@ class Trader(QMainWindow):
 
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
+
+    # オートパイロット用
+    requestChangeAutoPilot = Signal(bool)
 
     # --- 状態遷移表 ---
     ACTION_DISPATCH: dict[TradeKey, TradeAction] = {
@@ -82,11 +85,12 @@ class Trader(QMainWindow):
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
-        self.dock.clickedBuy.connect(self.on_buy)
-        self.dock.clickedSell.connect(self.on_sell)
-        self.dock.clickedRepay.connect(self.on_repay)
-        self.dock.clickedSetting.connect(self.on_setting)
-        self.dock.clickedSave.connect(self.on_save)
+        dock.clickedBuy.connect(self.on_buy)
+        dock.clickedSell.connect(self.on_sell)
+        dock.clickedRepay.connect(self.on_repay)
+        dock.clickedSetting.connect(self.on_setting)
+        dock.clickedSave.connect(self.on_save)
+        dock.changedAutoPilot.connect(self.on_autopilot)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -108,11 +112,12 @@ class Trader(QMainWindow):
         worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
-        self.requestResetEnv.connect(worker.resetEnv)
-        self.sendTradeData.connect(worker.addData)
-        self.requestSaveTechnicals.connect(worker.saveTechnicals)
+        self.requestChangeAutoPilot.connect(worker.setAutoPilot)
         self.requestPositionOpen.connect(worker.env.openPosition)
         self.requestPositionClose.connect(worker.env.closePosition)
+        self.requestResetEnv.connect(worker.resetEnv)
+        self.requestSaveTechnicals.connect(worker.saveTechnicals)
+        self.sendTradeData.connect(worker.addData)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
         worker.completedResetEnv.connect(self.reset_env_completed)
@@ -188,6 +193,9 @@ class Trader(QMainWindow):
 
         # dock のメソッドを取得して実行
         getattr(self.dock, method_name)()
+
+    def on_autopilot(self, flag):
+        self.requestChangeAutoPilot.emit(flag)
 
     def on_save(self) -> None:
         """
