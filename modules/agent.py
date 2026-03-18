@@ -144,4 +144,4 @@ class WorkerAgent(QObject):
 
     @Slot(bool)
     def setAutoPilot(self, flag: bool):
-        self.model.setAutoPlot(flag)
+        self.model.setAutoPilot(flag)

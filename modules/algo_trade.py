@@ -63,7 +63,7 @@ class AlgoTradeBase(ABC):
         """
         ...
 
-    def setAutoPlot(self, flag: bool):
+    def setAutoPilot(self, flag: bool):
         self.autopilot = flag
 
     @abstractmethod
