@@ -6,7 +6,7 @@ import time
 import pandas as pd
 import xlwings as xw
 
-from funcs.ios import save_dataframe_to_excel
+from funcs.excel import save_dataframe_to_excel
 from funcs.tide import get_date_str_today
 
 # Windows 固有のライブラリ

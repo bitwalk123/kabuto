@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 from funcs.commons import get_collection_path
-from funcs.ios import get_excel_sheet
+from funcs.excel import get_excel_sheet
 from modules.env import TradingEnv
 from structs.res import AppRes
 

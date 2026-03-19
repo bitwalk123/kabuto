@@ -5,7 +5,7 @@ from time import perf_counter
 import pandas as pd
 
 from funcs.commons import get_collection_path
-from funcs.ios import get_excel_sheet
+from funcs.excel import get_excel_sheet
 from funcs.models import get_trained_ppo_model_path
 from funcs.tide import get_datetime_str
 from modules.agent_sb3 import MaskablePPOAgent

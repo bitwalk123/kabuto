@@ -10,9 +10,9 @@ from PySide6.QtWidgets import (
 )
 
 from funcs.ios import (
-    get_sheets_in_excel,
     save_setting,
 )
+from funcs.excel import get_sheets_in_excel
 from funcs.setting import load_setting
 from structs.app_enum import AppMode
 from structs.res import AppRes

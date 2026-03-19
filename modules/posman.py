@@ -133,3 +133,6 @@ class PositionManager:
             return False
         else:
             return True
+
+    def reset(self):
+        self.__init__()

@@ -4,7 +4,7 @@ import time
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
-from funcs.ios import load_excel
+from funcs.excel import load_excel
 from funcs.tse import get_ticker_name_list
 from modules.posman import PositionManager
 from structs.app_enum import ActionType
