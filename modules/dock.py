@@ -15,6 +15,7 @@ class DockTrader(DockWidget):
     clickedRepay = Signal(str, float, str, bool)
     clickedSave = Signal()
     clickedSetting = Signal()
+    changedAutoPilot = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
@@ -61,6 +62,7 @@ class DockTrader(DockWidget):
         panel_option.clickedSave.connect(self.on_save)
         panel_option.clickedRepair.connect(self.on_repair)
         panel_option.clickedSetting.connect(self.on_setting)
+        panel_option.toggledAutoPilot.connect(self.on_autopilot)
         self.layout.addWidget(panel_option)
 
     def force_repay(self) -> None:
@@ -70,6 +72,9 @@ class DockTrader(DockWidget):
         """
         if self.doRepay():
             self.logger.info(f"'{self.code}'の強制返済をしました。")
+
+    def on_autopilot(self, flag):
+        self.changedAutoPilot.emit(flag)
 
     def on_buy(self) -> None:
         """
@@ -129,11 +134,6 @@ class DockTrader(DockWidget):
 
     def on_setting(self):
         self.clickedSetting.emit()
-
-    """
-    def isDisparityChecked(self) -> bool:
-        return self.panel_option.disparity.isEnabled()
-    """
 
     def setPrice(self, price: float) -> None:
         """

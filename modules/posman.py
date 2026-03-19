@@ -127,3 +127,9 @@ class PositionManager:
             .dt.tz_localize(None)
         )
         return df
+
+    def hasPosition(self, code:str) -> bool:
+        if self.dict_action[code] == ActionType.HOLD:
+            return False
+        else:
+            return True

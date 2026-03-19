@@ -1,3 +1,6 @@
+"""
+Project Kabuto のデイトレ用 GUI アプリの起動プログラム (Kabuto)
+"""
 import argparse
 import logging
 import sys

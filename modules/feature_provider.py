@@ -245,10 +245,6 @@ class FeatureProvider:
         self.s.pnl_total += profit
         reward += profit
 
-        # 取引明細更新（建玉返済）
-        # if self.s.position != PositionType.NONE:
-        #    self.transaction_close(profit)
-
         # 含み益関連のリセット
         self.s.price_entry = 0.0
         self.s.profit_max = 0.0
@@ -276,9 +272,6 @@ class FeatureProvider:
 
         # ポジションを更新
         self.s.position = position
-
-        # 取引明細更新（新規建玉）
-        # self.transaction_open()
 
         return reward
 
