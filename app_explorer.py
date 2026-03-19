@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-from funcs.ios import get_excel_sheet
+from funcs.excel import get_excel_sheet
 from funcs.logs import setup_logging
 from funcs.setting import load_setting, update_setting
 from funcs.tide import get_date_str_from_file, get_intraday_timestamp

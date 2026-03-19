@@ -9,7 +9,7 @@ from PySide6.QtCore import QThread, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QMainWindow, QApplication
 
-from funcs.ios import get_excel_sheet
+from funcs.excel import get_excel_sheet
 from funcs.tide import get_datetime_str
 from modules.agent_obsolete import WorkerAgent
 from modules.kabuto import Kabuto

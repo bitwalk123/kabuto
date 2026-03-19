@@ -13,7 +13,7 @@ from PySide6.QtCore import (
     Slot,
 )
 
-from funcs.ios import save_dataframe_to_excel
+from funcs.excel import save_dataframe_to_excel
 from funcs.tide import get_date_str_today
 from modules.posman import PositionManager
 from structs.app_enum import ActionType

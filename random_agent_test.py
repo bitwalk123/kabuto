@@ -5,7 +5,7 @@ import matplotlib.font_manager as fm
 import matplotlib.pyplot as plt
 
 from funcs.conv import conv_date_str
-from funcs.ios import get_excel_sheet
+from funcs.excel import get_excel_sheet
 from funcs.tse import get_ticker_name_list
 from modules.trading_env_20250914 import TradingEnv
 

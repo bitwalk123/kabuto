@@ -7,7 +7,7 @@ from PySide6.QtCore import Signal, QThread
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QToolBar, QDialog
 
-from funcs.ios import get_sheets_in_excel
+from funcs.excel import get_sheets_in_excel
 from funcs.tse import get_ticker_name_list
 from modules.uploader import UploadWorker
 from structs.res import AppRes

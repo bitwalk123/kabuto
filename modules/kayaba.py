@@ -1,8 +1,14 @@
+import datetime
+import glob
 import logging
+import os
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
 
+from funcs.commons import get_dt_from_collections, get_datestr_from_collections
+from funcs.excel import is_sheet_exists, load_excel
+from funcs.setting import load_setting
 from modules.agent_cli import AgentCLI
 from modules.kabuto import Kabuto
 from modules.posman import PositionManager
@@ -29,63 +35,92 @@ class Kayaba:
         # HOLD は何もしないので載せない
     }
 
-    def __init__(self, res: AppRes, code: str, dict_setting: dict[str, Any], df: pd.DataFrame):
+    def __init__(self, code: str, dt_start: datetime.datetime) -> None:
         self.logger = logging.getLogger(__name__)
-        self.res = res
         self.code = code
-        self.dict_setting = dict_setting
-        self.df = df
+        self.dt_start = dt_start
+        self.res = res = AppRes()
 
-        # ポジション・マネージャ
+        # パラメータの読み込み
+        self.dict_setting: dict[str, Any] = load_setting(res, code)
+
+        # ポジション・マネージャ（使い回す）
         self.posman = PositionManager()
 
-        # PySide6 に依存しない GUI 無しエージェントのインスタンス
-        self.agent = agent = AgentCLI(code, dict_setting)
-        agent.setAutoPilot(True)
+    def run(self) -> None:
+        # ティックファイル
+        path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
+        list_excel = sorted(glob.glob(path_glob))
+        for path_excel in list_excel:
+            if get_dt_from_collections(path_excel) < self.dt_start:
+                continue
+            if not is_sheet_exists(path_excel, self.code):
+                continue
 
-    def run(self) -> tuple[int, float]:
+            print(f"\n{path_excel}")
+            date_str = get_datestr_from_collections(path_excel)
+            dict_sheet = load_excel(path_excel)
+            df: pd.DataFrame = dict_sheet[self.code]
+
+            # Kayaba インスタンス
+            agent = AgentCLI(self.code, self.dict_setting)
+
+            # シミュレーション
+            n, total = self.simulation(agent, df)
+            print(f"売買回数: {n} 回, 損益: {total: .0f} 円")
+
+            # テクニカル・データ（出力先）
+            path_csv = os.path.join(self.res.dir_temp, f"{date_str}_{self.code}_technicals.csv")
+            self.saveTechnicals(agent, path_csv)
+
+    def simulation(self, agent: AgentCLI, df: pd.DataFrame) -> tuple[int, Any]:
+        # ポジション・マネージャのリセット
+        self.posman.reset()
         # ポジション・マネージャの初期化
         self.posman.initPosition([self.code])
+
+        # エージェントの自動売買をオン
+        agent.setAutoPilot(True)
         # エージェントのリセット
-        self.agent.resetEnv()
+        agent.resetEnv()
+
         # ティックデータのループ
         ts, price = (0.0, 0.0)
-        for row in self.df.itertuples():
+        for row in df.itertuples():
             ts = row.Time
             price = row.Price
             volume = row.Volume
 
-            action, position = self.agent.addData(ts, price, volume)
+            action, position = agent.addData(ts, price, volume)
             action_enum = ActionType(action)
-
             if action_enum != ActionType.HOLD:
                 method_name = self.ACTION_DISPATCH.get((action_enum, position))
                 if method_name is None:
-                    self.logger.error(
-                        f"trade rule violation! action={action_enum}, pos={position}"
-                    )
+                    self.logger.error(f"trade rule violation! action={action_enum}, pos={position}")
                     break
                 getattr(self, method_name)(ts, price)
 
         # 強制返済
         self.forceRepay(ts, price)
+
+        # 取引明細
         df_transaction = self.posman.getTransactionResult()
 
         return len(df_transaction), df_transaction["損益"].sum()
 
-    def doBuy(self, ts, price):
+    def doBuy(self, ts, price) -> None:
         self.posman.openPosition(self.code, ts, price, ActionType.BUY)
 
-    def doSell(self, ts, price):
+    def doSell(self, ts, price) -> None:
         self.posman.openPosition(self.code, ts, price, ActionType.SELL)
 
-    def doRepay(self, ts, price):
+    def doRepay(self, ts, price) -> None:
         self.posman.closePosition(self.code, ts, price)
 
-    def forceRepay(self, ts, price):
+    def forceRepay(self, ts, price) -> None:
         if self.posman.hasPosition(self.code):
             self.doRepay(ts, price)
 
-    def saveTechnicals(self, path_csv: str):
+    def saveTechnicals(self, agent: AgentCLI, path_csv: str) -> None:
         # テクニカル・データの保存
-        self.agent.saveTechnicals(path_csv)
+        agent.saveTechnicals(path_csv)
