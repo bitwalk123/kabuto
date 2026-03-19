@@ -1,0 +1,27 @@
+flowchart TB
+    subgraph Kabuto
+        K_send["Signal送信:<br/>requestSaveTechnicals"]
+        K_recv["Slot受信:<br/>on_update_data<br/>on_repay_forced<br/>on_exit"]
+    end
+    
+    subgraph QTimer
+        Timer["timeout Signal"]
+    end
+    
+    subgraph "Trader (9984, 8306, 8001...)"
+        Tr_recv["Slot受信:<br/>setTradeData<br/>forceRepay<br/>saveTechnicals"]
+    end
+    
+    subgraph Excel
+        E_method["メソッド:<br/>update()<br/>get_price()<br/>get_volume()"]
+    end
+    
+    Timer -.-> K_recv
+    K_send -.-> Tr_recv
+    K_recv -.呼び出し.-> E_method
+    
+    style K_send fill:#fdebd0,stroke:#d68910
+    style K_recv fill:#fef5e7,stroke:#d68910
+    style Timer fill:#d6eaf8,stroke:#2874a6
+    style Tr_recv fill:#e8f8f5,stroke:#17a589
+    style E_method fill:#e8daef,stroke:#7d3c98

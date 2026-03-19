@@ -4,11 +4,6 @@ from typing import Any, DefaultDict
 
 import numpy as np
 import pandas as pd
-from PySide6.QtCore import (
-    QObject,
-    Signal,
-    Slot,
-)
 
 from funcs.tide import conv_datetime_from_timestamp
 from modules.algo_trade import AlgoTrade
@@ -16,18 +11,20 @@ from modules.env import TradingEnv
 from structs.app_enum import ActionType, PositionType
 
 
-class WorkerAgent(QObject):
+class AgentCLI:
     """
     強化学習を利用せずに、アルゴリズムのみのエージェント
     （リアルタイム用）
     """
     BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
 
+    '''
     # シグナル
     completedResetEnv = Signal()
     completedTrading = Signal()
     notifyAction = Signal(int, PositionType)  # 売買アクションを通知
     sendTechnicals = Signal(dict)
+    '''
 
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
         super().__init__()
@@ -49,11 +46,10 @@ class WorkerAgent(QObject):
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
-    @Slot(float, float, float)
-    def addData(self, ts: float, price: float, volume: float) -> None:
+    def addData(self, ts: float, price: float, volume: float) -> tuple[int, PositionType]:
         # 終了処理中はデータを処理しない
         if self._is_stopping or self.done:
-            return
+            return ActionType.HOLD.value, PositionType.NONE
 
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume)
@@ -66,6 +62,7 @@ class WorkerAgent(QObject):
 
         # メイン・スレッドへ通知する発注アクションを最優先
         position: PositionType = self.env.getCurrentPosition()
+        '''
         if ActionType(action) != ActionType.HOLD:
             # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
             self.notifyAction.emit(action, position)
@@ -73,6 +70,7 @@ class WorkerAgent(QObject):
         # メイン・スレッドへ通知するプロット用テクニカル指標
         # 🧿 テクニカル指標を通知するシグナル
         self.sendTechnicals.emit(dict_technicals)
+        '''
         # トレード後にまとめてデータフレームで出力するため
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
@@ -86,10 +84,12 @@ class WorkerAgent(QObject):
             flag_name = "terminated" if terminated else "truncated"
             self.logger.info(f"{flag_name} フラグが立ちました。")
             self.done = True
+            '''
             # 🧿 取引終了シグナルの通知
             self.completedTrading.emit()
+            '''
+        return action, position
 
-    @Slot()
     def cleanup(self) -> None:
         """
         スレッド終了前のクリーンアップ処理
@@ -103,7 +103,6 @@ class WorkerAgent(QObject):
 
         self.logger.info(f"ワーカーのクリーンアップが完了しました。")
 
-    @Slot()
     def forceRepay(self) -> None:
         """
         建玉返済の強制処理通知
@@ -111,7 +110,6 @@ class WorkerAgent(QObject):
         """
         self.env.forceRepay()
 
-    @Slot()
     def resetEnv(self) -> None:
         # 環境のリセット
         self.obs, _ = self.env.reset()
@@ -123,10 +121,11 @@ class WorkerAgent(QObject):
         self.model.updateObs(self.list_obs_label)
         list_colname.extend(self.list_obs_label)
         self.df_obs = pd.DataFrame({col: [] for col in list_colname})
+        '''
         # 🧿 環境のリセット完了を通知
         self.completedResetEnv.emit()
+        '''
 
-    @Slot(str)
     def saveTechnicals(self, path_csv: str) -> None:
         """
         テクニカル指標を CSV ファイルに保存
@@ -142,6 +141,5 @@ class WorkerAgent(QObject):
         except (KeyError, ValueError, IOError) as e:
             self.logger.error(f"テクニカル指標の保存に失敗しました: {e}")
 
-    @Slot(bool)
     def setAutoPilot(self, flag: bool):
         self.model.setAutoPilot(flag)

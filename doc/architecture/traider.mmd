@@ -1,0 +1,24 @@
+flowchart TB
+    subgraph Trader
+        T_send["Signal送信:<br/>sendTradeData<br/>requestResetEnv<br/>requestPositionOpen<br/>requestPositionClose"]
+        T_recv["Slot受信:<br/>on_buy<br/>on_sell<br/>on_repay<br/>on_action<br/>on_technicals"]
+    end
+    
+    subgraph WorkerAgent
+        W_send["Signal送信:<br/>completedResetEnv<br/>notifyAction<br/>sendTechnicals"]
+        W_recv["Slot受信:<br/>addData<br/>resetEnv<br/>saveTechnicals"]
+    end
+    
+    subgraph DockTrader
+        D_send["Signal送信:<br/>clickedBuy<br/>clickedSell<br/>clickedRepay"]
+    end
+    
+    T_send -.-> W_recv
+    W_send -.-> T_recv
+    D_send -.-> T_recv
+    
+    style T_send fill:#fdebd0,stroke:#d68910
+    style T_recv fill:#fef5e7,stroke:#d68910
+    style W_send fill:#ffe1e1,stroke:#c0392b
+    style W_recv fill:#fadbd8,stroke:#c0392b
+    style D_send fill:#e8f8f5,stroke:#17a589

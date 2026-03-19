@@ -6,7 +6,7 @@ from widgets.buttons import (
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
-    TradeButton,
+    TradeButton, ToggleButtonAutoPilot,
 )
 from widgets.containers import (
     IndicatorBuySell,
@@ -140,11 +140,13 @@ class PanelOption(QFrame):
     clickedSetting = Signal()
     clickedRepair = Signal()
     changedDisparity = Signal(bool)
+    toggledAutoPilot = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__()
         self.res = res
         self.code = code
+        self.autopilot = False
 
         self.setFrameStyle(
             QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
@@ -152,6 +154,12 @@ class PanelOption(QFrame):
         self.setLineWidth(1)
         layout = HBoxLayout()
         self.setLayout(layout)
+
+        but_autopilot = ToggleButtonAutoPilot(res)
+        but_autopilot.setToolTip("オート・パイロット")
+        but_autopilot.setChecked(self.autopilot)
+        but_autopilot.toggled.connect(self.on_toggled_autopilot)
+        layout.addWidget(but_autopilot)
 
         pad = PadH()
         layout.addWidget(pad)
@@ -182,3 +190,6 @@ class PanelOption(QFrame):
 
     def on_clicked_setting(self):
         self.clickedSetting.emit()
+
+    def on_toggled_autopilot(self, flag: bool):
+        self.toggledAutoPilot.emit(flag)

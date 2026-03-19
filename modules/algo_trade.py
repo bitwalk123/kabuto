@@ -1,25 +1,19 @@
+from abc import ABC, abstractmethod
 from typing import Any
 
 from structs.app_enum import ActionType, PositionType
 
 
-class AlgoTrade:
+class AlgoTradeBase(ABC):
     """
-    強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのクラス
+    強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのベース・クラス
     """
+    name: str = "AlgoTradeBase"
+    version: str = "1.0.0"
 
     def __init__(self):
+        self.autopilot = False
         self.list_obs_label: list | None = None
-        # 観測値のインデックス
-        self.idx_cross_1: int | None = None
-        self.idx_cross_2: int | None = None
-        self.idx_losscut_1: int | None = None
-        self.idx_losscut_2: int | None = None
-        self.idx_takeprofit_1: int | None = None
-        self.idx_position: int | None = None
-
-    def getListObs(self) -> list:
-        return self.list_obs_label
 
     @staticmethod
     def can_execute(action, masks):
@@ -37,7 +31,7 @@ class AlgoTrade:
         ポジションに応じた返済アクション
         【備考】
         以前は返済アクションにREPAYMENTを用意していたが、
-        モデルの学習に合わないので削除した。→ 疑似モデルでも維持
+        強化モデルの学習に合わないので削除した。→ 疑似モデルでも維持
         :param position:
         :return:
         """
@@ -47,11 +41,64 @@ class AlgoTrade:
             return ActionType.BUY.value
         return None
 
+    def getListObs(self) -> list:
+        return self.list_obs_label
+
+    def getName(self) -> str:
+        """戦略名を返す"""
+        return self.name
+
+    def getVersion(self) -> str:
+        """バージョンを返す"""
+        return self.version
+
+    @abstractmethod
+    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
+        """
+        観測値から行動を予測（必須実装）
+
+        :param obs: 観測値（numpy配列）
+        :param masks: 行動マスク
+        :return: (action, info_dict)
+        """
+        ...
+
+    def setAutoPilot(self, flag: bool):
+        self.autopilot = flag
+
+    @abstractmethod
+    def updateObs(self, list_obs_label):
+        """
+        観測値ラベルの更新（必須実装）
+
+        疑似ロジックでは、観測値にラベルを付けておかないと、コーディングする側が間違える！
+        【課題】
+        ObservationManager クラスと整合・同期を取る仕組みを導入する必要がある。
+
+        :param list_obs_label: 観測値ラベルのリスト
+        :return:
+        """
+        ...
+
+
+class AlgoTrade(AlgoTradeBase):
+    """疑似モデルのクラス"""
+
+    def __init__(self):
+        super().__init__()
+        # 観測値のインデックス
+        self.idx_cross_1: int | None = None
+        self.idx_cross_2: int | None = None
+        self.idx_losscut_1: int | None = None
+        self.idx_losscut_2: int | None = None
+        self.idx_takeprofit_1: int | None = None
+        self.idx_position: int | None = None
+
     def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])
-        # 2. クロスシグナル 1 [-1, 0, 1]
+        # 2. クロスシグナル 2 [-1, 0, 1]
         cross_2 = int(obs[self.idx_cross_2])
         # 3. ロスカット 1 [0, 1]
         losscut_1 = int(obs[self.idx_losscut_1])
@@ -78,7 +125,19 @@ class AlgoTrade:
             if exit_act and self.can_execute(exit_act, masks):
                 return exit_act, {}
 
-        # 3. デフォルトは HOLD
+        # 3. クロスシグナルによる自動エントリー ---
+        if self.autopilot and position == PositionType.NONE:
+            # ゴールデンクロス（MA1 > VWAP）
+            if cross_1 > 0:  # クロスS1: MA1 が VWAP を上抜け
+                if self.can_execute(ActionType.BUY.value, masks):
+                    return ActionType.BUY.value, {'reason': 'golden_cross_1'}
+
+            # デッドクロス（MA1 < VWAP）
+            if cross_1 < 0:  # クロスS1: MA1 が VWAP を下抜け
+                if self.can_execute(ActionType.SELL.value, masks):
+                    return ActionType.SELL.value, {'reason': 'dead_cross_1'}
+
+        # 4. デフォルトは HOLD
         return ActionType.HOLD.value, {}
 
     def updateObs(self, list_obs_label):
