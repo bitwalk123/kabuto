@@ -28,8 +28,8 @@ if __name__ == "__main__":
 
     # Kayaba インスタンス
     app = Kayaba(res, code, dict_setting, df)
-    total = app.run()
-    print(f"損益: {total: .0f} 円")
+    n, total = app.run()
+    print(f"売買回数: {n} 回, 損益: {total: .0f} 円")
 
     # テクニカル・データ（出力先）
     path_csv = os.path.join(res.dir_temp, f"{date_str}_{code}_technicals.csv")

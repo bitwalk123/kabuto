@@ -43,7 +43,7 @@ class Kayaba:
         self.agent = agent = AgentCLI(code, dict_setting)
         agent.setAutoPilot(True)
 
-    def run(self)->float:
+    def run(self) -> tuple[int, float]:
         # ポジション・マネージャの初期化
         self.posman.initPosition([self.code])
         # エージェントのリセット
@@ -71,7 +71,7 @@ class Kayaba:
         self.forceRepay(ts, price)
         df_transaction = self.posman.getTransactionResult()
 
-        return df_transaction["損益"].sum()
+        return len(df_transaction), df_transaction["損益"].sum()
 
     def doBuy(self, ts, price):
         self.posman.openPosition(self.code, ts, price, ActionType.BUY)
