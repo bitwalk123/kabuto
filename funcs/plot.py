@@ -347,7 +347,7 @@ def plot_trend_review(
     plt.show()
 
 
-def trend_diff(code: str, df: pd.DataFrame):
+def trend_diff(code: str, df: pd.DataFrame, name:str = ""):
     # 出力イメージ名
     dt_end = df.tail(1).index[0].date()
     str_year = f"{dt_end.year:04d}"
@@ -356,7 +356,6 @@ def trend_diff(code: str, df: pd.DataFrame):
 
     dir_name = os.path.join(str_year, str_month, str_day)
     os.makedirs(dir_name, exist_ok=True)
-    img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
 
     n = len(df)
     mean = df["Diff"].mean()
@@ -373,51 +372,70 @@ def trend_diff(code: str, df: pd.DataFrame):
     font_prop.get_name()
 
     plt.rcParams["font.family"] = font_prop.get_name()
-    plt.rcParams["font.size"] = 9
-    n = 2
 
-    fig = plt.figure(figsize=(6, 3))
-    ax = dict()
-    gs = fig.add_gridspec(
-        n,
-        1,
-        wspace=0.0,
-        hspace=0.0,
-        height_ratios=[1.5 if i <= 0 else 1 for i in range(n)],
-    )
-    for i, axis in enumerate(gs.subplots(sharex="col")):
-        ax[i] = axis
-        ax[i].grid()
+    if name == "":
+        # 東証銘柄
+        img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
+        plt.rcParams["font.size"] = 9
+        n = 2
+        fig = plt.figure(figsize=(6, 3))
+        ax = dict()
+        gs = fig.add_gridspec(
+            n,
+            1,
+            wspace=0.0,
+            hspace=0.0,
+            height_ratios=[1.5 if i <= 0 else 1 for i in range(n)],
+        )
+        for i, axis in enumerate(gs.subplots(sharex="col")):
+            ax[i] = axis
+            ax[i].grid()
 
-    # 銘柄情報
-    name = get_ticker_name_list([code])[code]
-    # 今日の High - Low
-    price_high = df.tail(1)["High"].iloc[0]
-    price_low = df.tail(1)["Low"].iloc[0]
-    price_delta = price_high - price_low
-    today = df.tail(1).index[0].date()
-    ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.1f} JPY")
+        name = get_ticker_name_list([code])[code]
+        price_high = df.tail(1)["High"].iloc[0]
+        price_low = df.tail(1)["Low"].iloc[0]
+        price_delta = price_high - price_low
+        today = df.tail(1).index[0].date()
+        ax[0].set_title(f"{name} ({code})\n{today}: High - Low = {price_delta:.1f} JPY")
+        apds = [
+            mpf.make_addplot(df["Diff"], width=0.75, color="C1", ax=ax[1]),
+        ]
+        mpf.plot(
+            df,
+            type="candle",
+            style="default",
+            addplot=apds,
+            datetime_format="%m/%d",
+            xrotation=0,
+            update_width_config=dict(candle_linewidth=0.75),
+            ax=ax[0],
+        )
+        ax[0].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
 
-    apds = [
-        mpf.make_addplot(df["Diff"], width=0.75, color="C1", ax=ax[1]),
-    ]
-    mpf.plot(
-        df,
-        type="candle",
-        style="default",
-        addplot=apds,
-        datetime_format="%m/%d",
-        xrotation=0,
-        update_width_config=dict(candle_linewidth=0.75),
-        ax=ax[0],
-    )
-    ax[0].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+        ax[1].set_xlabel(footer)
+        ax[1].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+        _, high = ax[1].get_ylim()
+        ax[1].set_ylim(0, high)
+        ax[1].set_ylabel("High - Low")
+    else:
+        # 米国 ADR
+        img_name = os.path.join(dir_name, f"{code}_trend.png")
+        plt.rcParams["font.size"] = 8
+        fig, ax = plt.subplots(figsize=(3, 1.8))
+        mpf.plot(
+            df,
+            type="candle",
+            style="default",
+            datetime_format="%m/%d",
+            xrotation=0,
+            update_width_config=dict(candle_linewidth=0.75),
+            ax=ax,
+        )
+        ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
+        ax.set_ylabel("USD")
+        ax.grid()
 
-    ax[1].set_xlabel(footer)
-    ax[1].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    _, high = ax[1].get_ylim()
-    ax[1].set_ylim(0, high)
-    ax[1].set_ylabel("High - Low")
+        ax.set_title(f"{name} ({code})")
 
     plt.tight_layout()
     plt.savefig(img_name)
