@@ -35,8 +35,9 @@ class Kayaba:
         # HOLD は何もしないので載せない
     }
 
-    def __init__(self, code: str, dt_start: datetime.datetime) -> None:
+    def __init__(self, name_doe: str, code: str, dt_start: datetime.datetime) -> None:
         self.logger = logging.getLogger(__name__)
+        self.name_doe = name_doe
         self.code = code
         self.dt_start = dt_start
         self.res = res = AppRes()
@@ -48,6 +49,8 @@ class Kayaba:
         self.posman = PositionManager()
 
     def run(self) -> None:
+        self.logger.info(self.name_doe)
+
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
         list_excel = sorted(glob.glob(path_glob))
@@ -57,17 +60,21 @@ class Kayaba:
             if not is_sheet_exists(path_excel, self.code):
                 continue
 
+            # Excel 名
             print(f"\n{path_excel}")
+            # 日付文字列
             date_str = get_datestr_from_collections(path_excel)
+            # Excel シートの読み込み
             dict_sheet = load_excel(path_excel)
+            # 対象シートのデータフレーム
             df: pd.DataFrame = dict_sheet[self.code]
 
-            # Kayaba インスタンス
+            # シミュレーション用エージェント（パラメータ毎に生成し直す）
             agent = AgentCLI(self.code, self.dict_setting)
 
             # シミュレーション
             n, total = self.simulation(agent, df)
-            print(f"売買回数: {n} 回, 損益: {total: .0f} 円")
+            self.logger.info(f"{date_str}: 売買回数: {n} 回, 損益: {total: .0f} 円")
 
             # テクニカル・データ（出力先）
             path_csv = os.path.join(self.res.dir_temp, f"{date_str}_{self.code}_technicals.csv")

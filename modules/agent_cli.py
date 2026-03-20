@@ -14,17 +14,9 @@ from structs.app_enum import ActionType, PositionType
 class AgentCLI:
     """
     強化学習を利用せずに、アルゴリズムのみのエージェント
-    （リアルタイム用）
+    （CLI 用）
     """
     BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
-
-    '''
-    # シグナル
-    completedResetEnv = Signal()
-    completedTrading = Signal()
-    notifyAction = Signal(int, PositionType)  # 売買アクションを通知
-    sendTechnicals = Signal(dict)
-    '''
 
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
         super().__init__()
@@ -62,15 +54,6 @@ class AgentCLI:
 
         # メイン・スレッドへ通知する発注アクションを最優先
         position: PositionType = self.env.getCurrentPosition()
-        '''
-        if ActionType(action) != ActionType.HOLD:
-            # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-            self.notifyAction.emit(action, position)
-
-        # メイン・スレッドへ通知するプロット用テクニカル指標
-        # 🧿 テクニカル指標を通知するシグナル
-        self.sendTechnicals.emit(dict_technicals)
-        '''
         # トレード後にまとめてデータフレームで出力するため
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
@@ -84,10 +67,6 @@ class AgentCLI:
             flag_name = "terminated" if terminated else "truncated"
             self.logger.info(f"{flag_name} フラグが立ちました。")
             self.done = True
-            '''
-            # 🧿 取引終了シグナルの通知
-            self.completedTrading.emit()
-            '''
         return action, position
 
     def cleanup(self) -> None:
@@ -121,10 +100,6 @@ class AgentCLI:
         self.model.updateObs(self.list_obs_label)
         list_colname.extend(self.list_obs_label)
         self.df_obs = pd.DataFrame({col: [] for col in list_colname})
-        '''
-        # 🧿 環境のリセット完了を通知
-        self.completedResetEnv.emit()
-        '''
 
     def saveTechnicals(self, path_csv: str) -> None:
         """
@@ -137,7 +112,8 @@ class AgentCLI:
             df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
             # 指定されたパスにデータフレームを CSV 形式で保存
             df.to_csv(path_csv)
-            self.logger.info(f"{path_csv} を保存しました。")
+            # self.logger.info(f"{path_csv} を保存しました。")
+            print(f"{path_csv} を保存しました。")
         except (KeyError, ValueError, IOError) as e:
             self.logger.error(f"テクニカル指標の保存に失敗しました: {e}")
 

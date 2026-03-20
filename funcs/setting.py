@@ -57,13 +57,13 @@ def update_setting(res: AppRes, code: str):
             data = r.json()
             with open(local_conf_dir / f"{code}.json", "w", encoding="utf-8") as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            logger.info(f"{__name__}: {code}.json を更新しました")
+            logger.info(f"{code}.json を更新しました")
         else:
-            logger.warning(f"{__name__}: リモートに {code}.json はありません (status={r.status_code})")
+            logger.warning(f"リモートに {code}.json はありません (status={r.status_code})")
             defaults = FeatureDefaults.as_dict()
             print(defaults)
             save_setting(res, code, defaults)
-            logger.info(f"{__name__}: デフォルトの設定で {code}.json を保存しました。")
+            logger.info(f"デフォルトの設定で {code}.json を保存しました。")
 
     except Exception as e:
-        logger.error(f"{__name__}: {code}.json の更新に失敗しました: {e}")
+        logger.error(f"{code}.json の更新に失敗しました: {e}")
