@@ -49,6 +49,8 @@ class Kayaba:
         self.posman = PositionManager()
 
     def run(self) -> None:
+        self.logger.info(self.name_doe)
+
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
         list_excel = sorted(glob.glob(path_glob))
@@ -72,7 +74,7 @@ class Kayaba:
 
             # シミュレーション
             n, total = self.simulation(agent, df)
-            print(f"売買回数: {n} 回, 損益: {total: .0f} 円")
+            self.logger.info(f"{date_str}: 売買回数: {n} 回, 損益: {total: .0f} 円")
 
             # テクニカル・データ（出力先）
             path_csv = os.path.join(self.res.dir_temp, f"{date_str}_{self.code}_technicals.csv")
