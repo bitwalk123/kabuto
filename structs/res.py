@@ -56,6 +56,7 @@ class AppRes:
         # システムディレクトリのチェック
         list_dir = [
             self.dir_collection,
+            self.dir_doe,
             self.dir_excel,
             self.dir_info,
             self.dir_log,

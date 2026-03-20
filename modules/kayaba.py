@@ -35,8 +35,9 @@ class Kayaba:
         # HOLD は何もしないので載せない
     }
 
-    def __init__(self, code: str, dt_start: datetime.datetime) -> None:
+    def __init__(self, name_doe: str, code: str, dt_start: datetime.datetime) -> None:
         self.logger = logging.getLogger(__name__)
+        self.name_doe = name_doe
         self.code = code
         self.dt_start = dt_start
         self.res = res = AppRes()
@@ -57,12 +58,16 @@ class Kayaba:
             if not is_sheet_exists(path_excel, self.code):
                 continue
 
+            # Excel 名
             print(f"\n{path_excel}")
+            # 日付文字列
             date_str = get_datestr_from_collections(path_excel)
+            # Excel シートの読み込み
             dict_sheet = load_excel(path_excel)
+            # 対象シートのデータフレーム
             df: pd.DataFrame = dict_sheet[self.code]
 
-            # Kayaba インスタンス
+            # シミュレーション用エージェント（パラメータ毎に生成し直す）
             agent = AgentCLI(self.code, self.dict_setting)
 
             # シミュレーション
