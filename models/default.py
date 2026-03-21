@@ -6,6 +6,7 @@ from structs.app_enum import PositionType, ActionType
 
 class AlgoTrade(AlgoTradeBase):
     """疑似モデルのクラス"""
+    MODEL_NAME: str = "default"
 
     def __init__(self):
         super().__init__()

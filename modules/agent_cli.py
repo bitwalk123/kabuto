@@ -32,10 +32,12 @@ class AgentCLI:
 
         # モデルに渡す観測値のリスト
         self.list_obs_label: list[str] = []
+
         # モデルのインスタンス（とりあえずプラグイン化）
-        # self.model: AlgoTrade = AlgoTrade()
-        path_model = "models.default"
-        self.model = get_model_instance(path_model)
+        name_model = "default"
+        dict_model = {}
+        get_model_instance(name_model, dict_model)
+        self.model = dict_model[name_model]
 
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
