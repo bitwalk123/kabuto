@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 res = AppRes()
 
 
-def get_model_instance(name_model: str, dict_model: dict[str, Any]):
+def get_model_instance(name_model: str, dict_model: dict[str, Any]) -> None:
     """モジュールをインポートしてクラスを辞書に追加"""
     full_model_name = ".".join([res.dir_model, name_model])
     try:
@@ -20,7 +20,15 @@ def get_model_instance(name_model: str, dict_model: dict[str, Any]):
             if (isinstance(attr, type) and
                     issubclass(attr, AlgoTradeBase) and
                     attr is not AlgoTradeBase):
+                """
+                1. isinstance(attr, type): クラスですか？
+                2. issubclass(attr, ParserBase): ParserBase を継承していますか？
+                3. attr is not ParserBase: ParserBase 自体ではありませんか？
+                """
                 if name_model == getattr(attr, "MODEL_NAME"):
+                    """
+                    【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
+                    """
                     dict_model[name_model] = attr()
                     logger.info(f"モデル '{name_model}' を読み込みました。")
                 else:
