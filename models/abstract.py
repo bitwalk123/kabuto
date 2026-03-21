@@ -10,7 +10,10 @@ class AlgoTradeBase(ABC):
     """
     name: str = "AlgoTradeBase"
     version: str = "1.0.0"
-    MODEL_NAME: str = ""
+    """
+    【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
+    """
+    MODEL_NAME: str = "template"
 
     def __init__(self):
         self.autopilot = False

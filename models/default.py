@@ -1,3 +1,4 @@
+import os
 from typing import Any
 
 from models.abstract import AlgoTradeBase
@@ -6,6 +7,9 @@ from structs.app_enum import PositionType, ActionType
 
 class AlgoTrade(AlgoTradeBase):
     """疑似モデルのクラス"""
+    """
+    【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
+    """
     MODEL_NAME: str = "default"
 
     def __init__(self):
