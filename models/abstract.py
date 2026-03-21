@@ -10,6 +10,7 @@ class AlgoTradeBase(ABC):
     """
     name: str = "AlgoTradeBase"
     version: str = "1.0.0"
+    MODEL_NAME: str = ""
 
     def __init__(self):
         self.autopilot = False
@@ -79,5 +80,3 @@ class AlgoTradeBase(ABC):
         :return:
         """
         ...
-
-
