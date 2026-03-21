@@ -7,7 +7,7 @@ import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
 from funcs.tide import conv_datetime_from_timestamp
-from modules.algo_trade import AlgoTrade
+from models.algo_trade import AlgoTrade
 from modules.env import TradingEnv
 from modules.posman import PositionManager
 from structs.app_enum import PositionType, ActionType

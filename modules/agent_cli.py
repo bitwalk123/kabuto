@@ -5,8 +5,8 @@ from typing import Any, DefaultDict
 import numpy as np
 import pandas as pd
 
+from funcs.plugin import get_model_instance
 from funcs.tide import conv_datetime_from_timestamp
-from modules.algo_trade import AlgoTrade
 from modules.env import TradingEnv
 from structs.app_enum import ActionType, PositionType
 
@@ -32,8 +32,10 @@ class AgentCLI:
 
         # モデルに渡す観測値のリスト
         self.list_obs_label: list[str] = []
-        # モデルのインスタンス
-        self.model: AlgoTrade = AlgoTrade()
+        # モデルのインスタンス（とりあえずプラグイン化）
+        # self.model: AlgoTrade = AlgoTrade()
+        path_model = "models.default"
+        self.model = get_model_instance(path_model)
 
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
