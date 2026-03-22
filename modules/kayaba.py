@@ -6,7 +6,11 @@ from typing import Any, Literal, TypeAlias
 
 import pandas as pd
 
-from funcs.commons import get_dt_from_collections, get_datestr_from_collections
+from funcs.commons import (
+    check_doe_factor_match,
+    get_datestr_from_collections,
+    get_dt_from_collections,
+)
 from funcs.excel import is_sheet_exists, load_excel
 from funcs.setting import load_setting, update_setting
 from modules.agent_cli import AgentCLI
@@ -42,10 +46,21 @@ class Kayaba:
         self.dt_start = dt_start
         self.res = res = AppRes()
 
+        path_csv = os.path.join(res.dir_doe, f"{name_doe}.csv")
+        self.df_doe = pd.read_csv(path_csv)
+
         # 最新のパラメータへ更新
         update_setting(res, code)
         # パラメータの読み込み
         self.dict_setting: dict[str, Any] = load_setting(res, code)
+
+        # 実験表と設定ファイルを比較、因子が一致していることが前提
+        if not check_doe_factor_match(self.df_doe, self.dict_setting):
+            self.logger.error("DOE の因子と設定ファイルの因子が一致しませんでした。")
+            raise
+
+        print("下記の条件で DOE を実施します。")
+        print(self.df_doe)
 
         # ポジション・マネージャ（使い回す）
         self.posman = PositionManager()
