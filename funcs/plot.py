@@ -511,12 +511,14 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 
 def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # モメンタム
+    '''
     n = 150
     mom = Momentum(n)
     df["momentum"] = [mom.update(v) for v in df["ma1"]]
-    ax.plot(df["momentum"], color="#888", linewidth=0.25, alpha=0.75, label=f"n={n:d}")
+    '''
+    ax.plot(df["mom"], color="#888", linewidth=0.25, alpha=0.75, label=f"n={dict_setting["PERIOD_MOM"]}")
     x = df.index
-    y = df["momentum"]
+    y = df["mom"]
     ax.fill_between(x, 0, y, where=(0 < y), fc="#faa", ec="#f00", alpha=0.5, lw=0.5)
     ax.fill_between(x, 0, y, where=(y < 0), fc="#aaf", ec="#00f", alpha=0.5, lw=0.5)
 

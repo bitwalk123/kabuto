@@ -39,7 +39,7 @@ def load_setting(res: AppRes, code: str) -> dict:
         return FeatureDefaults.as_dict()
 
 
-def update_setting(res: AppRes, code: str):
+def update_setting(res: AppRes, code: str) -> None:
     """
     最新の JSON ファイルを HTTP サーバーからダウンロードして更新
     :param res:

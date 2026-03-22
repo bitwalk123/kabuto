@@ -66,12 +66,14 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_rsi: list[float] = []
+        self.list_mom: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
             "rsi": self.list_rsi,
+            "mom": self.list_mom,
         }
 
         # 銘柄コード別設定ファイルの取得
@@ -240,6 +242,7 @@ class Trader(QMainWindow):
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_rsi.append(dict_technicals["rsi"])
+        self.list_mom.append(dict_technicals["mom"])
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
