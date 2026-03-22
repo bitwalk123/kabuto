@@ -105,25 +105,38 @@ class Kayaba:
             df: pd.DataFrame = dict_sheet[self.code]
 
             for r in range(len(self.df_doe)):
+                # DOE 条件のパラメータ・セット
+                dict_setting_doe: dict[str, Any] = {}
                 for key in self.dict_setting.keys():
-                    self.dict_setting[key] = self.df_doe[key].iloc[r]
+                    dict_setting_doe[key] = self.df_doe[key].iloc[r]
 
                 # シミュレーション用エージェント（パラメータ毎に生成し直す）
-                agent = AgentCLI(self.code, self.dict_setting)
-                # エージェントの自動売買をオン
-                agent.setAutoPilot(True)
-                # エージェントのリセット
-                agent.resetEnv()
+                agent = AgentCLI(self.code, dict_setting_doe)
+                agent.setAutoPilot(True)  # エージェントの自動売買をオン
+                agent.resetEnv()  # エージェントのリセット
 
                 # シミュレーション
                 n, total = self.simulation(agent, df, dict_ts)
-                self.logger.info(f"{str_date}: 売買回数: {n} 回, 損益: {total: .0f} 円")
+                self.logger.info(
+                    f"{r:d}: {str_date}: 売買回数: {n} 回, 損益: {total:.0f} 円"
+                )
 
                 # テクニカル・データ（出力先）
-                path_csv = os.path.join(self.res.dir_temp, f"{self.code}_{str_date}_technicals.csv")
+                path_csv = os.path.join(
+                    self.res.dir_temp, f"{str_date}_{self.code}_{r:d}_technicals.csv"
+                )
                 self.saveTechnicals(agent, path_csv)
 
+                # 結果の保持
+                dict_results["date"].append(dt_date)
+                dict_results["run"].append(r)
+                for key in dict_setting_doe.keys():
+                    dict_results[key].append(dict_setting_doe[key])
+                dict_results["trade"].append(n)
+                dict_results["total"].append(total)
+
         # print(f"総収益: {grand_total} 円, {days} 日")
+        print(pd.DataFrame(dict_results))
 
     def simulation(self, agent: AgentCLI, df: pd.DataFrame, dict_ts: dict[str, float]) -> tuple[int, Any]:
         # ポジション・マネージャのリセット
