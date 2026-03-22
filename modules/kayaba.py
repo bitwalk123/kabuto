@@ -50,6 +50,8 @@ class Kayaba:
 
     def run(self) -> None:
         self.logger.info(self.name_doe)
+        days = 0 # 日数
+        grand_total = 0  # 総収益
 
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
@@ -75,10 +77,14 @@ class Kayaba:
             # シミュレーション
             n, total = self.simulation(agent, df)
             self.logger.info(f"{date_str}: 売買回数: {n} 回, 損益: {total: .0f} 円")
+            grand_total += total
+            days += 1
 
             # テクニカル・データ（出力先）
             path_csv = os.path.join(self.res.dir_temp, f"{date_str}_{self.code}_technicals.csv")
             self.saveTechnicals(agent, path_csv)
+
+        print(f"総収益: {grand_total} 円, {days} 日")
 
     def simulation(self, agent: AgentCLI, df: pd.DataFrame) -> tuple[int, Any]:
         # ポジション・マネージャのリセット
