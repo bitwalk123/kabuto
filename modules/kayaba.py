@@ -8,7 +8,7 @@ import pandas as pd
 
 from funcs.commons import get_dt_from_collections, get_datestr_from_collections
 from funcs.excel import is_sheet_exists, load_excel
-from funcs.setting import load_setting
+from funcs.setting import load_setting, update_setting
 from modules.agent_cli import AgentCLI
 from modules.kabuto import Kabuto
 from modules.posman import PositionManager
@@ -42,6 +42,8 @@ class Kayaba:
         self.dt_start = dt_start
         self.res = res = AppRes()
 
+        # 最新のパラメータへ更新
+        update_setting(res, code)
         # パラメータの読み込み
         self.dict_setting: dict[str, Any] = load_setting(res, code)
 
@@ -50,7 +52,7 @@ class Kayaba:
 
     def run(self) -> None:
         self.logger.info(self.name_doe)
-        days = 0 # 日数
+        days = 0  # 日数
         grand_total = 0  # 総収益
 
         # ティックファイル

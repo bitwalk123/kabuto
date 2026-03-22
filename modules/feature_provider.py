@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from funcs.commons import detect_cross, init_transaction
-from modules.technical import MovingAverage, VWAP, RSI
+from modules.technical import MovingAverage, VWAP, RSI, Momentum
 from structs.defaults import FeatureDefaults
 from structs.app_enum import PositionType
 
@@ -65,6 +65,7 @@ class FeatureProvider:
         self.obj_vwap = VWAP()
         self.obj_ma1 = MovingAverage(window_size=self.dict_setting["PERIOD_MA_1"])
         self.obj_rsi = RSI(window_size=self.dict_setting["PERIOD_RSI"])
+        self.obj_mom = Momentum(window_size=self.dict_setting["PERIOD_MOM"])
 
         self.s: FeatureState = FeatureState()
         self.clear()
@@ -85,6 +86,7 @@ class FeatureProvider:
         self.obj_vwap.clear()
         self.obj_ma1.clear()
         self.obj_rsi.clear()
+        self.obj_mom.clear()
 
         # FeatureState を新規生成するだけでリセット完了
         self.s = FeatureState()
@@ -136,6 +138,10 @@ class FeatureProvider:
     def getRSI(self) -> float:
         """RSI の取得"""
         return self.obj_rsi.getValue()
+
+    def getMOM(self) -> float:
+        """Momentum の取得"""
+        return self.obj_mom.getValue()
 
     def getNTrade(self) -> int:
         return self.s.n_trade
@@ -329,6 +335,7 @@ class FeatureProvider:
         # --- 移動平均 ---
         ma1 = self.obj_ma1.update(price)
         rsi = self.obj_rsi.update(ma1)
+        mom = self.obj_mom.update(ma1)
         div_ma = ma1 - vwap
 
         # --- クロス判定 ---

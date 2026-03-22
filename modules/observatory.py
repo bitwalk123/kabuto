@@ -18,6 +18,7 @@ TECHNICALS = {
     "vwap": "getVWAP",  # VWAP
     "ma1": "getMA1",  # 移動平均線 MA1
     "rsi": "getRSI",  # RSI
+    "mom": "getMOM",  # Momentum
     "cross1": "getCrossSignal1",  # クロスシグナル 1（MA1 と VWAP）
     "cross2": "getCrossSignal2",  # クロスシグナル 2（予備）
     "profit": "getProfit",  # 含損益
