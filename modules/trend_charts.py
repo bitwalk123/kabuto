@@ -152,7 +152,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_rsi.setYRange(0, 1)
 
         # y軸範囲（Momentum）
-        #self.plot_mom.setYRange(-1, 1)
+        # self.plot_mom.setYRange(-1, 1)
 
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
@@ -210,16 +210,17 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
     def save(self, path_img: str) -> None:
         """
-        チャートをイメージに保存
-        :param path_img:
-        :return:
+        チャート全体をイメージに保存
         """
-        exporter = pg.exporters.ImageExporter(self.plot_price)
+        # GraphicsLayoutWidget全体をエクスポート
+        exporter = pg.exporters.ImageExporter(self.scene())
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
 
+    """
     def updateYAxisRange(self, flag: bool) -> None:
         self.zero_line.setVisible(flag)
         self.plot_item.enableAutoRange(axis="x", enable=False)
         self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
         self.plot_item.enableAutoRange(axis="y", enable=True)
+    """
