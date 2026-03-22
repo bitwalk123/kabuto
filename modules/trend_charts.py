@@ -1,9 +1,7 @@
 import logging
 from typing import Any
 
-import pandas as pd
 import pyqtgraph as pg
-import sys
 
 from PySide6.QtCore import QMargins
 
@@ -39,7 +37,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
 
-    def __init__(self, res: AppRes, dict_ts: dict[str, Any], dict_setting: dict[str, Any]):
+    def __init__(self, res: AppRes, dict_ts: dict[str, Any], dict_setting: dict[str, Any]) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -48,9 +46,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # ---------------------------------------------------------------------
         # ウィンドウのサイズ制約（高さのみ）
-        # self.setFixedHeight(400)
         self.setFixedHeight(res.trend_height)
-        # self.setMidLineWidth(res.trend_width)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
 
         # 価格チャート（一段）- CustomYAxisItem1 を適用
@@ -129,21 +125,27 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # RSI
         self.rsi = self.plot_rsi.plot(pen=pg.mkPen(self.COLOR_RSI, width=1), name='RSI')
+        self.rsi.setZValue(50)
         # 基準線を追加
-        self.plot_rsi.addLine(y=0.7, pen=pg.mkPen((255, 0, 255, 128), width=0.75))
-        self.plot_rsi.addLine(y=0.5, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
-        self.plot_rsi.addLine(y=0.3, pen=pg.mkPen((0, 255, 255, 96), width=0.75))
+        rsi_7 = self.plot_rsi.addLine(y=0.7, pen=pg.mkPen((255, 0, 255, 128), width=0.75))
+        rsi_7.setZValue(20)
+        rsi_5 = self.plot_rsi.addLine(y=0.5, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        rsi_5.setZValue(20)
+        rsi_3 = self.plot_rsi.addLine(y=0.3, pen=pg.mkPen((0, 255, 255, 96), width=0.75))
+        rsi_3.setZValue(20)
 
         # Momentum
         self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name='Momentum')
+        self.mom.setZValue(50)
         # 基準線を追加
-        self.plot_mom.addLine(y=0.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        mom_0.setZValue(20)
 
     def _config_plot_items(self) -> None:
         self.ci.layout.setSpacing(0)
-        self.ci.layout.setRowStretchFactor(0, 2)  # 一段は4
-        self.ci.layout.setRowStretchFactor(1, 1)  # 二段は3
-        self.ci.layout.setRowStretchFactor(2, 1)  # 三段は3
+        self.ci.layout.setRowStretchFactor(0, 2)  # 一段は2
+        self.ci.layout.setRowStretchFactor(1, 1)  # 二段は1
+        self.ci.layout.setRowStretchFactor(2, 1)  # 三段は1
 
         # x軸範囲（ザラ場時間に固定）
         self.plot_price.setXRange(self.dict_ts["start"], self.dict_ts["end"])
@@ -186,7 +188,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # 最新値
         self.last_dot.setData(x, y)
 
-    def setEvenLine(self, price: float):
+    def setEvenLine(self, price: float) -> None:
         self.even_line.setPos(price)
         if price == 0.0:
             self.even_line.setVisible(False)
@@ -216,11 +218,3 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         exporter = pg.exporters.ImageExporter(self.scene())
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
-
-    """
-    def updateYAxisRange(self, flag: bool) -> None:
-        self.zero_line.setVisible(flag)
-        self.plot_item.enableAutoRange(axis="x", enable=False)
-        self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
-        self.plot_item.enableAutoRange(axis="y", enable=True)
-    """
