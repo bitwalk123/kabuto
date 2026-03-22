@@ -1,9 +1,7 @@
 import logging
 from typing import Any
 
-import pandas as pd
 import pyqtgraph as pg
-import sys
 
 from PySide6.QtCore import QMargins
 
@@ -39,7 +37,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
 
-    def __init__(self, res: AppRes, dict_ts: dict[str, Any], dict_setting: dict[str, Any]):
+    def __init__(self, res: AppRes, dict_ts: dict[str, Any], dict_setting: dict[str, Any]) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.res = res
@@ -186,7 +184,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # 最新値
         self.last_dot.setData(x, y)
 
-    def setEvenLine(self, price: float):
+    def setEvenLine(self, price: float) -> None:
         self.even_line.setPos(price)
         if price == 0.0:
             self.even_line.setVisible(False)
@@ -216,11 +214,3 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         exporter = pg.exporters.ImageExporter(self.scene())
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
-
-    """
-    def updateYAxisRange(self, flag: bool) -> None:
-        self.zero_line.setVisible(flag)
-        self.plot_item.enableAutoRange(axis="x", enable=False)
-        self.plot_item.setXRange(self.dict_ts["start"], self.dict_ts["end"])
-        self.plot_item.enableAutoRange(axis="y", enable=True)
-    """
