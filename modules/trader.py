@@ -15,7 +15,6 @@ from structs.app_enum import (
     PositionType,
 )
 from structs.res import AppRes
-from modules.chart import TrendChart
 from widgets.dialogs import DlgSetting
 
 # 型エイリアスの定義（クラスの外に配置）
