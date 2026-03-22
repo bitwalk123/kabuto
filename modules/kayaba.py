@@ -2,6 +2,7 @@ import datetime
 import glob
 import logging
 import os
+import sys
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
@@ -18,6 +19,14 @@ from structs.res import AppRes
 # 型エイリアスの定義（クラスの外に配置）
 TradeAction: TypeAlias = Literal["doBuy", "doSell", "doRepay"]
 TradeKey: TypeAlias = tuple[ActionType, PositionType]
+
+
+def check_columns_match(df: pd.DataFrame, dict_setting: dict[str, Any]):
+    """
+    df.columns と dict_setting のキーが完全に一致（過不足なし）しているか確認する。
+    順序は問わない。
+    """
+    return set(df.columns) == set(dict_setting.keys())
 
 
 class Kayaba:
@@ -42,10 +51,21 @@ class Kayaba:
         self.dt_start = dt_start
         self.res = res = AppRes()
 
+        path_csv = os.path.join(res.dir_doe, f"{name_doe}.csv")
+        self.df_doe = pd.read_csv(path_csv)
+
         # 最新のパラメータへ更新
         update_setting(res, code)
         # パラメータの読み込み
         self.dict_setting: dict[str, Any] = load_setting(res, code)
+
+        # 実験表と設定ファイルを比較、因子が一致していることが前提
+        if not check_columns_match(self.df_doe, self.dict_setting):
+            self.logger.error("DOE の因子と設定ファイルの因子が一致しませんでした。")
+            raise
+
+        print("下記の条件で DOE を実施します。")
+        print(self.df_doe)
 
         # ポジション・マネージャ（使い回す）
         self.posman = PositionManager()
