@@ -3,8 +3,19 @@ import glob
 import os
 import re
 from pathlib import Path
+from typing import Any
+
+import pandas as pd
 
 from structs.res import AppRes
+
+
+def check_doe_factor_match(df_doe: pd.DataFrame, dict_setting: dict[str, Any]):
+    """
+    df_doe.columns と dict_setting のキーが完全に一致（過不足なし）しているか確認する。
+    順序は問わない。
+    """
+    return set(df_doe.columns) == set(dict_setting.keys())
 
 
 def detect_cross(prev: float | None, curr: float) -> float:
@@ -62,6 +73,7 @@ def get_date_str_from_collections(file_excel: str) -> str:
     else:
         date_str = "1970-01-01"
     return date_str
+
 
 def get_datestr_from_collections(file_excel: str) -> str:
     pattern = re.compile(r".+ticks_([0-9]{4})([0-9]{2})([0-9]{2})\.xlsx")

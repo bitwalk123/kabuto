@@ -2,12 +2,15 @@ import datetime
 import glob
 import logging
 import os
-import sys
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
 
-from funcs.commons import get_dt_from_collections, get_datestr_from_collections
+from funcs.commons import (
+    check_doe_factor_match,
+    get_datestr_from_collections,
+    get_dt_from_collections,
+)
 from funcs.excel import is_sheet_exists, load_excel
 from funcs.setting import load_setting, update_setting
 from modules.agent_cli import AgentCLI
@@ -19,14 +22,6 @@ from structs.res import AppRes
 # 型エイリアスの定義（クラスの外に配置）
 TradeAction: TypeAlias = Literal["doBuy", "doSell", "doRepay"]
 TradeKey: TypeAlias = tuple[ActionType, PositionType]
-
-
-def check_columns_match(df: pd.DataFrame, dict_setting: dict[str, Any]):
-    """
-    df.columns と dict_setting のキーが完全に一致（過不足なし）しているか確認する。
-    順序は問わない。
-    """
-    return set(df.columns) == set(dict_setting.keys())
 
 
 class Kayaba:
@@ -60,7 +55,7 @@ class Kayaba:
         self.dict_setting: dict[str, Any] = load_setting(res, code)
 
         # 実験表と設定ファイルを比較、因子が一致していることが前提
-        if not check_columns_match(self.df_doe, self.dict_setting):
+        if not check_doe_factor_match(self.df_doe, self.dict_setting):
             self.logger.error("DOE の因子と設定ファイルの因子が一致しませんでした。")
             raise
 
