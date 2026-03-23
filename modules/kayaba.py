@@ -67,7 +67,7 @@ class Kayaba:
 
         print("下記の条件で DOE を実施します。")
         print(self.df_doe)
-        self.dir_base = os.path.join(res.dir_doe, name_doe)
+        self.dir_base = os.path.join(res.dir_doe, name_doe, code)
         os.makedirs(self.dir_base, exist_ok=True)
 
         # ポジション・マネージャ（使い回す）
