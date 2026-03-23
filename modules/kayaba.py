@@ -6,10 +6,6 @@ from collections import defaultdict
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
-from matplotlib import font_manager as fm
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 from funcs.commons import (
     check_doe_factor_match,
@@ -17,7 +13,7 @@ from funcs.commons import (
     get_dt_from_collections,
 )
 from funcs.excel import is_sheet_exists, load_excel
-from funcs.plot import plot_price_vwap, plot_rsi, plot_momentum, plot_profit, plot_drawdown, plot_verticals
+from funcs.plot import draw_review_chart
 from funcs.setting import load_setting, update_setting
 from funcs.tide import get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
@@ -80,9 +76,6 @@ class Kayaba:
     def run(self) -> None:
         self.logger.info(self.name_doe)
 
-        # DOE 結果
-        dict_results = defaultdict(list)
-
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
         list_excel = sorted(glob.glob(path_glob))
@@ -90,15 +83,21 @@ class Kayaba:
             # 日付型
             dt_date = get_dt_from_collections(path_excel)
             if dt_date < self.dt_start:
+                # 最初の日付より前であればループをスキップ
                 continue
             if not is_sheet_exists(path_excel, self.code):
+                # Excel ブックに対象銘柄のシートが存在しなければループをスキップ
                 continue
 
             # 日付文字列
             str_date = get_datestr_from_collections(path_excel)
-
+            # 日付フォルダ
             dir_date = os.path.join(self.dir_base, str_date)
-            os.makedirs(dir_date, exist_ok=True)
+            if os.path.isdir(dir_date):
+                # 存在していればループをスキップ
+                continue
+            # 存在していなければフォルダ生成
+            os.mkdir(dir_date)
 
             # ザラ場の開始時間などのタイムスタンプ
             dict_ts = get_intraday_timestamp(path_excel)
@@ -111,6 +110,9 @@ class Kayaba:
             dict_sheet = load_excel(path_excel)
             # 対象シートのデータフレーム
             df: pd.DataFrame = dict_sheet[self.code]
+
+            # DOE 結果
+            dict_results = defaultdict(list)
 
             for r in range(len(self.df_doe)):
                 # DOE 条件のパラメータ・セット
@@ -135,11 +137,12 @@ class Kayaba:
                 )
                 df_technicals = agent.saveTechnicals(path_csv)
 
+                # テクニカル・データのレビュー・チャート
                 title = f"{dt_date.date()}: {self.name} ({self.code})"
                 path_img = os.path.join(
                     dir_date, f"{self.code}_{r:d}_technicals.png"
                 )
-                self.draw_review_chart(
+                draw_review_chart(
                     self.res,
                     title,
                     df_technicals,
@@ -163,6 +166,18 @@ class Kayaba:
                 os.path.join(dir_date, f"{self.code}_result.csv"),
                 index=False
             )
+            # HTML の出力
+            if self.name_doe == "doe-001":
+                df_results_extract = df_results[["date", "run", "DD_PROFIT", "DD_RATIO", "trade", "total"]]
+                (
+                    df_results_extract.style
+                    .set_table_attributes('class="simple" style="font-family: monospace; font-size: small;"')
+                    .set_properties(**{'text-align': 'right'})
+                    .to_html(
+                        os.path.join(dir_date, f"{self.code}_result.html"),
+                        index=False
+                    )
+                )
 
     def simulation(
             self,
@@ -210,66 +225,3 @@ class Kayaba:
     def forceRepay(self, ts, price) -> None:
         if self.posman.hasPosition(self.code):
             self.doRepay(ts, price)
-
-    def draw_review_chart(
-            self,
-            res:AppRes,
-            title: str,
-            df: pd.DataFrame,
-            dict_setting: dict[str, Any],
-            dict_ts: dict[str, Any],
-            name_img: str,
-    ):
-        IMAGE_WIDTH = 680
-        IMAGE_HEIGHT = 700
-
-        # Matplotlib の共通設定
-        fm.fontManager.addfont(res.path_monospace)
-
-        # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=res.path_monospace)
-        font_prop.get_name()
-
-        plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 9
-
-        fig = Figure(figsize=(IMAGE_WIDTH / 100., IMAGE_HEIGHT / 100.))
-        canvas = FigureCanvas(fig)
-
-        n = 5
-        ax = dict()
-        gs = fig.add_gridspec(
-            n, 1, wspace=0.0, hspace=0.0,
-            height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
-        )
-        for i, axis in enumerate(gs.subplots(sharex="col")):
-            ax[i] = axis
-            ax[i].grid(axis="y")
-
-        # 1. 株価と VWAP
-        plot_price_vwap(ax[0], df, title, dict_ts)
-
-        # 2. モメンタム
-        plot_rsi(ax[1], df, dict_setting)
-
-        # 3. モメンタム
-        plot_momentum(ax[2], df, dict_setting)
-
-        # 4. 含み益
-        plot_profit(ax[3], df, dict_setting)
-
-        # 5. ドローダウン
-        plot_drawdown(ax[4], df, dict_setting)
-
-        # --- クロス・シグナル、その他縦線系 ---
-        plot_verticals(n, ax, df, dict_setting, dict_ts)
-
-        # タイト・レイアウト
-        fig.tight_layout()
-
-        # 再描画
-        canvas.draw()
-
-        # 保存だけ実行
-        fig.savefig(name_img, dpi=100)
-        print(f"レビュー用のチャートを {name_img} に保存しました。")

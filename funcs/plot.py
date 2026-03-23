@@ -7,16 +7,19 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import talib as ta
-from matplotlib import dates as mdates
+from matplotlib import dates as mdates, font_manager as fm, pyplot as plt
 from matplotlib import font_manager as fm
 from matplotlib import pyplot as plt
 from matplotlib import ticker as ticker
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from matplotlib.figure import Figure
 from pandas import DataFrame
 from scipy.interpolate import griddata
 
 from funcs.tide import get_format_date_from_date_str
 from funcs.tse import get_ticker_name_list
 from modules.technical import RSI, Momentum
+from structs.res import AppRes
 
 
 def plot_mpl_chart(df: pd.DataFrame, title: str, condition: str, imgname: str):
@@ -612,3 +615,66 @@ def plot_verticals(
         ax[i].fill_between(
             x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
         )
+
+
+def draw_review_chart(
+        res:AppRes,
+        title: str,
+        df: pd.DataFrame,
+        dict_setting: dict[str, Any],
+        dict_ts: dict[str, Any],
+        name_img: str,
+):
+    IMAGE_WIDTH = 680
+    IMAGE_HEIGHT = 700
+
+    # Matplotlib の共通設定
+    fm.fontManager.addfont(res.path_monospace)
+
+    # FontPropertiesオブジェクト生成（名前の取得のため）
+    font_prop = fm.FontProperties(fname=res.path_monospace)
+    font_prop.get_name()
+
+    plt.rcParams["font.family"] = font_prop.get_name()
+    plt.rcParams["font.size"] = 9
+
+    fig = Figure(figsize=(IMAGE_WIDTH / 100., IMAGE_HEIGHT / 100.))
+    canvas = FigureCanvas(fig)
+
+    n = 5
+    ax = dict()
+    gs = fig.add_gridspec(
+        n, 1, wspace=0.0, hspace=0.0,
+        height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
+    )
+    for i, axis in enumerate(gs.subplots(sharex="col")):
+        ax[i] = axis
+        ax[i].grid(axis="y")
+
+    # 1. 株価と VWAP
+    plot_price_vwap(ax[0], df, title, dict_ts)
+
+    # 2. モメンタム
+    plot_rsi(ax[1], df, dict_setting)
+
+    # 3. モメンタム
+    plot_momentum(ax[2], df, dict_setting)
+
+    # 4. 含み益
+    plot_profit(ax[3], df, dict_setting)
+
+    # 5. ドローダウン
+    plot_drawdown(ax[4], df, dict_setting)
+
+    # --- クロス・シグナル、その他縦線系 ---
+    plot_verticals(n, ax, df, dict_setting, dict_ts)
+
+    # タイト・レイアウト
+    fig.tight_layout()
+
+    # 再描画
+    canvas.draw()
+
+    # 保存だけ実行
+    fig.savefig(name_img, dpi=100)
+    print(f"レビュー用のチャートを {name_img} に保存しました。")
