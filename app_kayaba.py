@@ -20,7 +20,7 @@ if __name__ == "__main__":
     code = "9984"
 
     # 開始日
-    dt_start = datetime.datetime(2026, 3, 19)
+    dt_start = datetime.datetime(2026, 2, 1)
 
     # バックテスト用クラス (Kayaba) のインスタンス生成を起動
     start = time.perf_counter()
