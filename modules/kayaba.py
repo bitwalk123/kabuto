@@ -139,7 +139,14 @@ class Kayaba:
                 path_img = os.path.join(
                     dir_date, f"{self.code}_{r:d}_technicals.png"
                 )
-                self.draw_review_chart(self.res, title, df_technicals, dict_setting_doe, dict_ts, path_img)
+                self.draw_review_chart(
+                    self.res,
+                    title,
+                    df_technicals,
+                    dict_setting_doe,
+                    dict_ts,
+                    path_img,
+                )
 
                 # 結果の保持
                 dict_results["date"].append(dt_date)
