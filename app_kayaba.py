@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # 開始日
     #dt_start = datetime.datetime(2026, 2, 1)
-    dt_start = datetime.datetime(2026, 3, 19)
+    dt_start = datetime.datetime(2026, 3, 23)
 
     # 銘柄コード
     for code in ["9984"]:
