@@ -78,7 +78,7 @@ class Kayaba:
 
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
-        list_excel = sorted(glob.glob(path_glob))
+        list_excel = sorted(glob.glob(path_glob), reverse=True)
         for path_excel in list_excel:
             # 日付型
             dt_date = get_dt_from_collections(path_excel)
