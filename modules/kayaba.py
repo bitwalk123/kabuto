@@ -6,10 +6,6 @@ from collections import defaultdict
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
-from matplotlib import font_manager as fm
-from matplotlib import pyplot as plt
-from matplotlib.backends.backend_qtagg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 
 from funcs.commons import (
     check_doe_factor_match,
@@ -17,9 +13,10 @@ from funcs.commons import (
     get_dt_from_collections,
 )
 from funcs.excel import is_sheet_exists, load_excel
-from funcs.plot import plot_price_vwap, plot_rsi, plot_momentum, plot_profit, plot_drawdown, plot_verticals
+from funcs.plot import draw_review_chart
 from funcs.setting import load_setting, update_setting
 from funcs.tide import get_intraday_timestamp
+from funcs.tse import get_ticker_name_list
 from modules.agent_cli import AgentCLI
 from modules.kabuto import Kabuto
 from modules.posman import PositionManager
@@ -52,6 +49,8 @@ class Kayaba:
         self.code = code
         self.dt_start = dt_start
         self.res = res = AppRes()
+        # 銘柄名の取得
+        self.name: str = get_ticker_name_list([code])[code]
 
         path_csv = os.path.join(res.dir_doe, f"{name_doe}.csv")
         self.df_doe = pd.read_csv(path_csv)
@@ -68,15 +67,14 @@ class Kayaba:
 
         print("下記の条件で DOE を実施します。")
         print(self.df_doe)
+        self.dir_base = os.path.join(res.dir_doe, name_doe)
+        os.makedirs(self.dir_base, exist_ok=True)
 
         # ポジション・マネージャ（使い回す）
         self.posman = PositionManager()
 
     def run(self) -> None:
         self.logger.info(self.name_doe)
-
-        # DOE 結果
-        dict_results = defaultdict(list)
 
         # ティックファイル
         path_glob = os.path.join(self.res.dir_collection, f"*.xlsx")
@@ -85,12 +83,21 @@ class Kayaba:
             # 日付型
             dt_date = get_dt_from_collections(path_excel)
             if dt_date < self.dt_start:
+                # 最初の日付より前であればループをスキップ
                 continue
             if not is_sheet_exists(path_excel, self.code):
+                # Excel ブックに対象銘柄のシートが存在しなければループをスキップ
                 continue
 
             # 日付文字列
             str_date = get_datestr_from_collections(path_excel)
+            # 日付フォルダ
+            dir_date = os.path.join(self.dir_base, str_date)
+            if os.path.isdir(dir_date):
+                # 存在していればループをスキップ
+                continue
+            # 存在していなければフォルダ生成
+            os.mkdir(dir_date)
 
             # ザラ場の開始時間などのタイムスタンプ
             dict_ts = get_intraday_timestamp(path_excel)
@@ -104,32 +111,82 @@ class Kayaba:
             # 対象シートのデータフレーム
             df: pd.DataFrame = dict_sheet[self.code]
 
+            # DOE 結果
+            dict_results = defaultdict(list)
+
             for r in range(len(self.df_doe)):
+                # DOE 条件のパラメータ・セット
+                dict_setting_doe: dict[str, Any] = {}
                 for key in self.dict_setting.keys():
-                    self.dict_setting[key] = self.df_doe[key].iloc[r]
+                    dict_setting_doe[key] = self.df_doe[key].iloc[r]
 
                 # シミュレーション用エージェント（パラメータ毎に生成し直す）
-                agent = AgentCLI(self.code, self.dict_setting)
-                # エージェントの自動売買をオン
-                agent.setAutoPilot(True)
-                # エージェントのリセット
-                agent.resetEnv()
+                agent = AgentCLI(self.code, dict_setting_doe)
+                agent.setAutoPilot(True)  # エージェントの自動売買をオン
+                agent.resetEnv()  # エージェントのリセット
 
                 # シミュレーション
                 n, total = self.simulation(agent, df, dict_ts)
-                self.logger.info(f"{str_date}: 売買回数: {n} 回, 損益: {total: .0f} 円")
+                self.logger.info(
+                    f"{r:d}: {str_date}: 売買回数: {n} 回, 損益: {total:.0f} 円"
+                )
 
                 # テクニカル・データ（出力先）
-                path_csv = os.path.join(self.res.dir_temp, f"{self.code}_{str_date}_technicals.csv")
-                self.saveTechnicals(agent, path_csv)
+                path_csv = os.path.join(
+                    dir_date, f"{self.code}_{r:d}_technicals.csv"
+                )
+                df_technicals = agent.saveTechnicals(path_csv)
 
-        # print(f"総収益: {grand_total} 円, {days} 日")
+                # テクニカル・データのレビュー・チャート
+                title = f"{dt_date.date()}: {self.name} ({self.code})"
+                path_img = os.path.join(
+                    dir_date, f"{self.code}_{r:d}_technicals.png"
+                )
+                draw_review_chart(
+                    self.res,
+                    title,
+                    df_technicals,
+                    dict_setting_doe,
+                    dict_ts,
+                    path_img,
+                )
 
-    def simulation(self, agent: AgentCLI, df: pd.DataFrame, dict_ts: dict[str, float]) -> tuple[int, Any]:
-        # ポジション・マネージャのリセット
-        self.posman.reset()
-        # ポジション・マネージャの初期化
-        self.posman.initPosition([self.code])
+                # 結果の保持
+                dict_results["date"].append(dt_date)
+                dict_results["run"].append(r)
+                for key in dict_setting_doe.keys():
+                    dict_results[key].append(dict_setting_doe[key])
+                dict_results["trade"].append(n)
+                dict_results["total"].append(total)
+
+            df_results = pd.DataFrame(dict_results)
+            print(df_results)
+            # DOE 結果の保存
+            df_results.to_csv(
+                os.path.join(dir_date, f"{self.code}_result.csv"),
+                index=False
+            )
+            # HTML の出力
+            if self.name_doe == "doe-001":
+                df_results_extract = df_results[["date", "run", "DD_PROFIT", "DD_RATIO", "trade", "total"]]
+                (
+                    df_results_extract.style
+                    .set_table_attributes('class="simple" style="font-family: monospace; font-size: small;"')
+                    .set_properties(**{'text-align': 'right'})
+                    .to_html(
+                        os.path.join(dir_date, f"{self.code}_result.html"),
+                        index=False
+                    )
+                )
+
+    def simulation(
+            self,
+            agent: AgentCLI,
+            df: pd.DataFrame,
+            dict_ts: dict[str, Any]
+    ) -> tuple[int, float]:
+        self.posman.reset()  # ポジション・マネージャのリセット
+        self.posman.initPosition([self.code])  # ポジション・マネージャの初期化
 
         # ティックデータのループ
         ts, price = (0.0, 0.0)
@@ -168,71 +225,3 @@ class Kayaba:
     def forceRepay(self, ts, price) -> None:
         if self.posman.hasPosition(self.code):
             self.doRepay(ts, price)
-
-    @staticmethod
-    def saveTechnicals(agent: AgentCLI, path_csv: str) -> None:
-        # テクニカル・データの保存
-        agent.saveTechnicals(path_csv)
-
-    def draw_chart(
-            self,
-            title: str,
-            df: pd.DataFrame,
-            dict_setting: dict[str, Any],
-            dict_ts: dict[str, Any],
-            name_img: str,
-    ):
-        IMAGE_WIDTH = 680
-        IMAGE_HEIGHT = 700
-
-        # Matplotlib の共通設定
-        fm.fontManager.addfont(self.res.path_monospace)
-
-        # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=self.res.path_monospace)
-        font_prop.get_name()
-
-        plt.rcParams["font.family"] = font_prop.get_name()
-        plt.rcParams["font.size"] = 9
-
-        fig = Figure(figsize=(IMAGE_WIDTH / 100., IMAGE_HEIGHT / 100.))
-        # キャンバスを表示
-        canvas = FigureCanvas(fig)
-
-        n = 5
-        ax = dict()
-        gs = fig.add_gridspec(
-            n, 1, wspace=0.0, hspace=0.0,
-            height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
-        )
-        for i, axis in enumerate(gs.subplots(sharex="col")):
-            ax[i] = axis
-            ax[i].grid(axis="y")
-
-        # 1. 株価と VWAP
-        plot_price_vwap(self.ax[0], df, title, dict_ts)
-
-        # 2. モメンタム
-        plot_rsi(self.ax[1], df, dict_setting)
-
-        # 3. モメンタム
-        plot_momentum(self.ax[2], df, dict_setting)
-
-        # 4. 含み益
-        plot_profit(self.ax[3], df, dict_setting)
-
-        # 5. ドローダウン
-        plot_drawdown(self.ax[4], df, dict_setting)
-
-        # --- クロス・シグナル、その他縦線系 ---
-        plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
-
-        # タイト・レイアウト
-        self.fig.tight_layout()
-
-        # 再描画
-        canvas.draw()
-
-        # 保存だけ実行
-        self.fig.savefig(name_img, dpi=100)
-        print(f"{name_img} に保存しました。")

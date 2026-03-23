@@ -14,7 +14,7 @@ if __name__ == "__main__":
     main_logger = setup_logging()
 
     # DOE
-    name_doe = "doe-000"
+    name_doe = "doe-001"
 
     # 銘柄コード
     code = "9984"
