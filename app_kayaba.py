@@ -15,8 +15,13 @@ logger = logging.getLogger(__name__)
 def main():
     # 1. パーサーの作成
     parser = argparse.ArgumentParser(description="Kayaba の起動オプション")
-    # 2. オプションの追加 (-a が指定されたら args.a を True にする)
-    parser.add_argument('-a', action='store_true', help="Aオプションを有効にします")
+    # 2. オプションの追加 (--all が指定されたら args.all を True にする)
+    parser.add_argument(
+        '-a',
+        '--all',
+        action='store_true',
+        help="All オプションを有効にします"
+    )
     # 3. 引数の解析
     args = parser.parse_args()
 
@@ -24,7 +29,7 @@ def main():
     name_doe = "doe-001"
 
     # 開始日
-    if args.a:
+    if args.all:
         dt_start = datetime.datetime(2026, 2, 1)
     else:
         dt_now = datetime.datetime.now()
