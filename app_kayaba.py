@@ -13,9 +13,9 @@ logger = logging.getLogger(__name__)
 
 
 def main():
-    # 1. パーサーの作成
+    # 引数の処理
     parser = argparse.ArgumentParser(description="Kayaba の起動オプション")
-    # 2. オプションの追加 (--all が指定されたら args.all を True にする)
+    # オプションの追加 (--all が指定されたら args.all を True にする)
     parser.add_argument(
         '-a',
         '--all',
