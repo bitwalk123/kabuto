@@ -491,9 +491,16 @@ def mpl_plot_review(
 
 
 def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, Any]):
+    #print(type(dict_ts["start"]))
     ax.set_title(title)
     td = datetime.timedelta(minutes=15)
-    ax.set_xlim(dict_ts["start"] - td, dict_ts["end"] + td)
+    if type(dict_ts["start"]) is float:
+        dt_start = datetime.datetime.fromtimestamp(dict_ts["start"])
+        dt_end = datetime.datetime.fromtimestamp(dict_ts["end"])
+        ax.set_xlim(dt_start - td, dt_end + td)
+    else:
+        ax.set_xlim(dict_ts["start"] - td, dict_ts["end"] + td)
+
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
     # 株価と VWAP
@@ -594,8 +601,14 @@ def plot_verticals(
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
         # ウォークアップ期間
-        td = datetime.timedelta(seconds=dict_setting["PERIOD_WARMUP"] * 2)
-        x = [dict_ts["start"], df.index[0] + td]
+        td = datetime.timedelta(seconds=int(dict_setting["PERIOD_WARMUP"]) * 2)
+
+        if type(dict_ts["start"]) is float:
+            dt_start = datetime.datetime.fromtimestamp(dict_ts["start"])
+            x = [dt_start, df.index[0] + td]
+        else:
+            x = [dict_ts["start"], df.index[0] + td]
+
         ax[i].fill_between(
             x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
         )

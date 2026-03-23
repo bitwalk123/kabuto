@@ -1,17 +1,14 @@
 import logging
-from collections import defaultdict
-from typing import Any, DefaultDict
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from funcs.plugin import get_model_instance
-from funcs.tide import conv_datetime_from_timestamp
-from modules.env import TradingEnv
+from modules.agent_base import AgentBase
 from structs.app_enum import ActionType, PositionType
 
 
-class AgentCLI:
+class AgentCLI(AgentBase):
     """
     強化学習を利用せずに、アルゴリズムのみのエージェント
     （CLI 用）
@@ -19,28 +16,7 @@ class AgentCLI:
     BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
 
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-
-        self.obs: np.ndarray | None = None
-        self.done: bool = False
-        self.df_obs: pd.DataFrame | None = None
-        self._is_stopping: bool = False  # 終了フラグを追加
-
-        # 学習環境の取得
-        self.env: TradingEnv = TradingEnv(code, dict_setting)
-
-        # モデルに渡す観測値のリスト
-        self.list_obs_label: list[str] = []
-
-        # モデルのインスタンス（とりあえずプラグイン化）
-        name_model = "default"
-        dict_model = {}
-        get_model_instance(name_model, dict_model)
-        self.model = dict_model[name_model]
-
-        # 取引内容（＋テクニカル指標）
-        self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
+        super().__init__(code, dict_setting)
 
     def addData(self, ts: float, price: float, volume: float) -> tuple[int, PositionType]:
         # 終了処理中はデータを処理しない
@@ -104,22 +80,6 @@ class AgentCLI:
         self.model.updateObs(self.list_obs_label)
         list_colname.extend(self.list_obs_label)
         self.df_obs = pd.DataFrame({col: [] for col in list_colname})
-
-    def saveTechnicals(self, path_csv: str) -> None:
-        """
-        テクニカル指標を CSV ファイルに保存
-        :param path_csv: 保存先のファイルパス
-        """
-        try:
-            df = pd.DataFrame(self.dict_list_tech)
-            # インデックスを日付形式に変換
-            df.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df["ts"]]
-            # 指定されたパスにデータフレームを CSV 形式で保存
-            df.to_csv(path_csv)
-            # self.logger.info(f"{path_csv} を保存しました。")
-            print(f"{path_csv} を保存しました。")
-        except (KeyError, ValueError, IOError) as e:
-            self.logger.error(f"テクニカル指標の保存に失敗しました: {e}")
 
     def setAutoPilot(self, flag: bool):
         self.model.setAutoPilot(flag)

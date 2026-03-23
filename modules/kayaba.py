@@ -20,6 +20,7 @@ from funcs.excel import is_sheet_exists, load_excel
 from funcs.plot import plot_price_vwap, plot_rsi, plot_momentum, plot_profit, plot_drawdown, plot_verticals
 from funcs.setting import load_setting, update_setting
 from funcs.tide import get_intraday_timestamp
+from funcs.tse import get_ticker_name_list
 from modules.agent_cli import AgentCLI
 from modules.kabuto import Kabuto
 from modules.posman import PositionManager
@@ -52,6 +53,8 @@ class Kayaba:
         self.code = code
         self.dt_start = dt_start
         self.res = res = AppRes()
+        # 銘柄名の取得
+        self.name: str = get_ticker_name_list([code])[code]
 
         path_csv = os.path.join(res.dir_doe, f"{name_doe}.csv")
         self.df_doe = pd.read_csv(path_csv)
@@ -68,6 +71,8 @@ class Kayaba:
 
         print("下記の条件で DOE を実施します。")
         print(self.df_doe)
+        self.dir_base = os.path.join(res.dir_doe, name_doe)
+        os.makedirs(self.dir_base, exist_ok=True)
 
         # ポジション・マネージャ（使い回す）
         self.posman = PositionManager()
@@ -91,6 +96,9 @@ class Kayaba:
 
             # 日付文字列
             str_date = get_datestr_from_collections(path_excel)
+
+            dir_date = os.path.join(self.dir_base, str_date)
+            os.makedirs(dir_date, exist_ok=True)
 
             # ザラ場の開始時間などのタイムスタンプ
             dict_ts = get_intraday_timestamp(path_excel)
@@ -123,9 +131,15 @@ class Kayaba:
 
                 # テクニカル・データ（出力先）
                 path_csv = os.path.join(
-                    self.res.dir_temp, f"{str_date}_{self.code}_{r:d}_technicals.csv"
+                    dir_date, f"{self.code}_{r:d}_technicals.csv"
                 )
-                self.saveTechnicals(agent, path_csv)
+                df_technicals = agent.saveTechnicals(path_csv)
+
+                title = f"{dt_date.date()}: {self.name} ({self.code})"
+                path_img = os.path.join(
+                    dir_date, f"{self.code}_{r:d}_technicals.png"
+                )
+                self.draw_review_chart(self.res, title, df_technicals, dict_setting_doe, dict_ts, path_img)
 
                 # 結果の保持
                 dict_results["date"].append(dt_date)
@@ -135,14 +149,22 @@ class Kayaba:
                 dict_results["trade"].append(n)
                 dict_results["total"].append(total)
 
-        # print(f"総収益: {grand_total} 円, {days} 日")
-        print(pd.DataFrame(dict_results))
+            df_results = pd.DataFrame(dict_results)
+            print(df_results)
+            # DOE 結果の保存
+            df_results.to_csv(
+                os.path.join(dir_date, f"{self.code}_result.csv"),
+                index=False
+            )
 
-    def simulation(self, agent: AgentCLI, df: pd.DataFrame, dict_ts: dict[str, float]) -> tuple[int, Any]:
-        # ポジション・マネージャのリセット
-        self.posman.reset()
-        # ポジション・マネージャの初期化
-        self.posman.initPosition([self.code])
+    def simulation(
+            self,
+            agent: AgentCLI,
+            df: pd.DataFrame,
+            dict_ts: dict[str, Any]
+    ) -> tuple[int, float]:
+        self.posman.reset()  # ポジション・マネージャのリセット
+        self.posman.initPosition([self.code])  # ポジション・マネージャの初期化
 
         # ティックデータのループ
         ts, price = (0.0, 0.0)
@@ -182,13 +204,9 @@ class Kayaba:
         if self.posman.hasPosition(self.code):
             self.doRepay(ts, price)
 
-    @staticmethod
-    def saveTechnicals(agent: AgentCLI, path_csv: str) -> None:
-        # テクニカル・データの保存
-        agent.saveTechnicals(path_csv)
-
-    def draw_chart(
+    def draw_review_chart(
             self,
+            res:AppRes,
             title: str,
             df: pd.DataFrame,
             dict_setting: dict[str, Any],
@@ -199,17 +217,16 @@ class Kayaba:
         IMAGE_HEIGHT = 700
 
         # Matplotlib の共通設定
-        fm.fontManager.addfont(self.res.path_monospace)
+        fm.fontManager.addfont(res.path_monospace)
 
         # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=self.res.path_monospace)
+        font_prop = fm.FontProperties(fname=res.path_monospace)
         font_prop.get_name()
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 9
 
         fig = Figure(figsize=(IMAGE_WIDTH / 100., IMAGE_HEIGHT / 100.))
-        # キャンバスを表示
         canvas = FigureCanvas(fig)
 
         n = 5
@@ -223,29 +240,29 @@ class Kayaba:
             ax[i].grid(axis="y")
 
         # 1. 株価と VWAP
-        plot_price_vwap(self.ax[0], df, title, dict_ts)
+        plot_price_vwap(ax[0], df, title, dict_ts)
 
         # 2. モメンタム
-        plot_rsi(self.ax[1], df, dict_setting)
+        plot_rsi(ax[1], df, dict_setting)
 
         # 3. モメンタム
-        plot_momentum(self.ax[2], df, dict_setting)
+        plot_momentum(ax[2], df, dict_setting)
 
         # 4. 含み益
-        plot_profit(self.ax[3], df, dict_setting)
+        plot_profit(ax[3], df, dict_setting)
 
         # 5. ドローダウン
-        plot_drawdown(self.ax[4], df, dict_setting)
+        plot_drawdown(ax[4], df, dict_setting)
 
         # --- クロス・シグナル、その他縦線系 ---
-        plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
+        plot_verticals(n, ax, df, dict_setting, dict_ts)
 
         # タイト・レイアウト
-        self.fig.tight_layout()
+        fig.tight_layout()
 
         # 再描画
         canvas.draw()
 
         # 保存だけ実行
-        self.fig.savefig(name_img, dpi=100)
-        print(f"{name_img} に保存しました。")
+        fig.savefig(name_img, dpi=100)
+        print(f"レビュー用のチャートを {name_img} に保存しました。")
