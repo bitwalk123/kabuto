@@ -16,7 +16,7 @@ def main():
     # 1. パーサーの作成
     parser = argparse.ArgumentParser(description="Kayaba の起動オプション")
     # 2. オプションの追加 (-a が指定されたら args.a を True にする)
-    parser.add_argument('-a', action='store_true', help="All オプションを有効にします")
+    parser.add_argument('-a', '--all', action='store_true', help="All オプションを有効にします")
     # 3. 引数の解析
     args = parser.parse_args()
 
