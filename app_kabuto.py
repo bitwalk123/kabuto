@@ -4,7 +4,6 @@ Project Kabuto のデイトレ用 GUI アプリの起動プログラム (Kabuto)
 import argparse
 import logging
 import sys
-import time
 
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QPixmap
