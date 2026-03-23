@@ -133,14 +133,14 @@ class Kayaba:
 
                 # テクニカル・データ（出力先）
                 path_csv = os.path.join(
-                    dir_date, f"{self.code}_{r:000d}_technicals.csv"
+                    dir_date, f"{self.code}_{r:03d}_technicals.csv"
                 )
                 df_technicals = agent.saveTechnicals(path_csv)
 
                 # テクニカル・データのレビュー・チャート
-                title = f"{dt_date.date()}: {self.name} ({self.code}) - #{r:000d}"
+                title = f"{dt_date.date()}: {self.name} ({self.code}) - #{r:03d}"
                 path_img = os.path.join(
-                    dir_date, f"{self.code}_{r:000d}_technicals.png"
+                    dir_date, f"{self.code}_{r:03d}_technicals.png"
                 )
                 draw_review_chart(
                     self.res,
