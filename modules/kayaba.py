@@ -175,6 +175,7 @@ class Kayaba:
                     df_results_extract.style
                     .set_table_attributes('class="simple" style="font-family: monospace; font-size: small;"')
                     .set_properties(**{'text-align': 'right'})
+                    .format(precision=2, thousands=",")
                     .to_html(
                         os.path.join(dir_date, f"{self.code}_result.html"),
                         index=False
