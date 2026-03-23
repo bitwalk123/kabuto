@@ -161,11 +161,13 @@ class Kayaba:
 
             df_results = pd.DataFrame(dict_results)
             print(df_results)
+
             # DOE 結果の保存
             df_results.to_csv(
                 os.path.join(dir_date, f"{self.code}_result.csv"),
                 index=False
             )
+
             # HTML の出力
             if self.name_doe == "doe-001":
                 df_results_extract = df_results[["date", "run", "DD_PROFIT", "DD_RATIO", "trade", "total"]]
