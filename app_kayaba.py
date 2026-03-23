@@ -17,8 +17,12 @@ if __name__ == "__main__":
     name_doe = "doe-001"
 
     # 開始日
-    #dt_start = datetime.datetime(2026, 2, 1)
-    dt_start = datetime.datetime(2026, 3, 23)
+    flag_today:bool = True
+    if flag_today:
+        dt_now = datetime.datetime.now()
+        dt_start = datetime.datetime(dt_now.year, dt_now.month, dt_now.day)
+    else:
+        dt_start = datetime.datetime(2026, 2, 1)
 
     # 銘柄コード
     for code in ["9984"]:
