@@ -30,7 +30,7 @@ def main():
 
     # 開始日
     if args.all:
-        dt_start = datetime.datetime(2026, 1, 27)
+        dt_start = datetime.datetime(2026, 2, 1)
     else:
         dt_now = datetime.datetime.now()
         dt_start = datetime.datetime(dt_now.year, dt_now.month, dt_now.day)
