@@ -200,7 +200,8 @@ class Kayaba:
                 # 指定時間以降はエントリをしない。
                 if agent.isAutoPilot():
                     agent.setAutoPilot(False)
-                    self.logger.info(f"エントリを無効にしました。")
+                    dt = datetime.datetime.fromtimestamp(int(ts))
+                    self.logger.info(f"エントリを無効にしました。@ {dt.time()}")
 
             if dict_ts["end_2h"] < ts:
                 break
