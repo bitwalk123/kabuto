@@ -202,6 +202,14 @@ class DockTrader(DockWidget):
             self.auto = False
             return False
 
+    def setAutoPilotDisabled(self):
+        """
+        AutoPilot ボタンがチェックされていたらチェックを外す
+        :return:
+        """
+        if self.panel_option.but_autopilot.isChecked():
+            self.panel_option.but_autopilot.animateClick()
+
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 実売買移行用
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_

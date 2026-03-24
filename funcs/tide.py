@@ -142,6 +142,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dt_end_2h = datetime.datetime(year, month, day, hour=15, minute=24, second=50)
     dt_ca = datetime.datetime(year, month, day, hour=15, minute=25)
     dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
+    dt_end_entry = datetime.datetime(year, month, day, hour=13, minute=00)
 
     dict_ts = dict()
     # タイムスタンプに変換してインスタンス変数で保持
@@ -151,6 +152,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dict_ts["end_2h"] = dt_end_2h.timestamp()
     dict_ts["ca"] = dt_ca.timestamp()
     dict_ts["end"] = dt_end.timestamp()
+    dict_ts["end_entry"] = dt_end_entry.timestamp()
     # 日付文字列
     dict_ts["datetime_str"] = f"{year:04}{month:02}{day:02}"
     dict_ts["datetime_str_2"] = f"{year:04}-{month:02}-{day:02}"

@@ -361,6 +361,9 @@ class Trader(QMainWindow):
         self.sendTradeData.emit(ts, price, volume)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+        if self.dict_ts["end_entry"] < ts:
+            self.dock.setAutoPilotDisabled()
+
         self.ts = ts
         self.price = price
 

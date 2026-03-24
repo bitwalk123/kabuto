@@ -527,8 +527,8 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.plot(df["mom"], color="#888", linewidth=0.25, alpha=0.75, label=f"n={dict_setting["PERIOD_MOM"]}")
     x = df.index
     y = df["mom"]
-    ax.fill_between(x, 0, y, where=(0 < y), fc="#faa", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 0, y, where=(y < 0), fc="#aaf", ec="#00f", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0, y, where=(0 < y), fc="#f88", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0, y, where=(y < 0), fc="#88f", ec="#00f", alpha=0.5, lw=0.5)
 
     ax.axhline(y=0, linewidth=0.5, color="black", alpha=0.5)
 
@@ -540,9 +540,13 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.plot(df["rsi"], color="black", linewidth=0.25, alpha=0.75, label=f"n={dict_setting["PERIOD_RSI"]}")
     x = df.index
     y = df["rsi"]
-    ax.fill_between(x, 0.7, y, where=(0.7 < y), fc="#faa", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 0.3, y, where=(y < 0.3), fc="#aaf", ec="#00f", alpha=0.5, lw=0.5)
-    # ax.fill_between(x, 0.5, y, where=((0.3 < y) & (y < 0.7)), fc="#ccc", ec="#aaa", alpha=0.5, lw=0.5)
+
+    ax.fill_between(x, 0.5, y, where=(0.5 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.5, y, where=(y < 0.5), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5)
+
+    ax.fill_between(x, 0.7, y, where=(0.7 < y), fc="#f88", ec="#f00", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.3, y, where=(y < 0.3), fc="#88f", ec="#00f", alpha=0.5, lw=0.5)
+
 
     ax.axhline(y=0.5, linewidth=0.75, color="black", alpha=0.5)
     ax.axhline(y=0.3, linewidth=0.5, color="black", alpha=0.5)

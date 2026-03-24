@@ -146,7 +146,7 @@ class PanelOption(QFrame):
         super().__init__()
         self.res = res
         self.code = code
-        self.autopilot = False
+        # self.autopilot = False
 
         self.setFrameStyle(
             QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
@@ -155,9 +155,9 @@ class PanelOption(QFrame):
         layout = HBoxLayout()
         self.setLayout(layout)
 
-        but_autopilot = ToggleButtonAutoPilot(res)
+        self.but_autopilot = but_autopilot = ToggleButtonAutoPilot(res)
         but_autopilot.setToolTip("オート・パイロット")
-        but_autopilot.setChecked(self.autopilot)
+        but_autopilot.setChecked(False)
         but_autopilot.toggled.connect(self.on_toggled_autopilot)
         layout.addWidget(but_autopilot)
 
@@ -181,6 +181,9 @@ class PanelOption(QFrame):
         but_save.setToolTip("チャートの保存")
         but_save.clicked.connect(self.on_clicked_save)
         layout.addWidget(but_save)
+
+    def isAutoPilot(self) -> bool:
+        return self.but_autopilot.isChecked()
 
     def on_clicked_repair(self):
         self.clickedRepair.emit()
