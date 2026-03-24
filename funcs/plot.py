@@ -6,8 +6,7 @@ import mplfinance as mpf
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import talib as ta
-from matplotlib import dates as mdates, font_manager as fm, pyplot as plt
+from matplotlib import dates as mdates
 from matplotlib import font_manager as fm
 from matplotlib import pyplot as plt
 from matplotlib import ticker as ticker
@@ -18,7 +17,6 @@ from scipy.interpolate import griddata
 
 from funcs.tide import get_format_date_from_date_str
 from funcs.tse import get_ticker_name_list
-from modules.technical import RSI, Momentum
 from structs.res import AppRes
 
 
