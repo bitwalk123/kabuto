@@ -83,3 +83,6 @@ class AgentCLI(AgentBase):
 
     def setAutoPilot(self, flag: bool):
         self.model.setAutoPilot(flag)
+
+    def isAutoPilot(self) -> bool:
+        return self.model.isAutoPilot()

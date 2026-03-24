@@ -67,6 +67,9 @@ class AlgoTradeBase(ABC):
         """
         ...
 
+    def isAutoPilot(self) -> bool:
+        return self.autopilot
+
     def setAutoPilot(self, flag: bool):
         self.autopilot = flag
 

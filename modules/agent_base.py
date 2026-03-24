@@ -80,3 +80,7 @@ class AgentBase(ABC):
     @abstractmethod
     def setAutoPilot(self, flag: bool):
         ...
+
+    @abstractmethod
+    def isAutoPilot(self) -> bool:
+        ...

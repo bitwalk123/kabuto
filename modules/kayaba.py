@@ -195,8 +195,15 @@ class Kayaba:
         ts, price = (0.0, 0.0)
         for row in df.itertuples():
             ts = row.Time
+
+            if dict_ts["end_entry"] < ts:
+                # 指定時間以降はエントリをしない。
+                if agent.isAutoPilot():
+                    agent.setAutoPilot(False)
+
             if dict_ts["end_2h"] < ts:
                 break
+
             price = row.Price
             volume = row.Volume
 
