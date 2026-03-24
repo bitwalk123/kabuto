@@ -97,9 +97,8 @@ class Trader(QMainWindow):
         # ---------------------------------------------------------------------
         # チャート・インスタンス
         # ---------------------------------------------------------------------
-        # self.trend = trend = TrendChart(res, dict_ts, self.dict_setting)
-        self.trend = trend = TrendCharts(res, dict_ts, self.dict_setting)
-        self.setCentralWidget(trend)
+        self.trends = trends = TrendCharts(res, dict_ts, self.dict_setting)
+        self.setCentralWidget(trends)
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         # 売買モデル用スレッド
@@ -219,7 +218,7 @@ class Trader(QMainWindow):
         # パスの階層がなかったら生成して保存
         os.makedirs(output_dir, exist_ok=True)
         path_img = os.path.join(output_dir, file_img)
-        self.trend.save(path_img)
+        self.trends.save(path_img)
 
     def on_setting(self):
         dialog = DlgSetting(self.res, self.code, self.dict_setting)
@@ -245,15 +244,15 @@ class Trader(QMainWindow):
 
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
-            self.trend.setCrossGolden(dict_technicals["ts"])
+            self.trends.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross1"] < 0.0:
-            self.trend.setCrossDead(dict_technicals["ts"])
+            self.trends.setCrossDead(dict_technicals["ts"])
 
         # クロス時の縦線表示 2
         if 0.0 < dict_technicals["cross2"]:
-            self.trend.setCrossGolden(dict_technicals["ts"])
+            self.trends.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross2"] < 0.0:
-            self.trend.setCrossDead(dict_technicals["ts"])
+            self.trends.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals()
 
@@ -315,9 +314,9 @@ class Trader(QMainWindow):
         """
         # 売買返済ボタンのロックを解除、次の状態設定
         if self.dock.next_trading_buttons_status(price):
-            self.trend.setEvenLine(price)
+            self.trends.setEvenLine(price)
         else:
-            self.trend.setEvenLine(0.0)
+            self.trends.setEvenLine(0.0)
 
     def setChartTitle(self, title: str) -> None:
         """
@@ -325,7 +324,7 @@ class Trader(QMainWindow):
         :param title:
         :return:
         """
-        self.trend.setTrendTitle(title)
+        self.trends.setTrendTitle(title)
 
     def setTimeAxisRange(self, ts_start: float, ts_end: float) -> None:
         """
@@ -336,7 +335,7 @@ class Trader(QMainWindow):
         :param ts_end:
         :return:
         """
-        self.trend.setXRange(ts_start, ts_end)
+        self.trends.setXRange(ts_start, ts_end)
 
     def setTradeData(
             self,
@@ -365,7 +364,7 @@ class Trader(QMainWindow):
         self.price = price
 
         # 株価トレンド線
-        self.trend.setDot([ts], [price])
+        self.trends.setDot([ts], [price])
 
         # 銘柄単位の現在株価および含み益と収益を更新
         self.dock.setPrice(price)
@@ -381,4 +380,4 @@ class Trader(QMainWindow):
         """
         テクニカル・データの更新
         """
-        self.trend.setTechnicals(self.dict_trend)
+        self.trends.setTechnicals(self.dict_trend)
