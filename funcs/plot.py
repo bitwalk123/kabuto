@@ -379,7 +379,7 @@ def trend_diff(code: str, df: pd.DataFrame, name: str = ""):
         img_name = os.path.join(dir_name, f"{code}_trend_diff.png")
         plt.rcParams["font.size"] = 9
         n = 2
-        fig = plt.figure(figsize=(6, 3))
+        fig = plt.figure(figsize=(6.8, 3))
         ax = dict()
         gs = fig.add_gridspec(
             n,
