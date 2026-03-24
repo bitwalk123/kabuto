@@ -52,23 +52,24 @@ class AppRes:
     path_title_font: str = "fonts/Daughter_of_Fortune.ttf"
     name_title_font: str | None = None
 
-    def __init__(self):
-        # システムディレクトリのチェック
-        list_dir = [
-            self.dir_collection,
-            self.dir_doe,
-            self.dir_excel,
-            self.dir_info,
-            self.dir_log,
-            self.dir_model,
-            self.dir_output,
-            self.dir_report,
-            self.dir_temp,
-            self.dir_training,
-            self.dir_transaction,
-        ]
-        for dirname in list_dir:
-            self.check_system_dir(dirname)
+    def __init__(self, flag=True):
+        if flag:
+            # システムディレクトリのチェック
+            list_dir = [
+                self.dir_collection,
+                self.dir_doe,
+                self.dir_excel,
+                self.dir_info,
+                self.dir_log,
+                self.dir_model,
+                self.dir_output,
+                self.dir_report,
+                self.dir_temp,
+                self.dir_training,
+                self.dir_transaction,
+            ]
+            for dirname in list_dir:
+                self.check_system_dir(dirname)
 
     @staticmethod
     def check_system_dir(dirname: str):

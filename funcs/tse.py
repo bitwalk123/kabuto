@@ -6,7 +6,7 @@ from structs.res import AppRes
 
 def get_ticker_list() -> pd.DataFrame:
     # JPX ticker list
-    res = AppRes()
+    res = AppRes(False)
     df_tse = res.getJPXTickerList()
     market_target = ['グロース（内国株式）', 'スタンダード（内国株式）', 'プライム（内国株式）']
     df = df_tse[df_tse['市場・商品区分'].isin(market_target)].reset_index(drop=True)
