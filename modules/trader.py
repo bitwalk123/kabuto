@@ -361,9 +361,6 @@ class Trader(QMainWindow):
         self.sendTradeData.emit(ts, price, volume)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-        if self.dict_ts["end_entry"] < ts:
-            self.dock.setAutoPilotDisabled()
-
         self.ts = ts
         self.price = price
 
@@ -374,6 +371,11 @@ class Trader(QMainWindow):
         self.dock.setPrice(price)
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
+
+        if self.dict_ts["end_entry"] < ts:
+            # 指定時間以降はエントリをしない。
+            self.dock.setAutoPilotDisabled()
+
 
     def update_technicals(self) -> None:
         """
