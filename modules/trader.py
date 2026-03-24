@@ -379,9 +379,6 @@ class Trader(QMainWindow):
 
     def update_technicals(self) -> None:
         """
-        if flag:
-        disparity line
-           self.trend.setTechnicals(self.dict_disparity, False)
-        else:
+        テクニカル・データの更新
         """
         self.trend.setTechnicals(self.dict_trend)
