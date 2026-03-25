@@ -33,6 +33,31 @@ def detect_cross(prev: float | None, curr: float) -> float:
         return -1.0
     return 0.0
 
+def detect_cross_golden(prev: float | None, curr: float) -> float:
+    """
+    移動平均の乖離の符号変化からゴールデン・クロスを検出
+    :param prev:
+    :param curr:
+    :return:
+    """
+    if prev is None:
+        return 0.0
+    if prev < 0 < curr:
+        return +1.0
+    return 0.0
+
+def detect_cross_dead(prev: float | None, curr: float) -> float:
+    """
+    移動平均の乖離の符号変化からデッドクロスを検出
+    :param prev:
+    :param curr:
+    :return:
+    """
+    if prev is None:
+        return 0.0
+    if curr < 0 < prev:
+        return -1.0
+    return 0.0
 
 def get_collection_path(res: AppRes, file: str) -> str:
     path_excel = str(Path(os.path.join(res.dir_collection, file)).resolve())

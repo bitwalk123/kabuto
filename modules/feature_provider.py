@@ -2,7 +2,7 @@ import datetime
 from dataclasses import dataclass, field
 from typing import Any
 
-from funcs.commons import detect_cross, init_transaction
+from funcs.commons import detect_cross, init_transaction, detect_cross_golden, detect_cross_dead
 from modules.technical import MovingAverage, VWAP, RSI, Momentum
 from structs.defaults import FeatureDefaults
 from structs.app_enum import PositionType
@@ -21,11 +21,13 @@ class FeatureState:
 
     # 移動平均 & VWAP 関連
     div_ma_prev: float | None = None
+    div_ma2_prev: float | None = None
+    div_ma3_prev: float | None = None
 
     # クロス・シグナル
-    cross_1: float = 0.0 # VWAP と MA1 のクロス・シグナル
-    cross_2: float = 0.0 # VWAP 上バンドと MA1 のゴールデン・クロス
-    cross_3: float = 0.0 # VWAP 下バンドと MA1 のデッド・クロス
+    cross_1: float = 0.0  # VWAP と MA1 のクロス・シグナル
+    cross_2: float = 0.0  # VWAP 上バンドと MA1 のゴールデン・クロス
+    cross_3: float = 0.0  # VWAP 下バンドと MA1 のデッド・クロス
 
     # ロスカット
     losscut_1: bool = False
@@ -344,10 +346,17 @@ class FeatureProvider:
         rsi = self.obj_rsi.update(ma1)
         mom = self.obj_mom.update(ma1)
         div_ma = ma1 - vwap
+        delta = self.dict_setting["BAND_VWAP"]
+        div_ma2 = ma1 - vwap - delta
+        div_ma3 = ma1 - vwap + delta
 
         # --- クロス判定 ---
         self.s.cross_1 = detect_cross(self.s.div_ma_prev, div_ma)
+        self.s.cross_2 = detect_cross_golden(self.s.div_ma2_prev, div_ma2)
+        self.s.cross_3 = detect_cross_dead(self.s.div_ma3_prev, div_ma3)
         self.s.div_ma_prev = div_ma
+        self.s.div_ma2_prev = div_ma2
+        self.s.div_ma3_prev = div_ma3
 
         # --- ロスカット判定 ---
         self.s.losscut_1 = self.getProfit() <= self.dict_setting["LOSSCUT_1"]
