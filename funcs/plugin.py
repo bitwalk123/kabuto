@@ -6,7 +6,7 @@ from models.abstract import AlgoTradeBase
 from structs.res import AppRes
 
 logger = logging.getLogger(__name__)
-res = AppRes()
+res = AppRes(False)
 
 
 def get_model_instance(name_model: str, dict_model: dict[str, Any]) -> None:

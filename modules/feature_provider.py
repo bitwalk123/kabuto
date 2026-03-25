@@ -21,8 +21,11 @@ class FeatureState:
 
     # 移動平均 & VWAP 関連
     div_ma_prev: float | None = None
-    cross_1: float = 0.0
-    cross_2: float = 0.0
+
+    # クロス・シグナル
+    cross_1: float = 0.0 # VWAP と MA1 のクロス・シグナル
+    cross_2: float = 0.0 # VWAP 上バンドと MA1 のゴールデン・クロス
+    cross_3: float = 0.0 # VWAP 下バンドと MA1 のデッド・クロス
 
     # ロスカット
     losscut_1: bool = False
@@ -111,8 +114,12 @@ class FeatureProvider:
         return float(self.s.cross_1)
 
     def getCrossSignal2(self) -> float:
-        """クロスシグナル2（-1.0, 0.0, 1.0）"""
+        """クロスシグナル2（0.0, 1.0）"""
         return float(self.s.cross_2)
+
+    def getCrossSignal3(self) -> float:
+        """クロスシグナル3（-1.0, 0.0）"""
+        return float(self.s.cross_3)
 
     def getCurrentPosition(self) -> PositionType:
         return self.s.position

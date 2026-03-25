@@ -3,8 +3,9 @@ import numpy as np
 from modules.feature_provider import FeatureProvider
 
 FEATURES = [
-    ("クロスS1", "getCrossSignal1"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
-    ("クロスS2", "getCrossSignal2"),  # 移動平均のクロスシグナル 1 [-1, 0, 1]
+    ("クロスS1", "getCrossSignal1"),  # [-1, 0, 1] MA1 と VWAP クロス・シグナル
+    ("クロスS2", "getCrossSignal2"),  # [0, 1]     MA1 と VWAP上バンド ゴールデン・シグナル
+    ("クロスS3", "getCrossSignal3"),  # [-1, 0]    MA1 と VWAP下バンド デッド・シグナル
     ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
     ("ロス2", "getLosscut2"),  # ロスカット 2 [0, 1]
     ("利確1", "doesTakeProfit"),  # 利確 1 [0, 1]
@@ -19,8 +20,9 @@ TECHNICALS = {
     "ma1": "getMA1",  # 移動平均線 MA1
     "rsi": "getRSI",  # RSI
     "mom": "getMOM",  # Momentum
-    "cross1": "getCrossSignal1",  # クロスシグナル 1（MA1 と VWAP）
-    "cross2": "getCrossSignal2",  # クロスシグナル 2（予備）
+    "cross1": "getCrossSignal1",  # MA1 と VWAP クロス・シグナル
+    "cross2": "getCrossSignal2",  # MA1 と VWAP上バンド ゴールデン・シグナル
+    "cross3": "getCrossSignal3",  # MA1 と VWAP下バンド デッド・シグナル
     "profit": "getProfit",  # 含損益
     "profit_max": "getProfitMax",  # 最大含み損益
     "drawdown": "getDrawDown",  # ドローダウン
