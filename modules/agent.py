@@ -46,9 +46,7 @@ class WorkerAgent(QObject):
 
         # モデルのインスタンス（とりあえずプラグイン化）
         name_model = "default"
-        dict_model = {}
-        get_model_instance(name_model, dict_model)
-        self.model = dict_model[name_model]
+        self.model = get_model_instance(name_model)
 
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
