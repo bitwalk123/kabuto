@@ -149,8 +149,8 @@ class Kayaba:
                     self.res,
                     title,
                     df_technicals,
-                    dict_setting_doe,
                     dict_ts,
+                    dict_setting_doe,
                     path_img,
                 )
 

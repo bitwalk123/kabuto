@@ -475,7 +475,7 @@ def mpl_plot_review(
         ax[i].grid(axis="y")
 
     # 株価と VWAP
-    plot_price_vwap(ax[0], df, title, dict_ts)
+    plot_price_vwap(ax[0], df, title, dict_ts, dict_setting)
 
     # 含み益
     plot_profit(ax[1], df, dict_setting)
@@ -485,13 +485,13 @@ def mpl_plot_review(
     plot_drawdown(ax2, df, dict_setting)
 
     # クロス・シグナル、その他縦線系
-    plot_verticals(n, ax, df, dict_ts)
+    plot_verticals(n, ax, df, dict_ts, dict_setting)
 
     fig.tight_layout()
     return fig
 
 
-def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, Any]):
+def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, Any], dict_setting: dict[str, Any]):
     # print(type(dict_ts["start"]))
     ax.set_title(title)
     td = datetime.timedelta(minutes=15)
@@ -505,12 +505,18 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
     ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
 
     # 株価と VWAP
-    ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, label="株価")
-    ax.plot(df["ma1"], linewidth=0.75, color="#0c0", label="MA1, n= 30")
+    ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, zorder=10, label="株価")
+    ax.plot(df["ma1"], linewidth=0.75, color="#0c0", zorder=50, label="MA1, n= 30")
     # 評価用の移動平均 MA2
-    df["ma2"] = df["price"].rolling(300, min_periods=1).mean()
-    ax.plot(df["ma2"], linewidth=0.5, color="#00c", label="MA2, n=300")
-    ax.plot(df["vwap"], linewidth=0.75, color="#f0f", label="VWAP")
+    n_ma2 = 100
+    df["ma2"] = df["price"].rolling(n_ma2, min_periods=1).mean()
+    ax.plot(df["ma2"], linewidth=0.5, color="#00c", zorder=60, label=f"MA2, n={n_ma2}")
+
+    ax.plot(df["vwap"], linewidth=0.75, color="#a0a", zorder=50, label="VWAP")
+    ser_vwap_up = df["vwap"] + dict_setting["BAND_VWAP"]
+    ser_vwap_down = df["vwap"] - dict_setting["BAND_VWAP"]
+    ax.plot(ser_vwap_up, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
+    ax.plot(ser_vwap_down, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
 
     ax.set_ylabel("株価")
     ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
@@ -524,11 +530,11 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     mom = Momentum(n)
     df["momentum"] = [mom.update(v) for v in df["ma1"]]
     '''
-    ax.plot(df["mom"], color="#888", linewidth=0.25, alpha=0.75, label=f"n={dict_setting["PERIOD_MOM"]}")
+    ax.plot(df["mom"], color="black", linewidth=0.25, alpha=0.75, zorder=100, label=f"n={dict_setting["PERIOD_MOM"]}")
     x = df.index
     y = df["mom"]
-    ax.fill_between(x, 0, y, where=(0 < y), fc="#f88", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 0, y, where=(y < 0), fc="#88f", ec="#00f", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0, y, where=(0 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=50)
+    ax.fill_between(x, 0, y, where=(y < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=50)
 
     ax.axhline(y=0, linewidth=0.5, color="black", alpha=0.5)
 
@@ -537,20 +543,19 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
 
 
 def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
-    ax.plot(df["rsi"], color="black", linewidth=0.25, alpha=0.75, label=f"n={dict_setting["PERIOD_RSI"]}")
+    ax.plot(df["rsi"], color="black", linewidth=0.25, alpha=0.75, zorder=100, label=f"n={dict_setting["PERIOD_RSI"]}")
     x = df.index
     y = df["rsi"]
 
-    ax.fill_between(x, 0.5, y, where=(0.5 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 0.5, y, where=(y < 0.5), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.5, y, where=(0.5 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=30)
+    ax.fill_between(x, 0.5, y, where=(y < 0.5), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=30)
 
-    ax.fill_between(x, 0.7, y, where=(0.7 < y), fc="#f88", ec="#f00", alpha=0.5, lw=0.5)
-    ax.fill_between(x, 0.3, y, where=(y < 0.3), fc="#88f", ec="#00f", alpha=0.5, lw=0.5)
+    ax.fill_between(x, 0.7, y, where=(0.7 < y), fc="#f88", ec="#f00", alpha=0.5, lw=0.5, zorder=50)
+    ax.fill_between(x, 0.3, y, where=(y < 0.3), fc="#88f", ec="#00f", alpha=0.5, lw=0.5, zorder=50)
 
-
-    ax.axhline(y=0.5, linewidth=0.75, color="black", alpha=0.5)
-    ax.axhline(y=0.3, linewidth=0.5, color="black", alpha=0.5)
-    ax.axhline(y=0.7, linewidth=0.5, color="black", alpha=0.5)
+    ax.axhline(y=0.5, linewidth=0.75, color="black", alpha=0.5, zorder=0)
+    ax.axhline(y=0.3, linewidth=0.5, color="black", alpha=0.5, zorder=0)
+    ax.axhline(y=0.7, linewidth=0.5, color="black", alpha=0.5, zorder=0)
     ax.set_ylim(-0.05, 1.05)
     ax.set_ylabel(f"RSI")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
@@ -563,11 +568,11 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     y2 = df["profit_max"]
     y_dd_th = dict_setting["DD_PROFIT"]
 
-    ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fcc", ec="#f00", alpha=0.5, lw=0.5, label="含み益")
-    ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#ccf", ec="#00f", alpha=0.5, lw=0.5, label="含み損")
+    ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10, label="含み益")
+    ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10, label="含み損")
 
-    ax.plot(y2, linewidth=0.75, color="#a00", label="最大含み損益")
-    ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, label="トレーリング")
+    ax.plot(y2, linewidth=0.75, color="#800", zorder=60, label="最大含み損益")
+    ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, zorder=0, label="トレーリング")
 
     ax.set_ylabel("含み損益")
     ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
@@ -596,8 +601,8 @@ def plot_verticals(
         n: int,
         ax: dict[int, plt.Axes],
         df: DataFrame,
-        dict_setting: dict[str, Any],
         dict_ts: dict[str, Any],
+        dict_setting: dict[str, Any],
 ):
     # クロス・シグナル、ウォームアップ期間
     list_cross = df[df["cross1"] != 0].index
@@ -618,7 +623,7 @@ def plot_verticals(
             x = [dict_ts["start"], df.index[0] + td]
 
         ax[i].fill_between(
-            x, 0, 1, color="black", alpha=0.15, transform=ax[i].get_xaxis_transform()
+            x, 0, 1, color="black", alpha=0.15, zorder=100, transform=ax[i].get_xaxis_transform()
         )
 
 
@@ -626,8 +631,8 @@ def draw_review_chart(
         res: AppRes,
         title: str,
         df: pd.DataFrame,
-        dict_setting: dict[str, Any],
         dict_ts: dict[str, Any],
+        dict_setting: dict[str, Any],
         name_img: str,
 ):
     IMAGE_WIDTH = 680
@@ -657,7 +662,7 @@ def draw_review_chart(
         ax[i].grid(axis="y")
 
     # 1. 株価と VWAP
-    plot_price_vwap(ax[0], df, title, dict_ts)
+    plot_price_vwap(ax[0], df, title, dict_ts, dict_setting)
 
     # 2. モメンタム
     plot_rsi(ax[1], df, dict_setting)
@@ -672,7 +677,7 @@ def draw_review_chart(
     plot_drawdown(ax[4], df, dict_setting)
 
     # --- クロス・シグナル、その他縦線系 ---
-    plot_verticals(n, ax, df, dict_setting, dict_ts)
+    plot_verticals(n, ax, df, dict_ts, dict_setting)
 
     # タイト・レイアウト
     fig.tight_layout()

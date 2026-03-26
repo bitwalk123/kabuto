@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 import pandas as pd
@@ -28,6 +29,7 @@ class ReviewChart(Widget):
 
     def __init__(self, res: AppRes):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.res = res
         self.setMinimumSize(self.IMAGE_WIDTH, self.IMAGE_HEIGHT)
 
@@ -38,8 +40,7 @@ class ReviewChart(Widget):
         fm.fontManager.addfont(res.path_monospace)
 
         # FontPropertiesオブジェクト生成（名前の取得のため）
-        font_prop = fm.FontProperties(fname=res.path_monospace)
-        font_prop.get_name()
+        self.font_prop = font_prop = fm.FontProperties(fname=res.path_monospace)
 
         plt.rcParams["font.family"] = font_prop.get_name()
         plt.rcParams["font.size"] = 9
@@ -52,8 +53,8 @@ class ReviewChart(Widget):
 
         self.n = n = 5
         self.ax = ax = dict()
-        gs = fig.add_gridspec(
-            n, 1, wspace=0.0, hspace=0.0,
+        self.gs = gs = fig.add_gridspec(
+            n, 1, wspace=0, hspace=0,
             height_ratios=[1.5 if i == 0 else 1 for i in range(n)],
         )
         for i, axis in enumerate(gs.subplots(sharex="col")):
@@ -66,7 +67,6 @@ class ReviewChart(Widget):
             ax.cla()
             ax.grid(axis="y")
 
-
     def draw(
             self,
             df: pd.DataFrame,
@@ -75,26 +75,31 @@ class ReviewChart(Widget):
             dict_setting: dict[str, Any],
             name_img: str
     ) -> None:
-        # 一旦、Axes うぃクリア
+        # 一旦、Axes をクリア
         self.clearAxes()
 
-        # 1. 株価と VWAP
-        plot_price_vwap(self.ax[0], df, title, dict_ts)
+        # 株価と VWAP
+        i = 0
+        plot_price_vwap(self.ax[i], df, title, dict_ts, dict_setting)
 
-        # 2. モメンタム
-        plot_rsi(self.ax[1], df, dict_setting)
+        # RSI
+        i += 1
+        plot_rsi(self.ax[i], df, dict_setting)
 
-        # 3. モメンタム
-        plot_momentum(self.ax[2], df, dict_setting)
+        # モメンタム
+        i += 1
+        plot_momentum(self.ax[i], df, dict_setting)
 
-        # 4. 含み益
-        plot_profit(self.ax[3], df, dict_setting)
+        # 含み益
+        i += 1
+        plot_profit(self.ax[i], df, dict_setting)
 
-        # 5. ドローダウン
-        plot_drawdown(self.ax[4], df, dict_setting)
+        # ドローダウン
+        i += 1
+        plot_drawdown(self.ax[i], df, dict_setting)
 
         # --- クロス・シグナル、その他縦線系 ---
-        plot_verticals(self.n, self.ax, df, dict_setting, dict_ts)
+        plot_verticals(self.n, self.ax, df, dict_ts, dict_setting)
 
         # タイト・レイアウト
         self.fig.tight_layout()
@@ -104,10 +109,11 @@ class ReviewChart(Widget):
 
         # 保存だけ実行
         self.fig.savefig(name_img, dpi=100)
-        print(f"{name_img} に保存しました。")
+        self.logger.info(f"{name_img} に保存しました。")
 
     def getCanvas(self) -> FigureCanvas:
         return self.canvas
+
 
 class ReviewChartNavigation(NavigationToolbar):
     def __init__(self, canvas: FigureCanvas):
