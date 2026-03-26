@@ -3,6 +3,7 @@ import glob
 import logging
 import os
 from collections import defaultdict
+from os.path import expanduser
 from typing import Any, Literal, TypeAlias
 
 import pandas as pd
@@ -67,7 +68,9 @@ class Kayaba:
 
         print("下記の条件で DOE を実施します。")
         print(self.df_doe)
-        self.dir_base = os.path.join(res.dir_doe, name_doe, code)
+        #self.dir_base = os.path.join(res.dir_doe, name_doe, code)
+        path_backtest = os.path.join(expanduser("~"), "MyProjects", "backtest")
+        self.dir_base = os.path.join(path_backtest, name_doe, code)
         os.makedirs(self.dir_base, exist_ok=True)
 
         # ポジション・マネージャ（使い回す）
