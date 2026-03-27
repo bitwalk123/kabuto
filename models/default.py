@@ -26,9 +26,9 @@ class AlgoTrade(AlgoTradeBase):
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])
-        # 2. クロスシグナル 2 [0, 1]
+        # 2. クロスシグナル 2 [0, 1], ゴールデン・クロスでエントリのみ
         cross_2 = int(obs[self.idx_cross_2])
-        # 3. クロスシグナル 2 [-1, 0]
+        # 3. クロスシグナル 3 [-1, 0], デッド・クロスでエントリのみ
         cross_3 = int(obs[self.idx_cross_3])
         # 4. ロスカット 1 [0, 1]
         losscut_1 = int(obs[self.idx_losscut_1])
@@ -48,7 +48,7 @@ class AlgoTrade(AlgoTradeBase):
 
         # 2. エグジット判定が必要なシグナルがあるか確認
         # いずれかのフラグが立っている場合のみ処理を続行
-        has_signal = any((cross_1, cross_2, cross_3, losscut_1, losscut_2, takeprofit_1))
+        has_signal = any((cross_1, losscut_1, losscut_2, takeprofit_1))
         if has_signal:
             exit_act = self.exit_action(position)
             # 有効なアクションかつ実行可能ならそのアクションを返す
@@ -60,17 +60,21 @@ class AlgoTrade(AlgoTradeBase):
             # a. ゴールデンクロス
             if cross_1 > 0:  # クロスS1: MA1 が VWAP を上抜け
                 if self.can_execute(ActionType.BUY.value, masks):
+                    # print("reason: golden_cross_1")
                     return ActionType.BUY.value, {'reason': 'golden_cross_1'}
             if cross_2 > 0:  # クロスS2: MA1 が VWAP上バンド を上抜け
                 if self.can_execute(ActionType.BUY.value, masks):
+                    # print("reason: golden_cross_2")
                     return ActionType.BUY.value, {'reason': 'golden_cross_2'}
 
             # b. デッドクロス
             if cross_1 < 0:  # クロスS1: MA1 が VWAP を下抜け
                 if self.can_execute(ActionType.SELL.value, masks):
+                    # print("reason: dead_cross_1")
                     return ActionType.SELL.value, {'reason': 'dead_cross_1'}
             if cross_3 < 0:  # クロスS3: MA1 が VWAP下バンド を下抜け
                 if self.can_execute(ActionType.SELL.value, masks):
+                    # print("reason: dead_cross_3")
                     return ActionType.SELL.value, {'reason': 'dead_cross_3'}
 
         # 4. デフォルトは HOLD
