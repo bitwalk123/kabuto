@@ -38,7 +38,6 @@ class ReviewChart(Widget):
 
         # Matplotlib の共通設定
         fm.fontManager.addfont(res.path_monospace)
-
         # FontPropertiesオブジェクト生成（名前の取得のため）
         self.font_prop = font_prop = fm.FontProperties(fname=res.path_monospace)
 
