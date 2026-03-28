@@ -11,6 +11,7 @@ class AlgoTrade(AlgoTradeBase):
     【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
     """
     MODEL_NAME: str = "default"
+    MODEL_REVISION: str = "0.0.1"
 
     def __init__(self):
         super().__init__()

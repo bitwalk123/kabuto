@@ -8,12 +8,12 @@ class AlgoTradeBase(ABC):
     """
     強化学習モデルの代わりに、自作のアルゴリズムで取引する疑似モデルのベース・クラス
     """
-    name: str = "AlgoTradeBase"
-    version: str = "1.0.0"
     """
     【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
     """
-    MODEL_NAME: str = "template"
+    MODEL_NAME: str = "AlgoTradeBase"
+    MODEL_VERSION: str = "1.0.0"
+    MODEL_REVISION: str = "0.0.0"
 
     def __init__(self):
         self.autopilot = False
