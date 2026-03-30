@@ -248,11 +248,13 @@ class Trader(QMainWindow):
         elif dict_technicals["cross1"] < 0.0:
             self.trends.setCrossDead(dict_technicals["ts"])
 
+        '''
         # クロス時の縦線表示 2
         if 0.0 < dict_technicals["cross2"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross2"] < 0.0:
             self.trends.setCrossDead(dict_technicals["ts"])
+        '''
 
         self.update_technicals()
 
