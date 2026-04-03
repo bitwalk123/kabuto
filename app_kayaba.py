@@ -39,7 +39,7 @@ def main():
     logger.info(f"{dt_start} 以降のティックデータを対象にします。")
 
     # 銘柄コード
-    for code in ["7011", "9984"]:
+    for code in ["6758", "7011", "9984"]:
         start = time.perf_counter()
         # バックテスト用クラス (Kayaba) のインスタンスを生成して起動
         app = Kayaba(name_doe, code, dt_start)
