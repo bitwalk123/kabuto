@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum, auto, IntEnum
 
 
 class BaselineMode(Enum):
@@ -30,6 +30,14 @@ class PositionType(Enum):
     SHORT = -1
     NONE = 0
     LONG = 1
+
+"""
+# 下記に変更予定
+class PositionType(IntEnum):
+    SHORT = 0
+    NONE = 1
+    LONG = 2
+"""
 
 
 class SignalSign(Enum):
