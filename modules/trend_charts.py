@@ -17,11 +17,6 @@ class CustomYAxisItem1(pg.AxisItem):
 
 class CustomYAxisItem2(pg.AxisItem):
     def tickStrings(self, values: list[float], scale: float, spacing: float) -> list[str]:
-        return [f"{value: 7,.2f}" for value in values]
-
-
-class CustomYAxisItem3(pg.AxisItem):
-    def tickStrings(self, values: list[float], scale: float, spacing: float) -> list[str]:
         return [f"{value: 7,.1f}" for value in values]
 
 
@@ -60,24 +55,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.getAxis('bottom').setStyle(showValues=False)
         self.plot_price.setLabel('left', 'Price')
 
-        # RSIチャート（二段）- CustomYAxisItem2 を適用
-        self.plot_rsi = self.addPlot(
+        # Momentumチャート（二段）- CustomYAxisItem2 を適用
+        self.plot_mom = self.addPlot(
             row=1, col=0,
             axisItems={
                 'left': CustomYAxisItem2(orientation='left'),
-                'bottom': pg.DateAxisItem(orientation='bottom')
-            }
-        )
-        self.plot_rsi.getAxis('bottom').setStyle(showValues=False)
-        self.plot_rsi.setLabel('left', 'RSI')
-        # X軸を連動させる
-        self.plot_rsi.setXLink(self.plot_price)
-
-        # Momentumチャート（三段）- CustomYAxisItem3 を適用
-        self.plot_mom = self.addPlot(
-            row=2, col=0,
-            axisItems={
-                'left': CustomYAxisItem3(orientation='left'),
                 'bottom': pg.DateAxisItem(orientation='bottom')
             }
         )
@@ -123,17 +105,6 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.vline_dead.setZValue(20)
         self.plot_price.addItem(self.vline_dead)
 
-        # RSI
-        self.rsi = self.plot_rsi.plot(pen=pg.mkPen(self.COLOR_RSI, width=1), name='RSI')
-        self.rsi.setZValue(50)
-        # 基準線を追加
-        rsi_7 = self.plot_rsi.addLine(y=0.7, pen=pg.mkPen((255, 0, 255, 128), width=0.75))
-        rsi_7.setZValue(20)
-        rsi_5 = self.plot_rsi.addLine(y=0.5, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
-        rsi_5.setZValue(20)
-        rsi_3 = self.plot_rsi.addLine(y=0.3, pen=pg.mkPen((0, 255, 255, 96), width=0.75))
-        rsi_3.setZValue(20)
-
         # Momentum
         self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name='Momentum')
         self.mom.setZValue(50)
@@ -145,13 +116,9 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.ci.layout.setSpacing(0)
         self.ci.layout.setRowStretchFactor(0, 2)  # 一段は2
         self.ci.layout.setRowStretchFactor(1, 1)  # 二段は1
-        self.ci.layout.setRowStretchFactor(2, 1)  # 三段は1
 
         # x軸範囲（ザラ場時間に固定）
         self.plot_price.setXRange(self.dict_ts["start"], self.dict_ts["end"])
-
-        # y軸範囲（RSI）
-        self.plot_rsi.setYRange(0, 1)
 
         # y軸範囲（Momentum）
         # self.plot_mom.setYRange(-1, 1)
@@ -162,7 +129,8 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # x軸の余白を設定
         self.plot_mom.getAxis('bottom').setHeight(26)
 
-        for plot_item in [self.plot_price, self.plot_rsi, self.plot_mom]:
+        # for plot_item in [self.plot_price, self.plot_rsi, self.plot_mom]:
+        for plot_item in [self.plot_price, self.plot_mom]:
             # フォントの設定
             plot_item.getAxis('bottom').setStyle(tickFont=self.res.name_tick_font)
             plot_item.getAxis('left').setStyle(tickFont=self.res.name_tick_font)
@@ -199,12 +167,10 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         data_ts = dict_lines["ts"]
         data_ma_1 = dict_lines["ma_1"]
         data_vwap = dict_lines["vwap"]
-        data_rsi = dict_lines["rsi"]
         data_mom = dict_lines["mom"]
 
         self.ma_1.setData(data_ts, data_ma_1)
         self.vwap.setData(data_ts, data_vwap)
-        self.rsi.setData(data_ts, data_rsi)
         self.mom.setData(data_ts, data_mom)
 
     def setTrendTitle(self, title: str) -> None:

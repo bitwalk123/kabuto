@@ -5,17 +5,12 @@ from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import QStyle, QWidget
 
 
-# from widgets.misc import TickFont
-
-
 class AppRes:
     # トレンドチャートの幅、高さ
     trend_width: int = 1500
-    trend_height: int = 500
+    trend_height: int = 350
     trend_n_max: int = 3  # ビューに表示できるチャートの数
 
-    # code_default = "7011"  # デフォルトの銘柄コード
-    # code_default: str = "8306"  # デフォルトの銘柄コード
     code_default: str = "9984"  # デフォルトの銘柄コード
 
     dir_collection: str = "collection"
