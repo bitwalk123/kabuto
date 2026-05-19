@@ -186,7 +186,7 @@ class TradingEnv(gym.Env):
         self.posman.reset()
         self.posman.initPosition([self.CODE])
 
-    def position_open(self, action_type: ActionType) -> float:
+    def position_open(self, action_type: ActionType) -> None:
         """
         ポジションのオープン
         :param action_type:
@@ -203,13 +203,12 @@ class TradingEnv(gym.Env):
         self.s.n_trade += 1  # 取引回数の更新
         self.s.reset_profit_pre()  # 一つ前の含み益のリセット
         # 【報酬・ペナルティ】
-        r = 0.0
-        r += self.s.add_contract_cost()  # 約定コスト
-        # print("open", datetime.datetime.fromtimestamp(self.s.ts), self.s.count_post_contract, r)
+        # r = 0.0
+        # r += self.s.add_contract_cost()  # 約定コスト
         self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-        return r
+        # return r
 
-    def position_close(self, note="") -> float:
+    def position_close(self, note="") -> None:
         """
         ポジションのクローズ
         :param note:
@@ -226,21 +225,20 @@ class TradingEnv(gym.Env):
         self.s.reset_profit_pre()  # 一つ前の含み益のリセット
         self.s.reset_profit_max()  # 最大含み益のリセット
         # 【報酬】
-        r = 0.0
-        r += self.s.add_contract_cost()  # 約定コスト
-        # print("close", datetime.datetime.fromtimestamp(self.s.ts), self.s.count_post_contract, r, self.s.profit)
+        # r = 0.0
+        # r += self.s.add_contract_cost()  # 約定コスト
         self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-        r += self.s.profit  # 含み損益分そっくり報酬
+        # r += self.s.profit  # 含み損益分そっくり報酬
         self.s.reset_count_negative()
-        return r
+        # return r
 
-    def position_close_force(self, note="強制返済") -> float:
+    def position_close_force(self, note="強制返済") -> None:
         """
         ポジション・クローズ（強制）
         :param note:
         :return:
         """
-        return self.position_close(note)
+        self.position_close(note)
 
     def reset(self, seed=None, options=None):
         """
@@ -249,15 +247,6 @@ class TradingEnv(gym.Env):
         :param options:
         :return:
         """
-        """
-        self.np_random, seed = seeding.np_random(seed)  # ← 乱数生成器を初期化
-        self.provider.clear()
-        obs = self.obs_man.getObsReset()
-        """
-
-        # Gymnasiumの仕様に従ってseedを設定し、乱数生成器を取得
-        super().reset(seed=int(np.random.rand() * 1000))
-
         # 環境の初期化（常に寄り付きから開始）
         self.init_status()
 
@@ -348,6 +337,7 @@ class TradingEnv(gym.Env):
         self.s.step_current += 1
         return reward, terminated, truncated, info
 
+    # === スレッド外部からのコマンド ===
     def openPosition(self, action_type: ActionType):
         self.position_open(action_type)
 
