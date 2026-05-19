@@ -48,23 +48,23 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price = self.addPlot(
             row=0, col=0,
             axisItems={
-                'left': CustomYAxisItem1(orientation='left'),
-                'bottom': pg.DateAxisItem(orientation='bottom')
+                "left": CustomYAxisItem1(orientation="left"),
+                "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        self.plot_price.getAxis('bottom').setStyle(showValues=False)
-        self.plot_price.setLabel('left', 'Price')
+        self.plot_price.getAxis("bottom").setStyle(showValues=False)
+        self.plot_price.setLabel("left", "株価")
 
         # Momentumチャート（二段）- CustomYAxisItem2 を適用
         self.plot_mom = self.addPlot(
             row=1, col=0,
             axisItems={
-                'left': CustomYAxisItem2(orientation='left'),
-                'bottom': pg.DateAxisItem(orientation='bottom')
+                "left": CustomYAxisItem2(orientation="left"),
+                "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        self.plot_mom.setLabel('left', 'Momentum')
-        self.plot_mom.getAxis('left').enableAutoSIPrefix(False)
+        self.plot_mom.setLabel("left", "モメンタム")
+        self.plot_mom.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる
         self.plot_mom.setXLink(self.plot_price)
 
