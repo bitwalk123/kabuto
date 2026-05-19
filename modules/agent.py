@@ -45,7 +45,8 @@ class WorkerAgent(QObject):
         self.list_obs_label: list[str] = []
 
         # モデルのインスタンス（とりあえずプラグイン化）
-        name_model = "default"
+        #name_model = "default"
+        name_model = "test_001"
         self.model = get_model_instance(name_model)
 
         # 取引内容（＋テクニカル指標）
@@ -64,7 +65,7 @@ class WorkerAgent(QObject):
         masks: np.ndarray = self.env.action_masks()
 
         # モデルによる行動予測
-        action, _states = self.model.predict(obs, masks=masks)
+        action, states = self.model.predict(obs, action_masks=masks)
 
         # メイン・スレッドへ通知する発注アクションを最優先
         position: PositionType = self.env.getCurrentPosition()
@@ -83,7 +84,7 @@ class WorkerAgent(QObject):
         # アクションによる環境の状態更新
         # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
         # ---------------------------------------------------------------------
-        reward, terminated, truncated, info = self.env.step_realtime(action)
+        reward, terminated, truncated, info = self.env.step_realtime(action, states)
         if terminated or truncated:
             flag_name = "terminated" if terminated else "truncated"
             self.logger.info(f"{flag_name} フラグが立ちました。")

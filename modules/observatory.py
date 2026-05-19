@@ -1,67 +1,41 @@
 import numpy as np
 
-from modules.feature_provider import FeatureProvider
-
-FEATURES = [
-    ("クロスS1", "getCrossSignal1"),  # [-1, 0, 1] MA1 と VWAP クロス・シグナル
-    ("クロスS2", "getCrossSignal2"),  # [0, 1]     MA1 と VWAP上バンド ゴールデン・シグナル
-    ("クロスS3", "getCrossSignal3"),  # [-1, 0]    MA1 と VWAP下バンド デッド・シグナル
-    ("ロス1", "getLosscut1"),  # ロスカット 1 [0, 1]
-    ("ロス2", "getLosscut2"),  # ロスカット 2 [0, 1]
-    ("利確1", "doesTakeProfit"),  # 利確 1 [0, 1]
-    ("建玉", "getPositionValue"),  # ポジション情報 [-1, 0, 1]
-]
-
-TECHNICALS = {
-    "ts": "getTimestamp",  # タイムスタンプ
-    "price": "getPrice",  # 株価
-    "volume": "getVolume",  # 累積出来高
-    "vwap": "getVWAP",  # VWAP
-    "ma1": "getMA1",  # 移動平均線 MA1
-    "rsi": "getRSI",  # RSI
-    "mom": "getMOM",  # Momentum
-    "cross1": "getCrossSignal1",  # MA1 と VWAP クロス・シグナル
-    "cross2": "getCrossSignal2",  # MA1 と VWAP上バンド ゴールデン・シグナル
-    "cross3": "getCrossSignal3",  # MA1 と VWAP下バンド デッド・シグナル
-    "profit": "getProfit",  # 含損益
-    "profit_max": "getProfitMax",  # 最大含み損益
-    "drawdown": "getDrawDown",  # ドローダウン
-    "dd_ratio": "getDDRatio",  # ドローダウン比率
-    "n_minus": "getCounterMinus",  # 含み益が負の時のカウンタ
-    "warmup": "isWarmUpPeriod",  # ウォームアップ期間か？(1: Yes, 0: No)
-}
+from modules.env_data import EnvData
+from modules.technical import VWAP, MovingAverage, Momentum
 
 
 class ObservationManager:
-    def __init__(self, provider: FeatureProvider):
+    def __init__(self, s: EnvData):
         # 特徴量プロバイダ
-        self.provider = provider
+        self.s = s
+        # 特徴量インスタンス
+        self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
+        self.mom = Momentum(window_size=self.s.PERIOD_MOM)
+        self.vwap = VWAP()
 
+    def update(self, ts: float, price: float, volume: float) -> dict:
         """
-        観測量（特徴量）数の取得
-        観測量の数 (self.n_feature) は、評価によって頻繁に変動するので、
-        コンストラクタでダミー（空）処理を実行して数を自律的に把握できるようにする。
+        self.ts = row["Time"]
+        self.price = row["Price"]
+        self.ma1 = row["MA1"]
+        self.ma2 = row["MA2"]
+        self.diff_ma = row["DiffMA"]
+        self.vwap = row["VWAP"]
+        self.diff_vwap = row["DiffVWAP"]
+        self.rsi = row["RSI"]
+        self.mom = row["Momentum"]
         """
-        self.n_feature = len(self.getObs()[0])
+        value_ma_1 = self.ma_1.update(price)
+        value_vwap = self.vwap.update(price, volume)
 
-    def getObs(self):
-        p = self.provider
-
-        # 観測値（特徴量）用リスト
-        list_feature = [getattr(p, fn)() for _, fn in FEATURES]
-
-        # プロット用データ
-        dict_technicals = {
-            key: getattr(p, name)() if callable(getattr(p, name)) else getattr(p, name)
-            for key, name in TECHNICALS.items()
+        return {
+            "Time": ts,
+            "Price": price,
+            "MA1": value_ma_1,
+            "MA2": 0,
+            "DiffMA": 0,
+            "VWAP": value_vwap,
+            "DiffVWAP": (value_ma_1 - value_vwap) / value_vwap * 100.,
+            "RSI": 0,
+            "Momentum": self.mom.update(value_ma_1),
         }
-
-        return np.array(list_feature, dtype=np.float32), dict_technicals
-
-    @staticmethod
-    def getObsList() -> list:
-        return [name for name, _ in FEATURES]
-
-    def getObsReset(self) -> np.ndarray:
-        obs, _ = self.getObs()
-        return obs

@@ -57,12 +57,12 @@ class AlgoTradeBase(ABC):
         return self.version
 
     @abstractmethod
-    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
+    def predict(self, obs, action_masks) -> tuple[int, dict[str, Any]]:
         """
         観測値から行動を予測（必須実装）
 
         :param obs: 観測値（numpy配列）
-        :param masks: 行動マスク
+        :param action_masks: 行動マスク
         :return: (action, info_dict)
         """
         ...

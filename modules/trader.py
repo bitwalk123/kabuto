@@ -10,10 +10,7 @@ from funcs.setting import load_setting
 from modules.agent import WorkerAgent
 from modules.dock import DockTrader
 from modules.trend_charts import TrendCharts
-from structs.app_enum import (
-    ActionType,
-    PositionType,
-)
+from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 from widgets.dialogs import DlgSetting
 
@@ -237,15 +234,15 @@ class Trader(QMainWindow):
         # self.vwap = dict_technicals["vwap"]
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_mom.append(dict_technicals["mom"])
+        self.list_mom.append(dict_technicals["momentum"])
 
+        '''
         # クロス時の縦線表示 1
         if 0.0 < dict_technicals["cross1"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
         elif dict_technicals["cross1"] < 0.0:
             self.trends.setCrossDead(dict_technicals["ts"])
 
-        '''
         # クロス時の縦線表示 2
         if 0.0 < dict_technicals["cross2"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
@@ -373,7 +370,6 @@ class Trader(QMainWindow):
         if self.dict_ts["end_entry"] < ts:
             # 指定時間以降はエントリをしない。
             self.dock.setAutoPilotDisabled()
-
 
     def update_technicals(self) -> None:
         """
