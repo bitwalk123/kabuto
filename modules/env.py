@@ -4,15 +4,11 @@ import gymnasium as gym
 import numpy as np
 import pandas as pd
 from gymnasium import spaces
-# from gymnasium.utils import seeding
 
 from funcs.conv import position_to_onehot
 from modules.env_data import EnvData
 from modules.observatory import ObservationManager
 from modules.posman import PositionManager
-# from modules.observatory import ObservationManager
-# from modules.feature_provider import FeatureProvider
-# from modules.remunerator import RewardManager
 from structs.app_enum import ActionType, PositionType
 
 
@@ -25,13 +21,6 @@ class TradingEnv(gym.Env):
         super().__init__()
         self.CODE: str = code  # 銘柄コード
         self.dict_setting = dict_setting  # パラメータ辞書
-
-        # 特徴量プロバイダ
-        # self.provider = provider = FeatureProvider(dict_setting)
-        # 売買管理クラス
-        # self.reward_man = RewardManager(provider, code)
-        # 観測値管理クラス
-        # self.obs_man = ObservationManager(provider)
 
         # step メソッドで渡される状態辞書
         self.states: dict = {}
@@ -48,12 +37,6 @@ class TradingEnv(gym.Env):
         # ポジション・マネージャ
         self.posman = posman = PositionManager()
         posman.initPosition([self.CODE])
-
-        # ウォームアップ期間
-        # self.n_warmup: int = provider.getPeriodWarmup()
-
-        # 現在の行位置
-        # self.provider.setStepCurrent(0)
 
         # ====== 行動空間 action_space の定義 ======
         n_action_space = len(ActionType)
@@ -144,7 +127,6 @@ class TradingEnv(gym.Env):
         建玉の強制返済
         :return:
         """
-        # self.reward_man.forceRepay()
         if self.posman.hasPosition(self.CODE):
             self.position_close_force()
 
@@ -153,7 +135,6 @@ class TradingEnv(gym.Env):
         現在のポジションを返す
         :return:
         """
-        # return self.provider.getCurrentPosition()
         return self.s.position
 
     def getParams(self) -> dict[str, Any]:
@@ -165,11 +146,9 @@ class TradingEnv(gym.Env):
         return {}
 
     def getTimestamp(self) -> float:
-        # return self.provider.getTimestamp()
         return self.s.ts
 
     def getTransaction(self) -> pd.DataFrame:
-        # return pd.DataFrame(self.provider.getTransaction())
         return self.posman.getTransactionResult()
 
     def getObservation(self, ts: float, price: float, volume: float) -> tuple[dict, dict]:
@@ -183,8 +162,6 @@ class TradingEnv(gym.Env):
         """
         self.s.set_data(self.obs_man.update(ts, price, volume))
         # 観測値
-        # obs, dict_technicals = self.obs_man.getObs()
-        # return obs, dict_technicals
         return self.s.get_obs(), self.s.get_technicals()
 
     def getObsList(self) -> list:
