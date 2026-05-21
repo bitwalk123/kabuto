@@ -34,9 +34,7 @@ class WorkerAgent(QObject):
         self.logger = logging.getLogger(__name__)
 
         self.obs: np.ndarray | None = None
-        self.done: bool = False
         self.df_obs: pd.DataFrame | None = None
-        self._is_stopping: bool = False  # 終了フラグを追加
 
         # 学習環境の取得
         self.env: TradingEnv = TradingEnv(code, dict_setting)
@@ -45,7 +43,7 @@ class WorkerAgent(QObject):
         self.list_obs_label: list[str] = []
 
         # モデルのインスタンス（とりあえずプラグイン化）
-        #name_model = "default"
+        # name_model = "default"
         name_model = "model_001"
         self.model = get_model_instance(name_model)
 
@@ -54,10 +52,6 @@ class WorkerAgent(QObject):
 
     @Slot(float, float, float)
     def addData(self, ts: float, price: float, volume: float) -> None:
-        # 終了処理中はデータを処理しない
-        if self._is_stopping or self.done:
-            return
-
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume)
 
@@ -67,7 +61,7 @@ class WorkerAgent(QObject):
         # モデルによる行動予測
         action, states = self.model.predict(obs, action_masks=masks)
 
-        # メイン・スレッドへ通知する発注アクションを最優先
+        # メイン・スレッドへ通知する発注アクション
         position: PositionType = self.env.getCurrentPosition()
         if ActionType(action) != ActionType.HOLD:
             # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
@@ -79,18 +73,6 @@ class WorkerAgent(QObject):
         # トレード後にまとめてデータフレームで出力するため
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
-
-        # ---------------------------------------------------------------------
-        # アクションによる環境の状態更新
-        # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
-        # ---------------------------------------------------------------------
-        reward, terminated, truncated, info = self.env.step_realtime(action, states)
-        if terminated or truncated:
-            flag_name = "terminated" if terminated else "truncated"
-            self.logger.info(f"{flag_name} フラグが立ちました。")
-            self.done = True
-            # 🧿 取引終了シグナルの通知
-            self.completedTrading.emit()
 
     @Slot()
     def cleanup(self) -> None:

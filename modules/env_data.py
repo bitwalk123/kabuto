@@ -360,7 +360,15 @@ class EnvData:
         self.rsi = row["RSI"]
         self.mom = row["Momentum"]
 
-        return self.get_obs(), self.get_technicals()
+        obs = self.get_obs()
+        dict_technical = self.get_technicals()
+
+        # 一つ前の特徴量の更新
+        self.update_feature_pre()
+        # ステップ（データフレームの行）更新
+        self.inc_row()
+
+        return obs, dict_technical
 
     def set_data_open(self, row):
         self.ts_open = row["Time"]

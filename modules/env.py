@@ -202,11 +202,7 @@ class TradingEnv(gym.Env):
         )
         self.s.n_trade += 1  # 取引回数の更新
         self.s.reset_profit_pre()  # 一つ前の含み益のリセット
-        # 【報酬・ペナルティ】
-        # r = 0.0
-        # r += self.s.add_contract_cost()  # 約定コスト
         self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-        # return r
 
     def position_close(self, note="") -> None:
         """
@@ -224,13 +220,8 @@ class TradingEnv(gym.Env):
         self.s.n_trade += 1  # 取引回数の更新
         self.s.reset_profit_pre()  # 一つ前の含み益のリセット
         self.s.reset_profit_max()  # 最大含み益のリセット
-        # 【報酬】
-        # r = 0.0
-        # r += self.s.add_contract_cost()  # 約定コスト
         self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-        # r += self.s.profit  # 含み損益分そっくり報酬
         self.s.reset_count_negative()
-        # return r
 
     def position_close_force(self, note="強制返済") -> None:
         """
@@ -295,24 +286,8 @@ class TradingEnv(gym.Env):
             "学習用には TrainingEnv クラスの実装を検討してください。"
         )
 
+    """
     def step_realtime(self, action: int, states: dict) -> tuple[float, bool, bool, dict[str, Any]]:
-        """
-        アクションによるステップ処理（リアルタイム用）
-
-        Note:
-            このメソッドは観測値を返しません。
-            観測値は事前に getObservation() で取得済みという前提です。
-
-        Args:
-            action: 実行するアクション
-            states: アクションの状態を表す辞書
-
-        Returns:
-            reward: 報酬
-            terminated: エピソード終了フラグ（目標達成など）
-            truncated: エピソード打ち切りフラグ（取引上限など）
-            info: 追加情報（pnl_total, done_reasonなど）
-        """
         # アクションの理由
         if states is None:
             self.states = {}
@@ -329,14 +304,6 @@ class TradingEnv(gym.Env):
         terminated = False
         truncated = False
 
-        """
-        # 取引回数上限チェック
-        if self.provider.N_TRADE_MAX <= self.provider.getNTrade():
-            reward += self.reward_man.forceRepay()
-            truncated = True
-            info["done_reason"] = "terminated:max_trades"
-        """
-
         # 収益情報
         # info["pnl_total"] = self.provider.getPnLTotal()
 
@@ -346,12 +313,13 @@ class TradingEnv(gym.Env):
         self.s.inc_row()
 
         return reward, terminated, truncated, info
+    """
 
     # === スレッド外部からのコマンド ===
     def openPosition(self, action_type: ActionType):
-        print("DEBUG! Position Open", action_type)
+        self.states["reason"] = "ポジションオープン"
         self.position_open(action_type)
 
     def closePosition(self):
-        print("DEBUG! Position Close")
+        self.states["reason"] = "ポジションクローズ"
         self.position_close()
