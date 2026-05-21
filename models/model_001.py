@@ -22,11 +22,12 @@ class AlgoTrade(AlgoTradeBase):
         vwap_cross_golden = arr_signal[2]
         vwap_cross_dead = arr_signal[3]
 
-
-        if vwap_cross_golden == 1.0 and self.can_execute(ActionType.BUY.value, action_masks):
+        if 0.0 < vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
+            print("VWAP ゴールデンクロス")
             return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス"}
 
-        if vwap_cross_dead == 1.0 and self.can_execute(ActionType.SELL.value, action_masks):
+        if 0.0 < vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
+            print("VWAP デッドクロス")
             return ActionType.SELL.value, {"reason": "VWAP デッドクロス"}
 
         return ActionType.HOLD.value, {}

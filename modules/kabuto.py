@@ -105,7 +105,7 @@ class Kabuto(QMainWindow):
         """モード別設定の初期化"""
         if self.res.debug:
             self.logger.info(f"デバッグモードで起動しました。")
-            self.timer_interval = 100
+            self.timer_interval = 50
             self.flag_data_ready = False
         else:
             self.logger.info(f"通常モードで起動しました。")

@@ -161,7 +161,7 @@ class TradingEnv(gym.Env):
         :return:
         """
         # 観測値
-        #return self.s.get_obs(), self.s.get_technicals()
+        # return self.s.get_obs(), self.s.get_technicals()
         return self.s.set_data(self.obs_man.update(ts, price, volume))
 
     def getObsList(self) -> list:
@@ -313,7 +313,13 @@ class TradingEnv(gym.Env):
             truncated: エピソード打ち切りフラグ（取引上限など）
             info: 追加情報（pnl_total, done_reasonなど）
         """
-        info: dict[str, Any] = {}  # 型を明示
+        # アクションの理由
+        if states is None:
+            self.states = {}
+        else:
+            self.states = states
+
+        info: dict[str, Any] = {}
 
         # アクションに対する報酬
         # reward = self.reward_man.evalReward(action)
