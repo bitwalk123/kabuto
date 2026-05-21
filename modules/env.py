@@ -349,7 +349,9 @@ class TradingEnv(gym.Env):
 
     # === スレッド外部からのコマンド ===
     def openPosition(self, action_type: ActionType):
+        print("DEBUG! Position Open", action_type)
         self.position_open(action_type)
 
     def closePosition(self):
+        print("DEBUG! Position Close")
         self.position_close()

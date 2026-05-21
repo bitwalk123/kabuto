@@ -179,6 +179,8 @@ class Trader(QMainWindow):
         if action_enum == ActionType.HOLD:
             return
 
+        print(position)
+        # 状態遷移表からアクションを取得
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
             self.logger.error(
@@ -258,29 +260,23 @@ class Trader(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 買建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.BUY)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_buy(self, code: str, price: float, note: str) -> None:
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 買建で建玉取得リクエストのシグナル
+        self.requestPositionOpen.emit(ActionType.BUY)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 売建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.SELL)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_sell(self, code: str, price: float, note: str) -> None:
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 売建で建玉取得リクエストのシグナル
+        self.requestPositionOpen.emit(ActionType.SELL)
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_repay(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 建玉返済リクエストのシグナル
-            self.requestPositionClose.emit()
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    def on_repay(self, code: str, price: float, note: str) -> None:
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 建玉返済リクエストのシグナル
+        self.requestPositionClose.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def reset_env_completed(self) -> None:
         """

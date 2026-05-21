@@ -10,9 +10,9 @@ from widgets.labels import LCDValueWithTitle
 
 
 class DockTrader(DockWidget):
-    clickedBuy = Signal(str, float, str, bool)
-    clickedSell = Signal(str, float, str, bool)
-    clickedRepay = Signal(str, float, str, bool)
+    clickedBuy = Signal(str, float, str)
+    clickedSell = Signal(str, float, str)
+    clickedRepay = Signal(str, float, str)
     clickedSave = Signal()
     clickedSetting = Signal()
     changedAutoPilot = Signal(bool)
@@ -22,14 +22,6 @@ class DockTrader(DockWidget):
         self.logger = logging.getLogger(__name__)
         self.res = res
         self.code = code
-
-        """
-        自動オペレーション用フラグ
-        マウスで売買ボタンをクリックしたか、
-        エージェントが売買シグナルを出したのかを
-        区別するためのフラグ
-        """
-        self.auto = False
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -84,11 +76,8 @@ class DockTrader(DockWidget):
         note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
-        self.clickedBuy.emit(
-            self.code, self.price.getValue(), note, self.auto
-        )
+        self.clickedBuy.emit(self.code, self.price.getValue(), note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.auto = False
 
     def on_sell(self) -> None:
         """
@@ -98,11 +87,8 @@ class DockTrader(DockWidget):
         note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
-        self.clickedSell.emit(
-            self.code, self.price.getValue(), note, self.auto
-        )
+        self.clickedSell.emit(self.code, self.price.getValue(), note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.auto = False
 
     def on_repay(self) -> None:
         """
@@ -112,11 +98,8 @@ class DockTrader(DockWidget):
         note: str = ""
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
-        self.clickedRepay.emit(
-            self.code, self.price.getValue(), note, self.auto
-        )
+        self.clickedRepay.emit(self.code, self.price.getValue(), note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        self.auto = False
 
     def on_repair(self) -> None:
         dlg = DlgRepair(self.res)
@@ -169,11 +152,9 @@ class DockTrader(DockWidget):
         :return:
         """
         if self.panel_trading.buy.isEnabled():
-            self.auto = True
             self.panel_trading.buy.animateClick()
             return True
         else:
-            self.auto = False
             return False
 
     def doSell(self) -> bool:
@@ -182,11 +163,9 @@ class DockTrader(DockWidget):
         :return:
         """
         if self.panel_trading.sell.isEnabled():
-            self.auto = True
             self.panel_trading.sell.animateClick()
             return True
         else:
-            self.auto = False
             return False
 
     def doRepay(self) -> bool:
@@ -195,11 +174,9 @@ class DockTrader(DockWidget):
         :return:
         """
         if self.panel_trading.repay.isEnabled():
-            self.auto = True
             self.panel_trading.repay.animateClick()
             return True
         else:
-            self.auto = False
             return False
 
     def setAutoPilotDisabled(self):

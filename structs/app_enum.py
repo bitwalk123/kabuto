@@ -14,7 +14,7 @@ class FollowType(Enum):
     DECELERATE = auto()  # 追跡フォロー後の減速段階
 
 
-class ActionType(IntEnum):
+class ActionType(Enum):
     HOLD = 0
     BUY = 1
     SELL = 2
@@ -26,7 +26,7 @@ class AppMode(Enum):
     DOE = auto()
 
 
-class PositionType(IntEnum):
+class PositionType(Enum):
     SHORT = 0
     NONE = 1
     LONG = 2
