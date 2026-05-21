@@ -44,7 +44,7 @@ class EnvData:
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
-    step_current: int = 0  # ステップ数
+    #step_current: int = 0  # ステップ数
     position: PositionType = PositionType.NONE  # ポジション
     n_trade: int = 0  # 約定回数
     count_negative: int = 0  # 含み損の継続カウンタ
@@ -340,7 +340,7 @@ class EnvData:
             return False
 
     def is_warmup_period(self) -> float:
-        return 1.0 if self.step_current < self.PERIOD_WARMUP else 0.0
+        return 1.0 if self.row < self.PERIOD_WARMUP else 0.0
 
     def reset_count_negative(self):
         self.count_negative = 0
@@ -359,6 +359,8 @@ class EnvData:
         self.diff_vwap = row["DiffVWAP"]
         self.rsi = row["RSI"]
         self.mom = row["Momentum"]
+
+        return self.get_obs(), self.get_technicals()
 
     def set_data_open(self, row):
         self.ts_open = row["Time"]

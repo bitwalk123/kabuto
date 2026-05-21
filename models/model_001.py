@@ -11,7 +11,7 @@ class AlgoTrade(AlgoTradeBase):
     """
     【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
     """
-    MODEL_NAME: str = "test_001"
+    MODEL_NAME: str = "model_001"
     MODEL_REVISION: str = "0.0.1"
 
     def __init__(self):
@@ -22,10 +22,13 @@ class AlgoTrade(AlgoTradeBase):
         vwap_cross_golden = arr_signal[2]
         vwap_cross_dead = arr_signal[3]
 
+
         if vwap_cross_golden == 1.0 and self.can_execute(ActionType.BUY.value, action_masks):
             return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス"}
+
         if vwap_cross_dead == 1.0 and self.can_execute(ActionType.SELL.value, action_masks):
             return ActionType.SELL.value, {"reason": "VWAP デッドクロス"}
+
         return ActionType.HOLD.value, {}
 
     def updateObs(self, list_obs_label):

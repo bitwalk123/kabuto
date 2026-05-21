@@ -46,7 +46,7 @@ class WorkerAgent(QObject):
 
         # モデルのインスタンス（とりあえずプラグイン化）
         #name_model = "default"
-        name_model = "test_001"
+        name_model = "model_001"
         self.model = get_model_instance(name_model)
 
         # 取引内容（＋テクニカル指標）

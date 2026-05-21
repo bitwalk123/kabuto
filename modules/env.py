@@ -160,9 +160,9 @@ class TradingEnv(gym.Env):
         :param volume:
         :return:
         """
-        self.s.set_data(self.obs_man.update(ts, price, volume))
         # 観測値
-        return self.s.get_obs(), self.s.get_technicals()
+        #return self.s.get_obs(), self.s.get_technicals()
+        return self.s.set_data(self.obs_man.update(ts, price, volume))
 
     def getObsList(self) -> list:
         # return self.obs_man.getObsList()
@@ -334,7 +334,11 @@ class TradingEnv(gym.Env):
         # 収益情報
         # info["pnl_total"] = self.provider.getPnLTotal()
 
-        self.s.step_current += 1
+        # 一つ前の特徴量の更新
+        self.s.update_feature_pre()
+        # ステップ（データフレームの行）更新
+        self.s.inc_row()
+
         return reward, terminated, truncated, info
 
     # === スレッド外部からのコマンド ===
