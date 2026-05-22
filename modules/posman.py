@@ -40,6 +40,7 @@ class PositionManager:
         :param note:
         :return:
         """
+        print("備考", note)
         self.dict_price[code] = price
         self.dict_action[code] = action
 
@@ -73,6 +74,8 @@ class PositionManager:
         :param note:
         :return:
         """
+        print("備考", note)
+
         action = self.dict_action[code]
 
         # 損益計算
@@ -122,6 +125,7 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
+        print(self.records)
         df = pd.DataFrame(self.records)
         """
         float 型の UNIX タイムスタンプを UTC として解釈し、

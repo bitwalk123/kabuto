@@ -286,37 +286,9 @@ class TradingEnv(gym.Env):
             "学習用には TrainingEnv クラスの実装を検討してください。"
         )
 
-    """
-    def step_realtime(self, action: int, states: dict) -> tuple[float, bool, bool, dict[str, Any]]:
-        # アクションの理由
-        if states is None:
-            self.states = {}
-        else:
-            self.states = states
-
-        info: dict[str, Any] = {}
-
-        # アクションに対する報酬
-        # reward = self.reward_man.evalReward(action)
-        reward = 0
-
-        # ステップ終了判定
-        terminated = False
-        truncated = False
-
-        # 収益情報
-        # info["pnl_total"] = self.provider.getPnLTotal()
-
-        # 一つ前の特徴量の更新
-        self.s.update_feature_pre()
-        # ステップ（データフレームの行）更新
-        self.s.inc_row()
-
-        return reward, terminated, truncated, info
-    """
-
     # === スレッド外部からのコマンド ===
     def openPosition(self, action_type: ActionType):
+        print("DEBUG!")
         self.states["reason"] = "ポジションオープン"
         self.position_open(action_type)
 

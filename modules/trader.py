@@ -25,11 +25,6 @@ class Trader(QMainWindow):
     requestSaveTechnicals = Signal(str)
     sendTradeData = Signal(float, float, float)
 
-    # 売買用
-    requestPositionOpen = Signal(ActionType)
-    requestPositionClose = Signal()
-    requestTransactionResult = Signal()
-
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
 
@@ -81,9 +76,6 @@ class Trader(QMainWindow):
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
-        dock.clickedBuy.connect(self.on_buy)
-        dock.clickedSell.connect(self.on_sell)
-        dock.clickedRepay.connect(self.on_repay)
         dock.clickedSetting.connect(self.on_setting)
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
@@ -108,8 +100,6 @@ class Trader(QMainWindow):
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.requestChangeAutoPilot.connect(worker.setAutoPilot)
-        self.requestPositionOpen.connect(worker.env.openPosition)
-        self.requestPositionClose.connect(worker.env.closePosition)
         self.requestResetEnv.connect(worker.resetEnv)
         self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.sendTradeData.connect(worker.addData)
@@ -179,7 +169,7 @@ class Trader(QMainWindow):
         if action_enum == ActionType.HOLD:
             return
 
-        print(position)
+        print(action_enum)
         # 状態遷移表からアクションを取得
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
@@ -233,50 +223,20 @@ class Trader(QMainWindow):
 
         # テクニカル指標
         self.list_ts.append(dict_technicals["ts"])
-        # self.vwap = dict_technicals["vwap"]
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_mom.append(dict_technicals["momentum"])
 
-        '''
-        # クロス時の縦線表示 1
-        if 0.0 < dict_technicals["cross1"]:
+        # VWAP クロス時の縦線表示
+        if 0.0 < dict_technicals["vwap_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross1"] < 0.0:
+        if 0.0 < dict_technicals["vwap_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
-
-        # クロス時の縦線表示 2
-        if 0.0 < dict_technicals["cross2"]:
-            self.trends.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross2"] < 0.0:
-            self.trends.setCrossDead(dict_technicals["ts"])
-        '''
 
         self.update_technicals()
 
     def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
-
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str) -> None:
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 買建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(ActionType.BUY)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_sell(self, code: str, price: float, note: str) -> None:
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 売建で建玉取得リクエストのシグナル
-        self.requestPositionOpen.emit(ActionType.SELL)
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_repay(self, code: str, price: float, note: str) -> None:
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 建玉返済リクエストのシグナル
-        self.requestPositionClose.emit()
-        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def reset_env_completed(self) -> None:
         """
