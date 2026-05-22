@@ -26,7 +26,7 @@ class WorkerAgent(QObject):
     # シグナル
     completedResetEnv = Signal()
     completedTrading = Signal()
-    notifyAction = Signal(int, PositionType)  # 売買アクションを通知
+    notifyAction = Signal(int, PositionType, dict)  # 売買アクションを通知
     sendTechnicals = Signal(dict)
 
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
@@ -65,7 +65,7 @@ class WorkerAgent(QObject):
         position: PositionType = self.env.getCurrentPosition()
         if ActionType(action) != ActionType.HOLD:
             # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-            self.notifyAction.emit(action, position)
+            self.notifyAction.emit(action, position, states)
 
         # メイン・スレッドへ通知するプロット用テクニカル指標
         # 🧿 テクニカル指標を通知するシグナル

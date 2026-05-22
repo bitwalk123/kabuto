@@ -156,7 +156,7 @@ class Trader(QMainWindow):
         """
         self.dock.force_repay()
 
-    def on_action(self, action: int, position: PositionType) -> None:
+    def on_action(self, action: int, position: PositionType, states: dict) -> None:
         """
         売買アクション
         :param action:
@@ -179,7 +179,7 @@ class Trader(QMainWindow):
             return
 
         # dock のメソッドを取得して実行
-        getattr(self.dock, method_name)()
+        getattr(self.dock, method_name)(states)
 
     def on_autopilot(self, flag):
         self.requestChangeAutoPilot.emit(flag)
