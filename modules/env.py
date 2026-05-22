@@ -34,10 +34,6 @@ class TradingEnv(gym.Env):
         # 観測値管理クラス
         self.obs_man = ObservationManager(self.s)
 
-        # ポジション・マネージャ
-        self.posman = posman = PositionManager()
-        posman.initPosition([self.CODE])
-
         # ====== 行動空間 action_space の定義 ======
         n_action_space = len(ActionType)
         self.action_space = spaces.Discrete(n_action_space)
@@ -122,13 +118,12 @@ class TradingEnv(gym.Env):
         """
         return self.s.get_masks()
 
+    """
     def forceRepay(self) -> None:
-        """
-        建玉の強制返済
-        :return:
-        """
+        pass
         if self.posman.hasPosition(self.CODE):
             self.position_close_force()
+        """
 
     def getCurrentPosition(self) -> PositionType:
         """
@@ -148,21 +143,24 @@ class TradingEnv(gym.Env):
     def getTimestamp(self) -> float:
         return self.s.ts
 
+    """
     def getTransaction(self) -> pd.DataFrame:
         return self.posman.getTransactionResult()
+    """
 
-    def getObservation(self, ts: float, price: float, volume: float) -> tuple[dict, dict]:
+    def getObservation(self, ts: float, price: float, volume: float, dict_info: dict) -> tuple[dict, dict]:
         """
         観測値を取得（リアルタイム用）
         ティックデータから観測値を算出（デバッグ用）
         :param ts:
         :param price:
         :param volume:
+        :param dict_info:
         :return:
         """
         # 観測値
         # return self.s.get_obs(), self.s.get_technicals()
-        return self.s.set_data(self.obs_man.update(ts, price, volume))
+        return self.s.set_data(self.obs_man.update(ts, price, volume), dict_info)
 
     def getObsList(self) -> list:
         # return self.obs_man.getObsList()
@@ -181,55 +179,6 @@ class TradingEnv(gym.Env):
 
         # パラメータの標準出力
         self.s.print_param()
-
-        # ポジション・マネージャのリセットと初期化
-        self.posman.reset()
-        self.posman.initPosition([self.CODE])
-
-    def position_open(self, action_type: ActionType) -> None:
-        """
-        ポジションのオープン
-        :param action_type:
-        :return:
-        """
-        if "reason" in self.states:
-            note = self.states["reason"]
-        else:
-            note = ""
-
-        self.s.position = self.posman.openPosition(
-            self.CODE, self.s.ts, self.s.price, action_type, note
-        )
-        self.s.n_trade += 1  # 取引回数の更新
-        self.s.reset_profit_pre()  # 一つ前の含み益のリセット
-        self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-
-    def position_close(self, note="") -> None:
-        """
-        ポジションのクローズ
-        :param note:
-        :return:
-        """
-        if "reason" in self.states and note == "":
-            note = self.states["reason"]
-
-        # ポジション管理
-        self.s.position = self.posman.closePosition(
-            self.CODE, self.s.ts, self.s.price, note=note
-        )
-        self.s.n_trade += 1  # 取引回数の更新
-        self.s.reset_profit_pre()  # 一つ前の含み益のリセット
-        self.s.reset_profit_max()  # 最大含み益のリセット
-        self.s.reset_count_post_contract()  # 約定後の経過カウンタのリセット
-        self.s.reset_count_negative()
-
-    def position_close_force(self, note="強制返済") -> None:
-        """
-        ポジション・クローズ（強制）
-        :param note:
-        :return:
-        """
-        self.position_close(note)
 
     def reset(self, seed=None, options=None):
         """
@@ -286,6 +235,7 @@ class TradingEnv(gym.Env):
             "学習用には TrainingEnv クラスの実装を検討してください。"
         )
 
+    """
     # === スレッド外部からのコマンド ===
     def openPosition(self, action_type: ActionType):
         print("DEBUG!")
@@ -295,3 +245,4 @@ class TradingEnv(gym.Env):
     def closePosition(self):
         self.states["reason"] = "ポジションクローズ"
         self.position_close()
+    """

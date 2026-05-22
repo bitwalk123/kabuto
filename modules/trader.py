@@ -23,7 +23,7 @@ class Trader(QMainWindow):
     # 環境クラス用
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
-    sendTradeData = Signal(float, float, float)
+    sendTradeData = Signal(float, float, float, dict)
 
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
@@ -169,7 +169,7 @@ class Trader(QMainWindow):
         if action_enum == ActionType.HOLD:
             return
 
-        print(action_enum)
+        print(action_enum, position)
         # 状態遷移表からアクションを取得
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
@@ -294,26 +294,26 @@ class Trader(QMainWindow):
             ts: float,
             price: float,
             volume: float,
-            profit: float,
-            total: float
+            dict_info: dict,
     ) -> None:
         """
         株価データなどをセット
         :param ts:
         :param price:
         :param volume:
-        :param profit:
-        :param total:
+        :param dict_info:
         :return:
         """
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータを送るシグナル
-        self.sendTradeData.emit(ts, price, volume)
+        self.sendTradeData.emit(ts, price, volume, dict_info)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         self.ts = ts
         self.price = price
+        profit = dict_info["profit"]
+        total = dict_info["total"]
 
         # 株価トレンド線
         self.trends.setDot([ts], [price])

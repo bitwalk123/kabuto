@@ -536,30 +536,28 @@ class Kabuto(QMainWindow):
 
     def on_update_data(
             self,
-            dict_data: dict[str, tuple[float, float, float]],
-            dict_profit: dict[str, float],
-            dict_total: dict[str, float]
+            dict_data: dict[str, list[float]],
+            dict_info: dict[str, dict[str, float]]
     ) -> None:
         """
         ティックデータ、含み益、損益の更新
         :param dict_data:
-        :param dict_profit:
-        :param dict_total:
+        :param dict_info:
         :return:
         """
         # 受け取った瞬間にコピー
         # 受け取った辞書はスレッド側で使い回しているため
         dict_data = dict_data.copy()
-        dict_profit = dict_profit.copy()
-        dict_total = dict_total.copy()
+        dict_info = dict_info.copy()
 
         for code in self.list_code_selected:
             if code in dict_data:
                 x, y, vol = dict_data[code]
-                profit = dict_profit[code]
-                total = dict_total[code]
+                dict_info_code = dict_info[code]
+                #profit = dict_info_code["profit"]
+                #total = dict_info_code["total"]
                 trader: Trader = self.dict_trader[code]
-                trader.setTradeData(x, y, vol, profit, total)
+                trader.setTradeData(x, y, vol, dict_info_code)
 
     def save_technicals(self, path_dir: str) -> None:
         """

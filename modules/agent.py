@@ -51,9 +51,9 @@ class WorkerAgent(QObject):
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
     @Slot(float, float, float)
-    def addData(self, ts: float, price: float, volume: float) -> None:
+    def addData(self, ts: float, price: float, volume: float, dict_info: dict) -> None:
         # ティックデータから観測値を取得
-        obs, dict_technicals = self.env.getObservation(ts, price, volume)
+        obs, dict_technicals = self.env.getObservation(ts, price, volume, dict_info)
 
         # 現在の行動マスクを取得
         masks: np.ndarray = self.env.action_masks()

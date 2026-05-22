@@ -17,7 +17,7 @@ class ExcelReviewWorker(QObject):
     # 1. 銘柄名（リスト）通知シグナル
     notifyTickerN = Signal(list, dict)
     # 2. ティックデータを通知
-    notifyCurrentPrice = Signal(dict, dict, dict)
+    notifyCurrentPrice = Signal(dict, dict)
     # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
     # 4, 約定確認結果を通知
@@ -90,9 +90,8 @@ class ExcelReviewWorker(QObject):
 
     @Slot(float)
     def readCurrentPrice(self, t: float) -> None:
-        dict_data: dict[str, tuple[float, float, float]] = {}
-        dict_profit: dict[str, float] = {}
-        dict_total: dict[str, float] = {}
+        dict_data: dict[str, list] = {}
+        dict_info: dict[str, dict] = {}
 
         for code in self.list_code:
             df: pd.DataFrame = self.dict_sheet[code]
@@ -105,15 +104,12 @@ class ExcelReviewWorker(QObject):
                 price = row["Price"]
                 volume = row["Volume"]
                 # メイン・スレッドへ渡す情報を準備
-                dict_data[code] = (ts, price, volume)
-                dict_profit[code] = self.posman.getProfit(code, price)
-                dict_total[code] = self.posman.getTotal(code)
+                dict_data[code] = [ts, price, volume]
+                dict_info[code] = self.posman.getInfo(code, price)
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価、含み損、総収益を通知
-        self.notifyCurrentPrice.emit(
-            dict_data, dict_profit, dict_total
-        )
+        self.notifyCurrentPrice.emit(dict_data, dict_info)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def saveDataFrame(self) -> None:

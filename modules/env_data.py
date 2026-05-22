@@ -349,7 +349,7 @@ class EnvData:
     def reset_profit_pre(self):
         self.profit_pre = 0.0
 
-    def set_data(self, row):
+    def set_data(self, row, dict_info: dict):
         self.ts = row["Time"]
         self.price = row["Price"]
         self.ma1 = row["MA1"]
@@ -359,6 +359,9 @@ class EnvData:
         self.diff_vwap = row["DiffVWAP"]
         self.rsi = row["RSI"]
         self.mom = row["Momentum"]
+
+        self.position = dict_info["position"]
+        self.profit = dict_info["profit"]
 
         obs = self.get_obs()
         dict_technical = self.get_technicals()

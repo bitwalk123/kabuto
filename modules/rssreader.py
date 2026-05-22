@@ -31,7 +31,7 @@ class RSSReaderWorker(QObject):
     # 1. 銘柄名（リスト）の通知
     notifyTickerN = Signal(list, dict)
     # 2. ティックデータを通知
-    notifyCurrentPrice = Signal(dict, dict, dict)
+    notifyCurrentPrice = Signal(dict, dict)
     # 3. 取引結果のデータフレームを通知
     notifyTransactionResult = Signal(pd.DataFrame)
     # 4. 約定確認結果を通知
@@ -75,9 +75,9 @@ class RSSReaderWorker(QObject):
         self.sec_sleep = 2  # 約定確認用のスリープ時間（秒）
 
         # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
-        self.dict_data: dict[str, tuple[float, float, float]] = {}
-        self.dict_profit: dict[str, float] = {}
-        self.dict_total: dict[str, float] = {}
+        self.dict_data: dict[str, list] = {}
+        self.dict_info: dict[str, dict] = {}
+        # self.dict_total: dict[str, float] = {}
         # ---------------------------------------------------------------------
 
         # Excel ワークシート情報
@@ -167,8 +167,8 @@ class RSSReaderWorker(QObject):
         :param ts: タイムスタンプ
         """
         self.dict_data.clear()
-        self.dict_profit.clear()
-        self.dict_total.clear()
+        self.dict_info.clear()
+        # self.dict_total.clear()
 
         for attempt in range(self.max_retries):
             ###################################################################
@@ -192,9 +192,9 @@ class RSSReaderWorker(QObject):
                     price = prices[i]
                     volume = volumes[i]
                     if price > 0:
-                        self.dict_data[code] = (ts, price, volume)
-                        self.dict_profit[code] = self.posman.getProfit(code, price)
-                        self.dict_total[code] = self.posman.getTotal(code)
+                        self.dict_data[code] = [ts, price, volume]
+                        self.dict_info[code] = self.posman.getInfo(code, price)
+                        # self.dict_total[code] = self.posman.getTotal(code)
                 break
             except com_error as e:
                 # -------------------------------------------------------------
@@ -225,7 +225,7 @@ class RSSReaderWorker(QObject):
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 現在時刻と株価を通知
-        self.notifyCurrentPrice.emit(self.dict_data, self.dict_profit, self.dict_total)
+        self.notifyCurrentPrice.emit(self.dict_data, self.dict_info)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         # ティックデータを蓄積

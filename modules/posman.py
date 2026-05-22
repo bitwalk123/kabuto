@@ -11,6 +11,7 @@ class PositionManager:
         self.dict_price: dict[str, float] = {}
         self.dict_total: dict[str, float] = {}
         self.dict_action: dict[str, ActionType] = {}
+        self.dict_position: dict[str, PositionType] = {}
 
         # 取引履歴用辞書
         self.records: dict[str, list] = {
@@ -29,6 +30,14 @@ class PositionManager:
             self.dict_price[code] = 0.0  # 建玉取得時の株価
             self.dict_total[code] = 0.0  # 銘柄毎の収益
             self.dict_action[code] = ActionType.HOLD
+            self.dict_position[code] = PositionType.NONE
+
+    def getInfo(self, code, price) -> dict:
+        return {
+            "position": self.dict_position[code],
+            "profit": self.getProfit(code, price),
+            "total": self.getTotal(code),
+        }
 
     def openPosition(self, code: str, ts: float, price: float, action: ActionType, note: str = "") -> PositionType:
         """
@@ -58,6 +67,8 @@ class PositionManager:
         else:
             msg: str = f"Invalid action type {action} for code {code}"
             raise ValueError(msg)
+        self.dict_position[code] = position
+
         self.records["約定単価"].append(price)
         self.records["約定数量"].append(self.unit)
         self.records["損益"].append(None)
@@ -89,6 +100,7 @@ class PositionManager:
             msg: str = f"Invalid action type {action} for code {code}"
             raise ValueError(msg)
 
+        self.dict_position[code] = position
         self.dict_total[code] += profit
 
         # 取引履歴
@@ -96,10 +108,12 @@ class PositionManager:
         self.records["注文番号"].append(self.order)
         self.records["注文日時"].append(ts)
         self.records["銘柄コード"].append(code)
+
         if action == ActionType.BUY:
             self.records["売買"].append("売埋")
         else:  # ActionType.SELL
             self.records["売買"].append("買埋")
+
         self.records["約定単価"].append(price)
         self.records["約定数量"].append(self.unit)
         self.records["損益"].append(profit)

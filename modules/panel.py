@@ -6,7 +6,8 @@ from widgets.buttons import (
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
-    TradeButton, ToggleButtonAutoPilot,
+    ToggleButtonAutoPilot,
+    TradeButton,
 )
 from widgets.containers import (
     IndicatorBuySell,
