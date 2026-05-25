@@ -356,7 +356,7 @@ class EnvData:
         # self.does_losscut_consecutive_negative()
 
     def does_losscut_consecutive_negative(self):
-        print("Profit", self.profit, "Negative counts", self.count_negative, "Consecutive -", self.count_negative > self.N_MINUS_MAX)
+        # print("Profit", self.profit, "Negative counts", self.count_negative, "Consecutive -", self.count_negative > self.N_MINUS_MAX)
         if self.count_negative > self.N_MINUS_MAX:
             return True
         else:
@@ -396,7 +396,7 @@ class EnvData:
         else:
             self.dd_ratio = 0.0
 
-        #print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
+        # print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
