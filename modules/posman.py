@@ -49,7 +49,7 @@ class PositionManager:
         :param note:
         :return:
         """
-        print("備考", note)
+        # print("備考", note)
         self.dict_price[code] = price
         self.dict_action[code] = action
 
