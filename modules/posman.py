@@ -139,7 +139,6 @@ class PositionManager:
         return self.dict_total[code]
 
     def getTransactionResult(self) -> pd.DataFrame:
-        print(self.records)
         df = pd.DataFrame(self.records)
         """
         float 型の UNIX タイムスタンプを UTC として解釈し、

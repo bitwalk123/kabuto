@@ -2,8 +2,9 @@ from typing import Any
 
 import numpy as np
 
+from funcs.conv import onehot_to_position
 from models.abstract import AlgoTradeBase
-from structs.app_enum import ActionType
+from structs.app_enum import ActionType, PositionType
 
 
 class AlgoTrade(AlgoTradeBase):
@@ -19,16 +20,44 @@ class AlgoTrade(AlgoTradeBase):
 
     def predict(self, dict_obs, action_masks: np.ndarray) -> tuple[int, dict[str, Any]]:
         arr_signal = dict_obs["signal"]
-        vwap_cross_golden = arr_signal[2]
-        vwap_cross_dead = arr_signal[3]
+        ma_cross_golden: bool = arr_signal[0]
+        ma_cross_dead: bool = arr_signal[1]
+        vwap_cross_golden: bool = arr_signal[2]
+        vwap_cross_dead: bool = arr_signal[3]
+        flag_take_profit: bool = arr_signal[5]
+        flag_losscut_consecutive_negative: bool = arr_signal[6]
+        flag_losscut_simple: bool = arr_signal[7]
 
-        if 0.0 < vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
-            # print("VWAP ゴールデンクロス")
-            return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス"}
+        position: PositionType = onehot_to_position(dict_obs["position"])
 
-        if 0.0 < vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
-            # print("VWAP デッドクロス")
-            return ActionType.SELL.value, {"reason": "VWAP デッドクロス"}
+        # エグジット
+        if position != PositionType.NONE:
+            # VWAP ゴールデンクロスでエグジット
+            if vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
+                return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（返済）"}
+
+            # VWAP デッドクロスでエグジット
+            if vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
+                return ActionType.SELL.value, {"reason": "VWAP デッドクロス（返済）"}
+
+            if flag_take_profit:
+                # ドローダウン利確
+                if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
+                    return ActionType.BUY.value, {"reason": "ドローダウン利確（ショート）"}
+                elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
+                    return ActionType.SELL.value, {"reason": "ドローダウン利確（ロング）"}
+
+            if flag_losscut_consecutive_negative:
+                if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
+                    return ActionType.BUY.value, {"reason": "連続含み損ロスカット（ショート）"}
+                elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
+                    return ActionType.SELL.value, {"reason": "連続含み損ロスカット（ロング）"}
+
+            if flag_losscut_simple:
+                if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
+                    return ActionType.BUY.value, {"reason": "単純ロスカット（ショート）"}
+                elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
+                    return ActionType.SELL.value, {"reason": "単純ロスカット（ロング）"}
 
         return ActionType.HOLD.value, {}
 

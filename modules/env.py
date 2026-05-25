@@ -103,7 +103,7 @@ class TradingEnv(gym.Env):
                 shape=(3,),
                 dtype=np.float32
             ),
-            "signal": spaces.MultiBinary(4),  # signal
+            "signal": spaces.MultiBinary(10),  # signal
             "position": spaces.MultiBinary(3),  # one-hot
         })
 
@@ -123,7 +123,7 @@ class TradingEnv(gym.Env):
         pass
         if self.posman.hasPosition(self.CODE):
             self.position_close_force()
-        """
+    """
 
     def getCurrentPosition(self) -> PositionType:
         """
@@ -206,7 +206,7 @@ class TradingEnv(gym.Env):
             dtype=np.float32
         )
         cross = np.array([0, 0, 0], dtype=np.float32)
-        signal = np.array([False, False, False, False], dtype=np.float32)
+        signal = np.array([False, False, False, False, False, False, False, False, False, False], dtype=np.float32)
         position = position_to_onehot(self.s.position)
         obs = {"market": market, "cross": cross, "signal": signal, "position": position}
         print(obs)
@@ -234,15 +234,3 @@ class TradingEnv(gym.Env):
             "リアルタイム推論には step_realtime() を使用してください。"
             "学習用には TrainingEnv クラスの実装を検討してください。"
         )
-
-    """
-    # === スレッド外部からのコマンド ===
-    def openPosition(self, action_type: ActionType):
-        print("DEBUG!")
-        self.states["reason"] = "ポジションオープン"
-        self.position_open(action_type)
-
-    def closePosition(self):
-        self.states["reason"] = "ポジションクローズ"
-        self.position_close()
-    """

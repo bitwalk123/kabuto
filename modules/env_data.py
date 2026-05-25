@@ -28,7 +28,7 @@ class EnvData:
     N_POSITION_MIN: int = 30  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
     LOSSCUT_1: float = -50.0  # 単純ロスカット
     DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
-    DD_THRESHOLD: float = 10.0  # ドローダウン利確を始める閾値
+    DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
 
     # 報酬・ペナルティ系
     RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
@@ -44,8 +44,9 @@ class EnvData:
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
-    #step_current: int = 0  # ステップ数
+    # step_current: int = 0  # ステップ数
     position: PositionType = PositionType.NONE  # ポジション
+    position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
     n_trade: int = 0  # 約定回数
     count_negative: int = 0  # 含み損の継続カウンタ
     count_post_contract: int = 0  # 約定後の HOLD カウント用
@@ -79,8 +80,6 @@ class EnvData:
     ts_open: float = 0.0
     price_open: float = 0.0
     volume_open: float = 0.0
-    # フラグ関連
-    flag_losscut_consecutive: bool = False  # 連続含み損ロスカットフラグ
 
     # ====== マスク処理関連 ======
     MASK_HOLD_ONLY = np.array([True, False, False], dtype=np.bool_)
@@ -122,27 +121,6 @@ class EnvData:
         アクションの妥当性をチェック
         :param type_action:
         :return:
-        """
-        """
-        if type_action == ActionType.BUY:
-            print(self.diff_vwap_pre, self.diff_vwap)
-            if 0 <= self.diff_vwap and self.diff_vwap_pre < self.diff_vwap:
-                return True
-            elif 0 <= self.diff_ma and self.diff_ma_pre < self.diff_ma:
-                # ゴールデン・クロスとみなす
-                return True
-            else:
-                return False
-        elif type_action == ActionType.SELL:
-            if self.diff_vwap <= 0 and self.diff_vwap < self.diff_vwap_pre:
-                return True
-            elif self.diff_ma <= 0 and self.diff_ma < self.diff_ma_pre:
-                # デッド・クロスとみなす
-                return True
-            else:
-                return False
-        else:
-            raise TypeError(f"Unknown ActionType: {type_action}!")
         """
         return True
 
@@ -221,19 +199,25 @@ class EnvData:
         )
         # シグナル・フラグ（クロスしたタイミングなど）
         signal = np.array([
-            self.is_ma_golden_cross(),
-            self.is_ma_dead_cross(),
-            self.is_vwap_golden_cross(),
-            self.is_vwap_dead_cross(),
+            self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
+            self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
+            self.is_vwap_golden_cross(),  # 2. VWAP ゴールデンクロスのフラグ
+            self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
+            False,  # 5. 予備
+            self.does_take_profit(),  # 5. 利確のフラグ
+            self.does_losscut_consecutive_negative(),  # 6. 連続含み損ロスカットのフラグ
+            self.is_losscut(),  # 7. 単純ロスカットのフラグ
+            False,
+            False,
         ])
         # ポジション情報
-        position = position_to_onehot(self.position)
+        position_onehot = position_to_onehot(self.position)
         # 辞書形式で返す
         return {
             "market": market,
             "cross": cross,
             "signal": signal,
-            "position": position,
+            "position": position_onehot,
         }
 
     def get_n_trade_reward(self) -> float:
@@ -289,14 +273,6 @@ class EnvData:
         :return:
         """
         if self.diff_ma_pre <= 0 < self.diff_ma:
-            '''
-            print(
-                "ゴールデン・クロス",
-                datetime.datetime.fromtimestamp(self.ts),
-                self.diff_ma_pre,
-                self.diff_ma,
-            )
-            '''
             return True
         else:
             return False
@@ -307,14 +283,6 @@ class EnvData:
         :return:
         """
         if self.diff_ma < 0 <= self.diff_ma_pre:
-            '''
-            print(
-                "デッド・クロス",
-                datetime.datetime.fromtimestamp(self.ts),
-                self.diff_ma_pre,
-                self.diff_ma,
-            )
-            '''
             return True
         else:
             return False
@@ -344,7 +312,6 @@ class EnvData:
 
     def reset_count_negative(self):
         self.count_negative = 0
-        self.flag_losscut_consecutive = False
 
     def reset_profit_pre(self):
         self.profit_pre = 0.0
@@ -362,6 +329,8 @@ class EnvData:
 
         self.position = dict_info["position"]
         self.profit = dict_info["profit"]
+        self.update_profit_max()  # 含み損益の最大値を更新
+        self.update_count_negative()  # 含み損の継続カウンタの更新
 
         obs = self.get_obs()
         dict_technical = self.get_technicals()
@@ -384,10 +353,13 @@ class EnvData:
         else:
             self.count_negative = 0
 
+        # self.does_losscut_consecutive_negative()
+
+    def does_losscut_consecutive_negative(self):
         if self.count_negative > self.N_MINUS_MAX:
-            self.flag_losscut_consecutive = True
+            return True
         else:
-            self.flag_losscut_consecutive = False
+            return False
 
     def update_dict_reward(self, reward) -> None:
         self.dict_reward["ts"].append(self.ts)
@@ -398,8 +370,13 @@ class EnvData:
         self.diff_vwap_pre = self.diff_vwap
         self.rsi_pre = self.rsi
         self.mom_pre = self.mom
+
         if self.position == PositionType.NONE:
             self.dd_ratio = 0.0
+            self.count_negative = 0
+            self.profit_max = 0.0
+
+        self.profit_pre = self.profit
 
     def reset_profit_max(self):
         self.profit_max = 0.0
@@ -418,6 +395,7 @@ class EnvData:
         else:
             self.dd_ratio = 0.0
 
+        print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:

@@ -127,6 +127,9 @@ def min_max_scale(data):
 
 def position_to_onehot(pos: PositionType) -> np.ndarray:
     onehot = np.zeros(3, dtype=np.float32)
-    #onehot[int(pos)] = 1.0
     onehot[pos.value] = 1.0
     return onehot
+
+def onehot_to_position(vec: np.ndarray) -> PositionType:
+    idx = int(np.argmax(vec))
+    return PositionType(idx)
