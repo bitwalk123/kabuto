@@ -26,7 +26,7 @@ class ToolBar(QToolBar):
     clickedSetting = Signal()
     clickedStop = Signal()
     clickedTransaction = Signal()
-    # requestSwitchCharts = Signal(bool)
+    requestSwitchDock = Signal()
     selectedExcelFile = Signal(str, list)
 
     def __init__(self, res: AppRes):
@@ -203,7 +203,10 @@ class ToolBar(QToolBar):
         self.action_stop.setDisabled(True)
 
     def on_swap_dock(self):
-        pass
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+        # 🧿 Docl の配置を切り替えることをリクエスト
+        self.requestSwitchDock.emit()
+        # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_transaction(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

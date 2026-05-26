@@ -171,6 +171,7 @@ class Kabuto(QMainWindow):
         toolbar.clickedStop.connect(self.on_review_stop)
         toolbar.clickedSetting.connect(self.on_setting)
         toolbar.clickedTransaction.connect(self.on_show_transaction)
+        toolbar.requestSwitchDock.connect(self.on_swap_dock)
         toolbar.selectedExcelFile.connect(self.on_create_thread_review)
         self.addToolBar(toolbar)
         # ---------------------------------------------------------------------
@@ -491,6 +492,10 @@ class Kabuto(QMainWindow):
         """
         self.win_transaction = WinTransaction(self.res, self.df_transaction)
         self.win_transaction.show()
+
+    def on_swap_dock(self):
+        for trader in self.dict_trader.values():
+            trader.swapDockSide()
 
     def on_thread_finished(self, result: bool) -> None:
         """
