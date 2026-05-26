@@ -79,7 +79,7 @@ class Trader(QMainWindow):
         dock.clickedSetting.connect(self.on_setting)
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
         # チャート・インスタンス
@@ -332,3 +332,11 @@ class Trader(QMainWindow):
         テクニカル・データの更新
         """
         self.trends.setTechnicals(self.dict_trend)
+
+    def swapDockSide(self):
+        area = self.dockWidgetArea(self.dock)
+
+        if area == Qt.DockWidgetArea.LeftDockWidgetArea:
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock)
+        else:
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)

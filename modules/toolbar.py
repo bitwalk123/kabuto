@@ -89,6 +89,15 @@ class ToolBar(QToolBar):
         action_transaction.triggered.connect(self.on_transaction)
         self.addAction(action_transaction)
 
+        # Dock の左右の配置を切り替え
+        self.action_swap_dock = action_swap_dock = QAction(
+            QIcon(os.path.join(res.dir_image, "swap_dock.png")),
+            "Dock の配置を切り替え",
+            self
+        )
+        action_swap_dock.triggered.connect(self.on_swap_dock)
+        self.addAction(action_swap_dock)
+
         # システム設定
         self.action_setting = action_setting = QAction(
             QIcon(os.path.join(res.dir_image, "setting.png")),
@@ -192,6 +201,9 @@ class ToolBar(QToolBar):
         self.clickedStop.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.action_stop.setDisabled(True)
+
+    def on_swap_dock(self):
+        pass
 
     def on_transaction(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
