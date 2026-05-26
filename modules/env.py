@@ -2,13 +2,11 @@ from typing import Any
 
 import gymnasium as gym
 import numpy as np
-import pandas as pd
 from gymnasium import spaces
 
 from funcs.conv import position_to_onehot
 from modules.env_data import EnvData
 from modules.observatory import ObservationManager
-from modules.posman import PositionManager
 from structs.app_enum import ActionType, PositionType
 
 
@@ -118,12 +116,13 @@ class TradingEnv(gym.Env):
         """
         return self.s.get_masks()
 
-    """
-    def forceRepay(self) -> None:
+    @staticmethod
+    def forceRepay() -> None:
         pass
+        """
         if self.posman.hasPosition(self.CODE):
             self.position_close_force()
-    """
+        """
 
     def getCurrentPosition(self) -> PositionType:
         """
@@ -132,7 +131,8 @@ class TradingEnv(gym.Env):
         """
         return self.s.position
 
-    def getParams(self) -> dict[str, Any]:
+    @staticmethod
+    def getParams() -> dict[str, Any]:
         """
         調整可能？なパラメータを辞書で返す
         :return:
@@ -162,7 +162,8 @@ class TradingEnv(gym.Env):
         # return self.s.get_obs(), self.s.get_technicals()
         return self.s.set_data(self.obs_man.update(ts, price, volume), dict_info)
 
-    def getObsList(self) -> list:
+    @staticmethod
+    def getObsList() -> list:
         # return self.obs_man.getObsList()
         return []
 

@@ -1,9 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass, field
 
-import math
 import numpy as np
-import pandas as pd
 
 from funcs.conv import position_to_onehot
 from structs.app_enum import PositionType, ActionType
@@ -116,17 +114,6 @@ class EnvData:
         print("DD_RATIO_MAX", self.DD_RATIO_MAX)  # ドローダウン利確の最大比率（これを超えたら利確）
         print("DD_THRESHOLD", self.DD_THRESHOLD)  # ドローダウン利確を始める閾値
 
-    def check_valid_entry(self, type_action: ActionType) -> bool:
-        """
-        アクションの妥当性をチェック
-        :param type_action:
-        :return:
-        """
-        return True
-
-    def check_valid_repayment(self) -> bool:
-        return True
-
     def inc_row(self):
         self.row += 1
         """ 約定後のカウント数をインクリメント """
@@ -137,14 +124,6 @@ class EnvData:
         # 直ぐに反対売買をした場合はペナルティを多くする。
         cost -= self.NUMERATOR_RECONTRACT / self.count_post_contract if 0 < self.count_post_contract else 0.0
         return cost
-
-    def reset_count_post_contract(self) -> None:
-        """ 約定後のカウント数をリセット """
-        self.count_post_contract = 0
-
-    def get_count_post_contract(self) -> int:
-        """ 約定後のカウント数を取得 """
-        return self.count_post_contract
 
     def get_masks(self):
         """
@@ -219,30 +198,6 @@ class EnvData:
             "signal": signal,
             "position": position_onehot,
         }
-
-    def get_n_trade_reward(self) -> float:
-        # 約定回数に応じた報酬（n で極大, r_max が最高報酬）
-        n = 25
-        r_max = 5.0  # 4/17 → 4/18
-        return r_max * self.n_trade * math.e ** (1 - self.n_trade / n) / n
-
-    def get_penalty_negative(self) -> float:
-        return - (float(self.count_negative) / self.N_MINUS_MAX) ** 2
-
-    def get_reward(self) -> pd.DataFrame:
-        """
-        ステップ毎に辞書に保持していた報酬情報をデータフレームに変換
-        :return:
-        """
-        return pd.DataFrame(self.dict_reward)
-
-    def get_reward_unrealized_profit(self) -> float:
-        r = 0
-        # 含み益があれば幾分かを報酬に
-        r += self.profit * self.RATIO_PROFIT_HOLD
-        # 含み益の増減に応じて幾分かを報酬に
-        r += (self.profit - self.profit_pre) * self.RATIO_PROFIT_CHANGE_HOLD
-        return r
 
     def get_technicals(self) -> dict:
         return {
@@ -361,10 +316,6 @@ class EnvData:
             return True
         else:
             return False
-
-    def update_dict_reward(self, reward) -> None:
-        self.dict_reward["ts"].append(self.ts)
-        self.dict_reward["reward"].append(reward)
 
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma

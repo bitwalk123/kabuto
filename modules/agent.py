@@ -81,7 +81,6 @@ class WorkerAgent(QObject):
         Trader.closeEvent から呼び出される想定（オプション）
         """
         self.logger.info(f"ワーカーのクリーンアップを開始します。")
-        self._is_stopping = True
 
         # 必要に応じてリソースの解放処理を追加
         # 例：self.env.close() などがあれば呼び出す
@@ -100,8 +99,8 @@ class WorkerAgent(QObject):
     def resetEnv(self) -> None:
         # 環境のリセット
         self.obs, _ = self.env.reset()
-        self.done = False
-        self._is_stopping = False
+        # self.done = False
+        # self._is_stopping = False
 
         list_colname = self.BASE_COLUMNS.copy()
         self.list_obs_label = self.env.getObsList()
