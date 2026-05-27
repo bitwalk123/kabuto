@@ -17,7 +17,7 @@ class AlgoTradeBase(ABC):
 
     def __init__(self):
         self.autopilot = False
-        self.list_obs_label: list | None = None
+        self.list_obs_label: list = []
 
     @staticmethod
     def can_execute(action, masks):
@@ -57,12 +57,12 @@ class AlgoTradeBase(ABC):
         return self.version
 
     @abstractmethod
-    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
+    def predict(self, obs, action_masks) -> tuple[int, dict[str, Any]]:
         """
         観測値から行動を予測（必須実装）
 
         :param obs: 観測値（numpy配列）
-        :param masks: 行動マスク
+        :param action_masks: 行動マスク
         :return: (action, info_dict)
         """
         ...

@@ -1,19 +1,17 @@
-import logging
-
 import pandas as pd
 
-from structs.app_enum import ActionType
+from structs.app_enum import ActionType, PositionType
 
 
 class PositionManager:
     def __init__(self) -> None:
-        self.logger = logging.getLogger(__name__)
         self.order: int = 0  # 注文番号
-        self.unit: int = 100  # 売買単位
+        self.unit: int = 1  # 売買単位
 
         self.dict_price: dict[str, float] = {}
         self.dict_total: dict[str, float] = {}
         self.dict_action: dict[str, ActionType] = {}
+        self.dict_position: dict[str, PositionType] = {}
 
         # 取引履歴用辞書
         self.records: dict[str, list] = {
@@ -32,8 +30,16 @@ class PositionManager:
             self.dict_price[code] = 0.0  # 建玉取得時の株価
             self.dict_total[code] = 0.0  # 銘柄毎の収益
             self.dict_action[code] = ActionType.HOLD
+            self.dict_position[code] = PositionType.NONE
 
-    def openPosition(self, code: str, ts: float, price: float, action: ActionType, note: str = "") -> None:
+    def getInfo(self, code, price) -> dict:
+        return {
+            "position": self.dict_position[code],
+            "profit": self.getProfit(code, price),
+            "total": self.getTotal(code),
+        }
+
+    def openPosition(self, code: str, ts: float, price: float, action: ActionType, note: str = "") -> PositionType:
         """
         ポジションをオープン（建玉取得）
         :param code:
@@ -43,6 +49,8 @@ class PositionManager:
         :param note:
         :return:
         """
+        print("備考", note)
+
         self.dict_price[code] = price
         self.dict_action[code] = action
 
@@ -53,14 +61,23 @@ class PositionManager:
         self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
             self.records["売買"].append("買建")
+            position = PositionType.LONG
         elif action == ActionType.SELL:
             self.records["売買"].append("売建")
+            position = PositionType.SHORT
+        else:
+            msg: str = f"Invalid action type {action} for code {code}"
+            raise ValueError(msg)
+        self.dict_position[code] = position
+
         self.records["約定単価"].append(price)
         self.records["約定数量"].append(self.unit)
         self.records["損益"].append(None)
         self.records["備考"].append(note)
 
-    def closePosition(self, code: str, ts: float, price: float, note: str = "") -> None:
+        return position
+
+    def closePosition(self, code: str, ts: float, price: float, note: str = "") -> PositionType:
         """
         ポジションをクローズ（建玉返済）
         :param code:
@@ -69,18 +86,22 @@ class PositionManager:
         :param note:
         :return:
         """
+        print("備考", note)
+
         action = self.dict_action[code]
 
         # 損益計算
         if action == ActionType.BUY:
             profit = (price - self.dict_price[code]) * self.unit
+            position = PositionType.NONE
         elif action == ActionType.SELL:
             profit = (self.dict_price[code] - price) * self.unit
+            position = PositionType.NONE
         else:
-            msg: str = f"{__name__}: Cannot close position: invalid action type {action} for code {code}"
-            self.logger.error(msg)
+            msg: str = f"Invalid action type {action} for code {code}"
             raise ValueError(msg)
 
+        self.dict_position[code] = position
         self.dict_total[code] += profit
 
         # 取引履歴
@@ -88,10 +109,12 @@ class PositionManager:
         self.records["注文番号"].append(self.order)
         self.records["注文日時"].append(ts)
         self.records["銘柄コード"].append(code)
+
         if action == ActionType.BUY:
             self.records["売買"].append("売埋")
         else:  # ActionType.SELL
             self.records["売買"].append("買埋")
+
         self.records["約定単価"].append(price)
         self.records["約定数量"].append(self.unit)
         self.records["損益"].append(profit)
@@ -100,6 +123,8 @@ class PositionManager:
         # 売買状態のリセット
         self.dict_price[code] = 0.0
         self.dict_action[code] = ActionType.HOLD
+
+        return position
 
     def getProfit(self, code: str, price: float) -> float:
         if price == 0.0:
@@ -128,7 +153,7 @@ class PositionManager:
         )
         return df
 
-    def hasPosition(self, code:str) -> bool:
+    def hasPosition(self, code: str) -> bool:
         if self.dict_action[code] == ActionType.HOLD:
             return False
         else:

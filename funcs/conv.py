@@ -3,6 +3,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from structs.app_enum import PositionType
+
 
 def conv_date_str(date_str: str) -> str:
     """
@@ -121,3 +123,13 @@ def min_max_scale(data):
     scaled_data = (data_array - min_val) / (max_val - min_val)
 
     return scaled_data
+
+
+def position_to_onehot(pos: PositionType) -> np.ndarray:
+    onehot = np.zeros(3, dtype=np.float32)
+    onehot[pos.value] = 1.0
+    return onehot
+
+def onehot_to_position(vec: np.ndarray) -> PositionType:
+    idx = int(np.argmax(vec))
+    return PositionType(idx)

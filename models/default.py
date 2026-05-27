@@ -23,7 +23,7 @@ class AlgoTrade(AlgoTradeBase):
         self.idx_takeprofit_1: int | None = None
         self.idx_position: int | None = None
 
-    def predict(self, obs, masks) -> tuple[int, dict[str, Any]]:
+    def predict(self, obs, action_masks) -> tuple[int, dict[str, Any]]:
         # --- 観測値の取り出し ---
         # 1. クロスシグナル 1 [-1, 0, 1]
         cross_1 = int(obs[self.idx_cross_1])

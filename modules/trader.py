@@ -10,10 +10,7 @@ from funcs.setting import load_setting
 from modules.agent import WorkerAgent
 from modules.dock import DockTrader
 from modules.trend_charts import TrendCharts
-from structs.app_enum import (
-    ActionType,
-    PositionType,
-)
+from structs.app_enum import ActionType, PositionType
 from structs.res import AppRes
 from widgets.dialogs import DlgSetting
 
@@ -26,12 +23,7 @@ class Trader(QMainWindow):
     # 環境クラス用
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
-    sendTradeData = Signal(float, float, float)
-
-    # 売買用
-    requestPositionOpen = Signal(ActionType)
-    requestPositionClose = Signal()
-    requestTransactionResult = Signal()
+    sendTradeData = Signal(float, float, float, dict)
 
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
@@ -64,14 +56,12 @@ class Trader(QMainWindow):
         self.list_ts: list[float] = []
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
-        self.list_rsi: list[float] = []
         self.list_mom: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "vwap": self.list_vwap,
-            "rsi": self.list_rsi,
             "mom": self.list_mom,
         }
 
@@ -86,13 +76,10 @@ class Trader(QMainWindow):
         # 右側のドック
         # ---------------------------------------------------------------------
         self.dock = dock = DockTrader(res, code)
-        dock.clickedBuy.connect(self.on_buy)
-        dock.clickedSell.connect(self.on_sell)
-        dock.clickedRepay.connect(self.on_repay)
         dock.clickedSetting.connect(self.on_setting)
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
-        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
         # チャート・インスタンス
@@ -113,8 +100,6 @@ class Trader(QMainWindow):
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ
         self.requestChangeAutoPilot.connect(worker.setAutoPilot)
-        self.requestPositionOpen.connect(worker.env.openPosition)
-        self.requestPositionClose.connect(worker.env.closePosition)
         self.requestResetEnv.connect(worker.resetEnv)
         self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.sendTradeData.connect(worker.addData)
@@ -171,7 +156,7 @@ class Trader(QMainWindow):
         """
         self.dock.force_repay()
 
-    def on_action(self, action: int, position: PositionType) -> None:
+    def on_action(self, action: int, position: PositionType, states: dict) -> None:
         """
         売買アクション
         :param action:
@@ -184,6 +169,8 @@ class Trader(QMainWindow):
         if action_enum == ActionType.HOLD:
             return
 
+        print(action_enum, position)
+        # 状態遷移表からアクションを取得
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
             self.logger.error(
@@ -192,7 +179,7 @@ class Trader(QMainWindow):
             return
 
         # dock のメソッドを取得して実行
-        getattr(self.dock, method_name)()
+        getattr(self.dock, method_name)(states)
 
     def on_autopilot(self, flag):
         self.requestChangeAutoPilot.emit(flag)
@@ -236,57 +223,20 @@ class Trader(QMainWindow):
 
         # テクニカル指標
         self.list_ts.append(dict_technicals["ts"])
-        # self.vwap = dict_technicals["vwap"]
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_rsi.append(dict_technicals["rsi"])
-        self.list_mom.append(dict_technicals["mom"])
+        self.list_mom.append(dict_technicals["momentum"])
 
-        # クロス時の縦線表示 1
-        if 0.0 < dict_technicals["cross1"]:
+        # VWAP クロス時の縦線表示
+        if 0.0 < dict_technicals["vwap_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross1"] < 0.0:
+        if 0.0 < dict_technicals["vwap_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
-
-        '''
-        # クロス時の縦線表示 2
-        if 0.0 < dict_technicals["cross2"]:
-            self.trends.setCrossGolden(dict_technicals["ts"])
-        elif dict_technicals["cross2"] < 0.0:
-            self.trends.setCrossDead(dict_technicals["ts"])
-        '''
 
         self.update_technicals()
 
     def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
-
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    # 取引ボタンがクリックされた時の処理
-    # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 買建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.BUY)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_sell(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 売建で建玉取得リクエストのシグナル
-            self.requestPositionOpen.emit(ActionType.SELL)
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    def on_repay(self, code: str, price: float, note: str, auto: bool) -> None:
-        if not auto:
-            # Agent からの売買要求で返ってきた売買シグナルを Agent に再び戻さない
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            # 🧿 建玉返済リクエストのシグナル
-            self.requestPositionClose.emit()
-            # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def reset_env_completed(self) -> None:
         """
@@ -344,26 +294,26 @@ class Trader(QMainWindow):
             ts: float,
             price: float,
             volume: float,
-            profit: float,
-            total: float
+            dict_info: dict,
     ) -> None:
         """
         株価データなどをセット
         :param ts:
         :param price:
         :param volume:
-        :param profit:
-        :param total:
+        :param dict_info:
         :return:
         """
 
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # ティックデータを送るシグナル
-        self.sendTradeData.emit(ts, price, volume)
+        self.sendTradeData.emit(ts, price, volume, dict_info)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
         self.ts = ts
         self.price = price
+        profit = dict_info["profit"]
+        total = dict_info["total"]
 
         # 株価トレンド線
         self.trends.setDot([ts], [price])
@@ -377,9 +327,16 @@ class Trader(QMainWindow):
             # 指定時間以降はエントリをしない。
             self.dock.setAutoPilotDisabled()
 
-
     def update_technicals(self) -> None:
         """
         テクニカル・データの更新
         """
         self.trends.setTechnicals(self.dict_trend)
+
+    def swapDockSide(self):
+        area = self.dockWidgetArea(self.dock)
+
+        if area == Qt.DockWidgetArea.LeftDockWidgetArea:
+            self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.dock)
+        else:
+            self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.dock)

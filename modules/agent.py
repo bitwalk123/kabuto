@@ -26,7 +26,7 @@ class WorkerAgent(QObject):
     # シグナル
     completedResetEnv = Signal()
     completedTrading = Signal()
-    notifyAction = Signal(int, PositionType)  # 売買アクションを通知
+    notifyAction = Signal(int, PositionType, dict)  # 売買アクションを通知
     sendTechnicals = Signal(dict)
 
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
@@ -34,9 +34,7 @@ class WorkerAgent(QObject):
         self.logger = logging.getLogger(__name__)
 
         self.obs: np.ndarray | None = None
-        self.done: bool = False
         self.df_obs: pd.DataFrame | None = None
-        self._is_stopping: bool = False  # 終了フラグを追加
 
         # 学習環境の取得
         self.env: TradingEnv = TradingEnv(code, dict_setting)
@@ -45,32 +43,29 @@ class WorkerAgent(QObject):
         self.list_obs_label: list[str] = []
 
         # モデルのインスタンス（とりあえずプラグイン化）
-        name_model = "default"
+        # name_model = "default"
+        name_model = "model_001"
         self.model = get_model_instance(name_model)
 
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
     @Slot(float, float, float)
-    def addData(self, ts: float, price: float, volume: float) -> None:
-        # 終了処理中はデータを処理しない
-        if self._is_stopping or self.done:
-            return
-
+    def addData(self, ts: float, price: float, volume: float, dict_info: dict) -> None:
         # ティックデータから観測値を取得
-        obs, dict_technicals = self.env.getObservation(ts, price, volume)
+        obs, dict_technicals = self.env.getObservation(ts, price, volume, dict_info)
 
         # 現在の行動マスクを取得
         masks: np.ndarray = self.env.action_masks()
 
         # モデルによる行動予測
-        action, _states = self.model.predict(obs, masks=masks)
+        action, states = self.model.predict(obs, action_masks=masks)
 
-        # メイン・スレッドへ通知する発注アクションを最優先
+        # メイン・スレッドへ通知する発注アクション
         position: PositionType = self.env.getCurrentPosition()
         if ActionType(action) != ActionType.HOLD:
             # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-            self.notifyAction.emit(action, position)
+            self.notifyAction.emit(action, position, states)
 
         # メイン・スレッドへ通知するプロット用テクニカル指標
         # 🧿 テクニカル指標を通知するシグナル
@@ -79,18 +74,6 @@ class WorkerAgent(QObject):
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
 
-        # ---------------------------------------------------------------------
-        # アクションによる環境の状態更新
-        # 【注意】 リアルタイム用環境では step メソッドで観測値は返されない
-        # ---------------------------------------------------------------------
-        reward, terminated, truncated, info = self.env.step_realtime(action)
-        if terminated or truncated:
-            flag_name = "terminated" if terminated else "truncated"
-            self.logger.info(f"{flag_name} フラグが立ちました。")
-            self.done = True
-            # 🧿 取引終了シグナルの通知
-            self.completedTrading.emit()
-
     @Slot()
     def cleanup(self) -> None:
         """
@@ -98,7 +81,6 @@ class WorkerAgent(QObject):
         Trader.closeEvent から呼び出される想定（オプション）
         """
         self.logger.info(f"ワーカーのクリーンアップを開始します。")
-        self._is_stopping = True
 
         # 必要に応じてリソースの解放処理を追加
         # 例：self.env.close() などがあれば呼び出す
@@ -117,8 +99,8 @@ class WorkerAgent(QObject):
     def resetEnv(self) -> None:
         # 環境のリセット
         self.obs, _ = self.env.reset()
-        self.done = False
-        self._is_stopping = False
+        # self.done = False
+        # self._is_stopping = False
 
         list_colname = self.BASE_COLUMNS.copy()
         self.list_obs_label = self.env.getObsList()

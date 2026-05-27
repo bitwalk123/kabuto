@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum, auto, IntEnum
 
 
 class BaselineMode(Enum):
@@ -27,9 +27,9 @@ class AppMode(Enum):
 
 
 class PositionType(Enum):
-    SHORT = -1
-    NONE = 0
-    LONG = 1
+    SHORT = 0
+    NONE = 1
+    LONG = 2
 
 
 class SignalSign(Enum):
