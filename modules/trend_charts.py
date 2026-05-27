@@ -2,6 +2,7 @@ import logging
 from typing import Any
 
 import pyqtgraph as pg
+import pyqtgraph.exporters as exporters
 
 from PySide6.QtCore import QMargins
 
@@ -178,9 +179,12 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
     def save(self, path_img: str) -> None:
         """
-        チャート全体をイメージに保存
+        チャート全体をイメージに保存（PyQtGraph 0.14 対応）
         """
-        # GraphicsLayoutWidget全体をエクスポート
-        exporter = pg.exporters.ImageExporter(self.scene())
+        exporter = exporters.ImageExporter(self.scene())  # self.scene() を渡す
+        # 必要ならパラメータ調整も可能：
+        # params = exporter.parameters()
+        # params['width'] = 1200  # など
+
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
