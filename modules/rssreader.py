@@ -72,7 +72,7 @@ class RSSReaderWorker(QObject):
         # COM エラーが発生するため、リトライできるようにしている。
         self.max_retries = 5  # 最大リトライ回数
         self.retry_delay = 0.1  # リトライ間の遅延（秒）
-        self.sec_sleep = 2  # 約定確認用のスリープ時間（秒）
+        self.sec_sleep = 1  # 約定確認用のスリープ時間（秒）
 
         # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
         self.dict_data: dict[str, list] = {}
