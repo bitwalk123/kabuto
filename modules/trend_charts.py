@@ -23,9 +23,10 @@ class CustomYAxisItem2(pg.AxisItem):
 
 class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
+    COLOR_MA_2 = (255, 192, 0, 192)
     COLOR_VWAP = (255, 0, 192, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
-    COLOR_DEAD = (0, 191, 255, 220)
+    COLOR_DEAD = (0, 192, 255, 220)
     COLOR_EVEN = (255, 192, 0, 255)
     COLOR_LAST_DOT = (0, 255, 0, 255)
     COLOR_RSI = (255, 255, 0, 192)
@@ -74,7 +75,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # 移動平均線 MA1
         self.ma_1 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="MA1")
-        self.ma_1.setZValue(60)
+        self.ma_1.setZValue(70)
+
+        # 移動平均線 MA1
+        self.ma_2 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="MA1")
+        self.ma_2.setZValue(60)
 
         # VWAP
         self.vwap = self.plot_price.plot(pen=pg.mkPen(self.COLOR_VWAP, width=1), name="VWAP")
@@ -167,10 +172,12 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     def setTechnicals(self, dict_lines: dict[str, list]) -> None:
         data_ts = dict_lines["ts"]
         data_ma_1 = dict_lines["ma_1"]
+        data_ma_2 = dict_lines["ma_2"]
         data_vwap = dict_lines["vwap"]
         data_mom = dict_lines["mom"]
 
         self.ma_1.setData(data_ts, data_ma_1)
+        self.ma_2.setData(data_ts, data_ma_2)
         self.vwap.setData(data_ts, data_vwap)
         self.mom.setData(data_ts, data_mom)
 

@@ -23,23 +23,23 @@ from funcs.conv import conv_transaction_df2html
 from funcs.setting import update_setting
 from funcs.tide import conv_date_str_to_path, get_intraday_timestamp
 from funcs.tse import get_ticker_name_list
+from modules.dlg_system_settings import DlgSystemSettings
 from modules.reviewer import ExcelReviewWorker
 from modules.rssreader import RSSReaderWorker
-from widgets.dialogs import DlgAboutThis, DlgCodeSel
-from modules.dlg_system_settings import DlgSystemSettings
-from widgets.misc import TickFont
-from widgets.statusbars import StatusBar
 from modules.toolbar import ToolBar
 from modules.trader import Trader
 from modules.win_transaction import WinTransaction
 from structs.res import AppRes
 from widgets.containers import ScrollArea, TabWidget
+from widgets.dialogs import DlgAboutThis, DlgCodeSel
 from widgets.layouts import VBoxLayout
+from widgets.misc import TickFont
+from widgets.statusbars import StatusBar
 
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.8.0"
+    __version__ = "0.8.1"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -559,8 +559,8 @@ class Kabuto(QMainWindow):
             if code in dict_data:
                 x, y, vol = dict_data[code]
                 dict_info_code = dict_info[code]
-                #profit = dict_info_code["profit"]
-                #total = dict_info_code["total"]
+                # profit = dict_info_code["profit"]
+                # total = dict_info_code["total"]
                 trader: Trader = self.dict_trader[code]
                 trader.setTradeData(x, y, vol, dict_info_code)
 
