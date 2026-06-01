@@ -56,11 +56,13 @@ class Trader(QMainWindow):
         self.list_ts: list[float] = []
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
+        self.list_ma_2: list[float] = []
         self.list_mom: list[float] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
+            "ma_2": self.list_ma_2,
             "vwap": self.list_vwap,
             "mom": self.list_mom,
         }
@@ -225,6 +227,7 @@ class Trader(QMainWindow):
         self.list_ts.append(dict_technicals["ts"])
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
+        self.list_ma_2.append(dict_technicals["ma2"])
         self.list_mom.append(dict_technicals["momentum"])
 
         # VWAP クロス時の縦線表示

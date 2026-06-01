@@ -507,20 +507,25 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
     # 株価と VWAP
     ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, zorder=10, label="株価")
     ax.plot(df["ma1"], linewidth=0.75, color="#0c0", zorder=50, label="MA1, n= 30")
+    '''
     # 評価用の移動平均 MA2
     n_ma2 = 100
     df["ma2"] = df["price"].rolling(n_ma2, min_periods=1).mean()
     ax.plot(df["ma2"], linewidth=0.5, color="#00c", zorder=60, label=f"MA2, n={n_ma2}")
+    '''
 
     ax.plot(df["vwap"], linewidth=0.75, color="#a0a", zorder=50, label="VWAP")
+    '''
     ser_vwap_up = df["vwap"] + dict_setting["BAND_VWAP"]
     ser_vwap_down = df["vwap"] - dict_setting["BAND_VWAP"]
     ax.plot(ser_vwap_up, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
     ax.plot(ser_vwap_down, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
+    '''
 
     ax.set_ylabel("株価")
     ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.legend(fontsize=6)
 
 
 def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
@@ -530,16 +535,17 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     mom = Momentum(n)
     df["momentum"] = [mom.update(v) for v in df["ma1"]]
     '''
-    ax.plot(df["mom"], color="black", linewidth=0.25, alpha=0.75, zorder=100, label=f"n={dict_setting["PERIOD_MOM"]}")
+    ax.plot(df["momentum"], color="black", linewidth=0.25, alpha=0.75, zorder=100, label=f"n={dict_setting["PERIOD_MOM"]}")
     x = df.index
-    y = df["mom"]
+    y = df["momentum"]
     ax.fill_between(x, 0, y, where=(0 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=50)
     ax.fill_between(x, 0, y, where=(y < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=50)
 
     ax.axhline(y=0, linewidth=0.5, color="black", alpha=0.5)
 
     ax.set_ylabel("モメンタム")
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.legend(fontsize=6)
 
 
 def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
@@ -558,7 +564,8 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.axhline(y=0.7, linewidth=0.5, color="black", alpha=0.5, zorder=0)
     ax.set_ylim(-0.05, 1.05)
     ax.set_ylabel(f"RSI")
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.legend(fontsize=6)
 
 
 def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
@@ -566,7 +573,7 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     x = df.index
     y1 = df["profit"]
     y2 = df["profit_max"]
-    y_dd_th = dict_setting["DD_PROFIT"]
+    y_dd_th = dict_setting["DD_THRESHOLD"]
 
     ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10, label="含み益")
     ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10, label="含み損")
@@ -575,26 +582,28 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, zorder=0, label="トレーリング")
 
     ax.set_ylabel("含み損益")
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.legend(fontsize=6)
 
 
 def plot_drawdown(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     # ドローダウン
-    y_dd_th = dict_setting["DD_PROFIT"]
+    y_dd_th = dict_setting["DD_THRESHOLD"]
 
     # 最大含み益がしきい値を超えているときのみ、ドラーダウンの比率を表示
     df["dd_ratio_2"] = [
         k2 if y_dd_th <= k1 else 0 for k1, k2 in zip(df["profit"], df["dd_ratio"])
     ]
     y_ddr_1 = df["dd_ratio_2"]
-    y_ddr_2 = dict_setting["DD_RATIO"]
+    y_ddr_2 = dict_setting["DD_RATIO_MAX"]
 
     ax.plot(y_ddr_1, linewidth=0.75, color="C0", alpha=0.75, label="DD ratio")
     ax.axhline(y=y_ddr_2, linewidth=0.75, color="C1", label="利確ライン")
 
     ax.set_ylim(0, y_ddr_2 + 0.1)
     ax.set_ylabel("DD ratio")
-    ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    ax.legend(fontsize=6)
 
 
 def plot_verticals(
@@ -605,12 +614,18 @@ def plot_verticals(
         dict_setting: dict[str, Any],
 ):
     # クロス・シグナル、ウォームアップ期間
-    list_cross = df[df["cross1"] != 0].index
-    ax[n - 1].set_xlabel(f"# of crossed: {len(list_cross)} times")
+    list_vwap_gc = df[0 < df["vwap_gc"]].index
+    list_vwap_dc = df[0 < df["vwap_dc"]].index
+    ax[n - 1].set_xlabel(f"# of crossed: {len(list_vwap_gc) + len(list_vwap_dc)} times")
     for i in range(n):
         # クロス・シグナル
-        for t in list_cross:
-            cname = "#f00" if 0 < df.at[t, "cross1"] else "#00f"
+        for t in list_vwap_gc:
+            cname = "#f00" if 0 < df.at[t, "vwap_gc"] else "#00f"
+            ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
+
+        # クロス・シグナル
+        for t in list_vwap_dc:
+            cname = "#00f" if 0 < df.at[t, "vwap_dc"] else "#f00"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
         # ウォークアップ期間

@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from funcs.conv import position_to_onehot
-from structs.app_enum import PositionType, ActionType
+from structs.app_enum import PositionType
 
 
 @dataclass
