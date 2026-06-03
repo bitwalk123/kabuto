@@ -351,7 +351,9 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
-        if self.DD_RATIO_MAX < self.update_dd_ratio():
+        if self.profit <= 100.0 < self.profit_max:
+            return True
+        elif self.DD_RATIO_MAX < self.update_dd_ratio():
             return True
         else:
             return False
