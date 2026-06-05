@@ -16,7 +16,7 @@ class AlgoTradeBase(ABC):
     MODEL_REVISION: str = "0.0.0"
 
     def __init__(self):
-        self.autopilot = False
+        self.flag_autopilot = False
         self.list_obs_label: list = []
 
     @staticmethod
@@ -68,10 +68,10 @@ class AlgoTradeBase(ABC):
         ...
 
     def isAutoPilot(self) -> bool:
-        return self.autopilot
+        return self.flag_autopilot
 
     def setAutoPilot(self, flag: bool):
-        self.autopilot = flag
+        self.flag_autopilot = flag
 
     @abstractmethod
     def updateObs(self, list_obs_label):

@@ -30,8 +30,18 @@ class AlgoTrade(AlgoTradeBase):
 
         position: PositionType = onehot_to_position(dict_obs["position"])
 
-        # エグジット
-        if position != PositionType.NONE:
+        if position == PositionType.NONE:
+            # === エントリ ===
+            if self.isAutoPilot():
+                # VWAP ゴールデンクロスでエントリ
+                if vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
+                    return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（買建）"}
+
+                # VWAP デッドクロスでエントリ
+                if vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
+                    return ActionType.SELL.value, {"reason": "VWAP デッドクロス（売建）"}
+        else:
+            # === エグジット ===
             # VWAP ゴールデンクロスでエグジット
             if vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
                 return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（返済）"}

@@ -57,7 +57,7 @@ class AlgoTrade(AlgoTradeBase):
                 return exit_act, {}
 
         # 3. クロスシグナルによる自動エントリー ---
-        if self.autopilot and position == PositionType.NONE:
+        if self.flag_autopilot and position == PositionType.NONE:
             # a. ゴールデンクロス
             if cross_1 > 0:  # クロスS1: MA1 が VWAP を上抜け
                 if self.can_execute(ActionType.BUY.value, masks):
