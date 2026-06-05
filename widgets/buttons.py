@@ -251,8 +251,9 @@ class TradeButton(QPushButton):
         super().__init__()
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Minimum
+            QSizePolicy.Policy.Fixed
         )
+        self.setFixedHeight(30)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
         font.setPointSize(8)

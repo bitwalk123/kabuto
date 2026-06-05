@@ -3,7 +3,6 @@ from typing import Any
 
 import pyqtgraph as pg
 import pyqtgraph.exporters as exporters
-
 from PySide6.QtCore import QMargins
 
 from funcs.plot import trend_label_html
@@ -24,7 +23,8 @@ class CustomYAxisItem2(pg.AxisItem):
 class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 192, 0, 192)
-    COLOR_VWAP = (255, 0, 192, 192)
+    # COLOR_VWAP = (255, 0, 192, 192)
+    COLOR_VWAP = (192, 0, 128, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 192, 255, 220)
     COLOR_EVEN = (255, 192, 0, 255)
@@ -75,11 +75,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # 移動平均線 MA1
         self.ma_1 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="MA1")
-        self.ma_1.setZValue(70)
+        self.ma_1.setZValue(90)
 
         # 移動平均線 MA1
         self.ma_2 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="MA1")
-        self.ma_2.setZValue(60)
+        self.ma_2.setZValue(80)
 
         # VWAP
         self.vwap = self.plot_price.plot(pen=pg.mkPen(self.COLOR_VWAP, width=1), name="VWAP")

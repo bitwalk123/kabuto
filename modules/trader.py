@@ -230,10 +230,10 @@ class Trader(QMainWindow):
         self.list_ma_2.append(dict_technicals["ma2"])
         self.list_mom.append(dict_technicals["momentum"])
 
-        # VWAP クロス時の縦線表示
-        if 0.0 < dict_technicals["vwap_gc"]:
+        # MA クロス時の縦線表示
+        if 0.0 < dict_technicals["ma_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
-        if 0.0 < dict_technicals["vwap_dc"]:
+        if 0.0 < dict_technicals["ma_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals()

@@ -214,6 +214,8 @@ class EnvData:
             "diff_vwap": self.diff_vwap,
             "n_trade": self.n_trade,
             "count_negative": self.count_negative,
+            "ma_gc": self.is_ma_golden_cross(),
+            "ma_dc": self.is_ma_dead_cross(),
             "vwap_gc": self.is_vwap_golden_cross(),
             "vwap_dc": self.is_vwap_dead_cross(),
             "warmup": self.is_warmup_period(),

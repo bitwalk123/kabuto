@@ -33,22 +33,22 @@ class AlgoTrade(AlgoTradeBase):
         if position == PositionType.NONE:
             # === エントリ ===
             if self.isAutoPilot():
-                # VWAP ゴールデンクロスでエントリ
-                if vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
-                    return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（買建）"}
+                # MA ゴールデンクロスでエントリ
+                if ma_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
+                    return ActionType.BUY.value, {"reason": "MA ゴールデンクロス（買建）"}
 
-                # VWAP デッドクロスでエントリ
-                if vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
-                    return ActionType.SELL.value, {"reason": "VWAP デッドクロス（売建）"}
+                # MA デッドクロスでエントリ
+                if ma_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
+                    return ActionType.SELL.value, {"reason": "MA デッドクロス（売建）"}
         else:
             # === エグジット ===
-            # VWAP ゴールデンクロスでエグジット
-            if vwap_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
-                return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（返済）"}
+            # MA ゴールデンクロスでエグジット
+            if ma_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
+                return ActionType.BUY.value, {"reason": "MA ゴールデンクロス（返済）"}
 
-            # VWAP デッドクロスでエグジット
-            if vwap_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
-                return ActionType.SELL.value, {"reason": "VWAP デッドクロス（返済）"}
+            # MA デッドクロスでエグジット
+            if ma_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
+                return ActionType.SELL.value, {"reason": "MA デッドクロス（返済）"}
 
             if flag_take_profit:
                 # ドローダウン利確

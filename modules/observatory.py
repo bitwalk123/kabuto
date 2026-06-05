@@ -39,9 +39,9 @@ class ObservationManager:
             "Price": price,
             "MA1": value_ma_1,
             "MA2": value_ma_2,
-            "DiffMA": 0,
+            "DiffMA": (value_ma_1 - value_ma_2) / value_ma_2,
             "VWAP": value_vwap,
-            "DiffVWAP": (value_ma_1 - value_vwap) / value_vwap * 100.,
+            "DiffVWAP": (value_ma_1 - value_vwap) / value_vwap,
             "RSI": 0,
             "Momentum": self.mom.update(value_ma_1),
         }
