@@ -263,7 +263,7 @@ class Momentum:
 
 
 class PurePersuitFollower:
-    def __init__(self, lookback: int, gain: float):
+    def __init__(self, lookback: int = 5, gain: float = 0.12):
         self.lookback = lookback
         self.gain = gain
 
