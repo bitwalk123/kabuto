@@ -260,3 +260,49 @@ class Momentum:
         self.momentum = self.queue[-1] - self.queue[0]
 
         return self.momentum
+
+
+class PurePersuitFollower:
+    def __init__(self, lookback: int, gain: float):
+        self.lookback = lookback
+        self.gain = gain
+
+        self.queue = deque()  # 過去の価格を保持（lookback 用）
+        self.follower = 0.0
+        self.prev_follower = 0.0
+        self.initialized = False
+
+    def clear(self) -> None:
+        self.queue.clear()
+        self.follower = 0.0
+        self.prev_follower = 0.0
+        self.initialized = False
+
+    def getValue(self) -> float:
+        return self.follower
+
+    def update(self, price: float) -> float:
+        # 初回は follower を price に合わせる
+        if not self.initialized:
+            self.follower = price
+            self.initialized = True
+
+        # 過去価格をキューに追加
+        self.queue.append(price)
+
+        # lookback を超えたら古い価格を捨てる
+        if len(self.queue) > self.lookback:
+            target = self.queue[0]  # lookback 本前の価格
+        else:
+            target = price  # lookback が足りない間は現在値を使う
+
+        # Pure Pursuit 更新
+        self.prev_follower = self.follower
+        error = target - self.follower
+        self.follower = self.follower + self.gain * error
+
+        # 古い値を削除（lookback を維持）
+        if len(self.queue) > self.lookback:
+            self.queue.popleft()
+
+        return self.follower
