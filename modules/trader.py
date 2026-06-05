@@ -326,9 +326,11 @@ class Trader(QMainWindow):
         self.dock.setProfit(profit)
         self.dock.setTotal(total)
 
+        '''
         if self.dict_ts["end_entry"] < ts:
             # 指定時間以降はエントリをしない。
             self.dock.setAutoPilotDisabled()
+        '''
 
     def update_technicals(self) -> None:
         """
