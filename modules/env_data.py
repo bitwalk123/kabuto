@@ -27,6 +27,7 @@ class EnvData:
     LOSSCUT_1: float = -50.0  # 単純ロスカット
     DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
     DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
+    COUNT_DD_RATIO_MAX: int = 3  # ドローダウン利確の最大比率を連続して超える許容回数
 
     # 報酬・ペナルティ系
     RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
@@ -74,6 +75,7 @@ class EnvData:
     profit_max: float = 0.0  # 最大含み損益
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
+    count_dd_ratio: int = 0 # ドローダウン比率を超えたカウント数
     # 始値
     ts_open: float = 0.0
     price_open: float = 0.0
@@ -226,40 +228,44 @@ class EnvData:
 
     def is_ma_golden_cross(self) -> bool:
         """
-        MA ゴールデン・クロスでエントリか
+        MA ゴールデン・クロスでエントリか？
         :return:
         """
         if self.diff_ma_pre <= 0 < self.diff_ma:
+            self.count_dd_ratio = 0
             return True
         else:
             return False
 
     def is_ma_dead_cross(self) -> bool:
         """
-        MA デッド・クロスでエントリか
+        MA デッド・クロスでエントリか？
         :return:
         """
         if self.diff_ma < 0 <= self.diff_ma_pre:
+            self.count_dd_ratio = 0
             return True
         else:
             return False
 
     def is_vwap_golden_cross(self) -> bool:
         """
-        VWAP ゴールデン・クロスでエントリか
+        VWAP ゴールデン・クロスでエントリか？
         :return:
         """
         if self.diff_vwap_pre <= 0 < self.diff_vwap:
+            self.count_dd_ratio = 0
             return True
         else:
             return False
 
     def is_vwap_dead_cross(self) -> bool:
         """
-        VWAP デッド・クロスでエントリか
+        VWAP デッド・クロスでエントリか？
         :return:
         """
         if self.diff_vwap < 0 <= self.diff_vwap_pre:
+            self.count_dd_ratio = 0
             return True
         else:
             return False
@@ -358,8 +364,14 @@ class EnvData:
             return True
         """
         if self.DD_RATIO_MAX < self.update_dd_ratio():
-            return True
+            if self.COUNT_DD_RATIO_MAX < self.count_dd_ratio:
+                print(f"カウントが {self.COUNT_DD_RATIO_MAX} を超えました。")
+                return True
+            else:
+                self.count_dd_ratio += 1
+                return False
         else:
+            self.count_dd_ratio = 0
             return False
 
     def update_profit_pre(self):
