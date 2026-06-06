@@ -4,7 +4,7 @@ from typing import Any, Literal, TypeAlias
 
 from PySide6.QtCore import Qt, QThread, Signal
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtWidgets import QMainWindow, QDialog
+from PySide6.QtWidgets import QDialog, QMainWindow
 
 from funcs.setting import load_setting
 from modules.agent import WorkerAgent
