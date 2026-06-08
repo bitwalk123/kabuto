@@ -356,8 +356,8 @@ class EnvData:
         if self.DD_RATIO_MAX < self.update_dd_ratio():
             return True
         else:
-            d = np.abs(self.ma1 - self.ma2)
-            if d < 2 < self.profit_max:
+            # d = np.abs(self.ma1 - self.ma2)
+            if self.profit < 2 < self.profit_max:
                 print(f"再クロス手前で返済します。")
                 return True
             else:
