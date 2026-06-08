@@ -353,11 +353,24 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
+        '''
         if self.DD_RATIO_MAX < self.update_dd_ratio():
             return True
+        '''
+        dd = self.profit_max - self.profit
+        if 250 < self.profit_max:
+            if self.profit_max * 0.10 < dd:
+                return True
+            else:
+                return False
+        elif 150 < self.profit_max:
+            if self.profit_max * 0.25 < dd:
+                return True
+            else:
+                return False
         else:
             d = np.abs(self.ma1 - self.ma2)
-            if d < 5 < self.profit_max:
+            if d < 2 < self.profit_max:
                 print(f"再クロス手前で返済します。")
                 return True
             else:
