@@ -371,8 +371,13 @@ class EnvData:
                 self.count_dd_ratio += 1
                 return False
         else:
-            self.count_dd_ratio = 0
-            return False
+            d = np.abs(self.ma1 - self.ma2)
+            if d < 2:
+                print(f"クロス手前で返済します。")
+                return True
+            else:
+                self.count_dd_ratio = 0
+                return False
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
