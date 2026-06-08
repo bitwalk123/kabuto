@@ -364,12 +364,15 @@ class EnvData:
             return True
         """
         if self.DD_RATIO_MAX < self.update_dd_ratio():
+            '''
             if self.COUNT_DD_RATIO_MAX < self.count_dd_ratio:
                 print(f"カウントが {self.COUNT_DD_RATIO_MAX} を超えました。")
                 return True
             else:
                 self.count_dd_ratio += 1
                 return False
+            '''
+            return True
         else:
             d = np.abs(self.ma1 - self.ma2)
             if d < 2:
