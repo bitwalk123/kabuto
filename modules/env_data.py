@@ -370,7 +370,7 @@ class EnvData:
                 return False
         else:
             d = np.abs(self.ma1 - self.ma2)
-            if d < 2 < self.profit_max:
+            if d < 5 < self.profit_max:
                 print(f"クロス手前で返済します。")
                 return True
             else:
