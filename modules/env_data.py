@@ -74,7 +74,6 @@ class EnvData:
     profit_max: float = 0.0  # 最大含み損益
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
-    count_dd_ratio: int = 0 # ドローダウン比率を超えたカウント数
     # 始値
     ts_open: float = 0.0
     price_open: float = 0.0
@@ -231,7 +230,6 @@ class EnvData:
         :return:
         """
         if self.diff_ma_pre <= 0 < self.diff_ma:
-            self.count_dd_ratio = 0
             return True
         else:
             return False
@@ -242,7 +240,6 @@ class EnvData:
         :return:
         """
         if self.diff_ma < 0 <= self.diff_ma_pre:
-            self.count_dd_ratio = 0
             return True
         else:
             return False
@@ -253,7 +250,6 @@ class EnvData:
         :return:
         """
         if self.diff_vwap_pre <= 0 < self.diff_vwap:
-            self.count_dd_ratio = 0
             return True
         else:
             return False
@@ -264,7 +260,6 @@ class EnvData:
         :return:
         """
         if self.diff_vwap < 0 <= self.diff_vwap_pre:
-            self.count_dd_ratio = 0
             return True
         else:
             return False
@@ -362,11 +357,10 @@ class EnvData:
             return True
         else:
             d = np.abs(self.ma1 - self.ma2)
-            if d < 2:
+            if d < 2 < self.profit_max:
                 print(f"再クロス手前で返済します。")
                 return True
             else:
-                self.count_dd_ratio = 0
                 return False
 
     def update_profit_pre(self):
