@@ -27,7 +27,6 @@ class EnvData:
     LOSSCUT_1: float = -50.0  # 単純ロスカット
     DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
     DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
-    COUNT_DD_RATIO_MAX: int = 3  # ドローダウン利確の最大比率を連続して超える許容回数
 
     # 報酬・ペナルティ系
     RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
@@ -359,24 +358,12 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
-        """
-        if self.profit <= 100.0 < self.profit_max:
-            return True
-        """
         if self.DD_RATIO_MAX < self.update_dd_ratio():
-            '''
-            if self.COUNT_DD_RATIO_MAX < self.count_dd_ratio:
-                print(f"カウントが {self.COUNT_DD_RATIO_MAX} を超えました。")
-                return True
-            else:
-                self.count_dd_ratio += 1
-                return False
-            '''
             return True
         else:
             d = np.abs(self.ma1 - self.ma2)
             if d < 2:
-                print(f"クロス手前で返済します。")
+                print(f"再クロス手前で返済します。")
                 return True
             else:
                 self.count_dd_ratio = 0
