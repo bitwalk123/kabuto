@@ -353,11 +353,12 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
-        if self.profit_max <= 20:
+        th = 30
+        if self.profit_max <= th:
             return False
 
         dd = self.profit_max - self.profit
-        return 20 < dd
+        return th < dd
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
