@@ -369,12 +369,15 @@ class EnvData:
             else:
                 return False
         else:
+            '''
             d = np.abs(self.ma1 - self.ma2)
             if d < 5 < self.profit_max:
                 print(f"クロス手前で返済します。")
                 return True
             else:
                 return False
+            '''
+            return False
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
