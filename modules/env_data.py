@@ -27,6 +27,7 @@ class EnvData:
     LOSSCUT_1: float = -50.0  # 単純ロスカット
     DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
     DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
+    TRAILING_THRESHOLD: float = 40 # トレーリング最低値兼ドローダウン許容幅
 
     # 報酬・ペナルティ系
     RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
@@ -353,12 +354,11 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
-        th = 40
-        if self.profit_max <= th:
+        if self.profit_max <= self.TRAILING_THRESHOLD:
             return False
 
         dd = self.profit_max - self.profit
-        return th < dd
+        return self.TRAILING_THRESHOLD < dd
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
