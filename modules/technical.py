@@ -262,7 +262,7 @@ class Momentum:
         return self.momentum
 
 
-class PurePersuitFollower:
+class PurePersuitFollowerOld:
     def __init__(self, lookback: int = 5, gain: float = 0.12):
         self.lookback = lookback
         self.gain = gain
@@ -304,5 +304,74 @@ class PurePersuitFollower:
         # 古い値を削除（lookback を維持）
         if len(self.queue) > self.lookback:
             self.queue.popleft()
+
+        return self.follower
+
+
+class PurePursuitFollower:
+    def __init__(
+            self,
+            trend_period: int = 5,
+            gain: float = 0.15,
+            predict_gain: float = 0.5,
+    ):
+        self.trend_period = trend_period
+        self.gain = gain
+        self.predict_gain = predict_gain
+
+        self.queue = deque()
+
+        self.follower = 0.0
+        self.prev_follower = 0.0
+        self.initialized = False
+
+    def clear(self) -> None:
+        self.queue.clear()
+
+        self.follower = 0.0
+        self.prev_follower = 0.0
+        self.initialized = False
+
+    def getValue(self) -> float:
+        return self.follower
+
+    def update(self, price: float) -> float:
+        #
+        # 初回
+        #
+        if not self.initialized:
+            self.follower = price
+            self.prev_follower = price
+            self.initialized = True
+
+        #
+        # 価格履歴追加
+        #
+        self.queue.append(price)
+
+        #
+        # トレンド推定
+        #
+        if len(self.queue) > self.trend_period:
+            delayed_price = self.queue[0]
+
+            # trend_period本での値動き
+            velocity = price - delayed_price
+
+            # 先読み価格
+            target = price + self.predict_gain * velocity
+
+            self.queue.popleft()
+        else:
+            target = price
+
+        #
+        # Pure Pursuit 更新
+        #
+        self.prev_follower = self.follower
+
+        error = target - self.follower
+
+        self.follower += self.gain * error
 
         return self.follower
