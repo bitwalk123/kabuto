@@ -352,16 +352,12 @@ class EnvData:
         # print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
         return self.dd_ratio
 
-
     def does_take_profit(self) -> bool:
-        if 20 < self.profit_max:
-            dd = self.profit_max - self.profit
-            if 20 < dd:
-                return True
-            else:
-                return False
-        else:
+        if self.profit_max <= 20:
             return False
+
+        dd = self.profit_max - self.profit
+        return 20 < dd
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
