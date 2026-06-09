@@ -353,7 +353,7 @@ class EnvData:
         return self.dd_ratio
 
     def does_take_profit(self) -> bool:
-        th = 40
+        th = 50
         if self.profit_max <= th:
             return False
 
