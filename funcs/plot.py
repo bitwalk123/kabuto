@@ -525,7 +525,7 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 
     ax.set_ylabel("株価")
     ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
 
 
@@ -536,7 +536,8 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     mom = Momentum(n)
     df["momentum"] = [mom.update(v) for v in df["ma1"]]
     '''
-    ax.plot(df["momentum"], color="black", linewidth=0.25, alpha=0.75, zorder=100, label=f"n={dict_setting["PERIOD_MOM"]}")
+    ax.plot(df["momentum"], color="black", linewidth=0.25, alpha=0.75, zorder=100,
+            label=f"n={dict_setting["PERIOD_MOM"]}")
     x = df.index
     y = df["momentum"]
     ax.fill_between(x, 0, y, where=(0 < y), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=50)
@@ -545,7 +546,7 @@ def plot_momentum(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.axhline(y=0, linewidth=0.5, color="black", alpha=0.5)
 
     ax.set_ylabel("モメンタム")
-    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
 
 
@@ -565,7 +566,7 @@ def plot_rsi(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.axhline(y=0.7, linewidth=0.5, color="black", alpha=0.5, zorder=0)
     ax.set_ylim(-0.05, 1.05)
     ax.set_ylabel(f"RSI")
-    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
 
 
@@ -580,10 +581,10 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10, label="含み損")
 
     ax.plot(y2, linewidth=0.75, color="#800", zorder=60, label="最大含み損益")
-    ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, zorder=0, label="トレーリング")
+    # ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, zorder=0, label="トレーリング")
 
     ax.set_ylabel("含み損益")
-    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
 
 
@@ -603,7 +604,7 @@ def plot_drawdown(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
 
     ax.set_ylim(0, y_ddr_2 + 0.1)
     ax.set_ylabel("DD ratio")
-    #ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
+    # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
 
 
