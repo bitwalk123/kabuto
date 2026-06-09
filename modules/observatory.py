@@ -2,8 +2,7 @@ from modules.env_data import EnvData
 from modules.technical import (
     Momentum,
     MovingAverage,
-    VWAP, PurePursuitFollower,
-)
+    VWAP, )
 
 
 class ObservationManager:
@@ -11,8 +10,8 @@ class ObservationManager:
         # 特徴量プロバイダ
         self.s = s
         # 特徴量インスタンス
-        # self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
-        self.ma_1 = PurePursuitFollower()
+        self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
+        # self.ma_1 = PurePursuitFollower()
         self.ma_2 = MovingAverage(window_size=self.s.PERIOD_MA_2)
         self.mom = Momentum(window_size=self.s.PERIOD_MOM)
         self.vwap = VWAP()
