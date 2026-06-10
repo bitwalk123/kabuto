@@ -13,7 +13,83 @@ from PySide6.QtCore import (
 from funcs.plugin import get_model_instance
 from funcs.tide import conv_datetime_from_timestamp
 from modules.env import TradingEnv
+from modules.posman import PositionManager
 from structs.app_enum import ActionType, PositionType
+
+
+class AlgoAgent:
+    BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
+
+    def __init__(
+            self,
+            code: str,
+            dict_setting: dict[str, Any]
+    ) -> None:
+        self.code = code
+        self.obs: np.ndarray | None = None
+        self.df_obs: pd.DataFrame | None = None
+
+        # 学習環境の取得
+        self.env: TradingEnv = TradingEnv(code, dict_setting)
+
+        # モデルに渡す観測値のリスト
+        self.list_obs_label: list[str] = []
+
+        # モデルのインスタンス（とりあえずプラグイン化）
+        # name_model = "default"
+        name_model = "model_001"
+        self.model = get_model_instance(name_model)
+
+        # ポジションマネージャ
+        self.posman = posman = PositionManager()
+        posman.initPosition([code])
+
+        # 取引内容（＋テクニカル指標）
+        self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
+
+    def run(self, df: pd.DataFrame) -> None:
+        n_row = len(df)
+        for r in range(n_row):
+            row = df.iloc[r]
+            ts = row["Time"]
+            price = row["Price"]
+            volume = row["Volume"]
+            dict_info = self.posman.getInfo(self.code, price)
+            #dict_technicals = self.addData(ts, price, volume)
+
+    def addData(
+            self,
+            ts: float,
+            price: float,
+            volume: float,
+            dict_info: dict
+    ) -> dict[str, Any]:
+        # ティックデータから観測値を取得
+        obs, dict_technicals = self.env.getObservation(ts, price, volume, dict_info)
+
+        # 現在の行動マスクを取得
+        masks: np.ndarray = self.env.action_masks()
+
+        # モデルによる行動予測
+        action, states = self.model.predict(obs, action_masks=masks)
+
+        '''
+        # メイン・スレッドへ通知する発注アクション
+        position: PositionType = self.env.getCurrentPosition()
+        if ActionType(action) != ActionType.HOLD:
+            # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
+            self.notifyAction.emit(action, position, states)
+        '''
+
+        # メイン・スレッドへ通知するプロット用テクニカル指標
+        # 🧿 テクニカル指標を通知するシグナル
+        # self.sendTechnicals.emit(dict_technicals)
+        return dict_technicals
+        """
+        # トレード後にまとめてデータフレームで出力するため
+        for key, value in dict_technicals.items():
+            self.dict_list_tech[key].append(value)
+        """
 
 
 class WorkerAgent(QObject):
@@ -50,7 +126,7 @@ class WorkerAgent(QObject):
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
-    @Slot(float, float, float)
+    @Slot(float, float, float, dict)
     def addData(self, ts: float, price: float, volume: float, dict_info: dict) -> None:
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume, dict_info)

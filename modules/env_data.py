@@ -18,16 +18,16 @@ class EnvData:
     # インジケータ系
     PERIOD_WARMUP: int = 300  # インジケータのウォームアップ期間（ティック数）
     PERIOD_MA_1: int = 30  # 移動平均線の期間1
-    PERIOD_MA_2: int = 300  # 移動平均線の期間2
-    PERIOD_RSI: int = 300  # RSIの期間
+    PERIOD_MA_2: int = 900  # 移動平均線の期間2
+    # PERIOD_RSI: int = 300  # RSIの期間
     PERIOD_MOM: int = 300  # モメンタムの期間
     # ロスカット・利確系
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
-    N_POSITION_MIN: int = 30  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
+    # N_POSITION_MIN: int = 30  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
     LOSSCUT_1: float = -50.0  # 単純ロスカット
-    DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
-    DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
-    TRAILING_THRESHOLD: float = 40 # トレーリング最低値兼ドローダウン許容幅
+    # DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
+    # DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
+    TRAILING_THRESHOLD: float = 40  # トレーリング最低値兼ドローダウン許容幅
 
     # 報酬・ペナルティ系
     RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
@@ -106,14 +106,12 @@ class EnvData:
         print("PERIOD_WARMUP", self.PERIOD_WARMUP)  # インジケータのウォームアップ期間（ティック数）
         print("PERIOD_MA_1", self.PERIOD_MA_1)  # 移動平均線の期間1
         print("PERIOD_MA_2", self.PERIOD_MA_2)  # 移動平均線の期間2
-        print("PERIOD_RSI", self.PERIOD_RSI)  # RSIの期間
         print("PERIOD_MOM", self.PERIOD_MOM)  # モメンタムの期間
         # ロスカット・利確系
         print("N_MINUS_MAX", self.N_MINUS_MAX)  # 連続含み損の最大カウント数
-        print("N_POSITION_MIN", self.N_POSITION_MIN)  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
+        # print("N_POSITION_MIN", self.N_POSITION_MIN)  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
         print("LOSSCUT_1", self.LOSSCUT_1)  # 単純ロスカット
-        print("DD_RATIO_MAX", self.DD_RATIO_MAX)  # ドローダウン利確の最大比率（これを超えたら利確）
-        print("DD_THRESHOLD", self.DD_THRESHOLD)  # ドローダウン利確を始める閾値
+        print("TRAILING_THRESHOLD", self.TRAILING_THRESHOLD)  # トレーリング最低値兼ドローダウン許容幅
 
     def inc_row(self):
         self.row += 1

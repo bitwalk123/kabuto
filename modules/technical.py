@@ -369,9 +369,7 @@ class PurePursuitFollower:
         # Pure Pursuit 更新
         #
         self.prev_follower = self.follower
-
         error = target - self.follower
-
         self.follower += self.gain * error
 
         return self.follower

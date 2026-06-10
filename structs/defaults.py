@@ -7,12 +7,11 @@ class FeatureDefaults:
     """
     PERIOD_WARMUP = 300
     PERIOD_MA_1 = 30
-    PERIOD_RSI = 150
+    PERIOD_MA_2 = 900
     PERIOD_MOM = 300
-    N_MINUS_MAX = 300
-    LOSSCUT_1 = -25.0
-    DD_RATIO_MAX = 0.75
-    DD_THRESHOLD = 10.0
+    N_MINUS_MAX = 900
+    LOSSCUT_1 = -50.0
+    TRAILING_THRESHOLD = 40
 
     @classmethod
     def as_dict(cls) -> dict:
