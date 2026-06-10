@@ -5,7 +5,7 @@ import sys
 import pandas as pd
 
 from funcs.excel import get_excel_sheet
-from modules.agent import AlgoAgent
+from modules.agent import SimulationAgent
 
 if __name__ == "__main__":
     name_doe: str = "doe-000"
@@ -42,8 +42,13 @@ if __name__ == "__main__":
                 print(key, ":", value)
 
             # ループ毎に新しいインスタンスを生成
-            agent = AlgoAgent(code, dict_setting)
-            agent.run(df_excel)
+            agent = SimulationAgent(code, dict_setting)
+            df_technicals, df_transaction = agent.run(df_excel)
+
+            print(df_transaction)
+            n_transaction = len(df_transaction)
+            pnl = df_transaction["損益"].sum()
+            print(f"約定係数: {n_transaction} 回, 損益: {pnl} 円/株")
 
     """
     df_result = pd.concat([df_result_pre, df_result], ignore_index=True)

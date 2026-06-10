@@ -17,7 +17,7 @@ from modules.posman import PositionManager
 from structs.app_enum import ActionType, PositionType
 
 
-class AlgoAgent:
+class SimulationAgent:
     BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
 
     def __init__(
@@ -48,12 +48,12 @@ class AlgoAgent:
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
-    def run(self, df_tech: pd.DataFrame) -> None:
+    def run(self, df_technicals: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         self.resetEnv()
-        n_row = len(df_tech)
+        n_row = len(df_technicals)
         ts, price = (0.0, 0.0)
         for r in range(n_row):
-            row = df_tech.iloc[r]
+            row = df_technicals.iloc[r]
             ts = row["Time"]
             price = row["Price"]
             volume = row["Volume"]
@@ -68,14 +68,13 @@ class AlgoAgent:
         if self.posman.hasPosition(self.code):
             self.posman.closePosition(self.code, ts, price, "強制返済")
 
-        df_tech = pd.DataFrame(self.dict_list_tech)
+        df_technicals = pd.DataFrame(self.dict_list_tech)
         # インデックスを日付形式に変換
-        df_tech.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df_tech["ts"]]
+        df_technicals.index = [
+            pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df_technicals["ts"]
+        ]
         df_transaction = self.posman.getTransactionResult()
-        print(df_transaction)
-        n_transaction = len(df_transaction)
-        pnl = df_transaction["損益"].sum()
-        print(f"約定係数: {n_transaction} 回, 損益: {pnl} 円/株")
+        return df_technicals, df_transaction
 
     def addData(
             self,
