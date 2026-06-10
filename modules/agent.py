@@ -38,7 +38,8 @@ class AlgoAgent:
         # モデルのインスタンス（とりあえずプラグイン化）
         # name_model = "default"
         name_model = "model_001"
-        self.model = get_model_instance(name_model)
+        self.model = model = get_model_instance(name_model)
+        model.setAutoPilot(True)
 
         # ポジションマネージャ
         self.posman = posman = PositionManager()
@@ -47,15 +48,34 @@ class AlgoAgent:
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
-    def run(self, df: pd.DataFrame) -> None:
-        n_row = len(df)
+    def run(self, df_tech: pd.DataFrame) -> None:
+        self.resetEnv()
+        n_row = len(df_tech)
+        ts, price = (0.0, 0.0)
         for r in range(n_row):
-            row = df.iloc[r]
+            row = df_tech.iloc[r]
             ts = row["Time"]
             price = row["Price"]
             volume = row["Volume"]
             dict_info = self.posman.getInfo(self.code, price)
-            #dict_technicals = self.addData(ts, price, volume)
+            dict_technicals = self.addData(ts, price, volume, dict_info)
+            # print(dict_technicals)
+            # トレード後にまとめてデータフレームで出力するため
+            for key, value in dict_technicals.items():
+                self.dict_list_tech[key].append(value)
+
+        # 建玉が残っていれば強制返済
+        if self.posman.hasPosition(self.code):
+            self.posman.closePosition(self.code, ts, price, "強制返済")
+
+        df_tech = pd.DataFrame(self.dict_list_tech)
+        # インデックスを日付形式に変換
+        df_tech.index = [pd.to_datetime(conv_datetime_from_timestamp(ts)) for ts in df_tech["ts"]]
+        df_transaction = self.posman.getTransactionResult()
+        print(df_transaction)
+        n_transaction = len(df_transaction)
+        pnl = df_transaction["損益"].sum()
+        print(f"約定係数: {n_transaction} 回, 損益: {pnl} 円/株")
 
     def addData(
             self,
@@ -72,24 +92,56 @@ class AlgoAgent:
 
         # モデルによる行動予測
         action, states = self.model.predict(obs, action_masks=masks)
+        action_enum = ActionType(action)
 
-        '''
         # メイン・スレッドへ通知する発注アクション
         position: PositionType = self.env.getCurrentPosition()
-        if ActionType(action) != ActionType.HOLD:
-            # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-            self.notifyAction.emit(action, position, states)
-        '''
+        if "reason" in states:
+            note = states["reason"]
+        else:
+            note = ""
+        if position == PositionType.NONE:
+            if action_enum == ActionType.BUY:
+                self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+            elif action_enum == ActionType.SELL:
+                self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+            else:
+                pass
+        elif position == PositionType.LONG:
+            if action_enum == ActionType.BUY:
+                pass
+            elif action_enum == ActionType.SELL:
+                self.posman.closePosition(self.code, ts, price, note)
+            else:
+                pass
+        elif position == PositionType.SHORT:
+            if action_enum == ActionType.BUY:
+                self.posman.closePosition(self.code, ts, price, note)
+            elif action_enum == ActionType.SELL:
+                pass
+            else:
+                pass
+        else:
+            pass
 
         # メイン・スレッドへ通知するプロット用テクニカル指標
         # 🧿 テクニカル指標を通知するシグナル
         # self.sendTechnicals.emit(dict_technicals)
         return dict_technicals
-        """
-        # トレード後にまとめてデータフレームで出力するため
-        for key, value in dict_technicals.items():
-            self.dict_list_tech[key].append(value)
-        """
+
+    def resetEnv(self) -> None:
+        # 環境のリセット
+        self.obs, _ = self.env.reset()
+        # self.done = False
+        # self._is_stopping = False
+
+        list_colname = self.BASE_COLUMNS.copy()
+        self.list_obs_label = self.env.getObsList()
+        self.model.updateObs(self.list_obs_label)
+        list_colname.extend(self.list_obs_label)
+        self.df_obs = pd.DataFrame({col: [] for col in list_colname})
+        # 🧿 環境のリセット完了を通知
+        # self.completedResetEnv.emit()
 
 
 class WorkerAgent(QObject):
