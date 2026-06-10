@@ -575,7 +575,7 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     x = df.index
     y1 = df["profit"]
     y2 = df["profit_max"]
-    y_dd_th = dict_setting["DD_THRESHOLD"]
+    # y_dd_th = dict_setting["DD_THRESHOLD"]
 
     ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10, label="含み益")
     ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10, label="含み損")
