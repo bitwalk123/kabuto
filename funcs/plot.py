@@ -575,13 +575,11 @@ def plot_profit(ax: plt.Axes, df: DataFrame, dict_setting: dict[str, Any]):
     x = df.index
     y1 = df["profit"]
     y2 = df["profit_max"]
-    # y_dd_th = dict_setting["DD_THRESHOLD"]
 
     ax.fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10, label="含み益")
     ax.fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10, label="含み損")
 
     ax.plot(y2, linewidth=0.75, color="#800", zorder=60, label="最大含み損益")
-    # ax.axhline(y=y_dd_th, linewidth=0.75, color="C0", alpha=1, zorder=0, label="トレーリング")
 
     ax.set_ylabel("含み損益")
     # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
