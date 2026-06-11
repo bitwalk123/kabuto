@@ -14,6 +14,7 @@ mplfinance
 numpy-typing-compat
 odfpy
 openpyxl
+pandas
 pandas-stubs
 pingouin
 pip-chill
