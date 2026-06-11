@@ -177,12 +177,12 @@ class EnvData:
         )
         # シグナル・フラグ（クロスしたタイミングなど）
         signal = np.array([
-            self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
-            self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
+            False,  # self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
+            False,  # self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
             self.is_vwap_golden_cross(),  # 2. VWAP ゴールデンクロスのフラグ
             self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
             False,  # 5. 予備
-            self.does_take_profit(),  # 5. 利確のフラグ
+            False,  # self.does_take_profit(),  # 5. 利確のフラグ
             self.does_losscut_consecutive_negative(),  # 6. 連続含み損ロスカットのフラグ
             self.is_losscut(),  # 7. 単純ロスカットのフラグ
             False,
