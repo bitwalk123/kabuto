@@ -5,8 +5,7 @@ from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
-    QFileDialog, QSizePolicy,
-)
+    QFileDialog, )
 
 from structs.res import AppRes
 from widgets.buttons import RadioButton, ButtonGroup
@@ -18,9 +17,9 @@ from widgets.labels import (
     LabelRaisedLeft,
     LabelRight,
 )
-from widgets.textedits import TextEdit
 from widgets.layouts import GridLayout, VBoxLayout
 from widgets.listviews import CheckList
+from widgets.textedits import TextEdit
 
 
 class DialogButtonBox(QDialogButtonBox):
@@ -141,6 +140,16 @@ class DlgCodeSel(QDialog):
         return self.clist.getSelected()
 
 
+class DlgOutputFileSel(QFileDialog):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "csv.png")))
+        self.setOption(QFileDialog.Option.DontUseNativeDialog)
+        self.setDefaultSuffix("csv")
+        self.setNameFilter("*.csv")
+        self.setDirectory(res.dir_output)
+
+
 class DlgParam(QDialog):
     def __init__(self, res: AppRes, code: str, dict_setting: dict):
         super().__init__()
@@ -238,6 +247,7 @@ class DlgTickFileSel(QFileDialog):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "excel.png")))
         self.setOption(QFileDialog.Option.DontUseNativeDialog)
         self.setDefaultSuffix("xlsx")
+        self.setNameFilter("*.xlsx")
         self.setDirectory(res.dir_collection)
 
 
