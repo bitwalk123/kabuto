@@ -33,6 +33,7 @@ class ProfitSimulator(QMainWindow):
 
         toolbar = ProfitSimulatorToolbar(res)
         toolbar.sendDataFrame.connect(self.on_plot)
+
         base = QWidget()
         base.setFixedHeight(res.trend_height)
         base.setMinimumWidth(res.trend_width)
@@ -40,6 +41,7 @@ class ProfitSimulator(QMainWindow):
         base.setLayout(layout)
         trend = ReviewChart()
         layout.addWidget(trend)
+
         dock = QDockWidget("Controller")
 
         self.addToolBar(toolbar)
