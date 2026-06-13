@@ -23,6 +23,11 @@ class ReviewChart(FigureCanvas):
         self.fig = Figure()
         super().__init__(self.fig)
 
+class BaseWidget(QWidget):
+    def __init__(self, res:AppRes):
+        super().__init__()
+        self.setFixedHeight(res.trend_height)
+        self.setMinimumWidth(res.trend_width)
 
 class ProfitSimulator(QMainWindow):
     def __init__(self):
@@ -34,9 +39,7 @@ class ProfitSimulator(QMainWindow):
         toolbar = ProfitSimulatorToolbar(res)
         toolbar.sendDataFrame.connect(self.on_plot)
 
-        base = QWidget()
-        base.setFixedHeight(res.trend_height)
-        base.setMinimumWidth(res.trend_width)
+        base = BaseWidget(res)
         layout = QVBoxLayout()
         base.setLayout(layout)
         trend = ReviewChart()
