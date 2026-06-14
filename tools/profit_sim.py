@@ -2,7 +2,7 @@ import os
 
 import matplotlib as mpl
 import pandas as pd
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
     QDockWidget,
@@ -25,6 +25,8 @@ from tools.profit_sim_widgets import BaseWidget, ProfitSimulatorToolbar
 
 
 class ReviewChart(FigureCanvas):
+    notifySelection = Signal(pd.Timestamp, pd.Timestamp)
+
     def __init__(self):
         self.fig = Figure()
         super().__init__(self.fig)
@@ -85,15 +87,15 @@ class ReviewChart(FigureCanvas):
         for ax in list(self.fig.axes):
             ax.remove()
 
-    @staticmethod
-    def selection(eclick, erelease):
+    def selection(self, eclick, erelease):
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
 
         dt1 = to_pd_dt(x1)
         dt2 = to_pd_dt(x2)
 
-        print(f"({dt1}, {y1: 3.2f}) --> ({dt2}, {y2: 3.2f})")
+        # print(f"({dt1}, {y1: 3.2f}) --> ({dt2}, {y2: 3.2f})")
+        self.notifySelection.emit(dt1, dt2)
 
     def resetSelection(self):
         if self.selector:
@@ -117,6 +119,7 @@ class ProfitSimulator(QMainWindow):
         layout = QVBoxLayout()
         base.setLayout(layout)
         self.trend = trend = ReviewChart()
+        trend.notifySelection.connect(self.on_selection)
         trend.initChart()
         layout.addWidget(trend)
 
@@ -138,3 +141,6 @@ class ProfitSimulator(QMainWindow):
         self.trend.ax[1].plot(df["profit_max"], linewidth=0.75, color="red")
         self.trend.ax[1].plot(df["profit"], linewidth=0.25, color="magenta")
         self.trend.refreshDraw()
+
+    def on_selection(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
+        print(dt1, dt2)
