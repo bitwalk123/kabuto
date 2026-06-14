@@ -614,18 +614,18 @@ def plot_verticals(
         dict_setting: dict[str, Any],
 ):
     # クロス・シグナル、ウォームアップ期間
-    list_vwap_gc = df[0 < df["ma_gc"]].index
-    list_vwap_dc = df[0 < df["ma_dc"]].index
-    ax[n - 1].set_xlabel(f"# of crossed: {len(list_vwap_gc) + len(list_vwap_dc)} times")
+    list_ma_gc = df[0 < df["ma_gc"]].index
+    list_ma_dc = df[0 < df["ma_dc"]].index
+    ax[n - 1].set_xlabel(f"# of crossed: {len(list_ma_gc) + len(list_ma_dc)} times")
     for i in range(n):
         # クロス・シグナル
-        for t in list_vwap_gc:
-            cname = "#f00" if 0 < df.at[t, "vwap_gc"] else "#00f"
+        for t in list_ma_gc:
+            cname = "#f00" if 0 < df.at[t, "ma_gc"] else "#00f"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
         # クロス・シグナル
-        for t in list_vwap_dc:
-            cname = "#00f" if 0 < df.at[t, "vwap_dc"] else "#f00"
+        for t in list_ma_dc:
+            cname = "#00f" if 0 < df.at[t, "ma_dc"] else "#f00"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
         # ウォークアップ期間
