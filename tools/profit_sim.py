@@ -20,7 +20,7 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
 
 from structs.res import AppRes
-from tools.profit_sim_funcs import get_x_range, get_y_range
+from tools.profit_sim_funcs import get_x_range, get_y_range, to_pd_dt
 from tools.profit_sim_widgets import BaseWidget, ProfitSimulatorToolbar
 
 
@@ -90,12 +90,17 @@ class ReviewChart(FigureCanvas):
         x1, y1 = eclick.xdata, eclick.ydata
         x2, y2 = erelease.xdata, erelease.ydata
 
-        # dt1 = mdates.num2date(x1)
-        # dt2 = mdates.num2date(x2)
-        dt1 = pd.to_datetime(mdates.num2date(x1)).tz_localize(None)
-        dt2 = pd.to_datetime(mdates.num2date(x2)).tz_localize(None)
-        # print(f"({x1: 3.2f}, {y1: 3.2f}) --> ({x2: 3.2f}, {y2: 3.2f})")
+        dt1 = to_pd_dt(x1)
+        dt2 = to_pd_dt(x2)
+
         print(f"({dt1}, {y1: 3.2f}) --> ({dt2}, {y2: 3.2f})")
+
+    def resetSelection(self):
+        if self.selector:
+            self.selector.set_active(False)
+            self.selector.update()
+            self.fig.canvas.draw_idle()
+            self.selector.set_active(True)
 
 
 class ProfitSimulator(QMainWindow):
