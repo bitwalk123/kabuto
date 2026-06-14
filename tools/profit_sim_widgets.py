@@ -1,12 +1,20 @@
 import os
 
 import pandas as pd
-from PySide6.QtCore import Signal
+from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QToolBar
+from PySide6.QtWidgets import QToolBar, QWidget
 
 from structs.res import AppRes
 from widgets.dialogs import DlgOutputFileSel
+
+
+class BaseWidget(QWidget):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setFixedHeight(res.trend_height)
+        self.setMinimumWidth(res.trend_width)
 
 
 class ProfitSimulatorToolbar(QToolBar):

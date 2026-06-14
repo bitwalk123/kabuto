@@ -1,5 +1,6 @@
 import os
 
+import matplotlib as mpl
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -7,27 +8,95 @@ from PySide6.QtWidgets import (
     QDockWidget,
     QMainWindow,
     QVBoxLayout,
-    QWidget,
+)
+from matplotlib import (
+    dates as mdates,
+    font_manager as fm,
 )
 from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
 from matplotlib.figure import Figure
+from matplotlib.widgets import RectangleSelector
 
 from structs.res import AppRes
-from tools.profit_sim_toolbar import ProfitSimulatorToolbar
+from tools.profit_sim_funcs import get_x_range, get_y_range
+from tools.profit_sim_widgets import BaseWidget, ProfitSimulatorToolbar
 
 
 class ReviewChart(FigureCanvas):
     def __init__(self):
         self.fig = Figure()
         super().__init__(self.fig)
+        # Font setting
+        FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
+        fm.fontManager.addfont(FONT_PATH)
+        font_prop = fm.FontProperties(fname=FONT_PATH)
+        # ★ 全体フォント適用
+        mpl.rcParams['font.family'] = font_prop.get_name()
 
-class BaseWidget(QWidget):
-    def __init__(self, res:AppRes):
-        super().__init__()
-        self.setFixedHeight(res.trend_height)
-        self.setMinimumWidth(res.trend_width)
+        # Plot margin
+        self.fig.subplots_adjust(
+            left=0.05,
+            right=0.99,
+            top=0.9,
+            bottom=0.075,
+        )
+
+        # Axes
+        self.ax = dict()
+
+        # Selector
+        self.selector = None
+
+    def clearAxes(self):
+        axs = self.fig.axes
+        for ax in axs:
+            ax.cla()
+            ax.grid()
+
+    def initAxes(self):
+        gs = self.fig.add_gridspec(
+            2, 1,
+            wspace=0.0, hspace=0.0,
+            height_ratios=[2 if i == 0 else 1 for i in range(2)]
+        )
+        for i, axis in enumerate(gs.subplots(sharex='col')):
+            self.ax[i] = axis
+            self.ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+            self.ax[i].grid()
+
+        # Selector
+        self.selector = RectangleSelector(
+            self.ax[0], self.selection, useblit=True,
+            button=[1],  # disable middle & right buttons
+            minspanx=5, minspany=5, spancoords='pixels', interactive=True,
+            props=dict(facecolor='pink', edgecolor='red', alpha=0.2, fill=True)
+        )
+
+    def initChart(self):
+        self.removeAxes()
+        self.initAxes()
+
+    def refreshDraw(self):
+        self.fig.canvas.draw()
+
+    def removeAxes(self):
+        for ax in list(self.fig.axes):
+            ax.remove()
+
+    @staticmethod
+    def selection(eclick, erelease):
+        x1, y1 = eclick.xdata, eclick.ydata
+        x2, y2 = erelease.xdata, erelease.ydata
+
+        # dt1 = mdates.num2date(x1)
+        # dt2 = mdates.num2date(x2)
+        dt1 = pd.to_datetime(mdates.num2date(x1)).tz_localize(None)
+        dt2 = pd.to_datetime(mdates.num2date(x2)).tz_localize(None)
+        # print(f"({x1: 3.2f}, {y1: 3.2f}) --> ({x2: 3.2f}, {y2: 3.2f})")
+        print(f"({dt1}, {y1: 3.2f}) --> ({dt2}, {y2: 3.2f})")
+
 
 class ProfitSimulator(QMainWindow):
     def __init__(self):
@@ -42,7 +111,8 @@ class ProfitSimulator(QMainWindow):
         base = BaseWidget(res)
         layout = QVBoxLayout()
         base.setLayout(layout)
-        trend = ReviewChart()
+        self.trend = trend = ReviewChart()
+        trend.initChart()
         layout.addWidget(trend)
 
         dock = QDockWidget("Controller")
@@ -52,4 +122,14 @@ class ProfitSimulator(QMainWindow):
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def on_plot(self, df: pd.DataFrame):
-        print(df)
+        print(df.columns)
+
+        self.trend.ax[0].plot(df["price"], linewidth=0.25, color="black")
+        # self.trend.ax[0].relim()
+        # self.trend.ax[0].autoscale_view(scalex=False, scaley=True)
+        self.trend.ax[0].set_xlim(*get_x_range(df))
+        self.trend.ax[0].set_ylim(*get_y_range(df["price"]))
+
+        self.trend.ax[1].plot(df["profit_max"], linewidth=0.75, color="red")
+        self.trend.ax[1].plot(df["profit"], linewidth=0.25, color="magenta")
+        self.trend.refreshDraw()
