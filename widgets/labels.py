@@ -133,6 +133,13 @@ class LabelSmall(QLabel):
         self.setFont(font)
 
 
+class LabelTime(Label):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setFixedWidth(60)
+        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+
 class LCDInt(QLCDNumber):
     def __init__(self, *args):
         super().__init__(*args)
