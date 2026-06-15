@@ -1,5 +1,6 @@
 import os
 
+import matplotlib as mpl
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
@@ -22,6 +23,8 @@ class ProfitSimulator(QMainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "profit.png")))
         self.setWindowTitle("Profit Simulator")
 
+        self.dt_start, self.dt_end = (None, None)
+        self.p1, self.p2 = (None, None)
         self.toolbar = toolbar = ProfitSimulatorToolbar(res)
         toolbar.requestClearSelection.connect(self.on_clear_selection)
         toolbar.requestSelectorActive.connect(self.on_selector_active)
@@ -41,6 +44,14 @@ class ProfitSimulator(QMainWindow):
         self.setCentralWidget(base)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
+    def clearVSpan(self):
+        if type(self.p1) is mpl.patches.Rectangle:
+            self.p1.remove()
+            self.p1 = None
+        if type(self.p2) is mpl.patches.Rectangle:
+            self.p2.remove()
+            self.p2 = None
+
     def on_plot(self, df: pd.DataFrame):
         print(df.columns)
         n = 2
@@ -49,7 +60,8 @@ class ProfitSimulator(QMainWindow):
         self.trend.ax[i].plot(df["ma1"], zorder=20, linewidth=0.25, color="#080")
         self.trend.ax[i].plot(df["ma2"], zorder=30, linewidth=0.75, color="#f80")
         self.trend.ax[i].plot(df["vwap"], zorder=40, linewidth=0.5, color="#808")
-        self.trend.ax[i].set_xlim(*get_x_range(df))
+        self.dt_start, self.dt_end = get_x_range(df)
+        self.trend.ax[i].set_xlim(self.dt_start, self.dt_end)
         self.trend.ax[i].set_ylim(*get_y_range(df["price"]))
         self.trend.ax[i].set_ylabel("株    価")
 
@@ -80,6 +92,14 @@ class ProfitSimulator(QMainWindow):
 
     def on_selection(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.toolbar.setTimeRange(dt1, dt2)
+        if self.dt_start is not None:
+            self.clearVSpan()
+            self.p1 = self.trend.ax[0].axvspan(self.dt_start, dt1, color="gray", alpha=0.25)
+            self.p2 = self.trend.ax[0].axvspan(dt2, self.dt_end, color="gray", alpha=0.25)
+            self.trend.refreshDraw()
 
     def on_selector_active(self, state: bool):
         self.trend.setSelectorActive(state)
+        if state:
+            self.clearVSpan()
+            self.trend.refreshDraw()

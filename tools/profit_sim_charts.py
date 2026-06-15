@@ -69,7 +69,7 @@ class ReviewChart(FigureCanvas):
         self.initAxes()
 
     def refreshDraw(self):
-        self.fig.canvas.draw()
+        self.fig.canvas.draw_idle()
 
     def removeAxes(self):
         for ax in list(self.fig.axes):
