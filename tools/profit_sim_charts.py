@@ -17,7 +17,11 @@ from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
 
 from structs.res import AppRes
-from tools.profit_sim_funcs import to_pd_dt, get_x_range, get_y_range
+from tools.profit_sim_funcs import (
+    get_x_range,
+    get_y_range,
+    to_pd_dt,
+)
 
 
 class ProfitReviewChart(FigureCanvas):
@@ -53,7 +57,7 @@ class ProfitReviewChart(FigureCanvas):
         self.ax = dict()
 
         # Selector
-        self.selector = None
+        self.selector: RectangleSelector | None = None
 
     def clearAxes(self):
         axs = self.fig.axes
@@ -83,6 +87,7 @@ class ProfitReviewChart(FigureCanvas):
             minspanx=4, minspany=4, spancoords='pixels', interactive=True,
             props=dict(facecolor='pink', edgecolor='red', alpha=0.1, fill=True)
         )
+        self.selector.set_active(False)
 
     def initChart(self):
         self.removeAxes()
@@ -142,11 +147,11 @@ class ProfitReviewChartNavigation(NavigationToolbar):
     def __init__(self, res: AppRes, canvas: FigureCanvas):
         super().__init__(canvas)
         # print(dir(self))
+        self.canvas = canvas
 
         icon = QIcon(os.path.join(res.dir_image, "rect.png"))
         self.action_user = action_user = QAction(icon, "User", self)
         action_user.setCheckable(True)
-        # action_user.triggered.connect(self.on_action_user)
         action_user.toggled.connect(self.on_action_user)
 
         # self.addAction(review_action)
@@ -154,7 +159,7 @@ class ProfitReviewChartNavigation(NavigationToolbar):
         n = len(actions)
         self.insertAction(actions[n - 1], action_user)
 
-    def on_action_user(self):
+    def on_action_user(self, state: bool):
         # Zoomモードなら解除
         if self._actions["zoom"].isChecked():
             self._actions["zoom"].trigger()
@@ -162,4 +167,5 @@ class ProfitReviewChartNavigation(NavigationToolbar):
         if self._actions["pan"].isChecked():
             self._actions["pan"].trigger()
 
-        print("User action toggled")
+        print(f"User action toggled: {state}")
+        self.canvas.selector.set_active(state)

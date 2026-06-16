@@ -10,6 +10,7 @@ jsonpointer
 jupyterlab-code-formatter
 jupyterlab
 lxml
+matplotlib
 mplfinance
 numpy-typing-compat
 odfpy
