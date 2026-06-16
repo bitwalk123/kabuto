@@ -4,19 +4,16 @@ import matplotlib as mpl
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import (
-    QDockWidget,
-    QMainWindow,
-    QVBoxLayout,
-)
 
 from structs.res import AppRes
-from tools.profit_sim_charts import ReviewChart
+from tools.profit_sim_charts import ProfitReviewChart, ProfitReviewChartNavigation
 from tools.profit_sim_funcs import get_x_range, get_y_range
-from tools.profit_sim_widgets import BaseWidget, ProfitSimulatorToolbar
+from tools.profit_sim_widgets import BaseWidget, ProfitSimulatorToolbar, ProfitSimulatorDock
+from widgets.containers import MainWindow
+from widgets.layouts import VBoxLayout
 
 
-class ProfitSimulator(QMainWindow):
+class ProfitSimulator(MainWindow):
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
@@ -31,14 +28,16 @@ class ProfitSimulator(QMainWindow):
         toolbar.sendDataFrame.connect(self.on_plot)
 
         base = BaseWidget(res)
-        layout = QVBoxLayout()
+        layout = VBoxLayout()
         base.setLayout(layout)
-        self.trend = trend = ReviewChart()
+        self.trend = trend = ProfitReviewChart()
         trend.notifySelection.connect(self.on_selection)
         trend.initChart()
         layout.addWidget(trend)
+        navtoolbar = ProfitReviewChartNavigation(trend)
+        layout.addWidget(navtoolbar)
 
-        dock = QDockWidget("Controller")
+        self.dock = dock = ProfitSimulatorDock(res)
 
         self.addToolBar(toolbar)
         self.setCentralWidget(base)
