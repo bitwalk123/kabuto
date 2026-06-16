@@ -3,19 +3,42 @@ import os
 import pandas as pd
 from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QToolBar, QWidget
+from PySide6.QtWidgets import QDockWidget, QToolBar
 
 from structs.res import AppRes
+from widgets.combos import ComboBox
+from widgets.containers import PadH, Widget
 from widgets.dialogs import DlgOutputFileSel
 from widgets.labels import Label, LabelTime
+from widgets.layouts import VBoxLayout
 
 
-class BaseWidget(QWidget):
+class BaseWidget(Widget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.setContentsMargins(QMargins(0, 0, 0, 0))
         self.setFixedHeight(res.trend_height)
         self.setMinimumWidth(res.trend_width)
+
+
+class ProfitSimulatorDock(QDockWidget):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+        panel = ProfitSimulatorPanel(res)
+        self.setWidget(panel)
+
+
+class ProfitSimulatorPanel(Widget):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+        layout = VBoxLayout()
+        self.setLayout(layout)
+
+        self.combo = combo = ComboBox()
+        combo.setFixedWidth(200)
+        layout.addWidget(combo)
 
 
 class ProfitSimulatorToolbar(QToolBar):
@@ -36,7 +59,8 @@ class ProfitSimulatorToolbar(QToolBar):
         action_open.triggered.connect(self.on_select_output)
         self.addAction(action_open)
 
-        self.addSeparator()
+        pad = PadH()
+        self.addWidget(pad)
 
         self.t_start = t_start = LabelTime()
         self.addWidget(t_start)

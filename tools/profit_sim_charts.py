@@ -1,15 +1,19 @@
 import matplotlib as mpl
 import pandas as pd
 from PySide6.QtCore import Signal
+from PySide6.QtGui import QAction, QIcon
 from matplotlib import font_manager as fm, dates as mdates
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import (
+    FigureCanvasQTAgg as FigureCanvas,
+    NavigationToolbar2QT as NavigationToolbar,
+)
 from matplotlib.figure import Figure
 from matplotlib.widgets import RectangleSelector
 
 from tools.profit_sim_funcs import to_pd_dt
 
 
-class ReviewChart(FigureCanvas):
+class ProfitReviewChart(FigureCanvas):
     notifySelection = Signal(pd.Timestamp, pd.Timestamp)
 
     def __init__(self):
@@ -87,3 +91,22 @@ class ReviewChart(FigureCanvas):
 
     def setSelectorActive(self, state: bool):
         self.selector.set_active(state)
+
+
+class ProfitReviewChartNavigation(NavigationToolbar):
+    def __init__(self, canvas: FigureCanvas):
+        super().__init__(canvas)
+        print(dir(self))
+
+        review_action = QAction(QIcon("images/pin.png"), "", self)
+        review_action.triggered.connect(self.on_review)
+
+        self.addAction(review_action)
+
+    def on_review(self):
+        if self.mode.name == "ZOOM":
+            self.zoom()
+
+        elif self.mode.name == "PAN":
+            self.pan()
+        print("Review clicked")
