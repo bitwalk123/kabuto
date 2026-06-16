@@ -11,6 +11,10 @@ class AppRes:
     trend_height: int = 350
     trend_n_max: int = 3  # ビューに表示できるチャートの数
 
+    # Profit Chart の幅、高さ
+    profit_width: int = 680
+    profit_height: int = 400
+
     code_default: str = "9984"  # デフォルトの銘柄コード
 
     dir_collection: str = "collection"
