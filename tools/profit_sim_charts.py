@@ -34,6 +34,11 @@ class ProfitReviewChart(FigureCanvas):
         self.setFixedHeight(res.profit_height)
         self.setMinimumWidth(res.profit_width)
 
+        # プロットの取引時間、寄り付きから大引けまで
+        self.dt_start, self.dt_end = (None, None)
+        # 選択範囲
+        self.p1, self.p2 = (None, None)
+
         # Font setting
         FONT_PATH = 'fonts/RictyDiminished-Regular.ttf'
         fm.fontManager.addfont(FONT_PATH)
@@ -93,20 +98,28 @@ class ProfitReviewChart(FigureCanvas):
         self.removeAxes()
         self.initAxes()
 
-    def plot(self, df: pd.DataFrame):
+    def plot(self, df: pd.DataFrame, title:str):
         i = 0
         self.ax[i].plot(df["price"], zorder=10, linewidth=0.25, color="black")
         self.ax[i].plot(df["ma1"], zorder=20, linewidth=0.25, color="#080")
         self.ax[i].plot(df["ma2"], zorder=30, linewidth=0.75, color="#f80")
         self.ax[i].plot(df["vwap"], zorder=40, linewidth=0.5, color="#808")
+
+        # チャートタイトル
+        self.ax[i].set_title(title)
+
+        # プロットの取引時間、寄り付きから大引けまで
         self.dt_start, self.dt_end = get_x_range(df)
         self.ax[i].set_xlim(self.dt_start, self.dt_end)
+        # y軸のスケーリング
         self.ax[i].set_ylim(*get_y_range(df["price"]))
+        # y軸ラベル (1)
         self.ax[i].set_ylabel("株    価")
 
         i += 1
         self.ax[i].plot(df["profit_max"], linewidth=0.75, color="red")
         self.ax[i].plot(df["profit"], linewidth=0.25, color="magenta")
+        # y軸ラベル (2)
         self.ax[i].set_ylabel("含み損益")
 
         list_ma_gc = df[0 < df["ma_gc"]].index
@@ -137,29 +150,46 @@ class ProfitReviewChart(FigureCanvas):
         dt2 = to_pd_dt(x2)
 
         # print(f"({dt1}, {y1: 3.2f}) --> ({dt2}, {y2: 3.2f})")
+        self.setVSpan(dt1, dt2)
         self.notifySelection.emit(dt1, dt2)
 
     def setSelectorActive(self, state: bool):
         self.selector.set_active(state)
 
+    def setVSpan(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
+        if self.dt_start is not None:
+            self.clearVSpan()
+            self.p1 = self.ax[0].axvspan(self.dt_start, dt1, color="gray", alpha=0.25)
+            self.p2 = self.ax[0].axvspan(dt2, self.dt_end, color="gray", alpha=0.25)
+            self.refreshDraw()
+
+    def clearVSpan(self):
+        if type(self.p1) is mpl.patches.Rectangle:
+            self.p1.remove()
+            self.p1 = None
+        if type(self.p2) is mpl.patches.Rectangle:
+            self.p2.remove()
+            self.p2 = None
+        self.refreshDraw()
+
 
 class ProfitReviewChartNavigation(NavigationToolbar):
-    def __init__(self, res: AppRes, canvas: FigureCanvas):
-        super().__init__(canvas)
+    def __init__(self, res: AppRes, trend: ProfitReviewChart):
+        super().__init__(trend)
         # print(dir(self))
-        self.canvas = canvas
+        self.trend: ProfitReviewChart = trend
 
         icon = QIcon(os.path.join(res.dir_image, "rect.png"))
-        self.action_user = action_user = QAction(icon, "User", self)
-        action_user.setCheckable(True)
-        action_user.toggled.connect(self.on_action_user)
+        self.action_rect = action_rect = QAction(icon, "Rectangle", self)
+        action_rect.setCheckable(True)
+        action_rect.toggled.connect(self.setRectActive)
 
         # self.addAction(review_action)
         actions = self.actions()
         n = len(actions)
-        self.insertAction(actions[n - 1], action_user)
+        self.insertAction(actions[n - 1], action_rect)
 
-    def on_action_user(self, state: bool):
+    def setRectActive(self, state: bool):
         # Zoomモードなら解除
         if self._actions["zoom"].isChecked():
             self._actions["zoom"].trigger()
@@ -168,4 +198,6 @@ class ProfitReviewChartNavigation(NavigationToolbar):
             self._actions["pan"].trigger()
 
         print(f"User action toggled: {state}")
-        self.canvas.selector.set_active(state)
+        self.trend.selector.set_active(state)
+        if not state:
+            self.trend.clearSelection()

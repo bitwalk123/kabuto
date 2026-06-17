@@ -1,16 +1,19 @@
 import os
+import re
 
 import pandas as pd
 from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import QDockWidget, QToolBar
 
+from funcs.tse import get_ticker_name_list
 from structs.res import AppRes
+from widgets.buttons import Button
 from widgets.combos import ComboBox
 from widgets.containers import PadH, Widget
 from widgets.dialogs import DlgOutputFileSel
 from widgets.labels import Label, LabelTime
-from widgets.layouts import VBoxLayout
+from widgets.layouts import HBoxLayout, VBoxLayout
 
 
 class BaseWidget(Widget):
@@ -21,30 +24,90 @@ class BaseWidget(Widget):
         self.setMinimumWidth(res.trend_width)
 
 
-class ProfitSimulatorDock(QDockWidget):
+class TimeRange(Widget):
+    notifyTimeRangeFixed = Signal(pd.Timestamp, pd.Timestamp)
+
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
-        panel = ProfitSimulatorPanel(res)
-        self.setWidget(panel)
+        self.dt1 = pd.Timestamp("1970-01-01")
+        self.dt2 = pd.Timestamp("1970-01-01")
 
-
-class ProfitSimulatorPanel(Widget):
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.res = res
-        layout = VBoxLayout()
+        layout = HBoxLayout()
         self.setLayout(layout)
 
+        self.t_start = t_start = LabelTime()
+        layout.addWidget(t_start)
+
+        t_separator = Label("~")
+        layout.addWidget(t_separator)
+
+        self.t_end = t_end = LabelTime()
+        layout.addWidget(t_end)
+
+        self.pin = but_pin = Button()
+        but_pin.setIcon(QIcon(os.path.join(res.dir_image, "pin.png")))
+        but_pin.setCheckable(True)
+        but_pin.setChecked(False)
+        but_pin.toggled.connect(self.on_fix_selection)
+        layout.addWidget(but_pin)
+
+    def clearTimeRange(self):
+        self.t_start.setText("")
+        self.t_end.setText("")
+
+    def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
+        self.dt1 = dt1
+        self.dt2 = dt2
+        self.t_start.setText(dt1.strftime("%H:%M:%S"))
+        self.t_end.setText(dt2.strftime("%H:%M:%S"))
+        # print(self.t_start.width())
+
+    def on_fix_selection(self, state: bool):
+        if state:
+            self.notifyTimeRangeFixed.emit(self.dt1, self.dt2)
+
+
+class ProfitSimulatorDock(QDockWidget):
+    requestClearSelection = Signal()
+
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.res = res
+        self.dt1 = pd.Timestamp("1970-01-01")
+        self.dt2 = pd.Timestamp("1970-01-01")
+        self.df = pd.DataFrame()
+
+        base = Widget()
+        self.setWidget(base)
+        layout = VBoxLayout()
+        base.setLayout(layout)
+
+        self.trange = trange = TimeRange(res)
+        trange.notifyTimeRangeFixed.connect(self.on_timerange_fixed)
+        layout.addWidget(trange)
+
         self.combo = combo = ComboBox()
-        combo.setFixedWidth(200)
         layout.addWidget(combo)
+
+    def clearTimeRange(self):
+        self.trange.clearTimeRange()
+
+    def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
+        self.dt1 = dt1
+        self.dt2 = dt2
+        self.requestClearSelection.emit()
+
+    def setDataFrame(self, df: pd.DataFrame):
+        self.df = df
+
+    def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
+        self.trange.setTimeRange(dt1, dt2)
 
 
 class ProfitSimulatorToolbar(QToolBar):
-    sendDataFrame = Signal(pd.DataFrame)
-    requestClearSelection = Signal()
-    requestSelectorActive = Signal(bool)
+    sendDataFrame = Signal(pd.DataFrame, str)
+    pattern_code = re.compile(r".*([0-9A-X]{4})_.+\.csv")
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -62,37 +125,6 @@ class ProfitSimulatorToolbar(QToolBar):
         pad = PadH()
         self.addWidget(pad)
 
-        self.t_start = t_start = LabelTime()
-        self.addWidget(t_start)
-
-        t_separator = Label("~")
-        self.addWidget(t_separator)
-
-        self.t_end = t_end = LabelTime()
-        self.addWidget(t_end)
-
-        self.pin = action_pin = QAction(
-            QIcon(os.path.join(res.dir_image, "pin.png")),
-            "選択範囲を確定",
-            self
-        )
-        action_pin.setCheckable(True)
-        action_pin.toggled.connect(self.on_fix_selection)
-        self.addAction(action_pin)
-
-    def clearTimeRange(self):
-        self.t_start.setText("")
-        self.t_end.setText("")
-
-    def on_fix_selection(self, state: bool):
-        # print(state)
-        if state:
-            self.requestClearSelection.emit()
-            self.requestSelectorActive.emit(False)
-        else:
-            self.clearTimeRange()
-            self.requestSelectorActive.emit(True)
-
     def on_select_output(self):
         """
         ティックデータを保持した Excel ファイルの選択
@@ -105,12 +137,13 @@ class ProfitSimulatorToolbar(QToolBar):
         else:
             return
 
-        df = pd.read_csv(path_csv, index_col=0, parse_dates=True)
-        # print(df)
-        # print(df.index.dtype)
-        self.sendDataFrame.emit(df)
+        if m := self.pattern_code.match(path_csv):
+            code = m.group(1)
+        else:
+            code = "0000"
+        name = get_ticker_name_list([code])[code]
+        title = f"{name} ({code})"
 
-    def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
-        self.t_start.setText(dt1.strftime("%H:%M:%S"))
-        self.t_end.setText(dt2.strftime("%H:%M:%S"))
-        # print(self.t_start.width())
+        df = pd.read_csv(path_csv, index_col=0, parse_dates=True)
+
+        self.sendDataFrame.emit(df, title)
