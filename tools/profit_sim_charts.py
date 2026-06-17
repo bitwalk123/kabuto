@@ -145,8 +145,9 @@ class ProfitReviewChart(FigureCanvas):
         self.refreshDraw()
 
     def set_save_config(self, path_csv: str):
-        # 保存先を設定
+        # ディレクトリはデータファイルと同じ
         mpl.rcParams["savefig.directory"] = os.path.dirname(path_csv)
+        # 保存ファイルは、拡張子以外はデータファイルと同じ
         basename_without_ext = os.path.splitext(os.path.basename(path_csv))[0]
         self.get_default_filename = lambda: basename_without_ext
 
