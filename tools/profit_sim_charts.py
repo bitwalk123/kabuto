@@ -49,10 +49,10 @@ class ProfitReviewChart(FigureCanvas):
 
         # Plot margin
         self.fig.subplots_adjust(
-            left=0.1,
+            left=0.10,
             right=0.99,
-            top=0.9,
-            bottom=0.075,
+            top=0.94,
+            bottom=0.06,
         )
 
         # rows of plot
@@ -98,16 +98,19 @@ class ProfitReviewChart(FigureCanvas):
         self.removeAxes()
         self.initAxes()
 
-    def plot(self, df: pd.DataFrame, title:str):
+    def plot(self, df: pd.DataFrame, title: str, path_csv: str):
+        # 保存先を設定
+        self.set_save_config(path_csv)
+
+        # --- 株価、VWAP線、移動平均線 ---
         i = 0
+        # チャートタイトル
+        self.ax[i].set_title(title)
+
         self.ax[i].plot(df["price"], zorder=10, linewidth=0.25, color="black")
         self.ax[i].plot(df["ma1"], zorder=20, linewidth=0.25, color="#080")
         self.ax[i].plot(df["ma2"], zorder=30, linewidth=0.75, color="#f80")
         self.ax[i].plot(df["vwap"], zorder=40, linewidth=0.5, color="#808")
-
-        # チャートタイトル
-        self.ax[i].set_title(title)
-
         # プロットの取引時間、寄り付きから大引けまで
         self.dt_start, self.dt_end = get_x_range(df)
         self.ax[i].set_xlim(self.dt_start, self.dt_end)
@@ -116,12 +119,18 @@ class ProfitReviewChart(FigureCanvas):
         # y軸ラベル (1)
         self.ax[i].set_ylabel("株    価")
 
+        # --- 含み損益 ---
         i += 1
-        self.ax[i].plot(df["profit_max"], linewidth=0.75, color="red")
-        self.ax[i].plot(df["profit"], linewidth=0.25, color="magenta")
+        x = df.index
+        y1 = df["profit"]
+        y2 = df["profit_max"]
+        self.ax[i].fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10)
+        self.ax[i].fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10)
+        self.ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
         # y軸ラベル (2)
         self.ax[i].set_ylabel("含み損益")
 
+        # --- クロス・シグナル ---
         list_ma_gc = df[0 < df["ma_gc"]].index
         list_ma_dc = df[0 < df["ma_dc"]].index
         for i in range(self.rows):
@@ -132,8 +141,14 @@ class ProfitReviewChart(FigureCanvas):
             for t in list_ma_dc:
                 self.ax[i].axvline(x=t, c="#00f", ls="solid", alpha=0.25, lw=0.75)
 
-        # プロットを更新
+        # --- プロットを更新 ---
         self.refreshDraw()
+
+    def set_save_config(self, path_csv: str):
+        # 保存先を設定
+        mpl.rcParams["savefig.directory"] = os.path.dirname(path_csv)
+        basename_without_ext = os.path.splitext(os.path.basename(path_csv))[0]
+        self.get_default_filename = lambda: basename_without_ext
 
     def refreshDraw(self):
         self.fig.canvas.draw_idle()

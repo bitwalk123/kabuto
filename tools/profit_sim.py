@@ -33,9 +33,9 @@ class ProfitSimulator(MainWindow):
         dock.requestClearSelection.connect(self.on_clear_selection)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
-    def on_plot(self, df: pd.DataFrame, title:str):
+    def on_plot(self, df: pd.DataFrame, title: str, path_csv: str):
         print(df.columns)
-        self.trend.plot(df, title)
+        self.trend.plot(df, title, path_csv)
         self.dock.setDataFrame(df)
 
     def on_selection(self, dt1: pd.Timestamp, dt2: pd.Timestamp):

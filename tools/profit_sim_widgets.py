@@ -11,7 +11,7 @@ from structs.res import AppRes
 from widgets.buttons import Button
 from widgets.combos import ComboBox
 from widgets.containers import PadH, Widget
-from widgets.dialogs import DlgOutputFileSel
+from widgets.dialogs import DlgCSVFileSel
 from widgets.labels import Label, LabelTime
 from widgets.layouts import HBoxLayout, VBoxLayout
 
@@ -106,12 +106,13 @@ class ProfitSimulatorDock(QDockWidget):
 
 
 class ProfitSimulatorToolbar(QToolBar):
-    sendDataFrame = Signal(pd.DataFrame, str)
+    sendDataFrame = Signal(pd.DataFrame, str, str)
     pattern_code = re.compile(r".*([0-9A-X]{4})_.+\.csv")
 
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+        self.path_csv: str = ""
 
         # 出力された CSV ファイルを開く
         self.csv = action_open = QAction(
@@ -119,31 +120,33 @@ class ProfitSimulatorToolbar(QToolBar):
             "CSV ファイルを開く",
             self
         )
-        action_open.triggered.connect(self.on_select_output)
+        action_open.triggered.connect(self.on_select_technicals)
         self.addAction(action_open)
 
         pad = PadH()
         self.addWidget(pad)
 
-    def on_select_output(self):
+    def on_select_technicals(self):
         """
         ティックデータを保持した Excel ファイルの選択
         :return:
         """
         # ティックデータ（Excel ファイル）の選択ダイアログ
-        dlg_file = DlgOutputFileSel(self.res)
+        dlg_file = DlgCSVFileSel(self.res)
         if dlg_file.exec():
-            path_csv = dlg_file.selectedFiles()[0]
+            self.path_csv = dlg_file.selectedFiles()[0]
         else:
             return
 
-        if m := self.pattern_code.match(path_csv):
+        df = pd.read_csv(self.path_csv, index_col=0, parse_dates=True)
+
+        # チャートのタイトル文字列
+        d_str = df.index[0].strftime('%Y-%m-%d')
+        if m := self.pattern_code.match(self.path_csv):
             code = m.group(1)
         else:
             code = "0000"
         name = get_ticker_name_list([code])[code]
-        title = f"{name} ({code})"
+        title = f"{d_str} : {name} ({code})"
 
-        df = pd.read_csv(path_csv, index_col=0, parse_dates=True)
-
-        self.sendDataFrame.emit(df, title)
+        self.sendDataFrame.emit(df, title, self.path_csv)
