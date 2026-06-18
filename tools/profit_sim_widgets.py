@@ -4,16 +4,15 @@ import re
 import pandas as pd
 from PySide6.QtCore import QMargins, Signal
 from PySide6.QtGui import QAction, QIcon
-from PySide6.QtWidgets import QDockWidget, QToolBar
+from PySide6.QtWidgets import QToolBar
 
 from funcs.tse import get_ticker_name_list
 from structs.res import AppRes
 from widgets.buttons import Button
-from widgets.combos import ComboBox
 from widgets.containers import PadH, Widget
 from widgets.dialogs import DlgCSVFileSel
 from widgets.labels import Label, LabelTime
-from widgets.layouts import HBoxLayout, VBoxLayout
+from widgets.layouts import HBoxLayout
 
 
 class BaseWidget(Widget):
@@ -30,8 +29,8 @@ class TimeRange(Widget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
-        self.dt1 = pd.Timestamp("1970-01-01")
-        self.dt2 = pd.Timestamp("1970-01-01")
+        self.dt1 = None
+        self.dt2 = None
 
         layout = HBoxLayout()
         self.setLayout(layout)
@@ -53,6 +52,8 @@ class TimeRange(Widget):
         layout.addWidget(but_pin)
 
     def clearTimeRange(self):
+        self.dt1 = None
+        self.dt2 = None
         self.t_start.setText("")
         self.t_end.setText("")
 
@@ -61,48 +62,12 @@ class TimeRange(Widget):
         self.dt2 = dt2
         self.t_start.setText(dt1.strftime("%H:%M:%S"))
         self.t_end.setText(dt2.strftime("%H:%M:%S"))
-        # print(self.t_start.width())
 
     def on_fix_selection(self, state: bool):
         if state:
             self.notifyTimeRangeFixed.emit(self.dt1, self.dt2)
-
-
-class ProfitSimulatorDock(QDockWidget):
-    requestClearSelection = Signal()
-
-    def __init__(self, res: AppRes):
-        super().__init__()
-        self.res = res
-        self.dt1 = pd.Timestamp("1970-01-01")
-        self.dt2 = pd.Timestamp("1970-01-01")
-        self.df = pd.DataFrame()
-
-        base = Widget()
-        self.setWidget(base)
-        layout = VBoxLayout()
-        base.setLayout(layout)
-
-        self.trange = trange = TimeRange(res)
-        trange.notifyTimeRangeFixed.connect(self.on_timerange_fixed)
-        layout.addWidget(trange)
-
-        self.combo = combo = ComboBox()
-        layout.addWidget(combo)
-
-    def clearTimeRange(self):
-        self.trange.clearTimeRange()
-
-    def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
-        self.dt1 = dt1
-        self.dt2 = dt2
-        self.requestClearSelection.emit()
-
-    def setDataFrame(self, df: pd.DataFrame):
-        self.df = df
-
-    def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
-        self.trange.setTimeRange(dt1, dt2)
+        else:
+            self.clearTimeRange()
 
 
 class ProfitSimulatorToolbar(QToolBar):
