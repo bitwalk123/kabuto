@@ -140,7 +140,7 @@ class DlgCodeSel(QDialog):
         return self.clist.getSelected()
 
 
-class DlgOutputFileSel(QFileDialog):
+class DlgCSVFileSel(QFileDialog):
     def __init__(self, res: AppRes):
         super().__init__()
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "csv.png")))
