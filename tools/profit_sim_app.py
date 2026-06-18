@@ -11,14 +11,14 @@ from tools.profit_sim_dock import ProfitSimulatorDock
 from widgets.containers import MainWindow, TabWidget
 
 
-class ProfitSimulator(MainWindow):
+class ProfitSimulatorApp(MainWindow):
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
         self.df = pd.DataFrame()
 
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "profit.png")))
-        self.setWindowTitle("Profit Simulator")
+        self.setWindowTitle("Profit Simulator App")
 
         self.trend = None
         self.navtoolbar_trend = None

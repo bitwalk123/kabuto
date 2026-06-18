@@ -5,12 +5,12 @@ from PySide6.QtWidgets import (
     QApplication,
 )
 
-from tools.profit_sim import ProfitSimulator
+from tools.profit_sim_app import ProfitSimulatorApp
 
 
 def main():
     app = QApplication(sys.argv)
-    ex = ProfitSimulator()
+    ex = ProfitSimulatorApp()
     ex.show()
     sys.exit(app.exec())
 

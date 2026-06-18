@@ -25,8 +25,8 @@ def get_model_instance(name_model: str) -> AlgoTradeBase:
         ValueError: MODEL_NAMEが一致しない、または有効なクラスが見つからない
 
     Example:
-        >>> model = get_model_instance("algo_trade")
-        >>> action, info = model.predict(obs, masks)
+        model = get_model_instance("algo_trade")
+        action, info = model.predict(obs, masks)
     """
     full_model_name = f"{res.dir_model}.{name_model}"
 
