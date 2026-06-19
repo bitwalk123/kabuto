@@ -27,6 +27,7 @@ class AppRes:
     dir_info: str = "info"
     dir_log: str = "logs"
     dir_model: str = "models"
+    dir_model_profit: str = "models_profit"
     dir_output: str = "output"
     dir_report: str = "report"
     dir_temp: str = "tmp"
