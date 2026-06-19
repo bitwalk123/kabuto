@@ -39,7 +39,7 @@ from widgets.statusbars import StatusBar
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.8.6"
+    __version__ = "0.8.7"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 

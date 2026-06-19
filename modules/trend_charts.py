@@ -65,7 +65,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
                 "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        self.plot_mom.setLabel("left", "モメンタム")
+        self.plot_mom.setLabel("left", "VWAP乖離")
         self.plot_mom.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる
         self.plot_mom.setXLink(self.plot_price)
@@ -112,7 +112,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.addItem(self.vline_dead)
 
         # Momentum
-        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name='Momentum')
+        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="VWAP乖離")
         self.mom.setZValue(50)
         # 基準線を追加
         mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))

@@ -171,7 +171,7 @@ class Trader(QMainWindow):
         if action_enum == ActionType.HOLD:
             return
 
-        print(action_enum, position)
+        # print(action_enum, position)
         # 状態遷移表からアクションを取得
         method_name = self.ACTION_DISPATCH.get((action_enum, position))
         if method_name is None:
@@ -228,7 +228,8 @@ class Trader(QMainWindow):
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_ma_2.append(dict_technicals["ma2"])
-        self.list_mom.append(dict_technicals["momentum"])
+        #self.list_mom.append(dict_technicals["momentum"])
+        self.list_mom.append(dict_technicals["ma2"] - dict_technicals["vwap"])
 
         # MA クロス時の縦線表示
         if 0.0 < dict_technicals["ma_gc"]:
