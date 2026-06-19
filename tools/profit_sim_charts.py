@@ -213,7 +213,7 @@ class ProfitReviewChartNavigation(NavigationToolbar):
         if self._actions["pan"].isChecked():
             self._actions["pan"].trigger()
 
-        print(f"User action toggled: {state}")
+        # print(f"User action toggled: {state}")
         self.trend.selector.set_active(state)
         if not state:
             self.trend.clearSelection()
