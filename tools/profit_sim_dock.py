@@ -33,9 +33,9 @@ class ProfitSimulatorDock(QDockWidget):
         layout = VBoxLayout()
         base.setLayout(layout)
 
-        self.trange = trange = TimeRange(res)
-        trange.notifyTimeRangeFixed.connect(self.on_timerange_fixed)
-        layout.addWidget(trange)
+        self.time_range = time_range = TimeRange(res)
+        time_range.notifyTimeRangeFixed.connect(self.on_timerange_fixed)
+        layout.addWidget(time_range)
 
         layout_combo = HBoxLayout()
         layout.addLayout(layout_combo)
@@ -47,29 +47,30 @@ class ProfitSimulatorDock(QDockWidget):
         layout_combo.addWidget(combo)
 
         but_play = Button()
-        icon = self.style().standardIcon(
-            QStyle.StandardPixmap.SP_MediaPlay
-        )
-        but_play.setIcon(icon)
+        icon_play = self.style().standardIcon(QStyle.StandardPixmap.SP_MediaPlay)
+        but_play.setIcon(icon_play)
         but_play.clicked.connect(self.on_play)
         layout_combo.addWidget(but_play)
 
     def clearTimeRange(self):
-        self.trange.clearTimeRange()
+        self.time_range.clearTimeRange()
 
     def on_play(self):
+        # コンボボックスに表示されている名前に対応するクラス
         cls = self.combo.currentData()
-        obj = cls(self.df)
+        # クラスのインスタンス化
+        obj = cls(self.code, self.df)
+        # インスタンスの実行
         obj.run()
 
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)
 
-    def setDataFrameSelected(self, code:str, df: pd.DataFrame):
+    def setDataFrameSelected(self, code: str, df: pd.DataFrame):
         self.code = code
         self.df = df
         print("銘柄コード", code)
         print(df)
 
     def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
-        self.trange.setTimeRange(dt1, dt2)
+        self.time_range.setTimeRange(dt1, dt2)
