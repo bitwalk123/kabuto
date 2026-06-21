@@ -10,4 +10,5 @@ class ProfitSimulator(ProfitSimulatorABS):
         super().__init__(df)
 
     def run(self) -> dict:
+        print(self.NAME)
         return dict()
