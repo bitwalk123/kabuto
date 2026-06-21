@@ -68,7 +68,8 @@ class ProfitSimulatorDock(QDockWidget):
     def setDataFrameSelected(self, code:str, df: pd.DataFrame):
         self.code = code
         self.df = df
-        print(code, df)
+        print("銘柄コード", code)
+        print(df)
 
     def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.trange.setTimeRange(dt1, dt2)

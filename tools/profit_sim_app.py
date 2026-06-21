@@ -57,9 +57,18 @@ class ProfitSimulatorApp(MainWindow):
     def on_selection_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         # チャート上の矩形領域を非アクティブに
         self.navtoolbar_trend.setRectActive(False)
+
         # 対象の銘柄コードを取得
         code = self.toolbar.getCode()
+
         # 選択された時間のデータを抽出
         df_selected = self.df[(dt1 <= self.df.index) & (self.df.index <= dt2)].copy()
+        # 含み損的関連の列を 0 に
+        df_selected["profit"] = 0
+        df_selected["profit_max"] = 0
+        df_selected["dd_ratio"] = 0
+        df_selected["n_trade"] = 0
+        df_selected["count_negative"] = 0
+
         # dock に抽出したデータを設定
         self.dock.setDataFrameSelected(code, df_selected)
