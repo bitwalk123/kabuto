@@ -63,7 +63,7 @@ class ProfitSimulatorApp(MainWindow):
 
         # 選択された時間のデータを抽出
         df_selected = self.df[(dt1 <= self.df.index) & (self.df.index <= dt2)].copy()
-        # 含み損的関連の列を 0 に
+        # 含み損益関連の列を 0 に
         df_selected["profit"] = 0
         df_selected["profit_max"] = 0
         df_selected["dd_ratio"] = 0
