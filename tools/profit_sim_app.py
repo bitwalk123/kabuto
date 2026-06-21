@@ -6,7 +6,7 @@ from PySide6.QtGui import QIcon
 
 from structs.res import AppRes
 from tools.profit_sim_charts import ProfitReviewChart, ProfitReviewChartNavigation
-from tools.profit_sim_widgets import ProfitSimulatorToolbar
+from tools.profit_sim_toolbar import ProfitSimulatorToolbar
 from tools.profit_sim_dock import ProfitSimulatorDock
 from widgets.containers import MainWindow, TabWidget
 
@@ -57,7 +57,9 @@ class ProfitSimulatorApp(MainWindow):
     def on_selection_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         # チャート上の矩形領域を非アクティブに
         self.navtoolbar_trend.setRectActive(False)
+        # 対象の銘柄コードを取得
+        code = self.toolbar.getCode()
         # 選択された時間のデータを抽出
         df_selected = self.df[(dt1 <= self.df.index) & (self.df.index <= dt2)].copy()
         # dock に抽出したデータを設定
-        self.dock.setDataFrameSelected(df_selected)
+        self.dock.setDataFrameSelected(code, df_selected)

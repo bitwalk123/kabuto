@@ -18,6 +18,7 @@ class ProfitSimulatorDock(QDockWidget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+        self.code = "0000"
         self.df = pd.DataFrame()
 
         # プラグインの一覧を取得
@@ -64,9 +65,10 @@ class ProfitSimulatorDock(QDockWidget):
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)
 
-    def setDataFrameSelected(self, df: pd.DataFrame):
+    def setDataFrameSelected(self, code:str, df: pd.DataFrame):
+        self.code = code
         self.df = df
-        print(df)
+        print(code, df)
 
     def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.trange.setTimeRange(dt1, dt2)
