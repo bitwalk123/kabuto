@@ -78,6 +78,7 @@ class ProfitSimulatorToolbar(QToolBar):
         super().__init__()
         self.res = res
         self.path_csv: str = ""
+        self.code = "0000"
 
         # 出力された CSV ファイルを開く
         self.csv = action_open = QAction(
@@ -90,6 +91,13 @@ class ProfitSimulatorToolbar(QToolBar):
 
         pad = PadH()
         self.addWidget(pad)
+
+    def getCode(self) -> str:
+        """
+        保持している銘柄コードの取得
+        :return:
+        """
+        return self.code
 
     def on_select_technicals(self):
         """
@@ -108,10 +116,8 @@ class ProfitSimulatorToolbar(QToolBar):
         # チャートのタイトル文字列
         d_str = df.index[0].strftime('%Y-%m-%d')
         if m := self.pattern_code.match(self.path_csv):
-            code = m.group(1)
-        else:
-            code = "0000"
-        name = get_ticker_name_list([code])[code]
-        title = f"{d_str} : {name} ({code})"
+            self.code = m.group(1)
+        name = get_ticker_name_list([self.code])[self.code]
+        title = f"{d_str} : {name} ({self.code})"
 
         self.sendDataFrame.emit(df, title, self.path_csv)
