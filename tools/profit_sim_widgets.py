@@ -7,7 +7,7 @@ from PySide6.QtGui import QIcon
 from structs.res import AppRes
 from widgets.buttons import Button
 from widgets.containers import Widget
-from widgets.labels import Label, LabelTime
+from widgets.labels import Label, LabelTime, LabelLeft2
 from widgets.layouts import HBoxLayout
 
 
@@ -31,10 +31,13 @@ class TimeRange(Widget):
         layout = HBoxLayout()
         self.setLayout(layout)
 
+        title = LabelLeft2("区　　間")
+        layout.addWidget(title)
+
         self.t_start = t_start = LabelTime()
         layout.addWidget(t_start)
 
-        t_separator = Label("~")
+        t_separator = Label(" - ")
         layout.addWidget(t_separator)
 
         self.t_end = t_end = LabelTime()
@@ -64,5 +67,3 @@ class TimeRange(Widget):
             self.notifyTimeRangeFixed.emit(self.dt1, self.dt2)
         else:
             self.clearTimeRange()
-
-

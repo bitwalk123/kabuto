@@ -1,12 +1,17 @@
 from models_profit.abstract import ProfitSimulatorABS
+from structs.app_enum import ActionType
 
 
 class ProfitSimulator(ProfitSimulatorABS):
     NAME = "simple"
+    DESC = "クロス・シグナル間での単純売買"
 
     def run(self) -> dict:
+        dict_result = dict()
         print(f"モデル名 : {self.NAME}")
 
+        ts = 0
+        price = 0
         for r in range(len(self.df)):
             row = self.df.iloc[r]
             ts = row["ts"]
@@ -14,11 +19,22 @@ class ProfitSimulator(ProfitSimulatorABS):
             ma_gc = row["ma_gc"]
             ma_dc = row["ma_dc"]
 
-            if ma_gc > 0:
+            if 0 < ma_gc:
                 note = "ゴールデン・クロス"
-                print(ts, price, note)
-            if ma_dc > 0:
+                if self.posman.hasPosition(self.code):
+                    self.posman.closePosition(self.code, ts, price, note)
+                else:
+                    self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+            if 0 < ma_dc:
                 note = "デッド・クロス"
-                print(ts, price, note)
+                if self.posman.hasPosition(self.code):
+                    self.posman.closePosition(self.code, ts, price, note)
+                else:
+                    self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
 
-        return dict()
+        # 取引結果
+        if self.posman.hasPosition(self.code):
+            self.posman.closePosition(self.code, ts, price, "強制返済")
+        dict_result["transaction"] = self.posman.getTransactionResult()
+
+        return dict_result

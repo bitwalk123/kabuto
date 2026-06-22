@@ -7,8 +7,10 @@ from modules.posman import PositionManager
 
 class ProfitSimulatorABS(ABC):
     NAME = "template"
+    DESC = "抽象クラス（テンプレート）"
 
     def __init__(self, code: str, df: pd.DataFrame):
+        self.code = code
         self.df = df
 
         # ポジション・マネージャ

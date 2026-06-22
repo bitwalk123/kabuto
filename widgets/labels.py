@@ -34,6 +34,18 @@ class LabelLeft(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignLeft)
 
 
+class LabelLeft2(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setStyleSheet("""
+            QLabel {
+                font-family: monospace;
+            }
+        """)
+        self.setContentsMargins(QMargins(5, 1, 10, 1))
+        self.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+
+
 class LabelRaised(Label):
     def __init__(self, *args):
         super().__init__(*args)
@@ -136,7 +148,7 @@ class LabelSmall(QLabel):
 class LabelTime(Label):
     def __init__(self, *args):
         super().__init__(*args)
-        self.setFixedWidth(60)
+        self.setFixedWidth(80)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
 
