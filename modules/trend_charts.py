@@ -23,7 +23,6 @@ class CustomYAxisItem2(pg.AxisItem):
 class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 192, 0, 192)
-    # COLOR_VWAP = (255, 0, 192, 192)
     COLOR_VWAP = (192, 0, 128, 192)
     COLOR_GOLDEN = (255, 0, 204, 220)
     COLOR_DEAD = (0, 192, 255, 220)
@@ -112,10 +111,12 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.addItem(self.vline_dead)
 
         # Momentum
-        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="VWAP乖離")
+        #self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="VWAP乖離")
+        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="VWAP乖離")
         self.mom.setZValue(50)
         # 基準線を追加
-        mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        #mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
+        mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen(self.COLOR_VWAP, width=1))
         mom_0.setZValue(20)
 
     def _config_plot_items(self) -> None:
