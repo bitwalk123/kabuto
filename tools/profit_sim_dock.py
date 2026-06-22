@@ -9,7 +9,9 @@ from tools.profit_sim_widgets import TimeRange
 from widgets.buttons import Button
 from widgets.combos import ComboBoxModel
 from widgets.containers import Widget
+from widgets.labels import LabelLeft2
 from widgets.layouts import VBoxLayout, HBoxLayout
+from widgets.textedits import PlainTextEdit
 
 
 class ProfitSimulatorDock(QDockWidget):
@@ -40,6 +42,9 @@ class ProfitSimulatorDock(QDockWidget):
         layout_combo = HBoxLayout()
         layout.addLayout(layout_combo)
 
+        title = LabelLeft2("モデル名")
+        layout_combo.addWidget(title)
+
         self.combo = combo = ComboBoxModel()
         for key in sorted(plugins.keys()):
             cls = plugins[key]
@@ -52,6 +57,14 @@ class ProfitSimulatorDock(QDockWidget):
         but_play.clicked.connect(self.on_play)
         layout_combo.addWidget(but_play)
 
+        self.pte = pte = PlainTextEdit()
+        pte.setReadOnly(True)
+        layout.addWidget(pte)
+
+        cls = self.combo.currentData()
+        desc = cls.DESC
+        self.pte.setPlainText(desc)
+
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
 
@@ -61,7 +74,13 @@ class ProfitSimulatorDock(QDockWidget):
         # クラスのインスタンス化
         obj = cls(self.code, self.df)
         # インスタンスの実行
-        obj.run()
+        dict_result = obj.run()
+
+        # 取引結果
+        df_transaction = dict_result["transaction"]
+        pnl = df_transaction["損益"].sum()
+        print(df_transaction)
+        print(f"損益 : {pnl} 円/株")
 
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)

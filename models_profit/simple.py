@@ -4,8 +4,10 @@ from structs.app_enum import ActionType
 
 class ProfitSimulator(ProfitSimulatorABS):
     NAME = "simple"
+    DESC = "クロス・シグナル間での単純売買"
 
     def run(self) -> dict:
+        dict_result = dict()
         print(f"モデル名 : {self.NAME}")
 
         ts = 0
@@ -33,10 +35,6 @@ class ProfitSimulator(ProfitSimulatorABS):
         # 取引結果
         if self.posman.hasPosition(self.code):
             self.posman.closePosition(self.code, ts, price, "強制返済")
-        df_transaction = self.posman.getTransactionResult()
-        pnl = df_transaction["損益"].sum()
+        dict_result["transaction"] = self.posman.getTransactionResult()
 
-        print(df_transaction)
-        print(f"損益 : {pnl} 円/株")
-
-        return dict()
+        return dict_result
