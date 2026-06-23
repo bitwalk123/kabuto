@@ -1,6 +1,14 @@
 import pandas as pd
-from PySide6.QtCore import Signal, QThread
-from PySide6.QtWidgets import QDockWidget, QStyle
+from PySide6.QtCore import (
+    QThread,
+    QTimer,
+    Signal,
+)
+from PySide6.QtWidgets import (
+    QDockWidget,
+    QProgressBar,
+    QStyle,
+)
 
 from funcs.plugin import load_plugins
 from models_profit.abstract import ProfitSimulatorABS
@@ -66,9 +74,11 @@ class ProfitSimulatorDock(QDockWidget):
         pte.setReadOnly(True)
         layout.addWidget(pte)
 
-        cls = self.combo.currentData()
-        desc = cls.DESC
-        self.pte.setPlainText(desc)
+        progbar = QProgressBar()
+        layout.addWidget(progbar)
+
+        # ウィジェット配置後にコンボボックスの値を読み取る
+        QTimer.singleShot(0, self.read_combo_value)
 
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
@@ -83,6 +93,7 @@ class ProfitSimulatorDock(QDockWidget):
         cls = self.combo.currentData()
         plugin = cls(self.code, self.df)
 
+        # プラグイン用スレッド
         self.thread = QThread()
         self.worker = PluginWorker(plugin)
         self.worker.moveToThread(self.thread)
@@ -110,6 +121,11 @@ class ProfitSimulatorDock(QDockWidget):
 
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)
+
+    def read_combo_value(self):
+        cls = self.combo.currentData()
+        desc = cls.DESC
+        self.pte.setPlainText(desc)
 
     def setDataFrameSelected(self, code: str, df: pd.DataFrame):
         self.code = code
