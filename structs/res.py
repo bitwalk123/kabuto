@@ -15,6 +15,10 @@ class AppRes:
     profit_width: int = 680
     profit_height: int = 400
 
+    # Profit History Chart の幅、高さ
+    profit_history_width: int = 680
+    profit_history_height: int = 200
+
     code_default: str = "9984"  # デフォルトの銘柄コード
 
     dir_collection: str = "collection"
