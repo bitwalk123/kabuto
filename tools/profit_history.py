@@ -50,6 +50,7 @@ class ProfitHistoryChart(FigureCanvas):
         self.ax = self.fig.add_subplot(111)
 
     def plot(self, file_path: str):
+        # === ファイルの読み込みと前処理 ===
         pattern = re.compile(r".+_([0-9]{4})([0-9]{2})([0-9]{2})\.csv")
         if m := pattern.match(file_path):
             year = m.group(1)
@@ -93,6 +94,7 @@ class ProfitHistoryChart(FigureCanvas):
 
         print(df)
 
+        # === プロット ===
         self.ax.set_title(f"{date_str} : 本日の実現損益の時系列トレンド")
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
         self.ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
@@ -108,12 +110,14 @@ class ProfitHistoryChart(FigureCanvas):
 
         self.ax.grid(axis="y")
 
+        self.fig.canvas.draw_idle()
+
+        # === 保存先の処理 ===
         dir_target = os.path.join("output", year, f"{int(month):02d}", f"{int(day):02d}")
         os.makedirs(dir_target, exist_ok=True)
         name_img = os.path.join(dir_target, f"trend_profit.png")
         self.set_save_config(name_img)
 
-        self.fig.canvas.draw_idle()
 
     def set_save_config(self, path_img: str):
         # ディレクトリはデータファイルと同じ
@@ -150,5 +154,4 @@ class ProfitHistory(QMainWindow):
             file_path = dlg_file.selectedFiles()[0]
         else:
             return
-
         self.chart.plot(file_path)
