@@ -131,6 +131,9 @@ class ProfitHistory(QMainWindow):
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "profit.png")))
+        self.setWindowTitle("注文履歴＆損益")
+
 
         toolbar = QToolBar()
         self.addToolBar(toolbar)
