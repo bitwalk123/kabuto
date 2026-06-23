@@ -1,4 +1,5 @@
 import os
+from os.path import expanduser
 
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QIcon, QPixmap
@@ -148,6 +149,16 @@ class DlgCSVFileSel(QFileDialog):
         self.setDefaultSuffix("csv")
         self.setNameFilter("*.csv")
         self.setDirectory(res.dir_output)
+
+
+class DlgCSVFileSel2(QFileDialog):
+    def __init__(self, res: AppRes):
+        super().__init__()
+        self.setWindowIcon(QIcon(os.path.join(res.dir_image, "csv.png")))
+        self.setOption(QFileDialog.Option.DontUseNativeDialog)
+        self.setDefaultSuffix("csv")
+        self.setNameFilter("*.csv")
+        self.setDirectory(expanduser("~"))
 
 
 class DlgParam(QDialog):

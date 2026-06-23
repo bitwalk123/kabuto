@@ -31,8 +31,8 @@ class ProfitReviewChart(FigureCanvas):
         self.fig = Figure()
         super().__init__(self.fig)
         self.setContentsMargins(QMargins(0, 0, 0, 0))
-        self.setFixedHeight(res.profit_height)
         self.setMinimumWidth(res.profit_width)
+        self.setFixedHeight(res.profit_height)
 
         # プロットの取引時間、寄り付きから大引けまで
         self.dt_start, self.dt_end = (None, None)
@@ -45,11 +45,11 @@ class ProfitReviewChart(FigureCanvas):
         font_prop = fm.FontProperties(fname=FONT_PATH)
         # ★ 全体フォント適用
         mpl.rcParams['font.family'] = font_prop.get_name()
-        mpl.rcParams["font.size"] = 9
+        mpl.rcParams["font.size"] = 8
 
         # Plot margin
         self.fig.subplots_adjust(
-            left=0.10,
+            left=0.1,
             right=0.99,
             top=0.94,
             bottom=0.06,
