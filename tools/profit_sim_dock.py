@@ -1,11 +1,12 @@
 import pandas as pd
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QThread
 from PySide6.QtWidgets import QDockWidget, QStyle
 
 from funcs.plugin import load_plugins
 from models_profit.abstract import ProfitSimulatorABS
 from structs.res import AppRes
 from tools.profit_sim_widgets import TimeRange
+from tools.profit_sim_worker import PluginWorker
 from widgets.buttons import Button
 from widgets.combos import ComboBoxModel
 from widgets.containers import Widget
@@ -20,6 +21,10 @@ class ProfitSimulatorDock(QDockWidget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+
+        self.thread = None
+        self.worker = None
+
         self.code = "0000"
         self.df = pd.DataFrame()
 
@@ -68,7 +73,28 @@ class ProfitSimulatorDock(QDockWidget):
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
 
+    def on_finished(self, dict_result: dict):
+        df_transaction = dict_result["transaction"]
+        pnl = df_transaction["損益"].sum()
+        print(df_transaction)
+        print(f"損益 : {pnl} 円/株")
+
     def on_play(self):
+        cls = self.combo.currentData()
+        plugin = cls(self.code, self.df)
+
+        self.thread = QThread()
+        self.worker = PluginWorker(plugin)
+        self.worker.moveToThread(self.thread)
+
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.on_finished)
+        self.worker.finished.connect(self.thread.quit)
+        self.thread.finished.connect(self.thread.deleteLater)
+
+        self.thread.start()
+
+    def on_play_old(self):
         # コンボボックスに表示されている名前に対応するクラス
         cls = self.combo.currentData()
         # クラスのインスタンス化
