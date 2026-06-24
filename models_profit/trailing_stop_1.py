@@ -11,7 +11,7 @@ class ProfitSimulator(ProfitSimulatorABS):
         print(f"モデル名 : {self.NAME}")
 
         period_warmup: int = 300
-        dd_profit_min: float = 20.0
+        dd_profit_min: float = 40.0
         dd_ratio: float = 0.25
 
         ts = 0
