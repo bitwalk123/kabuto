@@ -18,5 +18,5 @@ class ProfitSimulatorABS(ABC):
         self.posman.initPosition([code])
 
     @abstractmethod
-    def run(self) -> dict:
+    def run(self, progress_callback) -> dict:
         pass

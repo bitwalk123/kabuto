@@ -74,7 +74,8 @@ class ProfitSimulatorDock(QDockWidget):
         pte.setReadOnly(True)
         layout.addWidget(pte)
 
-        progbar = QProgressBar()
+        self.progbar = progbar = QProgressBar()
+        progbar.setRange(0, 100)
         layout.addWidget(progbar)
 
         # ウィジェット配置後にコンボボックスの値を読み取る
@@ -88,6 +89,8 @@ class ProfitSimulatorDock(QDockWidget):
         pnl = df_transaction["損益"].sum()
         print(df_transaction)
         print(f"損益 : {pnl} 円/株")
+        # プログレス・バーのリセット
+        self.progbar.reset()
 
     def on_play(self):
         cls = self.combo.currentData()
@@ -98,11 +101,12 @@ class ProfitSimulatorDock(QDockWidget):
         self.worker = PluginWorker(plugin)
         self.worker.moveToThread(self.thread)
 
-        self.thread.started.connect(self.worker.run)
+        self.worker.progress.connect(self.progbar.setValue)
         self.worker.finished.connect(self.on_finished)
         self.worker.finished.connect(self.thread.quit)
-        self.thread.finished.connect(self.thread.deleteLater)
 
+        self.thread.started.connect(self.worker.run)
+        self.thread.finished.connect(self.thread.deleteLater)
         self.thread.start()
 
     def on_play_old(self):

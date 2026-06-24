@@ -6,13 +6,14 @@ class ProfitSimulator(ProfitSimulatorABS):
     NAME = "simple"
     DESC = "クロス・シグナル間での単純売買"
 
-    def run(self) -> dict:
+    def run(self, progress_callback) -> dict:
         dict_result = dict()
         print(f"モデル名 : {self.NAME}")
 
         ts = 0
         price = 0
-        for r in range(len(self.df)):
+        n = len(self.df)
+        for r in range(n):
             row = self.df.iloc[r]
             ts = row["ts"]
             price = row["price"]
@@ -31,6 +32,8 @@ class ProfitSimulator(ProfitSimulatorABS):
                     self.posman.closePosition(self.code, ts, price, note)
                 else:
                     self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+            progress = int((r + 1) / n * 100)
+            progress_callback(progress)
 
         # 取引結果
         if self.posman.hasPosition(self.code):
