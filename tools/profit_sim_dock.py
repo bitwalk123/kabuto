@@ -2,7 +2,6 @@ import pandas as pd
 from PySide6.QtCore import (
     QThread,
     QTimer,
-    Signal,
 )
 from PySide6.QtWidgets import (
     QDockWidget,
@@ -13,7 +12,6 @@ from PySide6.QtWidgets import (
 from funcs.plugin import load_plugins
 from models_profit.abstract import ProfitSimulatorABS
 from structs.res import AppRes
-from tools.profit_sim_widgets import TimeRange
 from tools.profit_sim_worker import PluginWorker
 from widgets.buttons import Button
 from widgets.combos import ComboBoxModel
@@ -24,7 +22,7 @@ from widgets.textedits import PlainTextEdit
 
 
 class ProfitSimulatorDock(QDockWidget):
-    requestSelectedData = Signal(pd.Timestamp, pd.Timestamp)
+    # requestSelectedData = Signal(pd.Timestamp, pd.Timestamp)
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -48,9 +46,11 @@ class ProfitSimulatorDock(QDockWidget):
         layout = VBoxLayout()
         base.setLayout(layout)
 
+        '''
         self.time_range = time_range = TimeRange(res)
         time_range.notifyTimeRangeFixed.connect(self.on_timerange_fixed)
         layout.addWidget(time_range)
+        '''
 
         layout_combo = HBoxLayout()
         layout.addLayout(layout_combo)
@@ -62,6 +62,7 @@ class ProfitSimulatorDock(QDockWidget):
         for key in sorted(plugins.keys()):
             cls = plugins[key]
             combo.addItem(key, cls)
+        combo.currentIndexChanged.connect(self.on_combo_changed)
         layout_combo.addWidget(combo)
 
         but_play = Button()
@@ -83,6 +84,9 @@ class ProfitSimulatorDock(QDockWidget):
 
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
+
+    def on_combo_changed(self, idx: int):
+        self.read_combo_value()
 
     def on_finished(self, dict_result: dict):
         # ティックデータ
@@ -129,14 +133,23 @@ class ProfitSimulatorDock(QDockWidget):
         print(df_transaction)
         print(f"損益 : {pnl} 円/株")
 
+    '''
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)
+    '''
 
     def read_combo_value(self):
         cls = self.combo.currentData()
         desc = cls.DESC
         self.pte.setPlainText(desc)
 
+    def setDataFrame(self, code: str, df: pd.DataFrame):
+        self.code = code
+        self.df = df
+        print("銘柄コード", code)
+        print(df)
+
+    '''
     def setDataFrameSelected(self, code: str, df: pd.DataFrame):
         self.code = code
         self.df = df
@@ -145,3 +158,4 @@ class ProfitSimulatorDock(QDockWidget):
 
     def setTimeRange(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.time_range.setTimeRange(dt1, dt2)
+    '''

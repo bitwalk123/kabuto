@@ -6,8 +6,8 @@ from PySide6.QtGui import QIcon
 
 from structs.res import AppRes
 from tools.profit_sim_charts import ProfitReviewChart, ProfitReviewChartNavigation
-from tools.profit_sim_toolbar import ProfitSimulatorToolbar
 from tools.profit_sim_dock import ProfitSimulatorDock
+from tools.profit_sim_toolbar import ProfitSimulatorToolbar
 from widgets.containers import MainWindow, TabWidget
 
 
@@ -20,7 +20,7 @@ class ProfitSimulatorApp(MainWindow):
         self.setWindowIcon(QIcon(os.path.join(res.dir_image, "profit.png")))
         self.setWindowTitle("Profit Simulator App")
 
-        self.trend = None
+        self.tick = None
         self.navtoolbar_trend = None
 
         self.toolbar = toolbar = ProfitSimulatorToolbar(res)
@@ -32,13 +32,13 @@ class ProfitSimulatorApp(MainWindow):
         self.setCentralWidget(base)
 
         self.dock = dock = ProfitSimulatorDock(res)
-        dock.requestSelectedData.connect(self.on_selection_fixed)
+        # dock.requestSelectedData.connect(self.on_selection_fixed)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def gen_base_tick(self) -> MainWindow:
         base_tick = MainWindow()
-        self.trend = tick = ProfitReviewChart(self.res)
-        tick.notifySelection.connect(self.on_selection)
+        self.tick = tick = ProfitReviewChart(self.res)
+        # tick.notifySelection.connect(self.on_selection)
         tick.initChart()
         base_tick.setCentralWidget(tick)
 
@@ -49,8 +49,12 @@ class ProfitSimulatorApp(MainWindow):
     def on_plot(self, df: pd.DataFrame, title: str, path_csv: str):
         print(df.columns)
         self.df = df
-        self.trend.plot(df, title, path_csv)
+        self.tick.plot(df, title, path_csv)
+        # ドックに銘柄コードとデータフレームをセット
+        code = self.toolbar.getCode()
+        self.dock.setDataFrame(code, df)
 
+    '''
     def on_selection(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.dock.setTimeRange(dt1, dt2)
 
@@ -72,3 +76,4 @@ class ProfitSimulatorApp(MainWindow):
 
         # dock に抽出したデータを設定
         self.dock.setDataFrameSelected(code, df_selected)
+    '''

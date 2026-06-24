@@ -3,17 +3,20 @@ from structs.app_enum import ActionType
 
 
 class ProfitSimulator(ProfitSimulatorABS):
-    NAME = "simple"
-    DESC = "クロス・シグナル間での単純売買"
+    NAME = "trailing_stop_1"
+    DESC = "クロス・シグナル間でのトレーリング・ストップ"
 
     def run(self, progress_callback) -> dict:
         dict_result = dict()
         print(f"モデル名 : {self.NAME}")
 
         period_warmup: int = 300
+        dd_profit_min: float = 20.0
+        dd_ratio: float = 0.25
 
         ts = 0
         price = 0
+        profit = 0
         profit_max = 0
 
         c_ts = self.df.columns.get_loc("ts")
@@ -30,14 +33,14 @@ class ProfitSimulator(ProfitSimulatorABS):
             ma_gc = self.df.iat[r, c_ma_gc]
             ma_dc = self.df.iat[r, c_ma_dc]
 
-            # 含み損益
-            profit = self.posman.getProfit(self.code, price)
-            if profit_max < profit:
-                profit_max = profit
-            self.df.iat[r, c_profit] = profit
-            self.df.iat[r, c_profit_max] = profit_max
-
             if period_warmup < r:
+                if dd_profit_min < profit_max:
+                    if dd_ratio < (profit_max - profit) / profit_max:
+                        # 返済
+                        note = f"トレーリング・ストップ"
+                        self.posman.closePosition(self.code, ts, price, note)
+                        profit_max = 0
+
                 if 0 < ma_gc:
                     note = "ゴールデン・クロス"
                     if self.posman.hasPosition(self.code):
@@ -56,6 +59,13 @@ class ProfitSimulator(ProfitSimulatorABS):
                     else:
                         # 売建
                         self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+
+            # 含み損益
+            profit = self.posman.getProfit(self.code, price)
+            if profit_max < profit:
+                profit_max = profit
+            self.df.iat[r, c_profit] = profit
+            self.df.iat[r, c_profit_max] = profit_max
 
             progress = int((r + 1) / n * 100)
             progress_callback(progress)
