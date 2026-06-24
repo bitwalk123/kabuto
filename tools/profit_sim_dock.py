@@ -1,11 +1,20 @@
 import pandas as pd
-from PySide6.QtCore import Signal
-from PySide6.QtWidgets import QDockWidget, QStyle
+from PySide6.QtCore import (
+    QThread,
+    QTimer,
+    Signal,
+)
+from PySide6.QtWidgets import (
+    QDockWidget,
+    QProgressBar,
+    QStyle,
+)
 
 from funcs.plugin import load_plugins
 from models_profit.abstract import ProfitSimulatorABS
 from structs.res import AppRes
 from tools.profit_sim_widgets import TimeRange
+from tools.profit_sim_worker import PluginWorker
 from widgets.buttons import Button
 from widgets.combos import ComboBoxModel
 from widgets.containers import Widget
@@ -20,6 +29,10 @@ class ProfitSimulatorDock(QDockWidget):
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
+
+        self.thread = None
+        self.worker = None
+
         self.code = "0000"
         self.df = pd.DataFrame()
 
@@ -61,14 +74,48 @@ class ProfitSimulatorDock(QDockWidget):
         pte.setReadOnly(True)
         layout.addWidget(pte)
 
-        cls = self.combo.currentData()
-        desc = cls.DESC
-        self.pte.setPlainText(desc)
+        self.progbar = progbar = QProgressBar()
+        progbar.setRange(0, 100)
+        layout.addWidget(progbar)
+
+        # ウィジェット配置後にコンボボックスの値を読み取る
+        QTimer.singleShot(0, self.read_combo_value)
 
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
 
+    def on_finished(self, dict_result: dict):
+        # ティックデータ
+        df_tick = dict_result["tick"]
+        print(df_tick[["profit", "profit_max"]])
+
+        # 取引データ
+        df_transaction = dict_result["transaction"]
+        pnl = df_transaction["損益"].sum()
+        print(df_transaction)
+        print(f"損益 : {pnl} 円/株")
+
+        # プログレス・バーのリセット
+        self.progbar.reset()
+
     def on_play(self):
+        cls = self.combo.currentData()
+        plugin = cls(self.code, self.df)
+
+        # プラグイン用スレッド
+        self.thread = QThread()
+        self.worker = PluginWorker(plugin)
+        self.worker.moveToThread(self.thread)
+
+        self.worker.progress.connect(self.progbar.setValue)
+        self.worker.finished.connect(self.on_finished)
+        self.worker.finished.connect(self.thread.quit)
+
+        self.thread.started.connect(self.worker.run)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.thread.start()
+
+    def on_play_old(self):
         # コンボボックスに表示されている名前に対応するクラス
         cls = self.combo.currentData()
         # クラスのインスタンス化
@@ -84,6 +131,11 @@ class ProfitSimulatorDock(QDockWidget):
 
     def on_timerange_fixed(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
         self.requestSelectedData.emit(dt1, dt2)
+
+    def read_combo_value(self):
+        cls = self.combo.currentData()
+        desc = cls.DESC
+        self.pte.setPlainText(desc)
 
     def setDataFrameSelected(self, code: str, df: pd.DataFrame):
         self.code = code

@@ -11,12 +11,12 @@ class ProfitSimulatorABS(ABC):
 
     def __init__(self, code: str, df: pd.DataFrame):
         self.code = code
-        self.df = df
+        self.df = df.copy()
 
         # ポジション・マネージャ
         self.posman = PositionManager()
         self.posman.initPosition([code])
 
     @abstractmethod
-    def run(self) -> dict:
+    def run(self, progress_callback) -> dict:
         pass
