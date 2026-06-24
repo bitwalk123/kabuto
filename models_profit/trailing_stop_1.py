@@ -11,8 +11,9 @@ class ProfitSimulator(ProfitSimulatorABS):
         print(f"モデル名 : {self.NAME}")
 
         period_warmup: int = 300
-        dd_profit_min: float = 40.0
-        dd_ratio: float = 0.25
+        gap_vwap_ma2: int = 10
+        dd_profit_min: float = 50.0
+        dd_ratio: float = 0.2
 
         ts = 0
         price = 0
@@ -52,8 +53,9 @@ class ProfitSimulator(ProfitSimulatorABS):
                         self.posman.closePosition(self.code, ts, price, note)
                         profit_max = 0
                     else:
-                        # 買建
-                        self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+                        if gap_vwap_ma2 < ma2 - vwap:
+                            # 買建
+                            self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
                 if 0 < ma_dc:
                     note = "デッド・クロス"
                     if self.posman.hasPosition(self.code):
@@ -61,8 +63,9 @@ class ProfitSimulator(ProfitSimulatorABS):
                         self.posman.closePosition(self.code, ts, price, note)
                         profit_max = 0
                     else:
-                        # 売建
-                        self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+                        if gap_vwap_ma2 < vwap - ma2:
+                            # 売建
+                            self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
 
             # 含み損益
             profit = self.posman.getProfit(self.code, price)

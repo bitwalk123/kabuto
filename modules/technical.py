@@ -1,4 +1,5 @@
 from collections import deque
+from math import sqrt
 from typing import Optional
 
 from sortedcontainers import SortedList
@@ -373,3 +374,84 @@ class PurePursuitFollower:
         self.follower += self.gain * error
 
         return self.follower
+
+
+class WMA:
+    """加重移動平均"""
+
+    def __init__(self, window_size: int):
+        self.window_size = max(1, window_size)
+        self.queue = deque()
+
+        self.value = 0.0
+        self.prev_value = 0.0
+
+        # 1,2,3,...,N
+        self.weights = list(range(1, self.window_size + 1))
+        self.weight_sum = sum(self.weights)
+
+    def clear(self):
+        self.queue.clear()
+        self.value = 0.0
+        self.prev_value = 0.0
+
+    def getValue(self) -> float:
+        return self.value
+
+    def update(self, x: float) -> float:
+        if len(self.queue) >= self.window_size:
+            self.queue.popleft()
+
+        self.queue.append(x)
+
+        self.prev_value = self.value
+
+        q = list(self.queue)
+
+        # ウィンドウ未充足時も計算する
+        weights = self.weights[-len(q):]
+        self.value = sum(v * w for v, w in zip(q, weights)) / sum(weights)
+
+        return self.value
+
+
+class HMA:
+    """
+    Hull Moving Average
+    MovingAverage と同じインターフェイス
+    """
+
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+
+        half = max(1, window_size // 2)
+        root = max(1, int(sqrt(window_size)))
+
+        self.wma_half = WMA(half)
+        self.wma_full = WMA(window_size)
+        self.wma_final = WMA(root)
+
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def clear(self) -> None:
+        self.wma_half.clear()
+        self.wma_full.clear()
+        self.wma_final.clear()
+
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def getValue(self) -> float:
+        return self.ma
+
+    def update(self, value: float) -> float:
+        half_ma = self.wma_half.update(value)
+        full_ma = self.wma_full.update(value)
+
+        raw_hma = 2.0 * half_ma - full_ma
+
+        self.prev_ma = self.ma
+        self.ma = self.wma_final.update(raw_hma)
+
+        return self.ma
