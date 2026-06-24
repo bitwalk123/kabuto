@@ -11,7 +11,7 @@ class ProfitSimulatorABS(ABC):
 
     def __init__(self, code: str, df: pd.DataFrame):
         self.code = code
-        self.df = df
+        self.df = df.copy()
 
         # ポジション・マネージャ
         self.posman = PositionManager()

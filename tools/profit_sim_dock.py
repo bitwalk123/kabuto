@@ -85,10 +85,16 @@ class ProfitSimulatorDock(QDockWidget):
         self.time_range.clearTimeRange()
 
     def on_finished(self, dict_result: dict):
+        # ティックデータ
+        df_tick = dict_result["tick"]
+        print(df_tick[["profit", "profit_max"]])
+
+        # 取引データ
         df_transaction = dict_result["transaction"]
         pnl = df_transaction["損益"].sum()
         print(df_transaction)
         print(f"損益 : {pnl} 円/株")
+
         # プログレス・バーのリセット
         self.progbar.reset()
 
