@@ -18,6 +18,8 @@ class ProfitSimulator(ProfitSimulatorABS):
 
         c_ts = self.df.columns.get_loc("ts")
         c_price = self.df.columns.get_loc("price")
+        c_ma2 = self.df.columns.get_loc("ma2")
+        c_vwap = self.df.columns.get_loc("vwap")
         c_ma_gc = self.df.columns.get_loc("ma_gc")
         c_ma_dc = self.df.columns.get_loc("ma_dc")
         c_profit = self.df.columns.get_loc("profit")
@@ -27,6 +29,8 @@ class ProfitSimulator(ProfitSimulatorABS):
         for r in range(n):
             ts = self.df.iat[r, c_ts]
             price = self.df.iat[r, c_price]
+            ma2 = self.df.iat[r, c_ma2]
+            vwap = self.df.iat[r, c_vwap]
             ma_gc = self.df.iat[r, c_ma_gc]
             ma_dc = self.df.iat[r, c_ma_dc]
 
