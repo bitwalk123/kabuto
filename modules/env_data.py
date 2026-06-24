@@ -177,8 +177,8 @@ class EnvData:
         )
         # シグナル・フラグ（クロスしたタイミングなど）
         signal = np.array([
-            False,  # self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
-            False,  # self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
+            self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
+            self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
             self.is_vwap_golden_cross(),  # 2. VWAP ゴールデンクロスのフラグ
             self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
             False,  # 5. 予備
