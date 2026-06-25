@@ -3,6 +3,9 @@ import os
 import pandas as pd
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon
+from matplotlib.backends.backend_qtagg import (
+    NavigationToolbar2QT as NavigationToolbar,
+)
 
 from structs.res import AppRes
 from tools.profit_sim_charts import ProfitReviewChart, ProfitReviewChartNavigation
@@ -27,24 +30,41 @@ class ProfitSimulatorApp(MainWindow):
         toolbar.sendDataFrame.connect(self.on_plot)
         self.addToolBar(toolbar)
 
-        base = TabWidget()
-        base.addTab(self.gen_base_tick(), "全ティックデータ")
-        self.setCentralWidget(base)
+        self.tabbase = tabbase = TabWidget()
+        tabbase.addTab(self.gen_base_tick(), "全ティックデータ")
+        self.setCentralWidget(tabbase)
 
         self.dock = dock = ProfitSimulatorDock(res)
-        # dock.requestSelectedData.connect(self.on_selection_fixed)
+        dock.sendSimResults.connect(self.on_sim_results)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
 
     def gen_base_tick(self) -> MainWindow:
         base_tick = MainWindow()
         self.tick = tick = ProfitReviewChart(self.res)
-        # tick.notifySelection.connect(self.on_selection)
         tick.initChart()
         base_tick.setCentralWidget(tick)
 
         self.navtoolbar_trend = toolbar = ProfitReviewChartNavigation(self.res, tick)
         base_tick.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
+
         return base_tick
+
+    def gen_base_tick_sim(self, dict_result: dict) -> MainWindow:
+        base_tick_sim = MainWindow()
+        tick_sim = ProfitReviewChart(self.res)
+        tick_sim.initChart()
+        base_tick_sim.setCentralWidget(tick_sim)
+
+        toolbar = NavigationToolbar(tick_sim)
+        base_tick_sim.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
+
+        # ティックデータ
+        df = dict_result["tick"]
+        title = dict_result["title"]
+        output = dict_result["path_output"]
+        tick_sim.plot(df, title, output)
+
+        return base_tick_sim
 
     def on_plot(self, df: pd.DataFrame, title: str, path_csv: str):
         print(df.columns)
@@ -53,6 +73,19 @@ class ProfitSimulatorApp(MainWindow):
         # ドックに銘柄コードとデータフレームをセット
         code = self.toolbar.getCode()
         self.dock.setDataFrame(code, df)
+
+    def on_sim_results(self, dict_result):
+        target = "シミュレーション"
+        for i in reversed(range(self.tabbase.count())):
+            label = self.tabbase.tabText(i)
+
+            if target == label:
+                widget = self.tabbase.widget(i)
+                self.tabbase.removeTab(i)
+                widget.deleteLater()
+
+        index = self.tabbase.addTab(self.gen_base_tick_sim(dict_result), target)
+        self.tabbase.setCurrentIndex(index)
 
     '''
     def on_selection(self, dt1: pd.Timestamp, dt2: pd.Timestamp):
