@@ -1,5 +1,8 @@
+import os
+
 import pandas as pd
 from PySide6.QtCore import (
+    Signal,
     QThread,
     QTimer,
 )
@@ -23,6 +26,7 @@ from widgets.textedits import PlainTextEdit
 
 class ProfitSimulatorDock(QDockWidget):
     # requestSelectedData = Signal(pd.Timestamp, pd.Timestamp)
+    sendSimResults = Signal(dict)
 
     def __init__(self, res: AppRes):
         super().__init__()
@@ -82,22 +86,35 @@ class ProfitSimulatorDock(QDockWidget):
         # ウィジェット配置後にコンボボックスの値を読み取る
         QTimer.singleShot(0, self.read_combo_value)
 
+    '''
     def clearTimeRange(self):
         self.time_range.clearTimeRange()
+    '''
 
     def on_combo_changed(self, idx: int):
         self.read_combo_value()
 
     def on_finished(self, dict_result: dict):
-        # ティックデータ
-        df_tick = dict_result["tick"]
-        print(df_tick[["profit", "profit_max"]])
-
         # 取引データ
         df_transaction = dict_result["transaction"]
         pnl = df_transaction["損益"].sum()
-        print(df_transaction)
-        print(f"損益 : {pnl} 円/株")
+        # print(df_transaction)
+        # print(f"損益 : {pnl} 円/株")
+        name_model = self.combo.currentText()
+        dict_result["title"] = f"今日のシミュレーション結果（モデル名 {name_model}） - 損益 {pnl:.1f} 円/株"
+
+        df_tick = dict_result["tick"]
+        dt = df_tick.index[0]
+        dict_result["path_output"] = os.path.join(
+            self.res.dir_output,
+            f"{dt.year:4d}",
+            f"{dt.month:02d}",
+            f"{dt.day:02d}",
+            f"{self.code}_simulation.png"
+        )
+
+        # 結果の通知
+        self.sendSimResults.emit(dict_result)
 
         # プログレス・バーのリセット
         self.progbar.reset()
@@ -146,8 +163,8 @@ class ProfitSimulatorDock(QDockWidget):
     def setDataFrame(self, code: str, df: pd.DataFrame):
         self.code = code
         self.df = df
-        print("銘柄コード", code)
-        print(df)
+        # print("銘柄コード", code)
+        # print(df)
 
     '''
     def setDataFrameSelected(self, code: str, df: pd.DataFrame):
