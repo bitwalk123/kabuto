@@ -7,6 +7,7 @@ class PositionManager:
     def __init__(self) -> None:
         self.order: int = 0  # 注文番号
         self.unit: int = 1  # 売買単位
+        self.slippage = 1
 
         self.dict_price: dict[str, float] = {}
         self.dict_total: dict[str, float] = {}
@@ -51,7 +52,6 @@ class PositionManager:
         """
         # print("備考", note)
 
-        self.dict_price[code] = price
         self.dict_action[code] = action
 
         # 取引履歴
@@ -60,9 +60,11 @@ class PositionManager:
         self.records["注文日時"].append(ts)
         self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
+            self.dict_price[code] = price + self.slippage
             self.records["売買"].append("買建")
             position = PositionType.LONG
         elif action == ActionType.SELL:
+            self.dict_price[code] = price - self.slippage
             self.records["売買"].append("売建")
             position = PositionType.SHORT
         else:
@@ -92,10 +94,10 @@ class PositionManager:
 
         # 損益計算
         if action == ActionType.BUY:
-            profit = (price - self.dict_price[code]) * self.unit
+            profit = (price - self.dict_price[code] - self.slippage) * self.unit
             position = PositionType.NONE
         elif action == ActionType.SELL:
-            profit = (self.dict_price[code] - price) * self.unit
+            profit = (self.dict_price[code] - price - self.slippage) * self.unit
             position = PositionType.NONE
         else:
             msg: str = f"Invalid action type {action} for code {code}"
