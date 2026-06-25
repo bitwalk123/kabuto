@@ -100,8 +100,6 @@ class ProfitSimulatorDock(QDockWidget):
         pnl = df_transaction["損益"].sum()
         # print(df_transaction)
         # print(f"損益 : {pnl} 円/株")
-        name_model = self.combo.currentText()
-        dict_result["title"] = f"今日のシミュレーション結果（モデル名 {name_model}） - 損益 {pnl:.1f} 円/株"
 
         df_tick = dict_result["tick"]
         dt = df_tick.index[0]
@@ -111,6 +109,11 @@ class ProfitSimulatorDock(QDockWidget):
             f"{dt.month:02d}",
             f"{dt.day:02d}",
             f"{self.code}_simulation.png"
+        )
+        name_model = self.combo.currentText()
+        dict_result["title"] = (
+            f"{dt.year:4d}-{dt.month:02d}-{dt.day:02d} / {self.code} : シミュレーション結果"
+            f"（{name_model}） - 損益 {pnl:.1f} 円/株"
         )
 
         # 結果の通知
