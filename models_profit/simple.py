@@ -50,9 +50,9 @@ class ProfitSimulator(ProfitSimulatorABS):
                         self.posman.closePosition(self.code, ts, price, note)
                         profit_max = 0
                     else:
-                        if gap_vwap_ma2 < ma2 - vwap:
-                            # 買建
-                            self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+                        # if gap_vwap_ma2 < ma2 - vwap:
+                        # 買建
+                        self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
                 if 0 < ma_dc:
                     note = "デッド・クロス"
                     if self.posman.hasPosition(self.code):
@@ -60,9 +60,9 @@ class ProfitSimulator(ProfitSimulatorABS):
                         self.posman.closePosition(self.code, ts, price, note)
                         profit_max = 0
                     else:
-                        if gap_vwap_ma2 < vwap - ma2:
-                            # 売建
-                            self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+                        # if gap_vwap_ma2 < vwap - ma2:
+                        # 売建
+                        self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
 
             progress = int((r + 1) / n * 100)
             progress_callback(progress)
