@@ -113,7 +113,7 @@ class ProfitSimulatorDock(QDockWidget):
         name_model = self.combo.currentText()
         dict_result["title"] = (
             f"{dt.year:4d}-{dt.month:02d}-{dt.day:02d} / {self.code} : シミュレーション結果"
-            f"（{name_model}） - 損益 {pnl:.1f} 円/株"
+            f"（{name_model}） / 損益 {pnl:.1f} 円/株"
         )
 
         # 結果の通知
