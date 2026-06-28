@@ -228,8 +228,14 @@ class Trader(QMainWindow):
         self.list_vwap.append(dict_technicals["vwap"])
         self.list_ma_1.append(dict_technicals["ma1"])
         self.list_ma_2.append(dict_technicals["ma2"])
-        #self.list_mom.append(dict_technicals["momentum"])
-        self.list_mom.append(dict_technicals["ma2"] - dict_technicals["vwap"])
+        if dict_technicals["warmup"]:
+            self.list_mom.append(0)
+        else:
+            self.list_mom.append(dict_technicals["momentum"])
+            self.trends.setMom(
+                [dict_technicals["ts"]],
+                [dict_technicals["momentum"]]
+            )
 
         # MA クロス時の縦線表示
         if 0.0 < dict_technicals["ma_gc"]:

@@ -56,7 +56,7 @@ class ProfitReviewChart(FigureCanvas):
         )
 
         # rows of plot
-        self.rows = 2
+        self.rows = 3
 
         # Axes
         self.ax = dict()
@@ -81,7 +81,7 @@ class ProfitReviewChart(FigureCanvas):
         )
         for i, axis in enumerate(gs.subplots(sharex='col')):
             self.ax[i] = axis
-            self.ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M"))
+            self.ax[i].xaxis.set_major_formatter(mdates.DateFormatter("%H:%M:%S"))
             self.ax[i].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:>6,.0f}"))
             self.ax[i].grid(axis="y")
 
@@ -108,8 +108,8 @@ class ProfitReviewChart(FigureCanvas):
         self.ax[i].set_title(title)
 
         self.ax[i].plot(df["price"], zorder=10, linewidth=0.25, color="black")
-        self.ax[i].plot(df["ma1"], zorder=20, linewidth=0.25, color="#080")
-        self.ax[i].plot(df["ma2"], zorder=30, linewidth=0.75, color="#f80")
+        self.ax[i].plot(df["ma1"], zorder=20, linewidth=1, color="#080")
+        self.ax[i].plot(df["ma2"], zorder=30, linewidth=1, color="#f80")
         self.ax[i].plot(df["vwap"], zorder=40, linewidth=0.5, color="#808")
         # プロットの取引時間、寄り付きから大引けまで
         self.dt_start, self.dt_end = get_x_range(df)
@@ -119,6 +119,13 @@ class ProfitReviewChart(FigureCanvas):
         # y軸ラベル (1)
         self.ax[i].set_ylabel("株    価")
 
+        # --- モメンタム ---
+        i += 1
+        self.ax[i].plot(df["momentum"], zorder=20, linewidth=1, color="#840")
+        self.ax[i].axhline(y=0, c="#000", ls="solid", alpha=0.5, lw=0.75)
+        # y軸ラベル (2)
+        self.ax[i].set_ylabel("モメンタム")
+
         # --- 含み損益 ---
         i += 1
         x = df.index
@@ -127,7 +134,7 @@ class ProfitReviewChart(FigureCanvas):
         self.ax[i].fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10)
         self.ax[i].fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10)
         self.ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
-        # y軸ラベル (2)
+        # y軸ラベル (3)
         self.ax[i].set_ylabel("含み損益")
 
         # --- クロス・シグナル ---
@@ -136,10 +143,10 @@ class ProfitReviewChart(FigureCanvas):
         for i in range(self.rows):
             # ゴールデン・クロス
             for t in list_ma_gc:
-                self.ax[i].axvline(x=t, c="#f00", ls="solid", alpha=0.25, lw=0.75)
+                self.ax[i].axvline(x=t, zorder=100, c="#f00", ls="solid", alpha=0.5, lw=1)
             # デッド・クロス
             for t in list_ma_dc:
-                self.ax[i].axvline(x=t, c="#00f", ls="solid", alpha=0.25, lw=0.75)
+                self.ax[i].axvline(x=t, zorder=100, c="#00f", ls="solid", alpha=0.5, lw=1)
 
         # --- プロットを更新 ---
         self.refreshDraw()

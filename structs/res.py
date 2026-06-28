@@ -13,7 +13,7 @@ class AppRes:
 
     # Profit Chart の幅、高さ
     profit_width: int = 680
-    profit_height: int = 400
+    profit_height: int = 600
 
     # Profit History Chart の幅、高さ
     profit_history_width: int = 680
