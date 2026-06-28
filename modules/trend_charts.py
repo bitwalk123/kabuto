@@ -65,7 +65,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
                 "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        self.plot_mom.setLabel("left", "モメンタム")
+        self.plot_mom.setLabel("left", "乖離度")
         self.plot_mom.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる
         self.plot_mom.setXLink(self.plot_price)
@@ -111,11 +111,11 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.vline_dead.setZValue(20)
         self.plot_price.addItem(self.vline_dead)
 
-        # Momentum
-        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=0.5), name="モメンタム")
+        # Momentum 乖離度
+        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="乖離度")
         self.mom.setZValue(50)
         # 基準線を追加
-        mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen(self.COLOR_ZERO, width=0.5))
+        mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen(self.COLOR_MA_2, width=1))
         mom_0.setZValue(10)
         #mom_up = self.plot_mom.addLine(y=10.0, pen=pg.mkPen((255, 255, 255, 96), width=0.75))
         #mom_up.setZValue(10)
@@ -125,7 +125,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # 最新値を示すドット（モメンタム）
         self.last_mom = pg.ScatterPlotItem(
             size=self.SIZE_LAST_DOT,
-            brush=pg.mkBrush(self.COLOR_LAST_MOM),
+            brush=pg.mkBrush(self.COLOR_LAST_DOT),
             pen=None
         )
         self.last_mom.setZValue(100)
