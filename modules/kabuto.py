@@ -39,7 +39,7 @@ from widgets.statusbars import StatusBar
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.8.11"
+    __version__ = "0.8.12"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -451,20 +451,18 @@ class Kabuto(QMainWindow):
             self.requestSaveDataFrame.emit()
             # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             # 保持したテクニカルデータを保存
+            '''
             if self.toolbar.isAlt():
                 self.logger.info(
                     f"代替環境なのでテクニカルデータの保存をキャンセルします。"
                 )
             else:
-                """
-                バックアップ用に稼働しているのでなければ、テクニカルデータを保存
-                ※ このデータは Github にアップしているので上書きや衝突を防ぐため
-                """
-                path_dir = os.path.join(
-                    self.res.dir_output,
-                    conv_date_str_to_path(self.dict_ts["datetime_str"])
-                )
-                self.save_technicals(path_dir)
+            '''
+            path_dir = os.path.join(
+                self.res.dir_output,
+                conv_date_str_to_path(self.dict_ts["datetime_str"])
+            )
+            self.save_technicals(path_dir)
         else:
             pass
 

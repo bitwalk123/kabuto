@@ -11,7 +11,6 @@ from funcs.excel import get_sheets_in_excel
 from funcs.tse import get_ticker_name_list
 from modules.uploader import UploadWorker
 from structs.res import AppRes
-from widgets.buttons import CheckBox
 from widgets.containers import PadH
 from widgets.dialogs import DlgTickFileSel, DlgCodeSel
 from widgets.labels import Label, LCDTime
@@ -118,9 +117,11 @@ class ToolBar(QToolBar):
 
         self.addSeparator()
 
+        '''
         # バックアップ稼働かの識別用
         self.check_alt = check_alt = CheckBox("控")
         self.addWidget(check_alt)
+        '''
 
         pad = PadH()
         self.addWidget(pad)
@@ -139,9 +140,11 @@ class ToolBar(QToolBar):
             thread.wait()
         super().closeEvent(event)
 
+    '''
     def isAlt(self) -> bool:
         # バックアップ用に稼働しているかどうか
         return self.check_alt.isChecked()
+    '''
 
     def on_about(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -204,7 +207,7 @@ class ToolBar(QToolBar):
 
     def on_swap_dock(self):
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        # 🧿 Docl の配置を切り替えることをリクエスト
+        # 🧿 Dock の配置を切り替えることをリクエスト
         self.requestSwitchDock.emit()
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
