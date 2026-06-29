@@ -157,6 +157,48 @@ class VWAP:
         return self.vwap
 
 
+class ROC:
+    def __init__(self, window_size: int):
+        self.window_size = window_size
+        self.queue = deque()
+        self.roc = 0.0
+        self.prev_roc = 0.0  # 直前の ROC を保持
+
+    def clear(self) -> None:
+        self.queue.clear()
+        self.roc = 0.0
+        self.prev_roc = 0.0
+
+    def getValue(self) -> float:
+        return self.roc
+
+    def update(self, value: float) -> float:
+        # 過去データを保持
+        self.queue.append(value)
+
+        # 必要以上に古いデータは削除
+        if len(self.queue) > self.window_size + 1:
+            self.queue.popleft()
+
+        # 更新前の値を保存
+        self.prev_roc = self.roc
+
+        # 十分なデータが揃っていない場合
+        if len(self.queue) <= self.window_size:
+            self.roc = 0.0
+            return self.roc
+
+        past_value = self.queue[0]
+
+        # ゼロ除算防止
+        if past_value == 0:
+            self.roc = 0.0
+        else:
+            self.roc = ((value - past_value) / past_value) * 100.0
+
+        return self.roc
+
+
 class RSI:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -278,7 +320,7 @@ class PurePursuitFollower:
 
         self.follower = 0.0
         self.momentum = 0.0
-        self.prev_follower = 0.0
+        self.follower_prev = 0.0
         self.initialized = False
 
     def clear(self) -> None:
@@ -286,7 +328,7 @@ class PurePursuitFollower:
 
         self.follower = 0.0
         self.momentum = 0.0
-        #self.prev_follower = 0.0
+        self.follower_prev = 0.0
         self.initialized = False
 
     def getValue(self) -> tuple[float, float]:
@@ -298,7 +340,7 @@ class PurePursuitFollower:
         #
         if not self.initialized:
             self.follower = price
-            #self.prev_follower = price
+            self.follower_prev = price
             self.initialized = True
 
         #
@@ -325,11 +367,12 @@ class PurePursuitFollower:
         #
         # Pure Pursuit 更新
         #
-        #self.prev_follower = self.follower
+        self.follower_prev = self.follower
         error = target - self.follower
         self.follower += self.gain * error
         # follower 更新前の追従誤差
-        self.momentum = error
+        # self.momentum = error
+        self.momentum = self.follower - self.follower_prev
 
         return self.follower, self.momentum
 
