@@ -320,7 +320,7 @@ class PurePursuitFollower:
 
         self.follower = 0.0
         self.momentum = 0.0
-        self.follower_prev = 0.0
+        # self.follower_prev = 0.0
         self.initialized = False
 
     def clear(self) -> None:
@@ -328,7 +328,7 @@ class PurePursuitFollower:
 
         self.follower = 0.0
         self.momentum = 0.0
-        self.follower_prev = 0.0
+        # self.follower_prev = 0.0
         self.initialized = False
 
     def getValue(self) -> tuple[float, float]:
@@ -340,7 +340,7 @@ class PurePursuitFollower:
         #
         if not self.initialized:
             self.follower = price
-            self.follower_prev = price
+            # self.follower_prev = price
             self.initialized = True
 
         #
@@ -367,12 +367,12 @@ class PurePursuitFollower:
         #
         # Pure Pursuit 更新
         #
-        self.follower_prev = self.follower
+        # self.follower_prev = self.follower
         error = target - self.follower
         self.follower += self.gain * error
         # follower 更新前の追従誤差
-        # self.momentum = error
-        self.momentum = self.follower - self.follower_prev
+        self.momentum = error
+        # self.momentum = self.follower - self.follower_prev
 
         return self.follower, self.momentum
 

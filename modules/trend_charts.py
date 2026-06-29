@@ -65,7 +65,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
                 "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        self.plot_mom.setLabel("left", "ROC")
+        self.plot_mom.setLabel("left", "モメンタム")
         self.plot_mom.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる
         self.plot_mom.setXLink(self.plot_price)
@@ -112,7 +112,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.addItem(self.vline_dead)
 
         # Momentum or 乖離度
-        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="ROC")
+        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="モメンタム")
         self.mom.setZValue(50)
         # 基準線を追加
         # mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen(self.COLOR_MA_2, width=1))
