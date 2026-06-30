@@ -121,7 +121,7 @@ class ProfitReviewChart(FigureCanvas):
 
         # --- モメンタム ---
         i += 1
-        self.ax[i].plot(df["momentum"], zorder=20, linewidth=1, color="#840")
+        self.ax[i].plot(df["momentum"], zorder=20, linewidth=0.75, color="#840")
         self.ax[i].axhline(y=0, c="#000", ls="solid", alpha=0.5, lw=0.75)
         # y軸ラベル (2)
         self.ax[i].set_ylabel("モメンタム")
@@ -143,10 +143,10 @@ class ProfitReviewChart(FigureCanvas):
         for i in range(self.rows):
             # ゴールデン・クロス
             for t in list_ma_gc:
-                self.ax[i].axvline(x=t, zorder=100, c="#f00", ls="solid", alpha=0.5, lw=1)
+                self.ax[i].axvline(x=t, zorder=100, c="#f00", ls="solid", alpha=0.5, lw=0.5)
             # デッド・クロス
             for t in list_ma_dc:
-                self.ax[i].axvline(x=t, zorder=100, c="#00f", ls="solid", alpha=0.5, lw=1)
+                self.ax[i].axvline(x=t, zorder=100, c="#00f", ls="solid", alpha=0.5, lw=0.5)
 
         # --- プロットを更新 ---
         self.refreshDraw()
