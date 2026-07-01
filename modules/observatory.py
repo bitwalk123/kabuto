@@ -1,8 +1,9 @@
 from modules.env_data import EnvData
 from modules.technical import (
+    EfficiencyRatio,
     MovingAverage,
     PurePursuitFollower,
-    VWAP, RunningStatistics,
+    VWAP,
 )
 
 
@@ -19,7 +20,7 @@ class ObservationManager:
         # self.ma_2 = HMA(window_size=self.s.PERIOD_MA_2)
         # self.mom = Momentum(window_size=self.s.PERIOD_MOM)
         # self.roc = ROC(window_size=15)
-        self.rstat = RunningStatistics()
+        self.er = EfficiencyRatio(window_size=120)
         self.vwap = VWAP()
 
     def update(self, ts: float, price: float, volume: float) -> dict:
@@ -28,7 +29,7 @@ class ObservationManager:
         value_ma_2 = self.ma_2.update(price)
         value_vwap = self.vwap.update(price, volume)
         # value_mom = self.roc.update(value_ppf)
-        value_mom = self.rstat.update(price)
+        value_mom = self.er.update(price)
 
         return {
             "Time": ts,
