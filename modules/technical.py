@@ -1,3 +1,4 @@
+import math
 from collections import deque
 from math import sqrt
 from typing import Optional
@@ -456,3 +457,75 @@ class HMA:
         self.ma = self.wma_final.update(raw_hma)
 
         return self.ma
+
+
+class RunningStatistics:
+    """
+    Welford statistics の実装（Z-score のみ）
+    """
+    def __init__(self):
+        self.count = 0
+
+        # Welford の内部状態
+        self.mean = 0.0
+        self.M2 = 0.0
+
+        # 統計量
+        self.variance = 0.0
+        self.std = 0.0
+
+        # オシレータとして利用する値
+        self.zscore = 0.0
+        self.prev_zscore = 0.0
+
+    def clear(self) -> None:
+        self.count = 0
+
+        # Welford の内部状態
+        self.mean = 0.0
+        self.M2 = 0.0
+
+        # 統計量
+        self.variance = 0.0
+        self.std = 0.0
+
+        # オシレータとして利用する値
+        self.zscore = 0.0
+        self.prev_zscore = 0.0
+
+    def getValue(self) -> float:
+        return self.zscore
+
+    def getSlope(self) -> float:
+        return self.zscore - self.prev_zscore
+
+    def update(self, value: float) -> float:
+        #
+        # 1. 更新前の統計量で現在値を評価
+        #
+        self.prev_zscore = self.zscore
+
+        if self.count > 1 and self.std > 0.0:
+            self.zscore = (value - self.mean) / self.std
+        else:
+            self.zscore = 0.0
+
+        #
+        # 2. Welford Algorithm による統計量更新
+        #
+        self.count += 1
+
+        delta = value - self.mean
+        self.mean += delta / self.count
+        delta2 = value - self.mean
+
+        self.M2 += delta * delta2
+
+        if self.count > 1:
+            self.variance = self.M2 / self.count
+            self.std = math.sqrt(self.variance)
+        else:
+            self.variance = 0.0
+            self.std = 0.0
+
+        return self.zscore

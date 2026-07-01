@@ -77,8 +77,8 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.ma_1 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="MA1")
         self.ma_1.setZValue(80)
 
-        # 移動平均線 MA1
-        self.ma_2 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="MA1")
+        # 移動平均線 MA2
+        self.ma_2 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="MA2")
         self.ma_2.setZValue(90)
 
         # VWAP
