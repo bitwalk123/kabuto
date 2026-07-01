@@ -30,6 +30,7 @@ class AlgoTrade(AlgoTradeBase):
 
         position: PositionType = onehot_to_position(dict_obs["position"])
 
+        '''
         if position == PositionType.NONE:
             # === エントリ ===
             if self.isAutoPilot():
@@ -68,6 +69,7 @@ class AlgoTrade(AlgoTradeBase):
                     return ActionType.BUY.value, {"reason": "単純ロスカット（ショート）"}
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
                     return ActionType.SELL.value, {"reason": "単純ロスカット（ロング）"}
+        '''
 
         return ActionType.HOLD.value, {}
 
