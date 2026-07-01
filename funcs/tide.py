@@ -144,6 +144,22 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dt_end = datetime.datetime(year, month, day, hour=15, minute=30)
     dt_end_entry = datetime.datetime(year, month, day, hour=13, minute=00)
 
+    # チャート用グリッド線
+    list_grid = list()
+    list_grid.append(datetime.datetime(year, month, day, hour=9, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=9, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=10, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=10, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=11, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=11, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=12, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=13, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=13, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=14, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=14, minute=30).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=15, minute=0).timestamp())
+    list_grid.append(datetime.datetime(year, month, day, hour=15, minute=25).timestamp())
+
     dict_ts = dict()
     # タイムスタンプに変換してインスタンス変数で保持
     dict_ts["start"] = dt_start.timestamp()
@@ -153,6 +169,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dict_ts["ca"] = dt_ca.timestamp()
     dict_ts["end"] = dt_end.timestamp()
     dict_ts["end_entry"] = dt_end_entry.timestamp()
+    dict_ts["grid"] = list_grid
     # 日付文字列
     dict_ts["datetime_str"] = f"{year:04}{month:02}{day:02}"
     dict_ts["datetime_str_2"] = f"{year:04}-{month:02}-{day:02}"

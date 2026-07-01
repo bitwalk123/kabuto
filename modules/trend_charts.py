@@ -55,7 +55,8 @@ class TrendCharts(pg.GraphicsLayoutWidget):
             }
         )
         self.plot_price.getAxis("bottom").setStyle(showValues=False)
-        self.plot_price.setLabel("left", "株価")
+        self.plot_price.setLabel("left", "Price")
+
 
         # Momentumチャート（二段）- CustomYAxisItem2 を適用
         self.plot_mom = self.addPlot(
@@ -74,6 +75,20 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # プロットの設定
         self._config_plot_items()
+
+        # グリッドの縦線
+        pen = pg.mkPen((255, 255, 255, 255), width=0.5)
+        for plot_item in [self.plot_price, self.plot_mom]:
+            plot_item.showGrid(x=False, y=True)
+            for ts in dict_ts["grid"]:
+                line = pg.InfiniteLine(
+                    pos=ts,
+                    angle=90,
+                    movable=False,
+                    pen=pen,
+                )
+                line.setZValue(-100)
+                plot_item.addItem(line)
 
         # 移動平均線 MA1
         self.ma_1 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="MA1")
