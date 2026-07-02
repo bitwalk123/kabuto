@@ -122,9 +122,9 @@ class ProfitReviewChart(FigureCanvas):
         # --- モメンタム ---
         i += 1
         self.ax[i].plot(df["momentum"], zorder=20, linewidth=0.75, color="#840")
-        self.ax[i].axhline(y=0, c="#000", ls="solid", alpha=0.5, lw=0.75)
+        self.ax[i].axhline(y=0, c="#000", ls="solid", alpha=0.5, lw=0.5)
         # y軸ラベル (2)
-        self.ax[i].set_ylabel("モメンタム")
+        self.ax[i].set_ylabel("Efficiency Ratio")
 
         # --- 含み損益 ---
         i += 1
