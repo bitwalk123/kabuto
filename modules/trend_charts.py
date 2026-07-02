@@ -129,7 +129,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.addItem(self.vline_dead)
 
         # Momentum or 乖離度
-        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=0.75), name="ER")
+        self.mom = self.plot_mom.plot(pen=pg.mkPen(self.COLOR_MOM, width=1), name="ER")
         self.mom.setZValue(50)
         # 基準線を追加
         # mom_0 = self.plot_mom.addLine(y=0.0, pen=pg.mkPen(self.COLOR_MA_2, width=1))
