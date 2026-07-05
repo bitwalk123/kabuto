@@ -14,18 +14,12 @@ class ObservationManager:
         # 特徴量インスタンス
         # self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
         self.ppf = PurePursuitFollower()
-        # self.mom_ppf = PurePursuitFollower(trend_period=30)
-        # self.ma_1 = HMA(window_size=self.s.PERIOD_MA_1)
         self.ma_2 = MovingAverage(window_size=self.s.PERIOD_MA_2)
-        # self.ma_2 = HMA(window_size=self.s.PERIOD_MA_2)
-        # self.mom = Momentum(window_size=self.s.PERIOD_MOM)
-        # self.roc = ROC(window_size=15)
-        self.er = EfficiencyRatio(window_size=120)
+        self.er = EfficiencyRatio(window_size=90)
         self.vwap = VWAP()
 
     def update(self, ts: float, price: float, volume: float) -> dict:
         value_ppf, _ = self.ppf.update(price)
-        # _, value_mom = self.mom_ppf.update(price)
         value_ma_2 = self.ma_2.update(price)
         value_vwap = self.vwap.update(price, volume)
         # value_mom = self.roc.update(value_ppf)

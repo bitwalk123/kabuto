@@ -571,7 +571,7 @@ class EfficiencyRatio:
         # Direction（始点と終点の距離）
         direction = abs(self.queue[-1] - self.queue[0])
 
-        # Volatility（実際に歩いた距離）
+        # Volatility（実際に辿った距離）
         volatility = 0.0
         for i in range(1, len(self.queue)):
             volatility += abs(self.queue[i] - self.queue[i - 1])
