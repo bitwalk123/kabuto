@@ -14,7 +14,7 @@ class ObservationManager:
         self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
         # self.ppf = PurePursuitFollower()
         self.ma_2 = MovingAverage(window_size=self.s.PERIOD_MA_2)
-        self.er = EfficiencyRatio(window_size=150)
+        self.er = EfficiencyRatio(window_size=90)
         self.vwap = VWAP()
 
     def update(self, ts: float, price: float, volume: float) -> dict:
