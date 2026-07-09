@@ -1,7 +1,7 @@
 import math
 from collections import deque
 from math import sqrt
-from typing import Optional
+from typing import Optional, Deque
 
 from sortedcontainers import SortedList
 
@@ -532,6 +532,7 @@ class RunningStatistics:
         return self.zscore
 
 
+'''
 class EfficiencyRatio:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -580,5 +581,58 @@ class EfficiencyRatio:
             self.er = direction / volatility
         else:
             self.er = 0.0
+
+        return self.er
+'''
+
+
+class EfficiencyRatio:
+    def __init__(self, window_size: int):
+        if window_size < 2:
+            raise ValueError("window_size must be >= 2")
+
+        self.window_size: int = window_size
+        self.queue: Deque[float] = deque(maxlen=window_size)
+
+        self.er: float = 0.0
+        self.prev_er: float = 0.0
+
+        # Σ|Pi - Pi-1|
+        self.volatility: float = 0.0
+
+    def clear(self) -> None:
+        self.queue.clear()
+        self.er = self.prev_er = self.volatility = 0.0
+
+    def getValue(self) -> float:
+        return self.er
+
+    def getSlope(self) -> float:
+        return self.er - self.prev_er
+
+    def update(self, value: float) -> float:
+        self.prev_er = self.er
+
+        # 最初のサンプル
+        if not self.queue:
+            self.queue.append(value)
+            self.er = 0.0
+            return self.er
+
+        # 新しく追加される区間
+        self.volatility += abs(value - self.queue[-1])
+
+        # 古い区間が消えるなら、その分だけ引く
+        if len(self.queue) == self.window_size:
+            self.volatility -= abs(self.queue[1] - self.queue[0])
+
+        # maxlen により古い要素は自動で削除される
+        self.queue.append(value)
+
+        # Direction（始点と終点の直線距離）
+        direction = abs(value - self.queue[0])
+
+        # Efficiency Ratio
+        self.er = direction / self.volatility if self.volatility else 0.0
 
         return self.er
