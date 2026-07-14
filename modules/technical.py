@@ -636,3 +636,47 @@ class EfficiencyRatio:
         self.er = direction / self.volatility if self.volatility else 0.0
 
         return self.er
+
+
+class PriceLowHigh:
+    def __init__(self):
+        self.price_high: float = 0.
+        self.price_low: float = 1.e10
+        self.count_high: int = 0
+        self.count_low: int = 0
+        self.count_hold: int = 0
+
+    def update(self, value: float, base: float) -> tuple[int, int, int]:
+        """
+        高値・安値更新カウンタの更新
+        :param value: 株価
+        :param base: サポート線の値（移動平均線など）
+        :return: 高値更新回数、安値更新回数、更新無しの回数
+        """
+        updated = False
+
+        # 高値側
+        if self.price_high < value:
+            self.price_high = value
+            self.count_high += 1
+            updated = True
+        elif value < base:
+            self.price_high = value
+            self.count_high = 0
+
+        # 安値側
+        if value < self.price_low:
+            self.price_low = value
+            self.count_low += 1
+            updated = True
+        elif base < value:
+            self.price_low = value
+            self.count_low = 0
+
+        # Hold の更新は最後に一度だけ
+        if updated:
+            self.count_hold = 0
+        else:
+            self.count_hold += 1
+
+        return self.count_high, self.count_low, self.count_hold
