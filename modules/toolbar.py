@@ -1,6 +1,7 @@
 import datetime
 import logging
 import os
+import time
 from pathlib import Path
 
 from PySide6.QtCore import Signal, QThread
@@ -251,8 +252,7 @@ class ToolBar(QToolBar):
         self.action_stop.setDisabled(state)
 
     def updateTime(self, ts: float):
-        dt = datetime.datetime.fromtimestamp(ts)
-        self.lcd_time.display(f"{dt.hour:02}:{dt.minute:02}:{dt.second:02}")
+        self.lcd_time.setTimestamp(ts)
 
     def upload_completed(self):
         """

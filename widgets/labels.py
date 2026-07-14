@@ -1,3 +1,5 @@
+import time
+
 from PySide6.QtCore import QMargins, Qt
 from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
@@ -174,6 +176,9 @@ class LCDTime(QLCDNumber):
         self.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
         self.setDigitCount(8)
         self.display('00:00:00')
+
+    def setTimestamp(self, ts: float):
+        self.display(time.strftime("%H:%M:%S", time.localtime(ts)))
 
 
 class LCDValueWithTitle(Widget):
