@@ -40,15 +40,6 @@ class DockTrader(DockWidget):
         self.layout.addWidget(total)
 
         # ---------------------------------------------------------------------
-        # 取引用パネル
-        # ---------------------------------------------------------------------
-        self.panel_trading = panel_trading = PanelTrading()
-        panel_trading.clickedBuy.connect(self.on_buy)
-        panel_trading.clickedSell.connect(self.on_sell)
-        panel_trading.clickedRepay.connect(self.on_repay)
-        self.layout.addWidget(panel_trading)
-
-        # ---------------------------------------------------------------------
         # オプションパネル
         # ---------------------------------------------------------------------
         self.panel_option = panel_option = PanelOption(res, code)
@@ -57,6 +48,15 @@ class DockTrader(DockWidget):
         panel_option.clickedSetting.connect(self.on_setting)
         panel_option.toggledAutoPilot.connect(self.on_autopilot)
         self.layout.addWidget(panel_option)
+
+        # ---------------------------------------------------------------------
+        # 取引用パネル
+        # ---------------------------------------------------------------------
+        self.panel_trading = panel_trading = PanelTrading()
+        panel_trading.clickedBuy.connect(self.on_buy)
+        panel_trading.clickedSell.connect(self.on_sell)
+        panel_trading.clickedRepay.connect(self.on_repay)
+        self.layout.addWidget(panel_trading)
 
     def force_repay(self) -> None:
         """
@@ -74,7 +74,7 @@ class DockTrader(DockWidget):
         買建ボタンがクリックされた時の処理
         :return:
         """
-        if self.note== "":
+        if self.note == "":
             self.note = "手動で買建"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
@@ -87,7 +87,7 @@ class DockTrader(DockWidget):
         売建ボタンがクリックされた時の処理
         :return:
         """
-        if self.note== "":
+        if self.note == "":
             self.note = "手動で売建"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
@@ -100,7 +100,7 @@ class DockTrader(DockWidget):
         返済ボタンがクリックされた時の処理
         :return:
         """
-        if self.note== "":
+        if self.note == "":
             self.note = "手動で返済"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
