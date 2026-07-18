@@ -6,6 +6,7 @@ from widgets.buttons import (
     ButtonRepair,
     ButtonSave,
     ButtonSetting,
+    CheckBoxControl,
     ToggleButtonAutoPilot,
     TradeButton,
 )
@@ -17,7 +18,89 @@ from widgets.containers import (
 from widgets.layouts import (
     GridLayout,
     HBoxLayout,
+    VBoxLayout,
 )
+
+
+class PanelControl(Widget):
+    """
+    コントロール用パネル
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+        layout = VBoxLayout()
+        self.setLayout(layout)
+
+        self.cbox_cross = cbox_cross = CheckBoxControl("クロス返済")
+        layout.addWidget(cbox_cross)
+
+
+class PanelOption(QFrame):
+    """
+    オプション・パネル
+    """
+    clickedSave = Signal()
+    clickedSetting = Signal()
+    clickedRepair = Signal()
+    changedDisparity = Signal(bool)
+    toggledAutoPilot = Signal(bool)
+
+    def __init__(self, res: AppRes, code: str) -> None:
+        super().__init__()
+        self.res = res
+        self.code = code
+        # self.autopilot = False
+
+        self.setFrameStyle(
+            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
+        )
+        self.setLineWidth(1)
+        layout = HBoxLayout()
+        self.setLayout(layout)
+
+        self.but_autopilot = but_autopilot = ToggleButtonAutoPilot(res)
+        but_autopilot.setToolTip("オート・パイロット")
+        but_autopilot.setChecked(False)
+        but_autopilot.toggled.connect(self.on_toggled_autopilot)
+        layout.addWidget(but_autopilot)
+
+        pad = PadH()
+        layout.addWidget(pad)
+
+        # 売買ボタンの状態修正
+        but_repair = ButtonRepair(res)
+        but_repair.setToolTip("売買ボタンの状態修正")
+        but_repair.clicked.connect(self.on_clicked_repair)
+        layout.addWidget(but_repair)
+
+        # 設定
+        but_setting = ButtonSetting(res)
+        but_setting.setToolTip("設定")
+        but_setting.clicked.connect(self.on_clicked_setting)
+        layout.addWidget(but_setting)
+
+        # チャートの保存
+        but_save = ButtonSave(res)
+        but_save.setToolTip("チャートの保存")
+        but_save.clicked.connect(self.on_clicked_save)
+        layout.addWidget(but_save)
+
+    def isAutoPilot(self) -> bool:
+        return self.but_autopilot.isChecked()
+
+    def on_clicked_repair(self):
+        self.clickedRepair.emit()
+
+    def on_clicked_save(self):
+        self.clickedSave.emit()
+
+    def on_clicked_setting(self):
+        self.clickedSetting.emit()
+
+    def on_toggled_autopilot(self, flag: bool):
+        self.toggledAutoPilot.emit(flag)
 
 
 class PanelTrading(Widget):
@@ -134,66 +217,3 @@ class PanelTrading(Widget):
         if self.flag_disabled:
             self.flag_disabled = False
             self.switchActivate(True)
-
-
-class PanelOption(QFrame):
-    clickedSave = Signal()
-    clickedSetting = Signal()
-    clickedRepair = Signal()
-    changedDisparity = Signal(bool)
-    toggledAutoPilot = Signal(bool)
-
-    def __init__(self, res: AppRes, code: str) -> None:
-        super().__init__()
-        self.res = res
-        self.code = code
-        # self.autopilot = False
-
-        self.setFrameStyle(
-            QFrame.Shape.StyledPanel | QFrame.Shadow.Sunken
-        )
-        self.setLineWidth(1)
-        layout = HBoxLayout()
-        self.setLayout(layout)
-
-        self.but_autopilot = but_autopilot = ToggleButtonAutoPilot(res)
-        but_autopilot.setToolTip("オート・パイロット")
-        but_autopilot.setChecked(False)
-        but_autopilot.toggled.connect(self.on_toggled_autopilot)
-        layout.addWidget(but_autopilot)
-
-        pad = PadH()
-        layout.addWidget(pad)
-
-        # 売買ボタンの状態修正
-        but_repair = ButtonRepair(res)
-        but_repair.setToolTip("売買ボタンの状態修正")
-        but_repair.clicked.connect(self.on_clicked_repair)
-        layout.addWidget(but_repair)
-
-        # 設定
-        but_setting = ButtonSetting(res)
-        but_setting.setToolTip("設定")
-        but_setting.clicked.connect(self.on_clicked_setting)
-        layout.addWidget(but_setting)
-
-        # チャートの保存
-        but_save = ButtonSave(res)
-        but_save.setToolTip("チャートの保存")
-        but_save.clicked.connect(self.on_clicked_save)
-        layout.addWidget(but_save)
-
-    def isAutoPilot(self) -> bool:
-        return self.but_autopilot.isChecked()
-
-    def on_clicked_repair(self):
-        self.clickedRepair.emit()
-
-    def on_clicked_save(self):
-        self.clickedSave.emit()
-
-    def on_clicked_setting(self):
-        self.clickedSetting.emit()
-
-    def on_toggled_autopilot(self, flag: bool):
-        self.toggledAutoPilot.emit(flag)

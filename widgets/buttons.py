@@ -228,6 +228,19 @@ class CheckBox(QCheckBox):
             }
         """)
 
+class CheckBoxControl(QCheckBox):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setStyleSheet("""
+            QCheckBox {
+                margin-left: 0.5em;
+                margin-right: 0.5em;
+            }
+        """)
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        font.setPointSize(6)
+        self.setFont(font)
 
 class RadioButton(QRadioButton):
     def __init__(self, *args) -> None:

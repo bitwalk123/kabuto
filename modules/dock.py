@@ -2,7 +2,11 @@ import logging
 
 from PySide6.QtCore import Signal, QMargins
 
-from modules.panel import PanelOption, PanelTrading
+from modules.panel import (
+    PanelControl,
+    PanelOption,
+    PanelTrading,
+)
 from structs.res import AppRes
 from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
@@ -40,7 +44,7 @@ class DockTrader(DockWidget):
         self.layout.addWidget(total)
 
         # ---------------------------------------------------------------------
-        # オプションパネル
+        # オプション・パネル
         # ---------------------------------------------------------------------
         self.panel_option = panel_option = PanelOption(res, code)
         panel_option.clickedSave.connect(self.on_save)
@@ -50,7 +54,13 @@ class DockTrader(DockWidget):
         self.layout.addWidget(panel_option)
 
         # ---------------------------------------------------------------------
-        # 取引用パネル
+        # コントロール用パネル
+        # ---------------------------------------------------------------------
+        self.panel_control = panel_control = PanelControl()
+        self.layout.addWidget(panel_control)
+
+        # ---------------------------------------------------------------------
+        # トレーディング用パネル
         # ---------------------------------------------------------------------
         self.panel_trading = panel_trading = PanelTrading()
         panel_trading.clickedBuy.connect(self.on_buy)
