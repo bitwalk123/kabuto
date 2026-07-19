@@ -20,6 +20,7 @@ class DockTrader(DockWidget):
     clickedSave = Signal()
     clickedSetting = Signal()
     changedAutoPilot = Signal(bool)
+    notifyStatusCross = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
@@ -63,6 +64,7 @@ class DockTrader(DockWidget):
         # コントロール用パネル
         # ---------------------------------------------------------------------
         self.panel_control = panel_control = PanelControl()
+        panel_control.changedStatusCross.connect(self.on_status_cross_changed)
         self.layout.addWidget(panel_control)
 
         # ---------------------------------------------------------------------
@@ -140,6 +142,9 @@ class DockTrader(DockWidget):
 
     def on_setting(self):
         self.clickedSetting.emit()
+
+    def on_status_cross_changed(self, state: bool):
+        self.notifyStatusCross.emit(state)
 
     def setPrice(self, price: float) -> None:
         """

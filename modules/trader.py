@@ -24,6 +24,7 @@ class Trader(QMainWindow):
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
     sendTradeData = Signal(float, float, float, dict)
+    updateStatusCross = Signal(bool)
 
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
@@ -81,6 +82,7 @@ class Trader(QMainWindow):
         dock.clickedSetting.connect(self.on_setting)
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
+        dock.notifyStatusCross.connect(self.on_status_cross)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -105,6 +107,7 @@ class Trader(QMainWindow):
         self.requestResetEnv.connect(worker.resetEnv)
         self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.sendTradeData.connect(worker.addData)
+        self.updateStatusCross.connect(worker.updateStateCross)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
         worker.completedResetEnv.connect(self.reset_env_completed)
@@ -216,6 +219,9 @@ class Trader(QMainWindow):
             print("OKが押されました")
         elif result == QDialog.DialogCode.Rejected:
             print("キャンセルされました")
+
+    def on_status_cross(self, state: bool):
+        self.updateStatusCross.emit(state)
 
     def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:

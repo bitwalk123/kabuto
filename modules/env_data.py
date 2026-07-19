@@ -80,6 +80,9 @@ class EnvData:
     price_open: float = 0.0
     volume_open: float = 0.0
 
+    # 建玉返済ロジック
+    status_cross: bool = False
+
     # ====== マスク処理関連 ======
     MASK_HOLD_ONLY = np.array([True, False, False], dtype=np.bool_)
     # 取りうるアクション: HOLD, BUY, SELL
@@ -228,8 +231,11 @@ class EnvData:
         MA ゴールデン・クロスでエントリか？
         :return:
         """
-        if self.diff_ma_pre <= 0 < self.diff_ma:
-            return True
+        if self.status_cross:
+            if self.diff_ma_pre <= 0 < self.diff_ma:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -238,8 +244,11 @@ class EnvData:
         MA デッド・クロスでエントリか？
         :return:
         """
-        if self.diff_ma < 0 <= self.diff_ma_pre:
-            return True
+        if self.status_cross:
+            if self.diff_ma < 0 <= self.diff_ma_pre:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -302,6 +311,10 @@ class EnvData:
         self.ts_open = row["Time"]
         self.price_open = row["Price"]
         self.volume_open = row["Volume"]
+
+    def setStatusCross(self, state: bool) -> bool:
+        self.status_cross = state
+        return self.status_cross
 
     def update_count_negative(self):
         if self.profit < 0:

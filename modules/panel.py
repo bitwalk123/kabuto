@@ -26,6 +26,7 @@ class PanelControl(Widget):
     """
     コントロール用パネル
     """
+    changedStatusCross = Signal(bool)
 
     def __init__(self) -> None:
         super().__init__()
@@ -37,7 +38,11 @@ class PanelControl(Widget):
         layout.addWidget(cbox_th)
 
         self.cbox_cross = cbox_cross = CheckBoxControl("クロス返済")
+        cbox_cross.stateChanged.connect(self.status_cross_changed)
         layout.addWidget(cbox_cross)
+
+    def status_cross_changed(self):
+        self.changedStatusCross.emit(self.cbox_cross.isChecked())
 
 
 class PanelOption(QFrame):

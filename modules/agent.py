@@ -256,3 +256,8 @@ class WorkerAgent(QObject):
     @Slot(bool)
     def setAutoPilot(self, flag: bool):
         self.model.setAutoPilot(flag)
+
+    @Slot(bool)
+    def updateStateCross(self, state: bool):
+        state_new = self.env.s.setStatusCross(state)
+        self.logger.info(f"Cross 返済が {state_new} に変更されました。")
