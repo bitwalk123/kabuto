@@ -137,9 +137,13 @@ class LabelSmall(QLabel):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Minimum
         )
-        self.setContentsMargins(QMargins(0, 0, 0, 0))
+        self.setFrameStyle(
+            QFrame.Shape.WinPanel | QFrame.Shadow.Raised
+        )
+        self.setLineWidth(1)
+        self.setContentsMargins(QMargins(1, 1, 1, 1))
         self.setStyleSheet("""
-            QLabel {margin: 0 5;}
+            QLabel {padding-left: 0.5em;}
         """)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
@@ -189,6 +193,7 @@ class LCDValueWithTitle(Widget):
         self.setLayout(layout)
         # title
         lab_title = LabelSmall(title)
+        lab_title.setFixedWidth(60)
         layout.addWidget(lab_title)
         # LCD
         self.lcd_value = lcd_value = LCDNumber(self)

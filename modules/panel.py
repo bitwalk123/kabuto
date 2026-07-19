@@ -33,6 +33,9 @@ class PanelControl(Widget):
         layout = VBoxLayout()
         self.setLayout(layout)
 
+        self.cbox_th = cbox_th = CheckBoxControl("しきい値返済")
+        layout.addWidget(cbox_th)
+
         self.cbox_cross = cbox_cross = CheckBoxControl("クロス返済")
         layout.addWidget(cbox_cross)
 

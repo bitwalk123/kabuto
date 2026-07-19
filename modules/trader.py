@@ -224,21 +224,23 @@ class Trader(QMainWindow):
             self.dock.panel_trading.unLockButtons()
 
         # テクニカル指標
-        self.list_ts.append(dict_technicals["ts"])
-        self.list_vwap.append(dict_technicals["vwap"])
-        self.list_ma_1.append(dict_technicals["ma1"])
-        self.list_ma_2.append(dict_technicals["ma2"])
+        ts = dict_technicals["ts"]
+        vwap = dict_technicals["vwap"]
+        ma1 = dict_technicals["ma1"]
+        ma2 = dict_technicals["ma2"]
+        momentum = dict_technicals["momentum"]
+        self.list_ts.append(ts)
+        self.list_vwap.append(vwap)
+        self.list_ma_1.append(ma1)
+        self.list_ma_2.append(ma2)
 
         '''
         if dict_technicals["warmup"]:
             self.list_mom.append(0)
         else:
         '''
-        self.list_mom.append(dict_technicals["momentum"])
-        self.trends.setMom(
-            [dict_technicals["ts"]],
-            [dict_technicals["momentum"]]
-        )
+        self.list_mom.append(momentum)
+        self.trends.setMom([ts], [momentum])
         '''
         d1 = (dict_technicals["ma1"] - dict_technicals["ma2"]) * 100 / dict_technicals["ma2"]
         d2 = (dict_technicals["price"] - dict_technicals["ma2"]) * 100 / dict_technicals["ma2"]
@@ -253,6 +255,10 @@ class Trader(QMainWindow):
             self.trends.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals()
+
+        # ドックの表示を更新
+        self.dock.setVWAP(vwap)
+        self.dock.setMA2(ma2)
 
     def on_trading_completed(self) -> None:
         self.logger.info("取引が終了しました。")
