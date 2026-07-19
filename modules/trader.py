@@ -229,24 +229,15 @@ class Trader(QMainWindow):
         ma1 = dict_technicals["ma1"]
         ma2 = dict_technicals["ma2"]
         momentum = dict_technicals["momentum"]
+
         self.list_ts.append(ts)
         self.list_vwap.append(vwap)
         self.list_ma_1.append(ma1)
         self.list_ma_2.append(ma2)
-
-        '''
-        if dict_technicals["warmup"]:
-            self.list_mom.append(0)
-        else:
-        '''
         self.list_mom.append(momentum)
+
+        # 最新のモメンタムの表示
         self.trends.setMom([ts], [momentum])
-        '''
-        d1 = (dict_technicals["ma1"] - dict_technicals["ma2"]) * 100 / dict_technicals["ma2"]
-        d2 = (dict_technicals["price"] - dict_technicals["ma2"]) * 100 / dict_technicals["ma2"]
-        self.list_mom.append(d1)
-        self.trends.setMom([dict_technicals["ts"]], [d2])
-        '''
 
         # MA クロス時の縦線表示
         if 0.0 < dict_technicals["ma_gc"]:
