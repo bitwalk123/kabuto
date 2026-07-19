@@ -30,8 +30,8 @@ class AlgoTrade(AlgoTradeBase):
 
         position: PositionType = onehot_to_position(dict_obs["position"])
 
+        '''
         if position == PositionType.NONE:
-            '''
             # === エントリ ===
             if self.isAutoPilot():
                 # MA ゴールデンクロスでエントリ
@@ -41,9 +41,9 @@ class AlgoTrade(AlgoTradeBase):
                 # MA デッドクロスでエントリ
                 if ma_cross_dead and self.can_execute(ActionType.SELL.value, action_masks):
                     return ActionType.SELL.value, {"reason": "MA デッドクロス（売建）"}
-            '''
-            pass
         else:
+        '''
+        if position != PositionType.NONE:
             # === エグジット ===
             # MA ゴールデンクロスでエグジット
             if ma_cross_golden and self.can_execute(ActionType.BUY.value, action_masks):
