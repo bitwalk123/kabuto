@@ -151,6 +151,27 @@ class LabelSmall(QLabel):
         self.setFont(font)
 
 
+class LabelTitle(QLabel):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Minimum
+        )
+        self.setFrameStyle(
+            QFrame.Shape.WinPanel | QFrame.Shadow.Raised
+        )
+        self.setLineWidth(1)
+        self.setContentsMargins(QMargins(1, 1, 1, 1))
+        self.setStyleSheet("""
+            QLabel {padding-left: 0.5em;}
+        """)
+        font = QFont()
+        font.setStyleHint(QFont.StyleHint.Monospace)
+        # font.setPointSize(6)
+        self.setFont(font)
+
+
 class LabelTime(Label):
     def __init__(self, *args):
         super().__init__(*args)
@@ -192,8 +213,8 @@ class LCDValueWithTitle(Widget):
         layout = HBoxLayout()
         self.setLayout(layout)
         # title
-        lab_title = LabelSmall(title)
-        lab_title.setFixedWidth(60)
+        lab_title = LabelTitle(title)
+        lab_title.setFixedWidth(80)
         layout.addWidget(lab_title)
         # LCD
         self.lcd_value = lcd_value = LCDNumber(self)
