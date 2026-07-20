@@ -240,7 +240,6 @@ class CheckBoxControl(QCheckBox):
         """)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
-        # font.setPointSize(7)
         self.setFont(font)
 
 

@@ -168,7 +168,6 @@ class LabelTitle(QLabel):
         """)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
-        # font.setPointSize(6)
         self.setFont(font)
 
 
