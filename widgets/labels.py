@@ -147,7 +147,7 @@ class LabelSmall(QLabel):
         """)
         font = QFont()
         font.setStyleHint(QFont.StyleHint.Monospace)
-        font.setPointSize(7)
+        font.setPointSize(6)
         self.setFont(font)
 
 
@@ -193,7 +193,7 @@ class LCDValueWithTitle(Widget):
         self.setLayout(layout)
         # title
         lab_title = LabelSmall(title)
-        lab_title.setFixedWidth(75)
+        lab_title.setFixedWidth(60)
         layout.addWidget(lab_title)
         # LCD
         self.lcd_value = lcd_value = LCDNumber(self)
