@@ -159,6 +159,7 @@ class WorkerAgent(QObject):
     def __init__(self, code: str, dict_setting: dict[str, Any]) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
+        self.code = code
 
         self.obs: np.ndarray | None = None
         self.df_obs: pd.DataFrame | None = None
@@ -260,4 +261,4 @@ class WorkerAgent(QObject):
     @Slot(bool)
     def updateStateCross(self, state: bool):
         state_new = self.env.s.setStatusCross(state)
-        self.logger.info(f"Cross 返済が {state_new} に変更されました。")
+        self.logger.info(f"{self.code} の Cross 返済が {state_new} に変更されました。")
