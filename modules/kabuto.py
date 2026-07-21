@@ -9,10 +9,7 @@ from PySide6.QtCore import (
     Signal,
     Slot,
 )
-from PySide6.QtGui import (
-    QCloseEvent,
-    QIcon,
-)
+from PySide6.QtGui import QCloseEvent, QIcon
 from PySide6.QtWidgets import (
     QDialog,
     QMainWindow,
