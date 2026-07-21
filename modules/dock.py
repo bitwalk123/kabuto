@@ -21,6 +21,7 @@ class DockTrader(DockWidget):
     clickedSetting = Signal()
     changedAutoPilot = Signal(bool)
     notifyStatusCross = Signal(bool)
+    notifyStatusThreshold = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
         super().__init__(code)
@@ -37,12 +38,12 @@ class DockTrader(DockWidget):
         # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
+        # 長周期移動平均（表示）
+        self.ma2 = ma2 = LCDValueWithTitle("移動平均")
+        self.layout.addWidget(ma2)
         # VWAP（表示）
         self.vwap = vwap = LCDValueWithTitle("VWAP")
         self.layout.addWidget(vwap)
-        # 長周期移動平均（表示）
-        self.ma2 = ma_2 = LCDValueWithTitle("移動平均")
-        self.layout.addWidget(ma_2)
         # 含み損益（表示）
         self.profit = profit = LCDValueWithTitle("含み損益")
         self.layout.addWidget(profit)
@@ -65,6 +66,7 @@ class DockTrader(DockWidget):
         # ---------------------------------------------------------------------
         self.panel_control = panel_control = PanelControl()
         panel_control.changedStatusCross.connect(self.on_status_cross_changed)
+        panel_control.changedStatusThreshold.connect(self.on_status_threshold_changed)
         self.layout.addWidget(panel_control)
 
         # ---------------------------------------------------------------------
@@ -145,6 +147,9 @@ class DockTrader(DockWidget):
 
     def on_status_cross_changed(self, state: bool):
         self.notifyStatusCross.emit(state)
+
+    def on_status_threshold_changed(self, state: bool):
+        self.notifyStatusThreshold.emit(state)
 
     def setPrice(self, price: float) -> None:
         """

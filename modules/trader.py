@@ -25,6 +25,7 @@ class Trader(QMainWindow):
     requestSaveTechnicals = Signal(str)
     sendTradeData = Signal(float, float, float, dict)
     updateStatusCross = Signal(bool)
+    updateStatusThreshold = Signal(bool)
 
     # クリーンアップ要求用シグナル
     requestCleanup = Signal()
@@ -83,6 +84,7 @@ class Trader(QMainWindow):
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
         dock.notifyStatusCross.connect(self.on_status_cross)
+        dock.notifyStatusThreshold.connect(self.on_status_threshold)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
         # ---------------------------------------------------------------------
@@ -108,6 +110,7 @@ class Trader(QMainWindow):
         self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.sendTradeData.connect(worker.addData)
         self.updateStatusCross.connect(worker.updateStateCross)
+        self.updateStatusThreshold.connect(worker.updateStateThreshold)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
         worker.completedResetEnv.connect(self.reset_env_completed)
@@ -222,6 +225,9 @@ class Trader(QMainWindow):
 
     def on_status_cross(self, state: bool):
         self.updateStatusCross.emit(state)
+
+    def on_status_threshold(self, state: bool):
+        self.updateStatusThreshold.emit(state)
 
     def on_technicals(self, dict_technicals: dict[str, Any]) -> None:
         if dict_technicals["warmup"]:

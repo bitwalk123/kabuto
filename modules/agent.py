@@ -262,3 +262,8 @@ class WorkerAgent(QObject):
     def updateStateCross(self, state: bool):
         state_new = self.env.s.setStatusCross(state)
         self.logger.info(f"{self.code} の Cross 返済が {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateThreshold(self, state: bool):
+        state_new = self.env.s.setStatusThreshold(state)
+        self.logger.info(f"{self.code} の しきい値 返済が {state_new} に変更されました。")

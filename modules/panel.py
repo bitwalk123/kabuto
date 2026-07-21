@@ -27,6 +27,7 @@ class PanelControl(Widget):
     コントロール用パネル
     """
     changedStatusCross = Signal(bool)
+    changedStatusThreshold = Signal(bool)
 
     def __init__(self) -> None:
         super().__init__()
@@ -34,8 +35,9 @@ class PanelControl(Widget):
         layout = VBoxLayout()
         self.setLayout(layout)
 
-        self.cbox_th = cbox_th = CheckBoxControl("しきい値返済")
-        layout.addWidget(cbox_th)
+        self.cbox_threshold = cbox_threshold = CheckBoxControl("しきい値返済")
+        cbox_threshold.stateChanged.connect(self.status_threshold_changed)
+        layout.addWidget(cbox_threshold)
 
         self.cbox_cross = cbox_cross = CheckBoxControl("クロス返済")
         cbox_cross.stateChanged.connect(self.status_cross_changed)
@@ -43,6 +45,9 @@ class PanelControl(Widget):
 
     def status_cross_changed(self):
         self.changedStatusCross.emit(self.cbox_cross.isChecked())
+
+    def status_threshold_changed(self):
+        self.changedStatusThreshold.emit(self.cbox_threshold.isChecked())
 
 
 class PanelOption(QFrame):

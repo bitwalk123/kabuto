@@ -82,6 +82,7 @@ class EnvData:
 
     # 建玉返済ロジック
     status_cross: bool = False
+    status_threshold: bool = False
 
     # ====== マスク処理関連 ======
     MASK_HOLD_ONLY = np.array([True, False, False], dtype=np.bool_)
@@ -185,7 +186,7 @@ class EnvData:
             self.is_vwap_golden_cross(),  # 2. VWAP ゴールデンクロスのフラグ
             self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
             False,  # 5. 予備
-            False,  # self.does_take_profit(),  # 5. 利確のフラグ
+            self.does_take_profit(),  # 5. 利確のフラグ
             self.does_losscut_consecutive_negative(),  # 6. 連続含み損ロスカットのフラグ
             self.is_losscut(),  # 7. 単純ロスカットのフラグ
             False,
@@ -316,6 +317,10 @@ class EnvData:
         self.status_cross = state
         return self.status_cross
 
+    def setStatusThreshold(self, state: bool) -> bool:
+        self.status_threshold = state
+        return self.status_threshold
+
     def update_count_negative(self):
         if self.profit < 0:
             self.count_negative += 1
@@ -355,6 +360,7 @@ class EnvData:
         if self.profit_max < self.profit:
             self.profit_max = self.profit
 
+    '''
     def update_dd_ratio(self) -> float:
         if self.DD_THRESHOLD < self.profit_max:
             self.dd_ratio = (self.profit_max - self.profit) / self.profit_max
@@ -363,13 +369,18 @@ class EnvData:
 
         # print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
         return self.dd_ratio
+    '''
 
     def does_take_profit(self) -> bool:
-        if self.profit_max <= self.TRAILING_THRESHOLD:
+        if self.status_threshold:
+            if 20 <= self.profit_max and self.profit <= 5:
+                return True
+            elif 10 <= self.profit_max and self.profit <= 0:
+                return True
+            else:
+                return False
+        else:
             return False
-
-        dd = self.profit_max - self.profit
-        return self.TRAILING_THRESHOLD < dd
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
