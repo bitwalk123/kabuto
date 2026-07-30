@@ -18,7 +18,7 @@ class AlgoTrade(AlgoTradeBase):
     def __init__(self):
         super().__init__()
 
-    def predict(self, dict_obs, action_masks: np.ndarray) -> tuple[int, dict[str, Any]]:
+    def predict(self, dict_obs: dict, action_masks: np.ndarray) -> tuple[int, dict[str, Any]]:
         arr_signal = dict_obs["signal"]
         ma_cross_golden: bool = arr_signal[0]
         ma_cross_dead: bool = arr_signal[1]
