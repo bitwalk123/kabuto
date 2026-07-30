@@ -155,6 +155,7 @@ class EnvData:
         日毎に生じる絶対値のズレを少しでも抑えたい。
         そのため、株価に関連する特徴量に対して、始値で割っている。
         """
+        '''
         # ザラバデータ（生データに近い）
         market = np.array(
             [
@@ -179,6 +180,7 @@ class EnvData:
             ],
             dtype=np.float32
         )
+        '''
         # シグナル・フラグ（クロスしたタイミングなど）
         signal = np.array([
             self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
@@ -194,10 +196,9 @@ class EnvData:
         ])
         # ポジション情報
         position_onehot = position_to_onehot(self.position)
+
         # 辞書形式で返す
         return {
-            "market": market,
-            "cross": cross,
             "signal": signal,
             "position": position_onehot,
         }

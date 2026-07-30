@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
+import numpy as np
+
 from structs.app_enum import ActionType, PositionType
 
 
@@ -50,19 +52,19 @@ class AlgoTradeBase(ABC):
 
     def getName(self) -> str:
         """戦略名を返す"""
-        return self.name
+        return self.MODEL_NAME
 
     def getVersion(self) -> str:
         """バージョンを返す"""
-        return self.version
+        return self.MODEL_VERSION
 
     @abstractmethod
-    def predict(self, obs, action_masks) -> tuple[int, dict[str, Any]]:
+    def predict(self, dict_obs: dict, action_masks: np.ndarray) -> tuple[int, dict[str, Any]]:
         """
         観測値から行動を予測（必須実装）
 
-        :param obs: 観測値（numpy配列）
-        :param action_masks: 行動マスク
+        :param dict_obs: 観測値（dict）
+        :param action_masks: 行動マスク (np.ndarray)
         :return: (action, info_dict)
         """
         ...

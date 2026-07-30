@@ -37,70 +37,7 @@ class TradingEnv(gym.Env):
         self.action_space = spaces.Discrete(n_action_space)
 
         # ====== 観測（特徴量）空間 observation_space の定義 ======
-        """
-        【観測値】- VecNormalize Wrapper を使用する前提
-        [market] - VecNormalize Wrapper で標準化
-        1. MA1（短周期移動平均）
-        2. MA2（長周期移動平均）
-        3. Momentum（モメンタム）
-        4. Profit（含み損益）
-        5. ProfitMax（最大含み損益）
-        6. n_trade（約定回数）
-        7. count_negative（含み損の継続カウンタ）
-        8. 約定コスト
-        9. dd_ratio（ドローダウン率）
-        [cross] - 符号が重要であるため標準化しない (-1, 1)
-        1. DiffMA（乖離率 : (MA1 - MA2) / MA2）
-        2. DiffVWAP（乖離率 : (MA1 - VWAP) / VWAP）
-        3. RSI
-        [position] - 標準化不要
-        1. SHORT
-        2. NONE
-        3. LONG
-        4. MA Golden Cross
-        5. MA Dead Cross
-        """
         self.observation_space = spaces.Dict({
-            "market": spaces.Box(
-                low=np.array([
-                    -np.float32('inf'),  # 1. MA1（短周期移動平均）
-                    -np.float32('inf'),  # 2. MA2（長周期移動平均）
-                    -np.float32('inf'),  # 3. Momentum（モメンタム）
-                    -np.float32('inf'),  # 4. Profit（含み損益）
-                    -np.float32('inf'),  # 5. ProfitMax（最大含み損益）
-                    np.float32(0),  # 6. n_trade（約定回数）
-                    np.float32(0),  # 7. count_negative（含み損の継続カウンタ）
-                    -np.float32('inf'),  # 8. 約定コスト
-                    np.float32(0),  # 9. dd_ratio（ドローダウン率）
-                ]),
-                high=np.array([
-                    np.float32('inf'),  # 1. MA1（短周期移動平均）
-                    np.float32('inf'),  # 2. MA2（長周期移動平均）
-                    np.float32('inf'),  # 3. Momentum（モメンタム）
-                    np.float32('inf'),  # 4. Profit（含み損益）
-                    np.float32('inf'),  # 5. ProfitMax（最大含み損益）
-                    np.float32(1),  # 6. n_trade（約定回数）
-                    np.float32(1),  # 7. count_negative（含み損の継続カウンタ）
-                    np.float32(-self.s.COST_CONTRACT),  # 8. 約定コスト
-                    np.float32('inf'),  # 9. dd_ratio（ドローダウン率）
-                ]),
-                shape=(9,),
-                dtype=np.float32
-            ),
-            "cross": spaces.Box(
-                low=np.array([
-                    np.float32(-5),  # 1. DiffMA（乖離率 : (MA1 - MA2) / MA2）
-                    np.float32(-5),  # 2. DiffVWAP（乖離率 : (MA1 - VWAP) / VWAP）
-                    np.float32(0),  # 3. RSI
-                ]),
-                high=np.array([
-                    np.float32(5),  # 1. DiffMA（乖離率 : (MA1 - MA2) / MA2）
-                    np.float32(5),  # 2. DiffVWAP（乖離率 : (MA1 - VWAP) / VWAP）
-                    np.float32(1),  # 3. RSI
-                ]),
-                shape=(3,),
-                dtype=np.float32
-            ),
             "signal": spaces.MultiBinary(10),  # signal
             "position": spaces.MultiBinary(3),  # one-hot
         })
@@ -191,6 +128,7 @@ class TradingEnv(gym.Env):
         self.init_status()
 
         # ====== 観測値（状態） ======
+        '''
         market = np.array(
             [
                 1,  # 1. MA1（短周期移動平均）
@@ -209,6 +147,10 @@ class TradingEnv(gym.Env):
         signal = np.array([False, False, False, False, False, False, False, False, False, False], dtype=np.float32)
         position = position_to_onehot(self.s.position)
         obs = {"market": market, "cross": cross, "signal": signal, "position": position}
+        '''
+        signal = np.array([False, False, False, False, False, False, False, False, False, False], dtype=np.float32)
+        position = position_to_onehot(self.s.position)
+        obs = {"signal": signal, "position": position}
         print(obs)
 
         info = {}  # Additional debug info
