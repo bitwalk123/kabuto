@@ -96,7 +96,7 @@ class TradingEnv(gym.Env):
         :return:
         """
         # 観測値
-        return self.s.set_data(self.obs_man.update(ts, price, volume), dict_info)
+        return self.s.set_data(ts, price, volume, dict_info)
 
     @staticmethod
     def getObsList() -> list:
