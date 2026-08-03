@@ -37,15 +37,18 @@ class PanelControl(Widget):
         self.setLayout(layout)
 
         '''
+        # しきい値返済
         self.cbox_threshold = cbox_threshold = CheckBoxControl("しきい値返済")
         cbox_threshold.stateChanged.connect(self.status_threshold_changed)
         layout.addWidget(cbox_threshold)
         '''
 
+        # クロス MA 返済
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxControl("クロス MA 返済")
         cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
         layout.addWidget(cbox_cross_ma)
 
+        # クロス VWAP 返済
         self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxControl("クロス VWAP 返済")
         cbox_cross_vwap.stateChanged.connect(self.status_cross_vwap_changed)
         layout.addWidget(cbox_cross_vwap)
@@ -56,8 +59,10 @@ class PanelControl(Widget):
     def status_cross_vwap_changed(self):
         self.changedStatusCrossVWAP.emit(self.cbox_cross_vwap.isChecked())
 
+    '''
     def status_threshold_changed(self):
         self.changedStatusThreshold.emit(self.cbox_threshold.isChecked())
+    '''
 
 
 class PanelOption(QFrame):
