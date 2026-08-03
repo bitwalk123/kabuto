@@ -89,7 +89,8 @@ class EnvData:
     """
 
     # 建玉返済ロジック
-    status_cross: bool = False
+    status_cross_ma: bool = False
+    status_cross_vwap: bool = False
     status_threshold: bool = False
 
     # ====== マスク処理関連 ======
@@ -228,7 +229,7 @@ class EnvData:
         MA ゴールデン・クロスでエントリか？
         :return:
         """
-        if self.status_cross:
+        if self.status_cross_ma:
             if self.diff_ma_pre <= 0 < self.diff_ma:
                 return True
             else:
@@ -241,7 +242,7 @@ class EnvData:
         MA デッド・クロスでエントリか？
         :return:
         """
-        if self.status_cross:
+        if self.status_cross_ma:
             if self.diff_ma < 0 <= self.diff_ma_pre:
                 return True
             else:
@@ -254,8 +255,11 @@ class EnvData:
         VWAP ゴールデン・クロスでエントリか？
         :return:
         """
-        if self.diff_vwap_pre <= 0 < self.diff_vwap:
-            return True
+        if self.status_cross_vwap:
+            if self.diff_vwap_pre <= 0 < self.diff_vwap:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -264,8 +268,11 @@ class EnvData:
         VWAP デッド・クロスでエントリか？
         :return:
         """
-        if self.diff_vwap < 0 <= self.diff_vwap_pre:
-            return True
+        if self.status_cross_vwap:
+            if self.diff_vwap < 0 <= self.diff_vwap_pre:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -312,9 +319,13 @@ class EnvData:
         self.volume_open = row["Volume"]
     """
 
-    def setStatusCross(self, state: bool) -> bool:
-        self.status_cross = state
-        return self.status_cross
+    def setStatusCrossMA(self, state: bool) -> bool:
+        self.status_cross_ma = state
+        return self.status_cross_ma
+
+    def setStatusCrossVWAP(self, state: bool) -> bool:
+        self.status_cross_vwap = state
+        return self.status_cross_vwap
 
     def setStatusThreshold(self, state: bool) -> bool:
         self.status_threshold = state

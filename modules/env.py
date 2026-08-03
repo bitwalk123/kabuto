@@ -128,26 +128,6 @@ class TradingEnv(gym.Env):
         self.init_status()
 
         # ====== 観測値（状態） ======
-        '''
-        market = np.array(
-            [
-                1,  # 1. MA1（短周期移動平均）
-                1,  # 2. MA2（長周期移動平均）
-                0,  # 3. Momentum（モメンタム）
-                0,  # 4. Profit（含み損益）
-                0,  # 5. ProfitMax（最大含み損益）
-                0,  # 6. n_trade（約定回数）
-                0,  # 7. count_negative（含み損の継続カウンタ）
-                0,  # 8. 約定コスト
-                0,  # 9. dd_ratio（ドローダウン率）
-            ],
-            dtype=np.float32
-        )
-        cross = np.array([0, 0, 0], dtype=np.float32)
-        signal = np.array([False, False, False, False, False, False, False, False, False, False], dtype=np.float32)
-        position = position_to_onehot(self.s.position)
-        obs = {"market": market, "cross": cross, "signal": signal, "position": position}
-        '''
         signal = np.array([False, False, False, False, False, False, False, False, False, False], dtype=np.float32)
         position = position_to_onehot(self.s.position)
         obs = {"signal": signal, "position": position}

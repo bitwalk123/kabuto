@@ -259,9 +259,14 @@ class WorkerAgent(QObject):
         self.model.setAutoPilot(flag)
 
     @Slot(bool)
-    def updateStateCross(self, state: bool):
-        state_new = self.env.s.setStatusCross(state)
-        self.logger.info(f"{self.code} の Cross 返済が {state_new} に変更されました。")
+    def updateStateCrossMA(self, state: bool):
+        state_new = self.env.s.setStatusCrossMA(state)
+        self.logger.info(f"{self.code} の Cross MA 返済が {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateCrossVWAP(self, state: bool):
+        state_new = self.env.s.setStatusCrossVWAP(state)
+        self.logger.info(f"{self.code} の Cross VWAP 返済が {state_new} に変更されました。")
 
     @Slot(bool)
     def updateStateThreshold(self, state: bool):

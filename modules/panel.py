@@ -26,7 +26,8 @@ class PanelControl(Widget):
     """
     コントロール用パネル
     """
-    changedStatusCross = Signal(bool)
+    changedStatusCrossMA = Signal(bool)
+    changedStatusCrossVWAP = Signal(bool)
     changedStatusThreshold = Signal(bool)
 
     def __init__(self) -> None:
@@ -39,12 +40,19 @@ class PanelControl(Widget):
         cbox_threshold.stateChanged.connect(self.status_threshold_changed)
         layout.addWidget(cbox_threshold)
 
-        self.cbox_cross = cbox_cross = CheckBoxControl("クロス返済")
-        cbox_cross.stateChanged.connect(self.status_cross_changed)
-        layout.addWidget(cbox_cross)
+        self.cbox_cross_ma = cbox_cross_ma = CheckBoxControl("クロス MA 返済")
+        cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
+        layout.addWidget(cbox_cross_ma)
 
-    def status_cross_changed(self):
-        self.changedStatusCross.emit(self.cbox_cross.isChecked())
+        self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxControl("クロス VWAP 返済")
+        cbox_cross_vwap.stateChanged.connect(self.status_cross_vwap_changed)
+        layout.addWidget(cbox_cross_vwap)
+
+    def status_cross_ma_changed(self):
+        self.changedStatusCrossMA.emit(self.cbox_cross_ma.isChecked())
+
+    def status_cross_vwap_changed(self):
+        self.changedStatusCrossVWAP.emit(self.cbox_cross_vwap.isChecked())
 
     def status_threshold_changed(self):
         self.changedStatusThreshold.emit(self.cbox_threshold.isChecked())
