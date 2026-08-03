@@ -20,7 +20,8 @@ class DockTrader(DockWidget):
     clickedSave = Signal()
     clickedSetting = Signal()
     changedAutoPilot = Signal(bool)
-    notifyStatusCross = Signal(bool)
+    notifyStatusCrossMA = Signal(bool)
+    notifyStatusCrossVWAP = Signal(bool)
     notifyStatusThreshold = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
@@ -65,7 +66,8 @@ class DockTrader(DockWidget):
         # コントロール用パネル
         # ---------------------------------------------------------------------
         self.panel_control = panel_control = PanelControl()
-        panel_control.changedStatusCross.connect(self.on_status_cross_changed)
+        panel_control.changedStatusCrossMA.connect(self.on_status_cross_ma_changed)
+        panel_control.changedStatusCrossVWAP.connect(self.on_status_cross_vwap_changed)
         panel_control.changedStatusThreshold.connect(self.on_status_threshold_changed)
         self.layout.addWidget(panel_control)
 
@@ -145,8 +147,11 @@ class DockTrader(DockWidget):
     def on_setting(self):
         self.clickedSetting.emit()
 
-    def on_status_cross_changed(self, state: bool):
-        self.notifyStatusCross.emit(state)
+    def on_status_cross_ma_changed(self, state: bool):
+        self.notifyStatusCrossMA.emit(state)
+
+    def on_status_cross_vwap_changed(self, state: bool):
+        self.notifyStatusCrossVWAP.emit(state)
 
     def on_status_threshold_changed(self, state: bool):
         self.notifyStatusThreshold.emit(state)

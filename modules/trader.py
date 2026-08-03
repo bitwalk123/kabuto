@@ -24,7 +24,8 @@ class Trader(QMainWindow):
     requestResetEnv = Signal()
     requestSaveTechnicals = Signal(str)
     sendTradeData = Signal(float, float, float, dict)
-    updateStatusCross = Signal(bool)
+    updateStatusCrossMA = Signal(bool)
+    updateStatusCrossVWAP = Signal(bool)
     updateStatusThreshold = Signal(bool)
 
     # クリーンアップ要求用シグナル
@@ -83,7 +84,8 @@ class Trader(QMainWindow):
         dock.clickedSetting.connect(self.on_setting)
         dock.clickedSave.connect(self.on_save)
         dock.changedAutoPilot.connect(self.on_autopilot)
-        dock.notifyStatusCross.connect(self.on_status_cross)
+        dock.notifyStatusCrossMA.connect(self.on_status_cross_ma)
+        dock.notifyStatusCrossVWAP.connect(self.on_status_cross_vwap)
         dock.notifyStatusThreshold.connect(self.on_status_threshold)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
@@ -109,7 +111,8 @@ class Trader(QMainWindow):
         self.requestResetEnv.connect(worker.resetEnv)
         self.requestSaveTechnicals.connect(worker.saveTechnicals)
         self.sendTradeData.connect(worker.addData)
-        self.updateStatusCross.connect(worker.updateStateCross)
+        self.updateStatusCrossMA.connect(worker.updateStateCrossMA)
+        self.updateStatusCrossVWAP.connect(worker.updateStateCrossVWAP)
         self.updateStatusThreshold.connect(worker.updateStateThreshold)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
@@ -223,8 +226,11 @@ class Trader(QMainWindow):
         elif result == QDialog.DialogCode.Rejected:
             print("キャンセルされました")
 
-    def on_status_cross(self, state: bool):
-        self.updateStatusCross.emit(state)
+    def on_status_cross_ma(self, state: bool):
+        self.updateStatusCrossMA.emit(state)
+
+    def on_status_cross_vwap(self, state: bool):
+        self.updateStatusCrossVWAP.emit(state)
 
     def on_status_threshold(self, state: bool):
         self.updateStatusThreshold.emit(state)

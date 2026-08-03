@@ -4,6 +4,12 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from funcs.conv import position_to_onehot
+from modules.technical import (
+    EfficiencyRatio,
+    MovingAverage,
+    PurePursuitFollower,
+    VWAP,
+)
 from structs.app_enum import PositionType
 
 
@@ -75,13 +81,16 @@ class EnvData:
     profit_max: float = 0.0  # 最大含み損益
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
+    """
     # 始値
     ts_open: float = 0.0
     price_open: float = 0.0
     volume_open: float = 0.0
+    """
 
     # 建玉返済ロジック
-    status_cross: bool = False
+    status_cross_ma: bool = False
+    status_cross_vwap: bool = False
     status_threshold: bool = False
 
     # ====== マスク処理関連 ======
@@ -101,6 +110,19 @@ class EnvData:
         # SHORT
         PositionType.SHORT: MASK_SHORT,
     }
+
+    # テクニカル指標のインスタンス
+    obj_ma_1: PurePursuitFollower = field(init=False)
+    obj_ma_2: MovingAverage = field(init=False)
+    obj_er: EfficiencyRatio = field(init=False)
+    obj_vwap: VWAP = field(init=False)
+
+    def __post_init__(self):
+        # テクニカル指標のインスタンスの初期化
+        self.obj_ma_1 = PurePursuitFollower()
+        self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
+        self.obj_er = EfficiencyRatio(window_size=90)
+        self.obj_vwap = VWAP()
 
     def print_param(self):
         # ====== パラメータ ======
@@ -155,32 +177,6 @@ class EnvData:
         日毎に生じる絶対値のズレを少しでも抑えたい。
         そのため、株価に関連する特徴量に対して、始値で割っている。
         """
-        '''
-        # ザラバデータ（生データに近い）
-        market = np.array(
-            [
-                self.ma1 / self.price_open if self.price_open > 0 else 1.0,  # 1. MA1（短周期移動平均）
-                self.ma2 / self.price_open if self.price_open > 0 else 1.0,  # 2. MA2（長周期移動平均）
-                self.mom,  # 3. モメンタム
-                self.profit,  # 4. Profit（含み損益）
-                self.profit_max,  # 5. ProfitMax（最大含み損益）
-                np.tanh(float(self.n_trade) / 100),  # 6. n_trade（約定回数）
-                np.tanh(float(self.count_negative) / self.N_MINUS_MAX),  # 7. count_negative（含み損の継続カウンタ）
-                self.add_contract_cost(),  # 8. 約定コスト
-                self.dd_ratio,  # 9. dd_ratio（ドローダウン率）
-            ],
-            dtype=np.float32
-        )
-        # クロス判定できるデータ
-        cross = np.array(
-            [
-                self.diff_ma,
-                self.diff_vwap,
-                self.rsi,
-            ],
-            dtype=np.float32
-        )
-        '''
         # シグナル・フラグ（クロスしたタイミングなど）
         signal = np.array([
             self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
@@ -233,7 +229,7 @@ class EnvData:
         MA ゴールデン・クロスでエントリか？
         :return:
         """
-        if self.status_cross:
+        if self.status_cross_ma:
             if self.diff_ma_pre <= 0 < self.diff_ma:
                 return True
             else:
@@ -246,7 +242,7 @@ class EnvData:
         MA デッド・クロスでエントリか？
         :return:
         """
-        if self.status_cross:
+        if self.status_cross_ma:
             if self.diff_ma < 0 <= self.diff_ma_pre:
                 return True
             else:
@@ -259,8 +255,11 @@ class EnvData:
         VWAP ゴールデン・クロスでエントリか？
         :return:
         """
-        if self.diff_vwap_pre <= 0 < self.diff_vwap:
-            return True
+        if self.status_cross_vwap:
+            if self.diff_vwap_pre <= 0 < self.diff_vwap:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -269,8 +268,11 @@ class EnvData:
         VWAP デッド・クロスでエントリか？
         :return:
         """
-        if self.diff_vwap < 0 <= self.diff_vwap_pre:
-            return True
+        if self.status_cross_vwap:
+            if self.diff_vwap < 0 <= self.diff_vwap_pre:
+                return True
+            else:
+                return False
         else:
             return False
 
@@ -283,16 +285,17 @@ class EnvData:
     def reset_profit_pre(self):
         self.profit_pre = 0.0
 
-    def set_data(self, row, dict_info: dict):
-        self.ts = row["Time"]
-        self.price = row["Price"]
-        self.ma1 = row["MA1"]
-        self.ma2 = row["MA2"]
-        self.diff_ma = row["DiffMA"]
-        self.vwap = row["VWAP"]
-        self.diff_vwap = row["DiffVWAP"]
-        self.rsi = row["RSI"]
-        self.mom = row["Momentum"]
+    def set_data(self, ts: float, price: float, volume: float, dict_info: dict):
+        self.ts = ts
+        self.price = price
+
+        self.ma1, _ = self.obj_ma_1.update(price)
+        self.ma2 = self.obj_ma_2.update(price)
+        self.diff_ma = (self.ma1 - self.ma2) / self.ma2
+        self.vwap = self.obj_vwap.update(price, volume)
+        self.diff_vwap = (self.ma1 - self.vwap) / self.vwap
+        self.rsi = 0
+        self.mom = self.obj_er.update(self.ma1)
 
         self.position = dict_info["position"]
         self.profit = dict_info["profit"]
@@ -309,14 +312,20 @@ class EnvData:
 
         return obs, dict_technical
 
+    """
     def set_data_open(self, row):
         self.ts_open = row["Time"]
         self.price_open = row["Price"]
         self.volume_open = row["Volume"]
+    """
 
-    def setStatusCross(self, state: bool) -> bool:
-        self.status_cross = state
-        return self.status_cross
+    def setStatusCrossMA(self, state: bool) -> bool:
+        self.status_cross_ma = state
+        return self.status_cross_ma
+
+    def setStatusCrossVWAP(self, state: bool) -> bool:
+        self.status_cross_vwap = state
+        return self.status_cross_vwap
 
     def setStatusThreshold(self, state: bool) -> bool:
         self.status_threshold = state
