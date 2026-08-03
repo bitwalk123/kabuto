@@ -36,9 +36,11 @@ class PanelControl(Widget):
         layout = VBoxLayout()
         self.setLayout(layout)
 
+        '''
         self.cbox_threshold = cbox_threshold = CheckBoxControl("しきい値返済")
         cbox_threshold.stateChanged.connect(self.status_threshold_changed)
         layout.addWidget(cbox_threshold)
+        '''
 
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxControl("クロス MA 返済")
         cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
