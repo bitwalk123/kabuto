@@ -64,6 +64,8 @@ class ProfitHistoryChart(FigureCanvas):
         df.index = [pd.to_datetime(f"{year}/{d}") for d in df["注文日時"]]
         df.index.name = "Datetime"
         df.sort_index(inplace=True)
+        df["約定代金[円]"] = df["約定代金[円]"].astype(str)
+        print(df)
         df["約定代金[円]"] = [int(s.replace(",", "")) for s in df["約定代金[円]"]]
 
         n = len(df)
