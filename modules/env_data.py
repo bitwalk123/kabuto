@@ -58,9 +58,11 @@ class EnvData:
     pnl_total: float = 0  # エピソードにおける総報酬
     # dict_reward = defaultdict(list)  # 報酬保持用辞書 → 最後にデータフレーム化
     dict_reward: dict = field(default_factory=lambda: defaultdict(list))
+
     # ティックデータ
     ts: float = 0.0
     price: float = 0.0
+
     # 移動平均
     ma1: float = 0.0
     ma2: float = 0.0
@@ -76,11 +78,13 @@ class EnvData:
     # モメンタム
     mom: float = 0.0
     mom_pre: float = 0.0
+
     # 含み損益
     profit: float = 0.0  # 含み損益
     profit_max: float = 0.0  # 最大含み損益
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
+
     """
     # 始値
     ts_open: float = 0.0
@@ -288,6 +292,7 @@ class EnvData:
     def set_data(self, ts: float, price: float, volume: float, dict_info: dict):
         self.ts = ts
         self.price = price
+        self.position = dict_info["position"]
 
         self.ma1, _ = self.obj_ma_1.update(price)
         self.ma2 = self.obj_ma_2.update(price)
@@ -297,7 +302,6 @@ class EnvData:
         self.rsi = 0
         self.mom = self.obj_er.update(self.ma1)
 
-        self.position = dict_info["position"]
         self.profit = dict_info["profit"]
         self.update_profit_max()  # 含み損益の最大値を更新
         self.update_count_negative()  # 含み損の継続カウンタの更新
