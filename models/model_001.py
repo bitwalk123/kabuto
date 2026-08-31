@@ -13,7 +13,7 @@ class AlgoTrade(AlgoTradeBase):
     【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
     """
     MODEL_NAME: str = "model_001"
-    MODEL_REVISION: str = "0.0.4"
+    MODEL_REVISION: str = "0.0.5"
 
     def __init__(self):
         super().__init__()
@@ -30,20 +30,17 @@ class AlgoTrade(AlgoTradeBase):
 
         position: PositionType = onehot_to_position(dict_obs["position"])
 
-        '''
         if position == PositionType.NONE:
             # === エントリ ===
-            if self.isAutoPilot():
-                # MA ゴールデンクロスでエントリ
-                if cross_ma_golden and self.can_execute(ActionType.BUY.value, action_masks):
-                    return ActionType.BUY.value, {"reason": "MA ゴールデンクロス（買建）"}
+            # VWAP ゴールデンクロスでエントリ
+            if cross_vwap_golden and self.can_execute(ActionType.BUY.value, action_masks):
+                return ActionType.BUY.value, {"reason": "VWAP ゴールデンクロス（買建）"}
 
-                # MA デッドクロスでエントリ
-                if cross_ma_dead and self.can_execute(ActionType.SELL.value, action_masks):
-                    return ActionType.SELL.value, {"reason": "MA デッドクロス（売建）"}
+            # VWAP デッドクロスでエントリ
+            if cross_vwap_dead and self.can_execute(ActionType.SELL.value, action_masks):
+                return ActionType.SELL.value, {"reason": "VWAP デッドクロス（売建）"}
         else:
-        '''
-        if position != PositionType.NONE:
+            # if position != PositionType.NONE:
             # === エグジット ===
             # MA ゴールデンクロスでエグジット
             if cross_ma_golden and self.can_execute(ActionType.BUY.value, action_masks):
