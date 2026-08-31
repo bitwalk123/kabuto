@@ -257,10 +257,18 @@ class Trader(QMainWindow):
         # 最新のモメンタムの表示
         self.trends.setMom([ts], [momentum])
 
+        """
         # MA クロス時の縦線表示
         if 0.0 < dict_technicals["ma_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
         if 0.0 < dict_technicals["ma_dc"]:
+            self.trends.setCrossDead(dict_technicals["ts"])
+        """
+
+        # VWAP クロス時の縦線表示
+        if 0.0 < dict_technicals["vwap_gc"]:
+            self.trends.setCrossGolden(dict_technicals["ts"])
+        if 0.0 < dict_technicals["vwap_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
 
         self.update_technicals()
