@@ -49,7 +49,7 @@ class PanelControl(Widget):
         layout.addWidget(cbox_cross_ma)
 
         # クロス VWAP 返済
-        self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxControl("クロス VWAP 返済")
+        self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxControl("クロス VWAP エントリ/返済")
         cbox_cross_vwap.stateChanged.connect(self.status_cross_vwap_changed)
         layout.addWidget(cbox_cross_vwap)
 
