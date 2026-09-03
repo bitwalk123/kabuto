@@ -48,7 +48,7 @@ class AppRes:
 
     debug: bool = False
 
-    tse: str = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xls"
+    tse: str = "https://www.jpx.co.jp/markets/statistics-equities/misc/tvdivq0000001vg2-att/data_j.xlsx"
 
     path_monospace: str = "fonts/RictyDiminished-Regular.ttf"
     name_tick_font: str | None = None
