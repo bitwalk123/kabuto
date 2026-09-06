@@ -23,6 +23,7 @@ class EnvData:
     MAX_TRADE: int = 200  # 約定数上限（仮）
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
+    WIDTH_BAND = 5  # バンド幅
     PERIOD_MA_1: int = 30  # 移動平均線の期間1
     PERIOD_MA_2: int = 900  # 移動平均線の期間2
     # PERIOD_RSI: int = 300  # RSIの期間
@@ -122,6 +123,7 @@ class EnvData:
     obj_vwap: VWAP = field(init=False)
 
     def __post_init__(self):
+        self.bands = [-self.WIDTH_BAND, self.WIDTH_BAND]
         # テクニカル指標のインスタンスの初期化
         self.obj_ma_1 = PurePursuitFollower()
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
@@ -260,10 +262,10 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            if self.diff_vwap_pre <= 0 < self.diff_vwap:
-                return True
-            else:
-                return False
+            for v in self.bands:
+                if self.diff_vwap_pre <= v < self.diff_vwap:
+                    return True
+            return False
         else:
             return False
 
@@ -273,10 +275,10 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            if self.diff_vwap < 0 <= self.diff_vwap_pre:
-                return True
-            else:
-                return False
+            for v in self.bands:
+                if self.diff_vwap < v <= self.diff_vwap_pre:
+                    return True
+            return False
         else:
             return False
 
@@ -296,9 +298,9 @@ class EnvData:
 
         self.ma1, _ = self.obj_ma_1.update(price)
         self.ma2 = self.obj_ma_2.update(price)
-        self.diff_ma = (self.ma1 - self.ma2) / self.ma2
+        self.diff_ma = self.ma1 - self.ma2
         self.vwap = self.obj_vwap.update(price, volume)
-        self.diff_vwap = (self.ma1 - self.vwap) / self.vwap
+        self.diff_vwap = self.ma1 - self.vwap
         self.rsi = 0
         self.mom = self.obj_er.update(self.ma1)
 
