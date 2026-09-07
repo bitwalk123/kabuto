@@ -138,14 +138,14 @@ class ProfitReviewChart(FigureCanvas):
         self.ax[i].set_ylabel("含み損益")
 
         # --- クロス・シグナル ---
-        list_ma_gc = df[0 < df["ma_gc"]].index
-        list_ma_dc = df[0 < df["ma_dc"]].index
+        list_vwap_gc = df[0 < df["vwap_gc"]].index
+        list_vwap_dc = df[0 < df["vwap_dc"]].index
         for i in range(self.rows):
             # ゴールデン・クロス
-            for t in list_ma_gc:
+            for t in list_vwap_gc:
                 self.ax[i].axvline(x=t, zorder=100, c="#f00", ls="solid", alpha=0.5, lw=0.5)
             # デッド・クロス
-            for t in list_ma_dc:
+            for t in list_vwap_dc:
                 self.ax[i].axvline(x=t, zorder=100, c="#00f", ls="solid", alpha=0.5, lw=0.5)
 
         # --- プロットを更新 ---
