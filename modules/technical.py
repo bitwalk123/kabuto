@@ -532,60 +532,6 @@ class RunningStatistics:
         return self.zscore
 
 
-'''
-class EfficiencyRatio:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.queue = deque()
-
-        self.er = 0.0
-        self.prev_er = 0.0
-
-    def clear(self) -> None:
-        self.queue.clear()
-
-        self.er = 0.0
-        self.prev_er = 0.0
-
-    def getValue(self) -> float:
-        return self.er
-
-    def getSlope(self) -> float:
-        return self.er - self.prev_er
-
-    def update(self, value: float) -> float:
-
-        # 新しい価格を追加
-        self.queue.append(value)
-
-        # window_size を超えたら古い価格を削除
-        if len(self.queue) > self.window_size:
-            self.queue.popleft()
-
-        self.prev_er = self.er
-
-        # データ不足
-        if len(self.queue) < 2:
-            self.er = 0.0
-            return self.er
-
-        # Direction（始点と終点の距離）
-        direction = abs(self.queue[-1] - self.queue[0])
-
-        # Volatility（実際に辿った距離）
-        volatility = 0.0
-        for i in range(1, len(self.queue)):
-            volatility += abs(self.queue[i] - self.queue[i - 1])
-
-        if volatility > 0.0:
-            self.er = direction / volatility
-        else:
-            self.er = 0.0
-
-        return self.er
-'''
-
-
 class EfficiencyRatio:
     def __init__(self, window_size: int):
         if window_size < 2:
