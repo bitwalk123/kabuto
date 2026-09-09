@@ -5,7 +5,6 @@ import numpy as np
 
 from funcs.conv import position_to_onehot
 from modules.technical import (
-    EfficiencyRatio,
     MovingAverage,
     PurePursuitFollower,
     VWAP,
@@ -119,15 +118,20 @@ class EnvData:
     # テクニカル指標のインスタンス
     obj_ma_1: PurePursuitFollower = field(init=False)
     obj_ma_2: MovingAverage = field(init=False)
-    obj_er: EfficiencyRatio = field(init=False)
+    # obj_er: EfficiencyRatio = field(init=False)
     obj_vwap: VWAP = field(init=False)
 
     def __post_init__(self):
-        self.bands = [-self.WIDTH_BAND, self.WIDTH_BAND]
+        self.bands = [
+            -self.WIDTH_BAND * 3,
+            -self.WIDTH_BAND,
+            self.WIDTH_BAND,
+            self.WIDTH_BAND * 3,
+        ]
         # テクニカル指標のインスタンスの初期化
         self.obj_ma_1 = PurePursuitFollower()
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
-        self.obj_er = EfficiencyRatio(window_size=90)
+        # self.obj_er = EfficiencyRatio(window_size=90)
         self.obj_vwap = VWAP()
 
     def print_param(self):
@@ -296,13 +300,13 @@ class EnvData:
         self.price = price
         self.position = dict_info["position"]
 
-        self.ma1, _ = self.obj_ma_1.update(price)
+        self.ma1, self.mom = self.obj_ma_1.update(price)
         self.ma2 = self.obj_ma_2.update(price)
         self.diff_ma = self.ma1 - self.ma2
         self.vwap = self.obj_vwap.update(price, volume)
         self.diff_vwap = self.ma1 - self.vwap
         self.rsi = 0
-        self.mom = self.obj_er.update(self.ma1)
+        # self.mom = self.obj_er.update(self.ma1)
 
         self.profit = dict_info["profit"]
         self.update_profit_max()  # 含み損益の最大値を更新

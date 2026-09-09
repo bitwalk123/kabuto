@@ -306,6 +306,7 @@ class Momentum:
         return self.momentum
 
 
+"""
 class PurePursuitFollower:
     def __init__(
             self,
@@ -376,6 +377,95 @@ class PurePursuitFollower:
         # self.momentum = self.follower - self.follower_prev
 
         return self.follower, self.momentum
+"""
+
+
+class PurePursuitFollower:
+    def __init__(
+            self,
+            trend_period: int = 2,
+            gain: float = 0.15,
+            predict_gain: float = 0.5,
+            sample_interval: float = 2.0,
+    ):
+        self.trend_period = trend_period
+        self.gain = gain
+        self.predict_gain = predict_gain
+        self.sample_interval = sample_interval
+
+        self.queue = deque()
+
+        self.follower = 0.0
+        self.velocity = 0.0
+
+        self.initialized = False
+
+    def clear(self) -> None:
+        self.queue.clear()
+
+        self.follower = 0.0
+        self.velocity = 0.0
+
+        self.initialized = False
+
+    def getValue(self) -> tuple[float, float]:
+        return self.follower, self.velocity
+
+    def update(self, price: float) -> tuple[float, float]:
+        #
+        # 初回
+        #
+        if not self.initialized:
+            self.follower = price
+            self.initialized = True
+
+        #
+        # 価格履歴追加
+        #
+        self.queue.append(price)
+
+        #
+        # トレンド推定
+        #
+        if len(self.queue) > self.trend_period:
+            delayed_price = self.queue[0]
+
+            #
+            # 価格変化
+            #
+            price_change = price - delayed_price
+
+            #
+            # 先読み価格
+            #
+            target = price + self.predict_gain * price_change
+
+            self.queue.popleft()
+
+            #
+            # Pure Pursuit 更新
+            #
+            error = target - self.follower
+            self.follower += self.gain * error
+
+            #
+            # 速度 [円/秒]
+            #
+            elapsed = self.trend_period * self.sample_interval
+            self.velocity = abs(price_change) / elapsed
+
+        else:
+            target = price
+
+            #
+            # Pure Pursuit 更新
+            #
+            error = target - self.follower
+            self.follower += self.gain * error
+
+            self.velocity = 0.0
+
+        return self.follower, self.velocity
 
 
 class WMA:
