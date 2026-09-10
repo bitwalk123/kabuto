@@ -95,6 +95,7 @@ class EnvData:
     # 建玉返済ロジック
     status_cross_ma: bool = False
     status_cross_vwap: bool = False
+    status_cross_vwap_2: bool = False
     status_profit_vwap: bool = False
     status_threshold: bool = False
 
@@ -124,11 +125,9 @@ class EnvData:
 
     def __post_init__(self):
         self.bands_golden = [
-            0.5,
             self.WIDTH_BAND,
         ]
         self.bands_dead = [
-            -0.5,
             -self.WIDTH_BAND,
         ]
         # テクニカル指標のインスタンスの初期化
@@ -269,12 +268,15 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
+            if self.diff_vwap_pre <= 0.5 < self.diff_vwap:
+                return True
+
+        if self.status_cross_vwap_2:
             for v in self.bands_golden:
                 if self.diff_vwap_pre <= v < self.diff_vwap:
                     return True
-            return False
-        else:
-            return False
+
+        return False
 
     def is_vwap_dead_cross(self) -> bool:
         """
@@ -282,12 +284,15 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
+            if self.diff_vwap < -0.5 <= self.diff_vwap_pre:
+                return True
+
+        if self.status_cross_vwap_2:
             for v in self.bands_dead:
                 if self.diff_vwap < v <= self.diff_vwap_pre:
                     return True
-            return False
-        else:
-            return False
+
+        return False
 
     def is_warmup_period(self) -> float:
         return 1.0 if self.row < self.PERIOD_WARMUP else 0.0
