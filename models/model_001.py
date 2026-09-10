@@ -59,11 +59,11 @@ class AlgoTrade(AlgoTradeBase):
                 return ActionType.SELL.value, {"reason": "VWAP デッドクロス（返済）"}
 
             if flag_take_profit:
-                # しきい値利確
+                # 判定利確
                 if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
-                    return ActionType.BUY.value, {"reason": "しきい値利確（ショート）"}
+                    return ActionType.BUY.value, {"reason": "判定利確（ショート）"}
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
-                    return ActionType.SELL.value, {"reason": "しきい値利確（ロング）"}
+                    return ActionType.SELL.value, {"reason": "判定利確（ロング）"}
 
             '''
             if flag_losscut_consecutive_negative:

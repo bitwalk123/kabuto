@@ -66,7 +66,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
             }
         )
         # self.plot_mom.setRange(yRange=(0, 1), padding=0)
-        self.plot_mom.setRange(yRange=(0, 15))
+        self.plot_mom.setRange(yRange=(0, 10))
         self.plot_mom.setLabel("left", "Velocity")
         self.plot_mom.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる

@@ -95,6 +95,7 @@ class EnvData:
     # 建玉返済ロジック
     status_cross_ma: bool = False
     status_cross_vwap: bool = False
+    status_profit_vwap: bool = False
     status_threshold: bool = False
 
     # ====== マスク処理関連 ======
@@ -122,11 +123,13 @@ class EnvData:
     obj_vwap: VWAP = field(init=False)
 
     def __post_init__(self):
-        self.bands = [
-            -self.WIDTH_BAND * 3,
-            -self.WIDTH_BAND,
+        self.bands_golden = [
+            0.5,
             self.WIDTH_BAND,
-            self.WIDTH_BAND * 3,
+        ]
+        self.bands_dead = [
+            -0.5,
+            -self.WIDTH_BAND,
         ]
         # テクニカル指標のインスタンスの初期化
         self.obj_ma_1 = PurePursuitFollower()
@@ -266,7 +269,7 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            for v in self.bands:
+            for v in self.bands_golden:
                 if self.diff_vwap_pre <= v < self.diff_vwap:
                     return True
             return False
@@ -279,7 +282,7 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            for v in self.bands:
+            for v in self.bands_dead:
                 if self.diff_vwap < v <= self.diff_vwap_pre:
                     return True
             return False
@@ -337,6 +340,10 @@ class EnvData:
         self.status_cross_vwap = state
         return self.status_cross_vwap
 
+    def setStatusProfitVWAP(self, state: bool) -> bool:
+        self.status_profit_vwap = state
+        return self.status_profit_vwap
+
     def setStatusThreshold(self, state: bool) -> bool:
         self.status_threshold = state
         return self.status_threshold
@@ -392,6 +399,25 @@ class EnvData:
     '''
 
     def does_take_profit(self) -> bool:
+        if self.status_profit_vwap:
+            if 10 < self.profit_max and self.profit < self.profit_max / 3:
+                return True
+            else:
+                return False
+        else:
+            return False
+        """
+        if self.status_threshold:
+            if 20 <= self.profit_max and self.profit <= 5:
+                return True
+            elif 10 <= self.profit_max and self.profit <= 0:
+                return True
+            else:
+                return False
+        else:
+            return False
+        
+        """
         if self.status_threshold:
             if 20 <= self.profit_max and self.profit <= 5:
                 return True

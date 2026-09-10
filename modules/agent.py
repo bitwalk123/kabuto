@@ -269,6 +269,11 @@ class WorkerAgent(QObject):
         self.logger.info(f"{self.code} の Cross VWAP 返済が {state_new} に変更されました。")
 
     @Slot(bool)
+    def updateStateProfitVWAP(self, state: bool):
+        state_new = self.env.s.setStatusProfitVWAP(state)
+        self.logger.info(f"{self.code} の VWAP 利確が {state_new} に変更されました。")
+
+    @Slot(bool)
     def updateStateThreshold(self, state: bool):
         state_new = self.env.s.setStatusThreshold(state)
         self.logger.info(f"{self.code} の しきい値 返済が {state_new} に変更されました。")

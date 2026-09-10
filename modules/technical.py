@@ -383,7 +383,7 @@ class PurePursuitFollower:
 class PurePursuitFollower:
     def __init__(
             self,
-            trend_period: int = 2,
+            trend_period: int = 5,
             gain: float = 0.15,
             predict_gain: float = 0.5,
             sample_interval: float = 2.0,
