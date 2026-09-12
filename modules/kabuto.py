@@ -36,7 +36,7 @@ from widgets.statusbars import StatusBar
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.8.30"
+    __version__ = "0.8.31"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -45,14 +45,14 @@ class Kabuto(QMainWindow):
     res: AppRes
     timer_interval: int
     flag_data_ready: bool
-    thread: QThread | None
-    worker: ExcelReviewWorker | RSSReaderWorker | None
-    trader: Trader | None
+    thread: QThread
+    worker: ExcelReviewWorker | RSSReaderWorker
+    trader: Trader
     dict_trader: dict[str, Trader]
     list_code: list[str]
     list_code_selected: list[str]
-    df_transaction: pd.DataFrame | None
-    win_transaction: WinTransaction | None
+    df_transaction: pd.DataFrame
+    win_transaction: WinTransaction
     ts_system: float
     dict_ts: dict[str, float | str]
     finished_trading: bool
@@ -112,17 +112,17 @@ class Kabuto(QMainWindow):
         """データ構造の初期化"""
         # スレッド/ワーカー
         self.thread = QThread(self)
-        self.worker = None
+        # self.worker = None
 
         # Trader 関連
-        self.trader = None
+        # self.trader = None
         self.dict_trader = {}
         self.list_code = []
         self.list_code_selected = []
 
         # 取引履歴
-        self.df_transaction = None
-        self.win_transaction = None
+        # self.df_transaction = None
+        # self.win_transaction = None
 
         # 時刻関連
         self.ts_system = 0.0
