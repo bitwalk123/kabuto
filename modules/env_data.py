@@ -405,7 +405,7 @@ class EnvData:
 
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
-            if 10 < self.profit_max and self.profit < self.profit_max / 3:
+            if 10 < self.profit_max and self.profit < self.profit_max / 5:
                 return True
             else:
                 return False
