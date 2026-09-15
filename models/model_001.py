@@ -13,7 +13,7 @@ class AlgoTrade(AlgoTradeBase):
     【仕様】クラス変数 MODEL_NAME にモデル名 = ファイル名（.py 除く）を保持する。
     """
     MODEL_NAME: str = "model_001"
-    MODEL_REVISION: str = "0.0.5"
+    MODEL_REVISION: str = "0.0.6"
 
     def __init__(self):
         super().__init__()
@@ -71,13 +71,13 @@ class AlgoTrade(AlgoTradeBase):
                     return ActionType.BUY.value, {"reason": "連続含み損ロスカット（ショート）"}
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
                     return ActionType.SELL.value, {"reason": "連続含み損ロスカット（ロング）"}
+            '''
 
             if flag_losscut_simple:
                 if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
                     return ActionType.BUY.value, {"reason": "単純ロスカット（ショート）"}
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
                     return ActionType.SELL.value, {"reason": "単純ロスカット（ロング）"}
-            '''
 
         return ActionType.HOLD.value, {}
 

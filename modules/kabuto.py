@@ -36,7 +36,7 @@ from widgets.statusbars import StatusBar
 
 class Kabuto(QMainWindow):
     __app_name__ = "Kabuto"
-    __version__ = "0.8.31"
+    __version__ = "0.8.32"
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
@@ -282,14 +282,12 @@ class Kabuto(QMainWindow):
                 self.thread.wait()
                 self.logger.info(f"スレッド self.thread を削除しました。")
 
-            if self.worker is not None:
+            if hasattr(self, "worker"):
                 self.worker.deleteLater()
-                self.worker = None
                 self.logger.info(f"ワーカー self.worker を削除しました。")
 
             if self.thread is not None:
                 self.thread.deleteLater()
-                self.thread = None
         except RuntimeError as e:
             self.logger.error(f"終了時にエラー発生: {e}")
 

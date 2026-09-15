@@ -97,6 +97,7 @@ class EnvData:
     status_cross_vwap: bool = False
     status_cross_vwap_2: bool = False
     status_profit_vwap: bool = False
+    status_losscut_vwap: bool = False
     status_threshold: bool = False
 
     # ====== マスク処理関連 ======
@@ -233,9 +234,6 @@ class EnvData:
             "warmup": self.is_warmup_period(),
         }
 
-    def is_losscut(self) -> bool:
-        return self.profit < self.LOSSCUT_1
-
     def is_ma_golden_cross(self) -> bool:
         """
         MA ゴールデン・クロスでエントリか？
@@ -349,6 +347,10 @@ class EnvData:
         self.status_profit_vwap = state
         return self.status_profit_vwap
 
+    def setStatusLosscutVWAP(self, state: bool) -> bool:
+        self.status_losscut_vwap = state
+        return self.status_losscut_vwap
+
     def setStatusThreshold(self, state: bool) -> bool:
         self.status_threshold = state
         return self.status_threshold
@@ -403,9 +405,16 @@ class EnvData:
         return self.dd_ratio
     '''
 
+    def is_losscut(self) -> bool:
+        if self.status_losscut_vwap:
+            if self.profit_max <= 10 and self.profit <= -15:
+                return True
+        return False
+        # return self.profit < self.LOSSCUT_1
+
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
-            if 10 < self.profit_max and self.profit < self.profit_max / 5:
+            if 10 < self.profit_max and self.profit < self.profit_max / 4 - 5:
                 return True
             else:
                 return False

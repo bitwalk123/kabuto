@@ -27,6 +27,7 @@ class Trader(QMainWindow):
     updateStatusCrossMA = Signal(bool)
     updateStatusCrossVWAP = Signal(bool)
     updateStatusProfitVWAP = Signal(bool)
+    updateStatusLosscutVWAP = Signal(bool)
     updateStatusThreshold = Signal(bool)
 
     # クリーンアップ要求用シグナル
@@ -88,6 +89,7 @@ class Trader(QMainWindow):
         dock.notifyStatusCrossMA.connect(self.on_status_cross_ma)
         dock.notifyStatusCrossVWAP.connect(self.on_status_cross_vwap)
         dock.notifyStatusProfitVWAP.connect(self.on_status_profit_vwap)
+        dock.notifyStatusLosscutVWAP.connect(self.on_status_losscut_vwap)
         dock.notifyStatusThreshold.connect(self.on_status_threshold)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
 
@@ -116,6 +118,7 @@ class Trader(QMainWindow):
         self.updateStatusCrossMA.connect(worker.updateStateCrossMA)
         self.updateStatusCrossVWAP.connect(worker.updateStateCrossVWAP)
         self.updateStatusProfitVWAP.connect(worker.updateStateProfitVWAP)
+        self.updateStatusLosscutVWAP.connect(worker.updateStateLosscutVWAP)
         self.updateStatusThreshold.connect(worker.updateStateThreshold)
 
         # ワーカースレッドからのシグナル処理 → メインスレッドのスロットへ
@@ -237,6 +240,9 @@ class Trader(QMainWindow):
 
     def on_status_profit_vwap(self, state:bool):
         self.updateStatusProfitVWAP.emit(state)
+
+    def on_status_losscut_vwap(self, state:bool):
+        self.updateStatusLosscutVWAP.emit(state)
 
     def on_status_threshold(self, state: bool):
         self.updateStatusThreshold.emit(state)

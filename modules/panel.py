@@ -30,6 +30,7 @@ class PanelControl(Widget):
     changedStatusCrossVWAP = Signal(bool)
     changedStatusProfitVWAP = Signal(bool)
     changedStatusThreshold = Signal(bool)
+    changedStatusLosscutVWAP = Signal(bool)
 
     def __init__(self) -> None:
         super().__init__()
@@ -59,6 +60,11 @@ class PanelControl(Widget):
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
 
+        # クロス VWAP ロスカット
+        self.cbox_losscut_vwap = cbox_losscut_vwap = CheckBoxControl("クロス VWAP ロスカット")
+        cbox_losscut_vwap.stateChanged.connect(self.status_losscut_vwap_changed)
+        layout.addWidget(cbox_losscut_vwap)
+
     def status_cross_ma_changed(self):
         self.changedStatusCrossMA.emit(self.cbox_cross_ma.isChecked())
 
@@ -67,6 +73,9 @@ class PanelControl(Widget):
 
     def status_profit_vwap_changed(self):
         self.changedStatusProfitVWAP.emit(self.cbox_profit_vwap.isChecked())
+
+    def status_losscut_vwap_changed(self):
+        self.changedStatusLosscutVWAP.emit(self.cbox_losscut_vwap.isChecked())
 
     '''
     def status_threshold_changed(self):

@@ -23,6 +23,7 @@ class DockTrader(DockWidget):
     notifyStatusCrossMA = Signal(bool)
     notifyStatusCrossVWAP = Signal(bool)
     notifyStatusProfitVWAP = Signal(bool)
+    notifyStatusLosscutVWAP = Signal(bool)
     notifyStatusThreshold = Signal(bool)
 
     def __init__(self, res: AppRes, code: str) -> None:
@@ -70,6 +71,7 @@ class DockTrader(DockWidget):
         panel_control.changedStatusCrossMA.connect(self.on_status_cross_ma_changed)
         panel_control.changedStatusCrossVWAP.connect(self.on_status_cross_vwap_changed)
         panel_control.changedStatusProfitVWAP.connect(self.on_status_profit_vwap_changed)
+        panel_control.changedStatusLosscutVWAP.connect(self.on_status_losscut_vwap_changed)
         panel_control.changedStatusThreshold.connect(self.on_status_threshold_changed)
         self.layout.addWidget(panel_control)
 
@@ -157,6 +159,9 @@ class DockTrader(DockWidget):
 
     def on_status_profit_vwap_changed(self, state: bool):
         self.notifyStatusProfitVWAP.emit(state)
+
+    def on_status_losscut_vwap_changed(self, state: bool):
+        self.notifyStatusLosscutVWAP.emit(state)
 
     def on_status_threshold_changed(self, state: bool):
         self.notifyStatusThreshold.emit(state)
