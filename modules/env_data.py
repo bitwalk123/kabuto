@@ -266,7 +266,7 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            if self.diff_vwap_pre <= 0.5 < self.diff_vwap:
+            if self.diff_vwap_pre <= 0 < self.diff_vwap:
                 return True
 
         if self.status_cross_vwap_2:
@@ -282,7 +282,7 @@ class EnvData:
         :return:
         """
         if self.status_cross_vwap:
-            if self.diff_vwap < -0.5 <= self.diff_vwap_pre:
+            if self.diff_vwap < 0 <= self.diff_vwap_pre:
                 return True
 
         if self.status_cross_vwap_2:
@@ -414,13 +414,27 @@ class EnvData:
 
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
+            if self.profit_max <= 50:
+                if self.position == PositionType.LONG:
+                    if self.diff_vwap < 1:
+                        return True
+
+                if self.position == PositionType.SHORT:
+                    if -1 < self.diff_vwap:
+                        return True
+            elif self.profit < self.profit_max / 3:
+                return True
+
+        return False
+        """
+        if self.status_profit_vwap:
             if 10 < self.profit_max and self.profit < self.profit_max / 4 - 5:
                 return True
             else:
                 return False
         else:
             return False
-        """
+
         if self.status_threshold:
             if 20 <= self.profit_max and self.profit <= 5:
                 return True
