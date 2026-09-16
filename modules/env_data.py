@@ -414,7 +414,10 @@ class EnvData:
 
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
-            if self.profit_max <= 50:
+            if self.profit_max < 3:
+                # VWAP線近辺の変動を除外
+                return False
+            elif 3 <= self.profit_max <= 50:
                 if self.position == PositionType.LONG:
                     if self.diff_vwap < 1:
                         return True
