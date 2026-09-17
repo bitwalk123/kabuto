@@ -1,5 +1,6 @@
 """
-Project Kabuto のレビュー用 GUI アプリの起動プログラム (Beetle)
+Project Kabuto
+シミュレーション＆レビュー用 GUI アプリの起動プログラム (Beetle)
 """
 import logging
 import sys
