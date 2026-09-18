@@ -67,7 +67,7 @@ class Beetle(MainWindow):
             print(obj_file.name)
         """
         obj_file = list_files[-1]
-        # print(obj_file.name)
+        self.dock_files.select_file(obj_file)
         self.do_simulation(obj_file)
 
     def do_simulation(self, obj_file: FilePath):

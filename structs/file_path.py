@@ -128,3 +128,15 @@ class FilePathProxyModel(QSortFilterProxyModel):
             model.file_at(self.mapToSource(self.index(row, 0)).row())
             for row in range(self.rowCount())
         ]
+
+    def index_of(self, file: FilePath) -> QModelIndex:
+        model = cast(FilePathModel, self.sourceModel())
+
+        for row in range(self.rowCount()):
+            index = self.index(row, 0)
+            source_index = self.mapToSource(index)
+
+            if model.file_at(source_index.row()).full == file.full:
+                return index
+
+        return QModelIndex()

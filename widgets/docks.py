@@ -78,7 +78,7 @@ class DockFileList(QDockWidget):
 
         # Drag & Drop 用ファイルリスト
         self.model = model = FilePathModel()
-        lv = ListViewFileDnD(model, self)
+        self.lv = lv = ListViewFileDnD(model, self)
 
         self.proxy = proxy = FilePathProxyModel()
         proxy.setDynamicSortFilter(True)
@@ -96,6 +96,10 @@ class DockFileList(QDockWidget):
 
     def get_files(self):
         return self.proxy.files()
+
+    def select_file(self, obj_file: FilePath):
+        self.lv.select_file(obj_file)
+
 
 class DockSimulation(QDockWidget):
     clickedStart = Signal()

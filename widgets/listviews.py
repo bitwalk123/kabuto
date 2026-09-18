@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import cast
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import (
@@ -9,7 +10,7 @@ from PySide6.QtGui import (
 )
 from PySide6.QtWidgets import QListView
 
-from structs.file_path import FilePathModel, FilePath
+from structs.file_path import FilePathModel, FilePath, FilePathProxyModel
 
 
 class CheckList(QListView):
@@ -44,7 +45,7 @@ class ListViewFileDnD(QListView):
     def __init__(self, model: FilePathModel, parent=None):
         super().__init__(parent)
 
-        self.model = model
+        self.model_file = model
         self.setAcceptDrops(True)
 
     def dragEnterEvent(self, event: QDragEnterEvent):
@@ -68,6 +69,14 @@ class ListViewFileDnD(QListView):
             path = Path(url.toLocalFile())
 
             if path.is_file():
-                self.model.add_file(FilePath(path))
+                self.model_file.add_file(FilePath(path))
 
         event.acceptProposedAction()
+
+    def select_file(self, file: FilePath):
+        proxy = cast(FilePathProxyModel, self.model())
+
+        index = proxy.index_of(file)
+
+        if index.isValid():
+            self.setCurrentIndex(index)
