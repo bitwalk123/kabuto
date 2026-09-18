@@ -1,6 +1,10 @@
 import datetime
 import os
 import re
+from datetime import datetime
+from zoneinfo import ZoneInfo
+
+JST = ZoneInfo("Asia/Tokyo")
 
 
 def conv_datetime_from_timestamp(ts) -> str:
@@ -176,3 +180,15 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     dict_ts["datetime_str_3"] = os.path.join(f"{year:04}", f"{month:02}", f"{day:02}")
 
     return dict_ts
+
+
+def get_ts_1h_end(ts: float) -> float:
+    dt = datetime.fromtimestamp(ts, tz=JST)
+    dt_1h_end = dt.replace(
+        hour=11,
+        minute=30,
+        second=0,
+        microsecond=0,
+    )
+    ts_1h_end = dt_1h_end.timestamp()
+    return ts_1h_end

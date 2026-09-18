@@ -5,6 +5,7 @@ import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 from pandas import DataFrame
 
+from funcs.tide import get_ts_1h_end
 from structs.file_path import FilePath
 
 
@@ -26,6 +27,8 @@ class SimulatorWorker(QObject):
 
 
 class Simulator():
+    ts_1h_end: float
+
     def __init__(self, obj_file: FilePath, code: str = "9984", full: bool = False):
         self.logger = logging.getLogger(__name__)
         self.obj_file = obj_file
@@ -33,13 +36,27 @@ class Simulator():
         self.full = full
 
     def start(self) -> dict:
-        df = self.read_excel()
-        if len(df) == 0:
+        df: pd.DataFrame = self.read_excel()
+        rowsize = len(df)
+        if rowsize == 0:
             return {}
 
         print(self.obj_file.full)
         print(self.code)
         print(df)
+
+        # 前引け時刻
+        ts = df.iloc[0]["Time"]
+        self.ts_1h_end = get_ts_1h_end(ts)
+        print(self.ts_1h_end)
+
+        for r in range(rowsize):
+            row = df.iloc[r]
+            ts = row["Time"]
+            price = row["Price"]
+            volume = row["Volume"]
+            print(ts, price, volume)
+
         return {}
 
     def read_excel(self) -> DataFrame:
