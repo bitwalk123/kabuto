@@ -13,16 +13,22 @@ class SimulatorWorker(QObject):
     def __init__(self, obj_file: FilePath) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.obj_file = obj_file
+        self.sim = Simulator(obj_file)
 
     @Slot()
     def run(self):
         # 重い処理
-        #result = self.do_work()
-        print(self.obj_file.full)
-        df = pd.read_excel(self.obj_file.full)
-        print(df)
-        dict_result = {}
-
+        dict_result = self.sim.start()
         self.result.emit(dict_result)
         self.finished.emit()
+
+
+class Simulator():
+    def __init__(self, obj_file: FilePath):
+        self.obj_file = obj_file
+        self.df = pd.read_excel(obj_file.full)
+
+    def start(self) -> dict:
+        print(self.obj_file.full)
+        print(self.df)
+        return {}
