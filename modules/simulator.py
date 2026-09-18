@@ -1,5 +1,6 @@
 import logging
 
+import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 
 from structs.file_path import FilePath
@@ -18,6 +19,9 @@ class SimulatorWorker(QObject):
     def run(self):
         # 重い処理
         #result = self.do_work()
+        print(self.obj_file.full)
+        df = pd.read_excel(self.obj_file.full)
+        print(df)
         dict_result = {}
 
         self.result.emit(dict_result)
