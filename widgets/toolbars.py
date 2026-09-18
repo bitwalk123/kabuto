@@ -6,13 +6,12 @@ from PySide6.QtGui import QAction, QIcon
 from PySide6.QtWidgets import (
     QFileDialog,
     QStyle,
-    QToolBar, QToolButton,
-)
+    QToolBar, )
 
+from funcs.excel import get_sheets_in_excel
 from funcs.ios import (
     save_setting,
 )
-from funcs.excel import get_sheets_in_excel
 from funcs.setting import load_setting
 from structs.app_enum import AppMode
 from structs.res import AppRes
@@ -25,25 +24,19 @@ from widgets.layouts import HBoxLayout
 
 
 class ToolBarBeetle(QToolBar):
-    clickedOpen = Signal()
-
     def __init__(self, res: AppRes):
         super().__init__()
         self.res = res
 
-        but_open = QToolButton()
-        but_open.setText("Open")
-        but_open.setToolTip("Open file")
-        but_open.setIcon(
-            self.style().standardIcon(
-                QStyle.StandardPixmap.SP_DirOpenIcon
-            )
-        )
-        but_open.clicked.connect(self.on_open_clicked)
-        self.addWidget(but_open)
+        pad = PadH()
+        self.addWidget(pad)
 
-    def on_open_clicked(self):
-        self.clickedOpen.emit()
+        action_start = QAction(
+            QIcon(os.path.join(res.dir_image, "about.png")),
+            "このアプリについて",
+            self
+        )
+        self.addAction(action_start)
 
 
 class ToolBarProphet(QToolBar):

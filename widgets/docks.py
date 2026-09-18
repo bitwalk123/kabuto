@@ -1,10 +1,11 @@
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QDockWidget
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import QDockWidget, QCheckBox, QPushButton
 
+from structs.file_path import FilePathModel, FilePathProxyModel, FilePath
 from widgets.containers import Widget, PadH
 from widgets.labels import LabelRightMedium
 from widgets.layouts import VBoxLayout, HBoxLayout
-from widgets.switches import Switch
+from widgets.listviews import ListViewFileDnD
 
 
 class DockTitle(Widget):
@@ -52,3 +53,61 @@ class DockWidget(QDockWidget):
     def setTitle(self, title: str):
         self.dock_title.setTitle(title)
 
+
+class DockFileList(QDockWidget):
+    def __init__(self):
+        super().__init__()
+
+        base = Widget()
+        layout = VBoxLayout()
+        base.setLayout(layout)
+        self.setWidget(base)
+
+        row = HBoxLayout()
+        layout.addLayout(row)
+
+        self.chk_sel = chk_sel = QCheckBox("全選択 / 解除")
+        chk_sel.setStyleSheet("""
+            QCheckBox {
+                margin-left: 5px;
+                font-size: 7pt;
+            }
+        """)
+        chk_sel.toggled.connect(self.on_checked)
+        row.addWidget(chk_sel)
+
+        # Drag & Drop 用ファイルリスト
+        self.model = model = FilePathModel()
+        lv = ListViewFileDnD(model, self)
+
+        self.proxy = proxy = FilePathProxyModel()
+        proxy.setDynamicSortFilter(True)
+        proxy.setSourceModel(model)
+        proxy.sort(0, Qt.SortOrder.AscendingOrder)
+
+        lv.setModel(proxy)
+        layout.addWidget(lv)
+
+    def add_file(self, obj_file: FilePath):
+        self.model.add_file(obj_file)
+
+    def on_checked(self, state: bool):
+        self.model.set_all_checked(state)
+
+    def get_files(self):
+        return self.proxy.files()
+
+class DockSimulation(QDockWidget):
+    clickedStart = Signal()
+
+    def __init__(self):
+        super().__init__()
+
+        base = Widget()
+        layout = VBoxLayout()
+        base.setLayout(layout)
+        self.setWidget(base)
+
+        but_start = QPushButton("開　始")
+        but_start.clicked.connect(self.clickedStart)
+        layout.addWidget(but_start)

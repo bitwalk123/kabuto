@@ -1,12 +1,16 @@
 import os
-import re
 
+from PySide6.QtCore import Qt, QThread
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QFileDialog
 
 from modules.kabuto import Kabuto
+from modules.simulator import SimulatorWorker
+from modules.trend_charts import SimulationCharts
+from structs.file_path import FilePath
 from structs.res import AppRes
 from widgets.containers import MainWindow
+from widgets.docks import DockFileList, DockSimulation
+from widgets.statusbars import StatusBar
 from widgets.toolbars import ToolBarBeetle
 
 
@@ -16,10 +20,12 @@ class Beetle(MainWindow):
     __author__ = "Fuhito Suguri"
     __license__ = "MIT"
 
+    thread: QThread
+    worker: SimulatorWorker
+
     def __init__(self):
         super().__init__()
         self.res = res = AppRes()
-        self.pattern_code = re.compile(r".*([0-9A-X]{4})_.+\.csv")
 
         # ウィンドウアイコンとタイトルを設定
         self.setWindowIcon(QIcon(os.path.join(self.res.dir_image, "beetle.png")))
@@ -28,17 +34,62 @@ class Beetle(MainWindow):
 
         # ツール・バー
         toolbar = ToolBarBeetle(res)
-        toolbar.clickedOpen.connect(self.on_open_clicked)
         self.addToolBar(toolbar)
 
+        # 左ドック
+        self.dock_files = dock_files = DockFileList()
+        self.addDockWidget(
+            Qt.DockWidgetArea.LeftDockWidgetArea,
+            dock_files
+        )
 
-    def on_open_clicked(self):
-        dlg = QFileDialog()
-        dlg.setNameFilters(["CSV files (*.csv)"])
-        dlg.setOption(QFileDialog.Option.DontUseNativeDialog)
-        if dlg.exec():
-            filename = dlg.selectedFiles()[0]
-            print(filename)
-        else:
-            print("Canceled!")
+        # 右ドック
+        self.dock_sim = dock_sim = DockSimulation()
+        self.addDockWidget(
+            Qt.DockWidgetArea.RightDockWidgetArea,
+            dock_sim
+        )
+        dock_sim.clickedStart.connect(self.on_start)
 
+        chart = SimulationCharts(res)
+        self.setCentralWidget(chart)
+
+        status = StatusBar(res)
+        self.setStatusBar(status)
+
+    def on_start(self):
+        list_files: list[FilePath] = self.dock_files.get_files()
+        if len(list_files) == 0:
+            return
+
+        """
+        for obj_file in list_files:
+            print(obj_file.name)
+        """
+        obj_file = list_files[-1]
+        print(obj_file.name)
+
+    def do_simulation(self, obj_file: FilePath):
+        """
+        別スレッドでシミュレーションを実行
+        :param obj_file:
+        """
+        self.thread = thread = QThread()
+        self.worker = worker = SimulatorWorker(obj_file)
+        worker.moveToThread(thread)
+
+        thread.started.connect(worker.run)
+        worker.finished.connect(thread.quit)
+        thread.finished.connect(self.next_simulation)
+        worker.finished.connect(worker.deleteLater)
+        thread.finished.connect(thread.deleteLater)
+
+        worker.result.connect(self.handle_result)
+
+        thread.start()
+
+    def handle_result(self, result: dict):
+        print(result)
+
+    def next_simulation(self):
+        pass
