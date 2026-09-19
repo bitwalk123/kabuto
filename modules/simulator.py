@@ -6,24 +6,9 @@ from PySide6.QtCore import QObject, Signal, Slot
 from pandas import DataFrame
 
 from funcs.tide import get_ts_1h_end
+from modules.agent import SimulatorAgent
+from modules.posman import PositionManager
 from structs.file_path import FilePath
-
-
-class SimulatorWorker(QObject):
-    finished = Signal()
-    result = Signal(dict)
-
-    def __init__(self, obj_file: FilePath) -> None:
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-        self.sim = Simulator(obj_file)
-
-    @Slot()
-    def run(self):
-        # 重い処理
-        dict_result = self.sim.start()
-        self.result.emit(dict_result)
-        self.finished.emit()
 
 
 class Simulator():
@@ -36,10 +21,11 @@ class Simulator():
         self.full = full
 
     def start(self) -> dict:
+        dict_result = {}
         df: pd.DataFrame = self.read_excel()
-        rowsize = len(df)
-        if rowsize == 0:
-            return {}
+        size_row = len(df)
+        if size_row == 0:
+            return dict_result
 
         print(self.obj_file.full)
         print(self.code)
@@ -50,14 +36,23 @@ class Simulator():
         self.ts_1h_end = get_ts_1h_end(ts)
         print(self.ts_1h_end)
 
-        for r in range(rowsize):
+        agent = SimulatorAgent(self.code, {})
+        agent.resetEnv()
+        posman = PositionManager()
+        posman.initPosition([self.code])
+        for r in range(size_row):
+            # 一行のデータ
             row = df.iloc[r]
             ts = row["Time"]
             price = row["Price"]
             volume = row["Volume"]
-            print(ts, price, volume)
+            # ポジションマネージャからの含み益などの情報
+            dict_info = posman.getInfo(self.code, price)
+            # エージェントへ情報追加
+            agent.addData(ts, price, volume, dict_info)
 
-        return {}
+        dict_result["technicals"] = agent.getTechnicals()
+        return dict_result
 
     def read_excel(self) -> DataFrame:
         # 指定した銘柄コード self.code のシートを読み込む
@@ -77,3 +72,19 @@ class Simulator():
                 f"{self.obj_file.full} は存在しません。"
             )
             return pd.DataFrame()
+
+
+class SimulatorWorker(QObject):
+    finished = Signal()
+    result = Signal(dict)
+
+    def __init__(self, obj_file: FilePath) -> None:
+        super().__init__()
+        self.logger = logging.getLogger(__name__)
+        self.sim = Simulator(obj_file)
+
+    @Slot()
+    def run(self):
+        dict_result = self.sim.start()
+        self.result.emit(dict_result)
+        self.finished.emit()

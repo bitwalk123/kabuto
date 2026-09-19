@@ -1,7 +1,6 @@
 import datetime
 import os
 import re
-from datetime import datetime
 from zoneinfo import ZoneInfo
 
 JST = ZoneInfo("Asia/Tokyo")
@@ -183,7 +182,7 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
 
 
 def get_ts_1h_end(ts: float) -> float:
-    dt = datetime.fromtimestamp(ts, tz=JST)
+    dt = datetime.datetime.fromtimestamp(ts, tz=JST)
     dt_1h_end = dt.replace(
         hour=11,
         minute=30,
