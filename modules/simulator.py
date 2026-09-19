@@ -29,7 +29,7 @@ class Simulator():
 
         print(self.obj_file.full)
         print(self.code)
-        print(df)
+        # print(df)
 
         # 前引け時刻
         ts = df.iloc[0]["Time"]
@@ -85,6 +85,9 @@ class SimulatorWorker(QObject):
 
     @Slot()
     def run(self):
+        self.logger.info("シミュレーションを開始します。")
         dict_result = self.sim.start()
+        self.logger.info("シミュレーションが終了しました。")
+
         self.result.emit(dict_result)
         self.finished.emit()
