@@ -66,11 +66,12 @@ class Beetle(MainWindow):
         for obj_file in list_files:
             print(obj_file.name)
         """
+        # 現時点では最新のデータのみ
         obj_file = list_files[-1]
         self.dock_files.select_file(obj_file)
-        self.do_simulation(obj_file)
+        self.simulation_start(obj_file)
 
-    def do_simulation(self, obj_file: FilePath):
+    def simulation_start(self, obj_file: FilePath):
         """
         別スレッドでシミュレーションを実行
         :param obj_file:
@@ -81,16 +82,25 @@ class Beetle(MainWindow):
 
         thread.started.connect(worker.run)
         worker.finished.connect(thread.quit)
-        thread.finished.connect(self.next_simulation)
+        thread.finished.connect(self.simulation_next)
         worker.finished.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
 
-        worker.result.connect(self.handle_result)
+        worker.result.connect(self.simulation_done)
 
         thread.start()
 
-    def handle_result(self, result: dict):
-        print(result)
+    def simulation_done(self, dict_result: dict):
+        """
+        シミュレーション結果
+        :param dict_result:
+        :return:
+        """
+        print(dict_result)
 
-    def next_simulation(self):
+    def simulation_next(self):
+        """
+        次のシミュレーション
+        :return:
+        """
         pass
