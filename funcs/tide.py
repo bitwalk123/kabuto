@@ -181,13 +181,18 @@ def get_intraday_timestamp(excel_path: str = "") -> dict:
     return dict_ts
 
 
-def get_ts_1h_end(ts: float) -> float:
+def get_dt_market_range(ts: float) -> tuple:
     dt = datetime.datetime.fromtimestamp(ts, tz=JST)
-    dt_1h_end = dt.replace(
-        hour=11,
+    dt_start = dt.replace(
+        hour=9,
+        minute=0,
+        second=0,
+        microsecond=0,
+    ).replace(tzinfo=None)
+    dt_end = dt.replace(
+        hour=15,
         minute=30,
         second=0,
         microsecond=0,
-    )
-    ts_1h_end = dt_1h_end.timestamp()
-    return ts_1h_end
+    ).replace(tzinfo=None)
+    return dt_start, dt_end

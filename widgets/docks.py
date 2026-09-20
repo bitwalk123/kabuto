@@ -57,6 +57,7 @@ class DockWidget(QDockWidget):
 class DockFileList(QDockWidget):
     def __init__(self):
         super().__init__()
+        self.setMinimumWidth(200)
 
         base = Widget()
         layout = VBoxLayout()

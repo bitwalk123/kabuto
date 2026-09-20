@@ -1,3 +1,4 @@
+import logging
 import os
 
 from PySide6.QtCore import Qt, QThread
@@ -5,7 +6,7 @@ from PySide6.QtGui import QIcon
 
 from modules.kabuto import Kabuto
 from modules.simulator import SimulatorWorker
-from modules.trend_charts import SimulationCharts
+from modules.simulator_charts import ChartWindow
 from structs.file_path import FilePath
 from structs.res import AppRes
 from widgets.containers import MainWindow
@@ -25,6 +26,7 @@ class Beetle(MainWindow):
 
     def __init__(self):
         super().__init__()
+        self.logger = logging.getLogger(__name__)
         self.res = res = AppRes()
 
         # ウィンドウアイコンとタイトルを設定
@@ -35,6 +37,9 @@ class Beetle(MainWindow):
         # ツール・バー
         toolbar = ToolBarBeetle(res)
         self.addToolBar(toolbar)
+
+        self.chart_win = chart_win = ChartWindow(res)
+        self.setCentralWidget(chart_win)
 
         # 左ドック
         self.dock_files = dock_files = DockFileList()
@@ -50,9 +55,6 @@ class Beetle(MainWindow):
             dock_sim
         )
         dock_sim.clickedStart.connect(self.on_start)
-
-        chart = SimulationCharts(res)
-        self.setCentralWidget(chart)
 
         status = StatusBar(res)
         self.setStatusBar(status)
@@ -76,6 +78,9 @@ class Beetle(MainWindow):
         別スレッドでシミュレーションを実行
         :param obj_file:
         """
+        self.chart_win.remove_axes()
+        self.logger.info("チャートを消去しました。")
+
         self.thread = thread = QThread()
         self.worker = worker = SimulatorWorker(obj_file)
         worker.moveToThread(thread)
@@ -97,6 +102,8 @@ class Beetle(MainWindow):
         :return:
         """
         print(dict_result)
+        if "technicals" in dict_result:
+            self.chart_win.plot(dict_result)
 
     def simulation_next(self):
         """

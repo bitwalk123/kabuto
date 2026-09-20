@@ -5,15 +5,14 @@ import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 from pandas import DataFrame
 
-from funcs.tide import get_ts_1h_end
+from funcs.tide import get_dt_market_range
+from funcs.tse import get_ticker_name_list
 from modules.agent import SimulatorAgent
 from modules.posman import PositionManager
 from structs.file_path import FilePath
 
 
 class Simulator():
-    ts_1h_end: float
-
     def __init__(self, obj_file: FilePath, code: str = "9984", full: bool = False):
         self.logger = logging.getLogger(__name__)
         self.obj_file = obj_file
@@ -27,14 +26,18 @@ class Simulator():
         if size_row == 0:
             return dict_result
 
+        """
         print(self.obj_file.full)
         print(self.code)
-        # print(df)
+        """
+        # 銘柄名 (銘柄コード)
+        dict_result["title"] = f"{get_ticker_name_list([self.code])[self.code]} ({self.code})"
 
         # 前引け時刻
         ts = df.iloc[0]["Time"]
-        self.ts_1h_end = get_ts_1h_end(ts)
-        print(self.ts_1h_end)
+        dt_start, dt_end = get_dt_market_range(ts)
+        dict_result["mkt_start"] = dt_start
+        dict_result["mkt_end"] = dt_end
 
         agent = SimulatorAgent(self.code, {})
         agent.resetEnv()
@@ -68,9 +71,7 @@ class Simulator():
                 )
                 return pd.DataFrame()
         else:
-            self.logger.error(
-                f"{self.obj_file.full} は存在しません。"
-            )
+            self.logger.error(f"{self.obj_file.full} は存在しません。")
             return pd.DataFrame()
 
 
