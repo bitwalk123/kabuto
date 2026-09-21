@@ -2,6 +2,12 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QDockWidget, QCheckBox, QPushButton
 
 from structs.file_path import FilePathModel, FilePathProxyModel, FilePath
+from widgets.buttons import (
+    CheckBoxCrossMA,
+    CheckBoxCrossVWAP,
+    CheckBoxLosscutVWAP,
+    CheckBoxProfitVWAP,
+)
 from widgets.containers import Widget, PadH
 from widgets.labels import LabelRightMedium
 from widgets.layouts import VBoxLayout, HBoxLayout
@@ -113,6 +119,42 @@ class DockSimulation(QDockWidget):
         base.setLayout(layout)
         self.setWidget(base)
 
+        # クロス MA 返済
+        self.cbox_cross_ma = cbox_cross_ma = CheckBoxCrossMA()
+        cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
+        layout.addWidget(cbox_cross_ma)
+
+        # クロス VWAP エントリ/返済
+        self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxCrossVWAP()
+        cbox_cross_vwap.stateChanged.connect(self.status_cross_vwap_changed)
+        layout.addWidget(cbox_cross_vwap)
+
+        # クロス VWAP 利確
+        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
+        cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
+        layout.addWidget(cbox_profit_vwap)
+
+        # クロス VWAP ロスカット
+        self.cbox_losscut_vwap = cbox_losscut_vwap = CheckBoxLosscutVWAP()
+        cbox_losscut_vwap.stateChanged.connect(self.status_losscut_vwap_changed)
+        layout.addWidget(cbox_losscut_vwap)
+
         but_start = QPushButton("開　始")
         but_start.clicked.connect(self.clickedStart)
         layout.addWidget(but_start)
+
+    def status_cross_ma_changed(self):
+        # self.changedStatusCrossMA.emit(self.cbox_cross_ma.isChecked())
+        pass
+
+    def status_cross_vwap_changed(self):
+        # self.changedStatusCrossVWAP.emit(self.cbox_cross_vwap.isChecked())
+        pass
+
+    def status_profit_vwap_changed(self):
+        # self.changedStatusProfitVWAP.emit(self.cbox_profit_vwap.isChecked())
+        pass
+
+    def status_losscut_vwap_changed(self):
+        # self.changedStatusLosscutVWAP.emit(self.cbox_losscut_vwap.isChecked())
+        pass

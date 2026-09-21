@@ -411,3 +411,27 @@ class BaselineSwitch(QPushButton):
                     font-weight: bold;
                 }
             """)
+
+
+class CheckBoxCrossMA(CheckBoxControl):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setText("クロス MA 返済")
+
+
+class CheckBoxCrossVWAP(CheckBoxControl):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setText("クロス VWAP エントリ/返済")
+
+
+class CheckBoxProfitVWAP(CheckBoxControl):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setText("クロス VWAP 利確")
+
+
+class CheckBoxLosscutVWAP(CheckBoxControl):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setText("クロス VWAP ロスカット")

@@ -23,7 +23,7 @@ class SimulatorCharts(FigureCanvas):
         self.fig = Figure()
         super().__init__(self.fig)
         self.res = res
-        self.setMinimumWidth(1500)
+        self.setMinimumWidth(1200)
 
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
