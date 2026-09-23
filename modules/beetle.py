@@ -59,7 +59,7 @@ class Beetle(MainWindow):
         status = StatusBar(res)
         self.setStatusBar(status)
 
-    def on_start(self):
+    def on_start(self, dict_option: dict):
         list_files: list[FilePath] = self.dock_files.get_files()
         if len(list_files) == 0:
             return
@@ -71,9 +71,9 @@ class Beetle(MainWindow):
         # 現時点では最新のデータのみ
         obj_file = list_files[-1]
         self.dock_files.select_file(obj_file)
-        self.simulation_start(obj_file)
+        self.simulation_start(obj_file, dict_option)
 
-    def simulation_start(self, obj_file: FilePath):
+    def simulation_start(self, obj_file: FilePath, dict_option: dict):
         """
         別スレッドでシミュレーションを実行
         :param obj_file:
@@ -82,16 +82,16 @@ class Beetle(MainWindow):
         self.logger.info("チャートを消去しました。")
 
         self.thread = thread = QThread()
-        self.worker = worker = SimulatorWorker(obj_file)
+        self.worker = worker = SimulatorWorker(obj_file, {}, dict_option)
         worker.moveToThread(thread)
 
         thread.started.connect(worker.run)
+        worker.result.connect(self.simulation_done)
+
         worker.finished.connect(thread.quit)
         thread.finished.connect(self.simulation_next)
         worker.finished.connect(worker.deleteLater)
         thread.finished.connect(thread.deleteLater)
-
-        worker.result.connect(self.simulation_done)
 
         thread.start()
 

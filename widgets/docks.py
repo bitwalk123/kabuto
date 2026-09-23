@@ -109,7 +109,7 @@ class DockFileList(QDockWidget):
 
 
 class DockSimulation(QDockWidget):
-    clickedStart = Signal()
+    clickedStart = Signal(dict)
 
     def __init__(self):
         super().__init__()
@@ -121,27 +121,39 @@ class DockSimulation(QDockWidget):
 
         # クロス MA 返済
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxCrossMA()
+        cbox_cross_ma.setCheckable(False)
         cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
         layout.addWidget(cbox_cross_ma)
 
         # クロス VWAP エントリ/返済
         self.cbox_cross_vwap = cbox_cross_vwap = CheckBoxCrossVWAP()
+        cbox_cross_vwap.setChecked(True)
         cbox_cross_vwap.stateChanged.connect(self.status_cross_vwap_changed)
         layout.addWidget(cbox_cross_vwap)
 
         # クロス VWAP 利確
         self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
+        cbox_profit_vwap.setChecked(True)
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
 
         # クロス VWAP ロスカット
         self.cbox_losscut_vwap = cbox_losscut_vwap = CheckBoxLosscutVWAP()
+        cbox_losscut_vwap.setChecked(True)
         cbox_losscut_vwap.stateChanged.connect(self.status_losscut_vwap_changed)
         layout.addWidget(cbox_losscut_vwap)
 
         but_start = QPushButton("開　始")
-        but_start.clicked.connect(self.clickedStart)
+        but_start.clicked.connect(self.on_start)
         layout.addWidget(but_start)
+
+    def on_start(self):
+        dict_option = dict()
+        dict_option["cross_ma"] = self.cbox_cross_ma.isChecked()
+        dict_option["cross_vwap"] = self.cbox_cross_vwap.isChecked()
+        dict_option["profit_vwap"] = self.cbox_profit_vwap.isChecked()
+        dict_option["losscut_vwap"] = self.cbox_losscut_vwap.isChecked()
+        self.clickedStart.emit(dict_option)
 
     def status_cross_ma_changed(self):
         # self.changedStatusCrossMA.emit(self.cbox_cross_ma.isChecked())

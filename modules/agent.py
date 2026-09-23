@@ -175,6 +175,7 @@ class SimulatorAgent():
         super().__init__()
         self.logger = logging.getLogger(__name__)
         self.code = code
+        self.dict_setting = dict_setting
 
         self.obs: np.ndarray | None = None
         self.df_obs: pd.DataFrame | None = None
@@ -268,3 +269,28 @@ class SimulatorAgent():
             df = pd.DataFrame()
 
         return df
+
+    @Slot(bool)
+    def updateStateCrossMA(self, state: bool):
+        state_new = self.env.s.setStatusCrossMA(state)
+        self.logger.info(f"{self.code} の Cross MA 返済が {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateCrossVWAP(self, state: bool):
+        state_new = self.env.s.setStatusCrossVWAP(state)
+        self.logger.info(f"{self.code} の Cross VWAP 返済が {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateProfitVWAP(self, state: bool):
+        state_new = self.env.s.setStatusProfitVWAP(state)
+        self.logger.info(f"{self.code} の VWAP 利確が {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateLosscutVWAP(self, state: bool):
+        state_new = self.env.s.setStatusLosscutVWAP(state)
+        self.logger.info(f"{self.code} の VWAP ロスカットが {state_new} に変更されました。")
+
+    @Slot(bool)
+    def updateStateThreshold(self, state: bool):
+        state_new = self.env.s.setStatusThreshold(state)
+        self.logger.info(f"{self.code} の しきい値 返済が {state_new} に変更されました。")

@@ -14,10 +14,14 @@ from structs.file_path import FilePath
 
 
 class Simulator():
-    def __init__(self, obj_file: FilePath, code: str = "9984", full: bool = False):
+    agent: SimulatorAgent
+
+    def __init__(self, obj_file: FilePath, code: str, dict_setting: dict, dict_option: dict, full: bool = False):
         self.logger = logging.getLogger(__name__)
         self.obj_file = obj_file
         self.code = code
+        self.dict_setting = dict_setting
+        self.dict_option = dict_option
         self.full = full
 
         # ポジション・マネージャ
@@ -45,8 +49,11 @@ class Simulator():
         dict_result["mkt_end"] = dt_end
 
         # シミュレーション用エージェントのインスタンス
-        agent = SimulatorAgent(self.code, {})
+        self.agent = agent = SimulatorAgent(self.code, self.dict_setting)
+        # 環境のリセット
         agent.resetEnv()
+        # 環境オプションの設定
+        self.set_env_options()
 
         # ティックデータのループ
         for r in range(size_row):
@@ -98,15 +105,27 @@ class Simulator():
             self.logger.error(f"{self.obj_file.full} は存在しません。")
             return pd.DataFrame()
 
+    def set_env_options(self):
+        # 環境オプションの設定
+        if "cross_ma" in self.dict_option:
+            self.agent.updateStateCrossMA(self.dict_option["cross_ma"])
+        if "cross_vwap" in self.dict_option:
+            self.agent.updateStateCrossVWAP(self.dict_option["cross_vwap"])
+        if "profit_vwap" in self.dict_option:
+            self.agent.updateStateProfitVWAP(self.dict_option["profit_vwap"])
+        if "losscut_vwap" in self.dict_option:
+            self.agent.updateStateLosscutVWAP(self.dict_option["losscut_vwap"])
+
 
 class SimulatorWorker(QObject):
     finished = Signal()
     result = Signal(dict)
 
-    def __init__(self, obj_file: FilePath) -> None:
+    def __init__(self, obj_file: FilePath, dict_setting: dict, dict_option: dict) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.sim = Simulator(obj_file)
+        code = "9984"
+        self.sim = Simulator(obj_file, code, dict_setting, dict_option)
 
     @Slot()
     def run(self):
