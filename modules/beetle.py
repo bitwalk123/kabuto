@@ -101,7 +101,6 @@ class Beetle(MainWindow):
         :param dict_result:
         :return:
         """
-        print(dict_result)
         if "technicals" in dict_result:
             self.chart_win.plot(dict_result)
 

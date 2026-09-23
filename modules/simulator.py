@@ -9,7 +9,7 @@ from funcs.tide import get_dt_market_range
 from funcs.tse import get_ticker_name_list
 from modules.agent import SimulatorAgent
 from modules.posman import PositionManager
-from structs.app_enum import ActionType
+from structs.app_enum import ActionType, PositionType
 from structs.file_path import FilePath
 
 
@@ -19,6 +19,10 @@ class Simulator():
         self.obj_file = obj_file
         self.code = code
         self.full = full
+
+        # ポジション・マネージャ
+        self.posman = posman = PositionManager()
+        posman.initPosition([self.code])
 
     def start(self) -> dict:
         dict_result = {}
@@ -43,9 +47,6 @@ class Simulator():
         # シミュレーション用エージェントのインスタンス
         agent = SimulatorAgent(self.code, {})
         agent.resetEnv()
-        # ポジション・マネージャ
-        posman = PositionManager()
-        posman.initPosition([self.code])
 
         # ティックデータのループ
         for r in range(size_row):
@@ -55,17 +56,26 @@ class Simulator():
             price = row["Price"]
             volume = row["Volume"]
             # ポジションマネージャからの含み益などの情報
-            dict_info = posman.getInfo(self.code, price)
+            dict_info = self.posman.getInfo(self.code, price)
 
             # エージェントへ情報追加
             action, position, states = agent.addData(ts, price, volume, dict_info)
-            # print(action, position, states)
-            if ActionType(action) != ActionType.HOLD:
-                """
-                # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
-                self.notifyAction.emit(action, position, states)
-                """
-                pass
+            action_type = ActionType(action)
+            if "reason" in states:
+                note = states["reason"]
+            else:
+                note = ""
+            if action_type != ActionType.HOLD:
+                if position == PositionType.NONE:
+                    if action_type == ActionType.BUY:
+                        # 買建
+                        self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+                    elif action_type == ActionType.SELL:
+                        # 売建
+                        self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+                else:
+                    # 返済
+                    self.posman.closePosition(self.code, ts, price, note)
 
         # テクニカルデータのデータフレーム
         dict_result["technicals"] = agent.getTechnicals()
