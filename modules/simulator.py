@@ -9,6 +9,7 @@ from funcs.tide import get_dt_market_range
 from funcs.tse import get_ticker_name_list
 from modules.agent import SimulatorAgent
 from modules.posman import PositionManager
+from structs.app_enum import ActionType
 from structs.file_path import FilePath
 
 
@@ -33,16 +34,20 @@ class Simulator():
         # 銘柄名 (銘柄コード)
         dict_result["title"] = f"{get_ticker_name_list([self.code])[self.code]} ({self.code})"
 
-        # 前引け時刻
+        # 取引時間
         ts = df.iloc[0]["Time"]
         dt_start, dt_end = get_dt_market_range(ts)
         dict_result["mkt_start"] = dt_start
         dict_result["mkt_end"] = dt_end
 
+        # シミュレーション用エージェントのインスタンス
         agent = SimulatorAgent(self.code, {})
         agent.resetEnv()
+        # ポジション・マネージャ
         posman = PositionManager()
         posman.initPosition([self.code])
+
+        # ティックデータのループ
         for r in range(size_row):
             # 一行のデータ
             row = df.iloc[r]
@@ -51,9 +56,18 @@ class Simulator():
             volume = row["Volume"]
             # ポジションマネージャからの含み益などの情報
             dict_info = posman.getInfo(self.code, price)
-            # エージェントへ情報追加
-            agent.addData(ts, price, volume, dict_info)
 
+            # エージェントへ情報追加
+            action, position, states = agent.addData(ts, price, volume, dict_info)
+            # print(action, position, states)
+            if ActionType(action) != ActionType.HOLD:
+                """
+                # 🧿 売買アクションを通知するシグナル（HOLD の時は通知しない）
+                self.notifyAction.emit(action, position, states)
+                """
+                pass
+
+        # テクニカルデータのデータフレーム
         dict_result["technicals"] = agent.getTechnicals()
         return dict_result
 

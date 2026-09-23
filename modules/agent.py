@@ -192,7 +192,7 @@ class SimulatorAgent():
         # 取引内容（＋テクニカル指標）
         self.dict_list_tech: DefaultDict[str, list[Any]] = defaultdict(list)
 
-    def addData(self, ts: float, price: float, volume: float, dict_info: dict) -> None:
+    def addData(self, ts: float, price: float, volume: float, dict_info: dict) -> tuple:
         # ティックデータから観測値を取得
         obs, dict_technicals = self.env.getObservation(ts, price, volume, dict_info)
 
@@ -202,6 +202,8 @@ class SimulatorAgent():
         # モデルによる行動予測
         action, states = self.model.predict(obs, action_masks=masks)
 
+        # 現在ポジションの取得
+        position: PositionType = self.env.getCurrentPosition()
         """
         # メイン・スレッドへ通知する発注アクション
         position: PositionType = self.env.getCurrentPosition()
@@ -216,6 +218,8 @@ class SimulatorAgent():
         # トレード後にまとめてデータフレームで出力するため
         for key, value in dict_technicals.items():
             self.dict_list_tech[key].append(value)
+
+        return action, position, states
 
     def cleanup(self) -> None:
         """
