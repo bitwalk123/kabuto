@@ -1,11 +1,12 @@
 import logging
 import os
+from typing import Any
 
 import pandas as pd
 from PySide6.QtCore import QObject, Signal, Slot
 from pandas import DataFrame
 
-from funcs.tide import get_dt_market_range
+from funcs.tide import get_dt_market_range, get_ts_trade_end
 from funcs.tse import get_ticker_name_list
 from modules.agent import SimulatorAgent
 from modules.posman import PositionManager
@@ -16,37 +17,39 @@ from structs.file_path import FilePath
 class Simulator():
     agent: SimulatorAgent
 
-    def __init__(self, obj_file: FilePath, code: str, dict_setting: dict, dict_option: dict, full: bool = False):
+    def __init__(
+            self,
+            obj_file: FilePath,
+            dict_option: dict,
+    ):
         self.logger = logging.getLogger(__name__)
         self.obj_file = obj_file
-        self.code = code
-        self.dict_setting = dict_setting
+        if "code" in dict_option:
+            self.code = dict_option["code"]
+        else:
+            self.code = "0000"
+        self.dict_setting = {}
         self.dict_option = dict_option
-        self.full = full
 
         # ポジション・マネージャ
         self.posman = posman = PositionManager()
         posman.initPosition([self.code])
 
     def start(self) -> dict:
-        dict_result = {}
         df: pd.DataFrame = self.read_excel()
         size_row = len(df)
         if size_row == 0:
-            return dict_result
+            return {}
 
         """
         print(self.obj_file.full)
         print(self.code)
         """
-        # 銘柄名 (銘柄コード)
-        dict_result["title"] = f"{get_ticker_name_list([self.code])[self.code]} ({self.code})"
+        ts0 = df.iloc[0]["Time"]
+        ts_end = get_ts_trade_end(ts0)
 
-        # 取引時間
-        ts = df.iloc[0]["Time"]
-        dt_start, dt_end = get_dt_market_range(ts)
-        dict_result["mkt_start"] = dt_start
-        dict_result["mkt_end"] = dt_end
+        # 結果格納用辞書準備
+        dict_result = self.prep_dict_result(ts0)
 
         # シミュレーション用エージェントのインスタンス
         self.agent = agent = SimulatorAgent(self.code, self.dict_setting)
@@ -56,6 +59,8 @@ class Simulator():
         self.set_env_options()
 
         # ティックデータのループ
+        ts = 0
+        price = 0
         for r in range(size_row):
             # 一行のデータ
             row = df.iloc[r]
@@ -84,8 +89,32 @@ class Simulator():
                     # 返済
                     self.posman.closePosition(self.code, ts, price, note)
 
+        # 終了処理（ティックデータ最後のデータは 15:24:50 直前）
+        position = agent.env.getCurrentPosition()
+        if position != PositionType.NONE:
+            agent.forceRepay()
+            # 返済
+            note = "強制返済"
+            self.posman.closePosition(self.code, ts, price, note)
+            self.logger.info(f"'{self.code}'の強制返済をしました。")
+
+        # 取引明細
+        dict_result["transaction"] = self.posman.getTransactionResult()
         # テクニカルデータのデータフレーム
         dict_result["technicals"] = agent.getTechnicals()
+
+        return dict_result
+
+    def prep_dict_result(self, ts: float) -> dict[str, Any]:
+        dict_result = {}
+        # 取引時間
+        dt_start, dt_end = get_dt_market_range(ts)
+        dict_result["dt_open"] = dt_start
+        dict_result["dt_close"] = dt_end
+
+        # 銘柄名 (銘柄コード)
+        name = get_ticker_name_list([self.code])[self.code]
+        dict_result["title"] = f"{name} ({self.code})"
         return dict_result
 
     def read_excel(self) -> DataFrame:
@@ -121,11 +150,10 @@ class SimulatorWorker(QObject):
     finished = Signal()
     result = Signal(dict)
 
-    def __init__(self, obj_file: FilePath, dict_setting: dict, dict_option: dict) -> None:
+    def __init__(self, obj_file: FilePath, dict_option: dict) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        code = "9984"
-        self.sim = Simulator(obj_file, code, dict_setting, dict_option)
+        self.sim = Simulator(obj_file, dict_option)
 
     @Slot()
     def run(self):

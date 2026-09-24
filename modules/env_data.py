@@ -24,7 +24,7 @@ class EnvData:
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
     PERIOD_MA_1: int = 30  # 移動平均線の期間1
-    PERIOD_MA_2: int = 900  # 移動平均線の期間2
+    PERIOD_MA_2: int = 1800  # 移動平均線の期間2
     # PERIOD_RSI: int = 300  # RSIの期間
     PERIOD_MOM: int = 300  # モメンタムの期間
     # ロスカット・利確系
@@ -140,17 +140,17 @@ class EnvData:
     def print_param(self):
         # ====== パラメータ ======
         # 約定回数系
-        print("MAX_TRADE", self.MAX_TRADE)  # 約定数上限（仮）
+        # print("MAX_TRADE", self.MAX_TRADE)  # 約定数上限（仮）
         # インジケータ系
         print("PERIOD_WARMUP", self.PERIOD_WARMUP)  # インジケータのウォームアップ期間（ティック数）
-        print("PERIOD_MA_1", self.PERIOD_MA_1)  # 移動平均線の期間1
+        # print("PERIOD_MA_1", self.PERIOD_MA_1)  # 移動平均線の期間1
         print("PERIOD_MA_2", self.PERIOD_MA_2)  # 移動平均線の期間2
-        print("PERIOD_MOM", self.PERIOD_MOM)  # モメンタムの期間
+        # print("PERIOD_MOM", self.PERIOD_MOM)  # モメンタムの期間
         # ロスカット・利確系
-        print("N_MINUS_MAX", self.N_MINUS_MAX)  # 連続含み損の最大カウント数
+        # print("N_MINUS_MAX", self.N_MINUS_MAX)  # 連続含み損の最大カウント数
         # print("N_POSITION_MIN", self.N_POSITION_MIN)  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
-        print("LOSSCUT_1", self.LOSSCUT_1)  # 単純ロスカット
-        print("TRAILING_THRESHOLD", self.TRAILING_THRESHOLD)  # トレーリング最低値兼ドローダウン許容幅
+        # print("LOSSCUT_1", self.LOSSCUT_1)  # 単純ロスカット
+        # print("TRAILING_THRESHOLD", self.TRAILING_THRESHOLD)  # トレーリング最低値兼ドローダウン許容幅
 
     def inc_row(self):
         self.row += 1

@@ -230,14 +230,3 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         exporter.export(path_img)
         self.logger.info(f"{__name__}: チャートを {path_img} に保存しました。")
 
-
-class SimulationCharts(pg.GraphicsLayoutWidget):
-    def __init__(self, res: AppRes) -> None:
-        super().__init__()
-        self.logger = logging.getLogger(__name__)
-        self.res = res
-
-        # ---------------------------------------------------------------------
-        # ウィンドウのサイズ制約（高さのみ）
-        self.setFixedSize(1000, 300)
-        self.setContentsMargins(QMargins(0, 0, 0, 0))

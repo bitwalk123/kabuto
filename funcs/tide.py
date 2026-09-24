@@ -196,3 +196,13 @@ def get_dt_market_range(ts: float) -> tuple:
         microsecond=0,
     ).replace(tzinfo=None)
     return dt_start, dt_end
+
+
+def get_ts_trade_end(ts: float) -> float:
+    dt = datetime.datetime.fromtimestamp(ts, tz=JST)
+    return dt.replace(
+        hour=15,
+        minute=24,
+        second=50,
+        microsecond=0,
+    ).timestamp()

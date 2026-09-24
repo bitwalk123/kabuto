@@ -6,12 +6,12 @@ class FeatureDefaults:
     特徴量用パラメータ管理クラス
     """
     PERIOD_WARMUP = 90
-    PERIOD_MA_1 = 30
-    PERIOD_MA_2 = 900
-    PERIOD_MOM = 300
-    N_MINUS_MAX = 900
-    LOSSCUT_1 = -50.0
-    TRAILING_THRESHOLD = 40
+    # PERIOD_MA_1 = 30
+    PERIOD_MA_2 = 1800
+    # PERIOD_MOM = 300
+    # N_MINUS_MAX = 900
+    # LOSSCUT_1 = -50.0
+    # TRAILING_THRESHOLD = 40
 
     @classmethod
     def as_dict(cls) -> dict:

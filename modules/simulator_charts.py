@@ -73,8 +73,8 @@ class SimulatorCharts(FigureCanvas):
             ax[i].set_title(dict_info["title"])
 
         td = datetime.timedelta(minutes=5)
-        x_min = dict_info["mkt_start"] - td
-        x_max = dict_info["mkt_end"]
+        x_min = dict_info["dt_open"] - td
+        x_max = dict_info["dt_close"]
         ax[i].set_xlim(x_min, x_max)
 
         # y軸ラベル (1)

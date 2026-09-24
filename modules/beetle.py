@@ -82,7 +82,7 @@ class Beetle(MainWindow):
         self.logger.info("チャートを消去しました。")
 
         self.thread = thread = QThread()
-        self.worker = worker = SimulatorWorker(obj_file, {}, dict_option)
+        self.worker = worker = SimulatorWorker(obj_file, dict_option)
         worker.moveToThread(thread)
 
         thread.started.connect(worker.run)
@@ -102,7 +102,15 @@ class Beetle(MainWindow):
         :return:
         """
         if "technicals" in dict_result:
+            # チャート
             self.chart_win.plot(dict_result)
+
+        if "transaction" in dict_result:
+            # 取引明細
+            df_transaction = dict_result["transaction"]
+            print(df_transaction)
+            total = df_transaction["損益"].sum()
+            print(f"合計損益: {int(total * 100)} 円（100株）")
 
     def simulation_next(self):
         """

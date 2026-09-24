@@ -1,15 +1,16 @@
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QDockWidget, QCheckBox, QPushButton
+from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy
 
 from structs.file_path import FilePathModel, FilePathProxyModel, FilePath
 from widgets.buttons import (
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitVWAP,
+    CheckBoxProfitVWAP, Button,
 )
+from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
-from widgets.labels import LabelRightMedium
+from widgets.labels import LabelRightMedium, LabelLeft
 from widgets.layouts import VBoxLayout, HBoxLayout
 from widgets.listviews import ListViewFileDnD
 
@@ -109,6 +110,8 @@ class DockFileList(QDockWidget):
 
 
 class DockSimulation(QDockWidget):
+    combo_code: ComboBox
+
     clickedStart = Signal(dict)
 
     def __init__(self):
@@ -118,6 +121,10 @@ class DockSimulation(QDockWidget):
         layout = VBoxLayout()
         base.setLayout(layout)
         self.setWidget(base)
+
+        layout_code = HBoxLayout()
+        self.gen_row_code(layout_code)
+        layout.addLayout(layout_code)
 
         # クロス MA 返済
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxCrossMA()
@@ -143,12 +150,27 @@ class DockSimulation(QDockWidget):
         cbox_losscut_vwap.stateChanged.connect(self.status_losscut_vwap_changed)
         layout.addWidget(cbox_losscut_vwap)
 
-        but_start = QPushButton("開　始")
+        but_start = Button("開　始")
         but_start.clicked.connect(self.on_start)
         layout.addWidget(but_start)
 
+    def gen_row_code(self, layout: HBoxLayout):
+        lab_code = LabelLeft("銘柄コード")
+        layout.addWidget(lab_code)
+
+        self.combo_code = combo_code = ComboBox()
+        combo_code.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        combo_code.addItems(["9984"])
+        layout.addWidget(combo_code)
+
     def on_start(self):
         dict_option = dict()
+        # 銘柄コード
+        dict_option["code"] = self.combo_code.currentText()
+        # 売買条件フラグ
         dict_option["cross_ma"] = self.cbox_cross_ma.isChecked()
         dict_option["cross_vwap"] = self.cbox_cross_vwap.isChecked()
         dict_option["profit_vwap"] = self.cbox_profit_vwap.isChecked()
