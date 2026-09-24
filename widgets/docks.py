@@ -140,13 +140,13 @@ class DockSimulation(QDockWidget):
 
         # クロス VWAP 利確
         self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
-        cbox_profit_vwap.setChecked(True)
+        cbox_profit_vwap.setChecked(False)
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
 
         # クロス VWAP ロスカット
         self.cbox_losscut_vwap = cbox_losscut_vwap = CheckBoxLosscutVWAP()
-        cbox_losscut_vwap.setChecked(True)
+        cbox_losscut_vwap.setChecked(False)
         cbox_losscut_vwap.stateChanged.connect(self.status_losscut_vwap_changed)
         layout.addWidget(cbox_losscut_vwap)
 
