@@ -28,7 +28,7 @@ class EnvData:
     row: int = 0  # ティックデータの行位置
     position: PositionType = PositionType.NONE  # ポジション
     position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
-    n_trade: int = 0  # 約定回数
+    # n_trade: int = 0  # 約定回数
     count_negative: int = 0  # 含み損の継続カウンタ
     count_post_contract: int = 0  # 約定後の HOLD カウント用
 
@@ -172,7 +172,7 @@ class EnvData:
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
-            "n_trade": self.n_trade,
+            # "n_trade": self.n_trade,
             "count_negative": self.count_negative,
             "ma_gc": self.is_ma_golden_cross(),
             "ma_dc": self.is_ma_dead_cross(),
