@@ -81,8 +81,11 @@ class Beetle(MainWindow):
         self.chart_win.remove_axes()
         self.logger.info("チャートを消去しました。")
 
+        # シミュレーション用のパラメータ
+        dict_setting = {}
+
         self.thread = thread = QThread()
-        self.worker = worker = SimulatorWorker(obj_file, dict_option)
+        self.worker = worker = SimulatorWorker(obj_file, dict_setting, dict_option)
         worker.moveToThread(thread)
 
         thread.started.connect(worker.run)
