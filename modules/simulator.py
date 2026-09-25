@@ -20,15 +20,17 @@ class Simulator():
     def __init__(
             self,
             obj_file: FilePath,
+            dict_setting: dict,
             dict_option: dict,
     ):
         self.logger = logging.getLogger(__name__)
+
         self.obj_file = obj_file
+        self.dict_setting = dict_setting
         if "code" in dict_option:
             self.code = dict_option["code"]
         else:
             self.code = "0000"
-        self.dict_setting = {}
         self.dict_option = dict_option
 
         # ポジション・マネージャ
@@ -150,10 +152,15 @@ class SimulatorWorker(QObject):
     finished = Signal()
     result = Signal(dict)
 
-    def __init__(self, obj_file: FilePath, dict_option: dict) -> None:
+    def __init__(
+            self,
+            obj_file: FilePath,
+            dict_setting: dict,
+            dict_option: dict
+    ) -> None:
         super().__init__()
         self.logger = logging.getLogger(__name__)
-        self.sim = Simulator(obj_file, dict_option)
+        self.sim = Simulator(obj_file, dict_setting, dict_option)
 
     @Slot()
     def run(self):

@@ -1,4 +1,3 @@
-from collections import defaultdict
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -14,9 +13,6 @@ from structs.app_enum import PositionType
 
 @dataclass
 class EnvData:
-    # 学習用ティックデータのデータフレームで使用する列名
-    list_col_name = ["Time", "Price", "MA1", "MA2", "DiffMA", "VWAP", "DiffVWAP", "RSI", "Momentum", ]
-
     # ====== パラメータ ======
     # 約定回数系
     MAX_TRADE: int = 200  # 約定数上限（仮）
@@ -25,39 +21,15 @@ class EnvData:
     WIDTH_BAND = 5  # バンド幅
     PERIOD_MA_1: int = 30  # 移動平均線の期間1
     PERIOD_MA_2: int = 1800  # 移動平均線の期間2
-    # PERIOD_RSI: int = 300  # RSIの期間
-    PERIOD_MOM: int = 300  # モメンタムの期間
     # ロスカット・利確系
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
-    # N_POSITION_MIN: int = 30  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
-    LOSSCUT_1: float = -50.0  # 単純ロスカット
-    # DD_RATIO_MAX: float = 0.75  # ドローダウン利確の最大比率（これを超えたら利確）
-    # DD_THRESHOLD: float = 20.0  # ドローダウン利確を始める閾値
-    TRAILING_THRESHOLD: float = 40  # トレーリング最低値兼ドローダウン許容幅
-
-    # 報酬・ペナルティ系
-    RATIO_PROFIT_HOLD: float = 0.01  # HOLD（建玉あり）時の含み損益からの報酬比率
-    RATIO_PROFIT_CHANGE_HOLD: float = 0.001  # HOLD（建玉あり）時の含み損益変化度からの報酬比率
-    COST_CONTRACT: float = 1.0  # 約定コスト（スリッページ相当）
-    NUMERATOR_TERMINATION: float = 1.e3  # 早期終了時のペナルティ（分子/ステップ数）
-    NUMERATOR_RECONTRACT: float = 1.0  # 約定後の最約定コスト
-    REWARD_CROSS_ENTRY: float = 10.0  # クロス・シグナル時のエントリで報酬
-
-    # 学習用ティックデータのクロス・シグナル報酬分布用の列名
-    COL_CROSS_MA_GOLDEN: str = "cross_ma_golden"
-    COL_CROSS_MA_DEAD: str = "cross_ma_dead"
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
-    # step_current: int = 0  # ステップ数
     position: PositionType = PositionType.NONE  # ポジション
     position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
-    n_trade: int = 0  # 約定回数
     count_negative: int = 0  # 含み損の継続カウンタ
     count_post_contract: int = 0  # 約定後の HOLD カウント用
-    pnl_total: float = 0  # エピソードにおける総報酬
-    # dict_reward = defaultdict(list)  # 報酬保持用辞書 → 最後にデータフレーム化
-    dict_reward: dict = field(default_factory=lambda: defaultdict(list))
 
     # ティックデータ
     ts: float = 0.0
@@ -72,9 +44,6 @@ class EnvData:
     vwap: float = 0.0
     diff_vwap: float = 0.0
     diff_vwap_pre: float = 0.0
-    # RSI
-    rsi: float = 0.5
-    rsi_pre: float = 0.5
     # モメンタム
     mom: float = 0.0
     mom_pre: float = 0.0
@@ -84,13 +53,6 @@ class EnvData:
     profit_max: float = 0.0  # 最大含み損益
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
-
-    """
-    # 始値
-    ts_open: float = 0.0
-    price_open: float = 0.0
-    volume_open: float = 0.0
-    """
 
     # 建玉返済ロジック
     status_cross_ma: bool = False
@@ -121,7 +83,6 @@ class EnvData:
     # テクニカル指標のインスタンス
     obj_ma_1: PurePursuitFollower = field(init=False)
     obj_ma_2: MovingAverage = field(init=False)
-    # obj_er: EfficiencyRatio = field(init=False)
     obj_vwap: VWAP = field(init=False)
 
     def __post_init__(self):
@@ -134,34 +95,19 @@ class EnvData:
         # テクニカル指標のインスタンスの初期化
         self.obj_ma_1 = PurePursuitFollower()
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
-        # self.obj_er = EfficiencyRatio(window_size=90)
         self.obj_vwap = VWAP()
 
     def print_param(self):
         # ====== パラメータ ======
         # 約定回数系
-        # print("MAX_TRADE", self.MAX_TRADE)  # 約定数上限（仮）
         # インジケータ系
         print("PERIOD_WARMUP", self.PERIOD_WARMUP)  # インジケータのウォームアップ期間（ティック数）
-        # print("PERIOD_MA_1", self.PERIOD_MA_1)  # 移動平均線の期間1
         print("PERIOD_MA_2", self.PERIOD_MA_2)  # 移動平均線の期間2
-        # print("PERIOD_MOM", self.PERIOD_MOM)  # モメンタムの期間
-        # ロスカット・利確系
-        # print("N_MINUS_MAX", self.N_MINUS_MAX)  # 連続含み損の最大カウント数
-        # print("N_POSITION_MIN", self.N_POSITION_MIN)  # 建玉を保持する最小カウント数（含み益がある限りドローダウンより優先）
-        # print("LOSSCUT_1", self.LOSSCUT_1)  # 単純ロスカット
-        # print("TRAILING_THRESHOLD", self.TRAILING_THRESHOLD)  # トレーリング最低値兼ドローダウン許容幅
 
     def inc_row(self):
         self.row += 1
         """ 約定後のカウント数をインクリメント """
         self.count_post_contract += 1
-
-    def add_contract_cost(self) -> float:
-        cost = -self.COST_CONTRACT
-        # 直ぐに反対売買をした場合はペナルティを多くする。
-        cost -= self.NUMERATOR_RECONTRACT / self.count_post_contract if 0 < self.count_post_contract else 0.0
-        return cost
 
     def get_masks(self):
         """
@@ -225,7 +171,6 @@ class EnvData:
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
-            "n_trade": self.n_trade,
             "count_negative": self.count_negative,
             "ma_gc": self.is_ma_golden_cross(),
             "ma_dc": self.is_ma_dead_cross(),
@@ -328,13 +273,6 @@ class EnvData:
 
         return obs, dict_technical
 
-    """
-    def set_data_open(self, row):
-        self.ts_open = row["Time"]
-        self.price_open = row["Price"]
-        self.volume_open = row["Volume"]
-    """
-
     def setStatusCrossMA(self, state: bool) -> bool:
         self.status_cross_ma = state
         return self.status_cross_ma
@@ -364,7 +302,6 @@ class EnvData:
         # self.does_losscut_consecutive_negative()
 
     def does_losscut_consecutive_negative(self):
-        # print("Profit", self.profit, "Negative counts", self.count_negative, "Consecutive -", self.count_negative > self.N_MINUS_MAX)
         if self.count_negative > self.N_MINUS_MAX:
             return True
         else:
@@ -394,17 +331,6 @@ class EnvData:
         if self.profit_max < self.profit:
             self.profit_max = self.profit
 
-    '''
-    def update_dd_ratio(self) -> float:
-        if self.DD_THRESHOLD < self.profit_max:
-            self.dd_ratio = (self.profit_max - self.profit) / self.profit_max
-        else:
-            self.dd_ratio = 0.0
-
-        # print("Profit", self.profit, "Profit (max)", self.profit_max, "DD ratio", self.dd_ratio, "Losscut_1", self.is_losscut(), "Consecutive negative?", self.does_losscut_consecutive_negative())
-        return self.dd_ratio
-    '''
-
     def is_losscut(self) -> bool:
         if self.status_losscut_vwap:
             if self.profit_max <= 10 and self.profit <= -15:
@@ -429,35 +355,6 @@ class EnvData:
                 return True
 
         return False
-        """
-        if self.status_profit_vwap:
-            if 10 < self.profit_max and self.profit < self.profit_max / 4 - 5:
-                return True
-            else:
-                return False
-        else:
-            return False
-
-        if self.status_threshold:
-            if 20 <= self.profit_max and self.profit <= 5:
-                return True
-            elif 10 <= self.profit_max and self.profit <= 0:
-                return True
-            else:
-                return False
-        else:
-            return False
-        
-        """
-        if self.status_threshold:
-            if 20 <= self.profit_max and self.profit <= 5:
-                return True
-            elif 10 <= self.profit_max and self.profit <= 0:
-                return True
-            else:
-                return False
-        else:
-            return False
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新

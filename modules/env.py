@@ -109,10 +109,16 @@ class TradingEnv(gym.Env):
         :return:
         """
         # データクラスのインスタンスを再定義
+        """
         if self.dict_setting is None:
             self.s = EnvData()
         else:
             self.s = EnvData(**self.dict_setting)
+        """
+        try:
+            self.s = EnvData(**self.dict_setting)
+        except TypeError as e:
+            print(f"❌ エラーを検出しました: {e}")
 
         # パラメータの標準出力
         self.s.print_param()
