@@ -4,6 +4,7 @@ import os
 from PySide6.QtCore import Qt, QThread
 from PySide6.QtGui import QIcon
 
+from modules.explorer import Explorer
 from modules.kabuto import Kabuto
 from modules.simulator import SimulatorWorker
 from modules.simulator_charts import ChartWindow
@@ -23,6 +24,9 @@ class Beetle(MainWindow):
 
     thread: QThread
     worker: SimulatorWorker
+    explorer: Explorer
+    obj_file: FilePath
+    dict_option: dict
 
     def __init__(self):
         super().__init__()
@@ -60,6 +64,7 @@ class Beetle(MainWindow):
         self.setStatusBar(status)
 
     def on_start(self, dict_option: dict):
+        self.dict_option = dict_option
         list_files: list[FilePath] = self.dock_files.get_files()
         if len(list_files) == 0:
             return
@@ -69,23 +74,32 @@ class Beetle(MainWindow):
             print(obj_file.name)
         """
         # 現時点では最新のデータのみ
-        obj_file = list_files[-1]
+        self.obj_file = obj_file = list_files[-1]
         self.dock_files.select_file(obj_file)
-        self.simulation_start(obj_file, dict_option)
 
-    def simulation_start(self, obj_file: FilePath, dict_option: dict):
+        # 条件表
+        self.explorer = explorer = Explorer()
+
+        # シミュレーション用のパラメータ
+        dict_setting = next(explorer, None)
+        if dict_setting is not None:
+            # シミュレーションの開始
+            self.simulation_start(dict_setting)
+
+    def simulation_start(self, dict_setting: dict):
         """
         別スレッドでシミュレーションを実行
-        :param obj_file:
+
+        :param dict_setting:
+        :return:
         """
         self.chart_win.remove_axes()
         self.logger.info("チャートを消去しました。")
 
-        # シミュレーション用のパラメータ
-        dict_setting = {}
-
         self.thread = thread = QThread()
-        self.worker = worker = SimulatorWorker(obj_file, dict_setting, dict_option)
+        self.worker = worker = SimulatorWorker(
+            self.obj_file, dict_setting, self.dict_option
+        )
         worker.moveToThread(thread)
 
         thread.started.connect(worker.run)
@@ -120,4 +134,9 @@ class Beetle(MainWindow):
         次のシミュレーション
         :return:
         """
-        pass
+        dict_setting = next(self.explorer, None)
+        if dict_setting is not None:
+            # シミュレーションの開始
+            self.simulation_start(dict_setting)
+        else:
+            print("全条件のシミュレーションを終了しました。")
