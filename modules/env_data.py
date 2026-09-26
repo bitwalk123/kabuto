@@ -19,10 +19,13 @@ class EnvData:
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
-    PERIOD_MA_1: int = 30  # 移動平均線の期間1
-    PERIOD_MA_2: int = 1800  # 移動平均線の期間2
+    PERIOD_MA_2: int = 1800  # 移動平均線２の期間
     # ロスカット・利確系
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
+
+    # ====== 実験パラメータ ======
+    PERIOD_MA_1: int = 5  # 移動平均線１の期間
+
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -93,7 +96,7 @@ class EnvData:
             -self.WIDTH_BAND,
         ]
         # テクニカル指標のインスタンスの初期化
-        self.obj_ma_1 = PurePursuitFollower()
+        self.obj_ma_1 = PurePursuitFollower(self.PERIOD_MA_1)
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
 
