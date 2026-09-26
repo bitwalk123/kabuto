@@ -125,9 +125,15 @@ class Beetle(MainWindow):
         if "transaction" in dict_result:
             # 取引明細
             df_transaction = dict_result["transaction"]
-            print(df_transaction)
-            total = df_transaction["損益"].sum()
-            print(f"合計損益: {int(total * 100)} 円（100株）")
+            #print(df_transaction)
+            #total = df_transaction["損益"].sum()
+            #print(f"合計損益: {int(total * 100)} 円（100株）")
+            dict_one_result ={
+                "Profit": df_transaction["損益"].sum(),
+                "Transactions": len(df_transaction),
+            }
+            # 結果を追加
+            self.explorer.append_result(dict_one_result)
 
     def simulation_next(self):
         """
@@ -140,3 +146,4 @@ class Beetle(MainWindow):
             self.simulation_start(dict_setting)
         else:
             print("全条件のシミュレーションを終了しました。")
+            print(self.explorer.get_summary())
