@@ -1,12 +1,13 @@
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy
+from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy, QWidget
 
 from structs.file_path import FilePathModel, FilePathProxyModel, FilePath
 from widgets.buttons import (
+    Button,
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitVWAP, Button,
+    CheckBoxProfitVWAP,
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
@@ -65,6 +66,8 @@ class DockFileList(QDockWidget):
     def __init__(self):
         super().__init__()
         self.setMinimumWidth(200)
+        self.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.setTitleBarWidget(Widget())
 
         base = Widget()
         layout = VBoxLayout()
@@ -78,6 +81,7 @@ class DockFileList(QDockWidget):
         chk_sel.setStyleSheet("""
             QCheckBox {
                 margin-left: 5px;
+                margin-bottom: 2px;
                 font-size: 7pt;
             }
         """)
@@ -116,6 +120,8 @@ class DockSimulation(QDockWidget):
 
     def __init__(self):
         super().__init__()
+        self.setFeatures(QDockWidget.DockWidgetFeature.NoDockWidgetFeatures)
+        self.setTitleBarWidget(Widget())
 
         base = Widget()
         layout = VBoxLayout()
