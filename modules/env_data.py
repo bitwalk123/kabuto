@@ -26,7 +26,6 @@ class EnvData:
     # ====== 実験パラメータ ======
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
 
-
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
     position: PositionType = PositionType.NONE  # ポジション
