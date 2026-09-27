@@ -6,7 +6,6 @@ import pandas as pd
 class Explorer:
     def __init__(self, csvname: str):
         # 条件表
-        # csvname = "doe/doe-001.csv"
         self.dir_result = str(Path(csvname).with_suffix(""))
         self.df = df = pd.read_csv(csvname)
         self.row_max = len(df)
@@ -26,8 +25,6 @@ class Explorer:
             raise StopIteration
 
     def append_result(self, dict_result: dict):
-        # self.df_summary.loc[self.row_current, "Profit"] = dict_result["Profit"]
-        # self.df_summary.loc[self.row_current, "Transactions"] = dict_result["Transactions"]
         self.df_summary.loc[self.row_current, ["Profit", "Transactions"]] = dict_result
         self.row_current += 1  # ここでカウンタをインクリメント
 
