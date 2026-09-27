@@ -4,9 +4,9 @@ import pandas as pd
 
 
 class Explorer:
-    def __init__(self):
+    def __init__(self, csvname: str):
         # 条件表
-        csvname = "doe/doe-001.csv"
+        # csvname = "doe/doe-001.csv"
         self.dir_result = str(Path(csvname).with_suffix(""))
         self.df = df = pd.read_csv(csvname)
         self.row_max = len(df)

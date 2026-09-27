@@ -11,8 +11,8 @@ from widgets.buttons import (
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
-from widgets.labels import LabelRightMedium, LabelLeft
-from widgets.layouts import VBoxLayout, HBoxLayout
+from widgets.labels import LabelRightMedium, LabelLeft, LabelRaisedLeft
+from widgets.layouts import VBoxLayout, HBoxLayout, GridLayout
 from widgets.listviews import ListViewFileDnD
 
 
@@ -115,6 +115,7 @@ class DockFileList(QDockWidget):
 
 class DockSimulation(QDockWidget):
     combo_code: ComboBox
+    combo_doe: ComboBox
 
     clickedStart = Signal(dict)
 
@@ -128,7 +129,7 @@ class DockSimulation(QDockWidget):
         base.setLayout(layout)
         self.setWidget(base)
 
-        layout_code = HBoxLayout()
+        layout_code = GridLayout()
         self.gen_row_code(layout_code)
         layout.addLayout(layout_code)
 
@@ -160,9 +161,9 @@ class DockSimulation(QDockWidget):
         but_start.clicked.connect(self.on_start)
         layout.addWidget(but_start)
 
-    def gen_row_code(self, layout: HBoxLayout):
-        lab_code = LabelLeft("銘柄コード")
-        layout.addWidget(lab_code)
+    def gen_row_code(self, layout: GridLayout):
+        lab_code = LabelRaisedLeft("銘柄コード")
+        layout.addWidget(lab_code, 0, 0)
 
         self.combo_code = combo_code = ComboBox()
         combo_code.setSizePolicy(
@@ -170,12 +171,27 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_code.addItems(["9984"])
-        layout.addWidget(combo_code)
+        layout.addWidget(combo_code, 0, 1)
+
+        lab_doe = LabelRaisedLeft("実験名")
+        layout.addWidget(lab_doe, 1, 0)
+        self.combo_doe = combo_doe = ComboBox()
+        combo_doe.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred,
+        )
+        combo_doe.addItems([
+            "doe-001",
+            "doe-002"
+        ])
+        layout.addWidget(combo_doe, 1, 1)
 
     def on_start(self):
         dict_option = dict()
         # 銘柄コード
         dict_option["code"] = self.combo_code.currentText()
+        # 実験番号
+        dict_option["doe"] = self.combo_doe.currentText()
         # 売買条件フラグ
         dict_option["cross_ma"] = self.cbox_cross_ma.isChecked()
         dict_option["cross_vwap"] = self.cbox_cross_vwap.isChecked()

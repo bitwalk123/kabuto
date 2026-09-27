@@ -79,7 +79,11 @@ class Beetle(MainWindow):
         self.dock_files.select_file(obj_file)
 
         # 条件表
-        self.explorer = explorer = Explorer()
+        if "doe" in dict_option:
+            path_doe = f"doe/{dict_option['doe']}.csv"
+        else:
+            return
+        self.explorer = explorer = Explorer(path_doe)
 
         # シミュレーション用のパラメータ
         dict_setting = next(explorer, None)

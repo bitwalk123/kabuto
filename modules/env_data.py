@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -6,7 +7,7 @@ from funcs.conv import position_to_onehot
 from modules.technical import (
     MovingAverage,
     PurePursuitFollower,
-    VWAP,
+    VWAP, EMA,
 )
 from structs.app_enum import PositionType
 
@@ -26,8 +27,8 @@ class EnvData:
     # ====== 実験パラメータ ======
     TYPE_MA_1: str = "PPF"
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
-    GAIN_MA_1: float = 0.15  # PPF の gain
-    GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
+    GAIN_MA_1: float = 0.05  # PPF の gain
+    GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -86,7 +87,7 @@ class EnvData:
     }
 
     # テクニカル指標のインスタンス
-    obj_ma_1: PurePursuitFollower = field(init=False)
+    obj_ma_1: Any = field(init=False)
     obj_ma_2: MovingAverage = field(init=False)
     obj_vwap: VWAP = field(init=False)
 
@@ -98,11 +99,19 @@ class EnvData:
             -self.WIDTH_BAND,
         ]
         # テクニカル指標のインスタンスの初期化
-        self.obj_ma_1 = PurePursuitFollower(
-            self.PERIOD_MA_1,
-            self.GAIN_MA_1,
-            self.GAIN_PREDICT_MA_1,
-        )
+        if self.TYPE_MA_1 == "PPF":
+            self.obj_ma_1 = PurePursuitFollower(
+                self.PERIOD_MA_1,
+                self.GAIN_MA_1,
+                self.GAIN_PREDICT_MA_1,
+            )
+        elif self.TYPE_MA_1 == "SMA":
+            self.obj_ma_1 = MovingAverage(self.PERIOD_MA_1)
+        elif self.TYPE_MA_1 == "EMA":
+            self.obj_ma_1 = EMA(self.PERIOD_MA_1)
+        else:
+            raise TypeError("TYPE_MA_1 に合致しません。")
+
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
 
@@ -260,7 +269,8 @@ class EnvData:
         self.price = price
         self.position = dict_info["position"]
 
-        self.ma1, self.mom = self.obj_ma_1.update(price)
+        self.ma1 = self.obj_ma_1.update(price)
+        self.mom = 0
         self.ma2 = self.obj_ma_2.update(price)
         self.diff_ma = self.ma1 - self.ma2
         self.vwap = self.obj_vwap.update(price, volume)
