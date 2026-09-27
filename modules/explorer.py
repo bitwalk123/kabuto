@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pandas as pd
 
 
@@ -5,6 +7,7 @@ class Explorer:
     def __init__(self):
         # 条件表
         csvname = "doe/doe-001.csv"
+        self.dir_result = str(Path(csvname).with_suffix(""))
         self.df = df = pd.read_csv(csvname)
         self.row_max = len(df)
         self.row_current = 0  # 現在行位置

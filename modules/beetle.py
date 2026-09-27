@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread
 from PySide6.QtGui import QIcon
@@ -96,6 +97,7 @@ class Beetle(MainWindow):
         self.chart_win.remove_axes()
         self.logger.info("チャートを消去しました。")
 
+        print(dict_setting)
         self.thread = thread = QThread()
         self.worker = worker = SimulatorWorker(
             self.obj_file, dict_setting, self.dict_option
@@ -125,10 +127,10 @@ class Beetle(MainWindow):
         if "transaction" in dict_result:
             # 取引明細
             df_transaction = dict_result["transaction"]
-            #print(df_transaction)
-            #total = df_transaction["損益"].sum()
-            #print(f"合計損益: {int(total * 100)} 円（100株）")
-            dict_one_result ={
+            # print(df_transaction)
+            # total = df_transaction["損益"].sum()
+            # print(f"合計損益: {int(total * 100)} 円（100株）")
+            dict_one_result = {
                 "Profit": df_transaction["損益"].sum(),
                 "Transactions": len(df_transaction),
             }
@@ -145,5 +147,12 @@ class Beetle(MainWindow):
             # シミュレーションの開始
             self.simulation_start(dict_setting)
         else:
-            print("全条件のシミュレーションを終了しました。")
-            print(self.explorer.get_summary())
+            self.logger.info("全条件のシミュレーションを終了しました。")
+
+            dir_path = Path(self.explorer.dir_result)
+            dir_path.mkdir(parents=True, exist_ok=True)
+            output = dir_path / f"{self.obj_file.date}_{self.dict_option["code"]}.csv"
+
+            df_summary = self.explorer.get_summary()
+            df_summary.to_csv(output, index=False)
+            self.logger.info(f"シミュレーション結果を {output} に保存しました。")

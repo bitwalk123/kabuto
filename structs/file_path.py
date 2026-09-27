@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import cast
 
@@ -15,6 +16,9 @@ class FilePath:
         self.name = self.full.name
         self.dir = self.full.parent
         self.ext = self.full.suffix
+
+        # 連続する数字（\d+）を検索して抽出
+        self.date = re.search(r'\d+', self.name).group()
 
 
 class FilePathModel(QAbstractListModel):

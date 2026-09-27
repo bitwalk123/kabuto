@@ -115,8 +115,8 @@ class Simulator():
         dict_result["dt_close"] = dt_end
 
         # 銘柄名 (銘柄コード)
-        name = get_ticker_name_list([self.code])[self.code]
-        dict_result["title"] = f"{name} ({self.code})"
+        #name = get_ticker_name_list([self.code])[self.code]
+        dict_result["title"] = self.code
         return dict_result
 
     def read_excel(self) -> DataFrame:

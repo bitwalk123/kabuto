@@ -24,7 +24,10 @@ class EnvData:
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
 
     # ====== 実験パラメータ ======
+    TYPE_MA_1: str = "PPF"
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
+    GAIN_MA_1: float = 0.15  # PPF の gain
+    GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -95,7 +98,11 @@ class EnvData:
             -self.WIDTH_BAND,
         ]
         # テクニカル指標のインスタンスの初期化
-        self.obj_ma_1 = PurePursuitFollower(self.PERIOD_MA_1)
+        self.obj_ma_1 = PurePursuitFollower(
+            self.PERIOD_MA_1,
+            self.GAIN_MA_1,
+            self.GAIN_PREDICT_MA_1,
+        )
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
 
