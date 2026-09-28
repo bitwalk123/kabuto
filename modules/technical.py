@@ -306,6 +306,7 @@ class Momentum:
         return self.momentum
 
 
+"""
 class PurePursuitFollower:
     def __init__(
             self,
@@ -393,6 +394,75 @@ class PurePursuitFollower:
             self.velocity = 0.0
 
         # return self.follower, self.velocity
+        return self.follower
+"""
+
+
+class PurePursuitFollower:
+    def __init__(
+            self,
+            period_trend: int = 5,
+            gain: float = 0.15,
+            gain_predict: float = 0.5,
+    ):
+        self.period_trend = period_trend
+        self.gain = gain
+        self.gain_predict = gain_predict
+
+        self.queue = deque()
+
+        self.follower = 0.0
+        self.initialized = False
+
+    def clear(self) -> None:
+        self.queue.clear()
+
+        self.follower = 0.0
+        self.initialized = False
+
+    def getValue(self) -> float:
+        return self.follower
+
+    def update(self, price: float) -> float:
+        #
+        # 初回
+        #
+        if not self.initialized:
+            self.follower = price
+            self.initialized = True
+
+        #
+        # 価格履歴追加
+        #
+        self.queue.append(price)
+
+        #
+        # トレンド推定
+        #
+        if len(self.queue) > self.period_trend:
+            delayed_price = self.queue[0]
+
+            #
+            # 価格変化
+            #
+            price_change = price - delayed_price
+
+            #
+            # 先読み価格
+            #
+            target = price + self.gain_predict * price_change
+
+            self.queue.popleft()
+
+        else:
+            target = price
+
+        #
+        # Pure Pursuit 更新
+        #
+        error = target - self.follower
+        self.follower += self.gain * error
+
         return self.follower
 
 
