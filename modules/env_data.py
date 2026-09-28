@@ -29,6 +29,8 @@ class EnvData:
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
+    START_TRAINING: float = 50  # トレーリング・ストップを開始する最大含み益
+    THRESHOLD_TRAILING: float = 0.3  # トレーリング・ストップのしきい値
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -359,19 +361,9 @@ class EnvData:
 
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
-            if self.profit_max < 3:
-                # VWAP線近辺の変動を除外
-                return False
-            elif 3 <= self.profit_max <= 50:
-                if self.position == PositionType.LONG:
-                    if self.diff_vwap < 1:
-                        return True
-
-                if self.position == PositionType.SHORT:
-                    if -1 < self.diff_vwap:
-                        return True
-            elif self.profit < self.profit_max / 3:
-                return True
+            if self.START_TRAINING <= self.profit_max:
+                if self.profit < self.THRESHOLD_TRAILING:
+                    return True
 
         return False
 

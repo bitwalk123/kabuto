@@ -182,9 +182,28 @@ class DockSimulation(QDockWidget):
         )
         combo_doe.addItems([
             "doe-001",
-            "doe-002"
+            "doe-002",
+            "doe-003",
         ])
+        combo_doe.currentTextChanged.connect(self.on_combo_doe_changed)
         layout.addWidget(combo_doe, 1, 1)
+
+    def on_combo_doe_changed(self, name_doe: str):
+        if name_doe == "doe-001":
+            self.cbox_cross_ma.setChecked(False)
+            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_profit_vwap.setChecked(False)
+            self.cbox_losscut_vwap.setChecked(False)
+        elif name_doe == "doe-002":
+            self.cbox_cross_ma.setChecked(False)
+            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_profit_vwap.setChecked(False)
+            self.cbox_losscut_vwap.setChecked(False)
+        elif name_doe == "doe-003":
+            self.cbox_cross_ma.setChecked(False)
+            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_losscut_vwap.setChecked(False)
 
     def on_start(self):
         dict_option = dict()
