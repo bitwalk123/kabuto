@@ -362,7 +362,7 @@ class EnvData:
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
             if self.START_TRAILING <= self.profit_max:
-                if self.profit < self.THRESHOLD_TRAILING:
+                if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
                     return True
 
         return False
