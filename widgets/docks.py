@@ -11,6 +11,7 @@ from widgets.buttons import (
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
+from widgets.entries import Entry, EntryRight, EntryInt
 from widgets.labels import LabelRightMedium, LabelLeft, LabelRaisedLeft
 from widgets.layouts import VBoxLayout, HBoxLayout, GridLayout
 from widgets.listviews import ListViewFileDnD
@@ -188,6 +189,12 @@ class DockSimulation(QDockWidget):
         combo_doe.currentTextChanged.connect(self.on_combo_doe_changed)
         layout.addWidget(combo_doe, 1, 1)
 
+        self.but_condition = but_condition = Button("指定条件")
+        but_condition.setCheckable(True)
+        layout.addWidget(but_condition, 2, 0)
+        self.ent_condition = ent_condition = EntryInt()
+        layout.addWidget(ent_condition, 2, 1)
+
     def on_combo_doe_changed(self, name_doe: str):
         if name_doe == "doe-001":
             self.cbox_cross_ma.setChecked(False)
@@ -211,6 +218,10 @@ class DockSimulation(QDockWidget):
         dict_option["code"] = self.combo_code.currentText()
         # 実験番号
         dict_option["doe"] = self.combo_doe.currentText()
+        # 指定条件
+        if self.but_condition.isChecked():
+            num_condition = int(self.ent_condition.text())
+            dict_option["condition"] = num_condition
         # 売買条件フラグ
         dict_option["cross_ma"] = self.cbox_cross_ma.isChecked()
         dict_option["cross_vwap"] = self.cbox_cross_vwap.isChecked()

@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread
-from PySide6.QtGui import QIcon
+from PySide6.QtGui import QIcon, QCloseEvent
 
 from modules.explorer import Explorer
 from modules.kabuto import Kabuto
@@ -83,7 +83,12 @@ class Beetle(MainWindow):
             path_doe = f"doe/{dict_option['doe']}.csv"
         else:
             return
-        self.explorer = explorer = Explorer(path_doe)
+
+        if "condition" in self.dict_option:
+            num_condition = self.dict_option["condition"]
+        else:
+            num_condition = -1
+        self.explorer = explorer = Explorer(path_doe, num_condition)
 
         # シミュレーション用のパラメータ
         dict_setting = next(explorer, None)
@@ -155,8 +160,10 @@ class Beetle(MainWindow):
 
             dir_path = Path(self.explorer.dir_result)
             dir_path.mkdir(parents=True, exist_ok=True)
-            output = dir_path / f"{self.obj_file.date}_{self.dict_option["code"]}.csv"
-
-            df_summary = self.explorer.get_summary()
-            df_summary.to_csv(output, index=False)
-            self.logger.info(f"シミュレーション結果を {output} に保存しました。")
+            if "condition" in self.dict_option:
+                self.logger.info("条件指定なので結果の保存をスキップします。")
+            else:
+                output = dir_path / f"{self.obj_file.date}_{self.dict_option["code"]}.csv"
+                df_summary = self.explorer.get_summary()
+                df_summary.to_csv(output, index=False)
+                self.logger.info(f"シミュレーション結果を {output} に保存しました。")
