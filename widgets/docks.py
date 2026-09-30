@@ -216,7 +216,7 @@ class DockSimulation(QDockWidget):
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
+            self.cbox_losscut_vwap.setChecked(True)
 
     def on_start(self):
         dict_option = dict()

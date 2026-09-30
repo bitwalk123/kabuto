@@ -31,7 +31,7 @@ class EnvData:
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
     START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
-    THRESHOLD_SMALL: float = 0.3  # トレーリング・ストップ未開始時しきい値比
+    LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -355,18 +355,15 @@ class EnvData:
 
     def is_losscut(self) -> bool:
         if self.status_losscut_vwap:
-            if self.profit_max <= 10 and self.profit <= -15:
+            if self.profit <= self.LOSSCUT_SIMPLE:
+                # 単純ロスカット
                 return True
         return False
-        # return self.profit < self.LOSSCUT_1
 
     def does_take_profit(self) -> bool:
         if self.status_profit_vwap:
             if self.START_TRAILING <= self.profit_max:
                 if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
-                    return True
-            else:
-                if self.profit < self.profit_max * self.THRESHOLD_SMALL:
                     return True
 
         return False
