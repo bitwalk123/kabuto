@@ -10,7 +10,7 @@ class Explorer:
         self.df = pd.read_csv(csvname)
         self.row_max = len(self.df)
 
-        # 条件指定の場合
+        # 条件指定の場合、指定の条件のみ抜き取り
         if 0 <= num_condition < self.row_max:
             self.df = pd.DataFrame(
                 self.df.iloc[num_condition]
@@ -18,7 +18,9 @@ class Explorer:
             self.row_max = len(self.df)
             print(self.df)
 
-        self.row_current = 0  # 現在行位置
+        # 現在行位置
+        self.row_current = 0
+
         # 結果用
         self.df_summary = self.df.copy()
 
