@@ -29,8 +29,8 @@ class EnvData:
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
-    START_TRAILING: float = 50  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.3  # トレーリング・ストップのしきい値
+    START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
+    THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
