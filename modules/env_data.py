@@ -358,6 +358,7 @@ class EnvData:
             if self.profit <= self.LOSSCUT_SIMPLE:
                 # 単純ロスカット
                 return True
+
         return False
 
     def does_take_profit(self) -> bool:
