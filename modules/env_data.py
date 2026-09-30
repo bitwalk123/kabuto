@@ -30,7 +30,8 @@ class EnvData:
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
     START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値
+    THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
+    THRESHOLD_SMALL: float = 0.3  # トレーリング・ストップ未開始時しきい値比
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -363,6 +364,9 @@ class EnvData:
         if self.status_profit_vwap:
             if self.START_TRAILING <= self.profit_max:
                 if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
+                    return True
+            else:
+                if self.profit < self.profit_max * self.THRESHOLD_SMALL:
                     return True
 
         return False
