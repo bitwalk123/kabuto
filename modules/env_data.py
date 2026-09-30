@@ -31,7 +31,7 @@ class EnvData:
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
     START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
-    LOSSCUT_SIMPLE: float = -15  # 単純ロスカット
+    LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -355,9 +355,13 @@ class EnvData:
 
     def is_losscut(self) -> bool:
         if self.status_losscut_vwap:
-            if self.profit <= self.LOSSCUT_SIMPLE:
-                # 単純ロスカット
-                return True
+            # VWAP基準のロスカット
+            if self.position == PositionType.LONG:
+                if self.price - self.vwap <= self.LOSSCUT_VWAP:
+                    return True
+            if self.position == PositionType.SHORT:
+                if self.vwap - self.price <= self.LOSSCUT_VWAP:
+                    return True
 
         return False
 
