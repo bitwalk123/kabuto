@@ -431,7 +431,7 @@ class CheckBoxProfitVWAP(CheckBoxControl):
         self.setText("クロス VWAP 利確")
 
 
-class CheckBoxLosscutVWAP(CheckBoxControl):
+class CheckBoxLosscutSimple(CheckBoxControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
-        self.setText("クロス VWAP ロスカット")
+        self.setText("単純ロスカット")
