@@ -26,7 +26,7 @@ class EnvData:
 
     # ====== 実験パラメータ ======
     TYPE_MA_1: str = "EMA"
-    PERIOD_MA_1: int = 5  # 移動平均線１の期間
+    PERIOD_MA_1: int = 30  # 移動平均線１の期間
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
     START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
