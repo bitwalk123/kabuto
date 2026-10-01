@@ -91,6 +91,9 @@ class SimulatorCharts(FigureCanvas):
         # y軸ラベル (3)
         ax[i].set_ylabel("含み損益")
 
+        # 最後の段のチャートの x軸のラベル
+        ax[i].set_xlabel(dict_info["footer"], fontsize=9)
+
         self.fig.tight_layout()  # 余白をタイトに
         self.fig.canvas.draw()  # 表示を更新
 

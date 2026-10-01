@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy, QWidget
+from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy
 
 from structs.file_path import FilePathModel, FilePathProxyModel, FilePath
 from widgets.buttons import (
@@ -11,8 +11,8 @@ from widgets.buttons import (
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
-from widgets.entries import Entry, EntryRight, EntryInt
-from widgets.labels import LabelRightMedium, LabelLeft, LabelRaisedLeft
+from widgets.entries import EntryInt
+from widgets.labels import LabelRightMedium, LabelRaisedLeft
 from widgets.layouts import VBoxLayout, HBoxLayout, GridLayout
 from widgets.listviews import ListViewFileDnD
 
@@ -162,6 +162,8 @@ class DockSimulation(QDockWidget):
         but_start.clicked.connect(self.on_start)
         layout.addWidget(but_start)
 
+        self.on_combo_doe_changed(self.combo_doe.currentText())
+
     def gen_row_code(self, layout: GridLayout):
         lab_code = LabelRaisedLeft("銘柄コード")
         layout.addWidget(lab_code, 0, 0)
@@ -182,10 +184,14 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
-            "doe-001",
-            "doe-002",
-            "doe-003",
+            "doe-008",
+            "doe-007",
+            "doe-006",
+            "doe-005",
             "doe-004",
+            "doe-003",
+            "doe-002",
+            "doe-001",
         ])
         combo_doe.currentTextChanged.connect(self.on_combo_doe_changed)
         layout.addWidget(combo_doe, 1, 1)
@@ -195,6 +201,7 @@ class DockSimulation(QDockWidget):
         layout.addWidget(but_condition, 2, 0)
         self.ent_condition = ent_condition = EntryInt()
         layout.addWidget(ent_condition, 2, 1)
+
 
     def on_combo_doe_changed(self, name_doe: str):
         if name_doe == "doe-001":
@@ -212,7 +219,7 @@ class DockSimulation(QDockWidget):
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-004":
+        else:
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)

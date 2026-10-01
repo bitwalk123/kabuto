@@ -3,9 +3,9 @@ import os
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread
-from PySide6.QtGui import QIcon, QCloseEvent
+from PySide6.QtGui import QIcon
 
-from modules.explorer import Explorer
+from modules.explorer import Explorer, Lister
 from modules.kabuto import Kabuto
 from modules.simulator import SimulatorWorker
 from modules.simulator_charts import ChartWindow
@@ -26,6 +26,7 @@ class Beetle(MainWindow):
     thread: QThread
     worker: SimulatorWorker
     explorer: Explorer
+    lister: Lister
     obj_file: FilePath
     dict_option: dict
 
@@ -66,17 +67,15 @@ class Beetle(MainWindow):
 
     def on_start(self, dict_option: dict):
         self.dict_option = dict_option
-        list_files: list[FilePath] = self.dock_files.get_files()
-        if len(list_files) == 0:
+        list_file: list[FilePath] = self.dock_files.get_files()
+        if len(list_file) == 0:
             return
 
-        """
-        for obj_file in list_files:
-            print(obj_file.name)
-        """
+        self.lister = Lister(list_file)
         # 現時点では最新のデータのみ
-        self.obj_file = obj_file = list_files[-1]
-        self.dock_files.select_file(obj_file)
+        # self.obj_file = obj_file = list_file[-1]
+        self.obj_file = next(self.lister)
+        self.dock_files.select_file(self.obj_file)
 
         # 条件表
         if "doe" in dict_option:
@@ -129,6 +128,7 @@ class Beetle(MainWindow):
         :param dict_result:
         :return:
         """
+
         if "technicals" in dict_result:
             # チャート
             self.chart_win.plot(dict_result)
@@ -167,3 +167,14 @@ class Beetle(MainWindow):
                 df_summary = self.explorer.get_summary()
                 df_summary.to_csv(output, index=False)
                 self.logger.info(f"シミュレーション結果を {output} に保存しました。")
+
+            self.obj_file = next(self.lister, None)  # type: ignore
+            if self.obj_file is not None:
+                self.dock_files.select_file(self.obj_file)
+                iter(self.explorer)
+                dict_setting = next(self.explorer, None)
+                if dict_setting is not None:
+                    # シミュレーションの開始
+                    self.simulation_start(dict_setting)
+            else:
+                self.logger.info("全ファイルの処理を終了しました。")

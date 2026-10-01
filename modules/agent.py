@@ -159,7 +159,7 @@ class WorkerAgent(QObject):
 class SimulatorAgent():
     """
     強化学習を利用せずに、アルゴリズムのみのエージェント
-    （リアルタイム用）
+    （シミュレーション用）
     """
     BASE_COLUMNS = ["Timestamp", "Price", "Volume"]
 

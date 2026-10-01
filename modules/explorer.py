@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from structs.file_path import FilePath
+
 
 class Explorer:
     def __init__(self, csvname: str, num_condition: int):
@@ -41,3 +43,25 @@ class Explorer:
 
     def get_summary(self) -> pd.DataFrame:
         return self.df_summary
+
+
+class Lister:
+    def __init__(self, list_file: list[FilePath]):
+        # ファイルリスト
+        self.list_file = list_file
+        self.row_max = len(self.list_file)
+
+        # 現在行位置
+        self.row_current = 0
+
+    def __iter__(self):
+        self.row_current = 0  # ループ開始時にリセット
+        return self
+
+    def __next__(self) -> FilePath:
+        if self.row_current < self.row_max:
+            path_file = self.list_file[self.row_current]
+            self.row_current += 1  # カウンタをインクリメント
+            return path_file
+        else:
+            raise StopIteration

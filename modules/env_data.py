@@ -30,7 +30,7 @@ class EnvData:
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.3  # PPF の gain_predict
     START_TRAILING: float = 40  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
+    THRESHOLD_TRAILING: float = 0.5  # トレーリング・ストップのしきい値比
     LOSSCUT_VWAP: float = -5  # VWAP基準ロスカット
 
     # インスタンス変数系（初期値が自明な変数のみ）

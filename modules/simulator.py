@@ -7,7 +7,6 @@ from PySide6.QtCore import QObject, Signal, Slot
 from pandas import DataFrame
 
 from funcs.tide import get_dt_market_range, get_ts_trade_end
-from funcs.tse import get_ticker_name_list
 from modules.agent import SimulatorAgent
 from modules.posman import PositionManager
 from structs.app_enum import ActionType, PositionType
@@ -115,8 +114,14 @@ class Simulator():
         dict_result["dt_close"] = dt_end
 
         # 銘柄名 (銘柄コード)
-        #name = get_ticker_name_list([self.code])[self.code]
+        # name = get_ticker_name_list([self.code])[self.code]
         dict_result["title"] = self.code
+
+        # チャート用のフッター
+        dict_result["footer"] = f"{dt_start.date()} - " + " / ".join(
+            f"{k}: {v}" for k, v in self.dict_setting.items()
+        )
+
         return dict_result
 
     def read_excel(self) -> DataFrame:
