@@ -1,8 +1,8 @@
-import math
 from collections import deque
 from math import sqrt
 from typing import Optional, Deque
 
+import math
 from sortedcontainers import SortedList
 
 
@@ -654,4 +654,4 @@ class EMA:
             # 再帰式
             self.ema += self.alpha * (value - self.ema)
 
-        return self.ema
+        return self.ema  # type: ignore
