@@ -184,6 +184,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-012",
             "doe-011",
             "doe-010",
             "doe-009",
