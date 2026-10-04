@@ -32,6 +32,7 @@ class EnvData:
     START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
+    LOSSCUT_SIMPLE: float = -50 # 単純ロスカット
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -362,6 +363,10 @@ class EnvData:
             if self.position == PositionType.SHORT:
                 if self.vwap - self.price <= self.LOSSCUT_VWAP:
                     return True
+
+        if self.profit < self.LOSSCUT_SIMPLE:
+            # 単純ロスカット
+            return True
 
         return False
 
