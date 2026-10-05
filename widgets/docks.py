@@ -184,6 +184,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-013",
             "doe-012",
             "doe-011",
             "doe-010",
@@ -224,6 +225,11 @@ class DockSimulation(QDockWidget):
             self.cbox_profit_vwap.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-012":
+            self.cbox_cross_ma.setChecked(False)
+            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_losscut_vwap.setChecked(False)
+        elif name_doe == "doe-013":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)
