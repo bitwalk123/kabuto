@@ -223,6 +223,11 @@ class DockSimulation(QDockWidget):
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
+        elif name_doe == "doe-012":
+            self.cbox_cross_ma.setChecked(False)
+            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_losscut_vwap.setChecked(False)
         else:
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
