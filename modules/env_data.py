@@ -20,12 +20,12 @@ class EnvData:
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
-    PERIOD_MA_2: int = 1800  # 移動平均線２の期間
     # ロスカット・利確系
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
 
     # ====== 実験パラメータ ======
     TYPE_MA_1: str = "PPF"
+    PERIOD_MA_2: int = 1800  # 移動平均線２の期間
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict

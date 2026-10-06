@@ -506,24 +506,12 @@ def plot_price_vwap(ax: plt.Axes, df: DataFrame, title: str, dict_ts: dict[str, 
 
     # 株価と VWAP
     ax.plot(df["price"], linewidth=0.5, color="black", alpha=0.5, zorder=10, label="株価")
-    ax.plot(df["ma1"], linewidth=0.75, color="#0c0", zorder=50, label="PPF, n=5")
-    ax.plot(df["ma2"], linewidth=0.75, color="orange", zorder=45, label="MA2, n=600")
-    '''
-    # 評価用の移動平均 MA2
-    n_ma2 = 100
-    df["ma2"] = df["price"].rolling(n_ma2, min_periods=1).mean()
-    ax.plot(df["ma2"], linewidth=0.5, color="#00c", zorder=60, label=f"MA2, n={n_ma2}")
-    '''
+    ax.plot(df["ma1"], linewidth=0.75, color="#0c0", zorder=50, label="PPF")
+    ax.plot(df["ma2"], linewidth=0.75, color="orange", zorder=45, label="MA2")
 
     ax.plot(df["vwap"], linewidth=0.75, color="#a0a", zorder=50, label="VWAP")
-    '''
-    ser_vwap_up = df["vwap"] + dict_setting["BAND_VWAP"]
-    ser_vwap_down = df["vwap"] - dict_setting["BAND_VWAP"]
-    ax.plot(ser_vwap_up, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
-    ax.plot(ser_vwap_down, linewidth=0.5, linestyle="dotted", color="#808", zorder=50)
-    '''
 
-    ax.set_ylabel("株価")
+    ax.set_ylabel("Price")
     ax.yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
     # ax.legend(bbox_to_anchor=(1, 1), loc="upper left", borderaxespad=0.5, fontsize=6)
     ax.legend(fontsize=6)
