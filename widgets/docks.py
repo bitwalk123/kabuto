@@ -136,7 +136,7 @@ class DockSimulation(QDockWidget):
 
         # クロス MA 返済
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxCrossMA()
-        cbox_cross_ma.setCheckable(False)
+        cbox_cross_ma.setChecked(False)
         cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
         layout.addWidget(cbox_cross_ma)
 
