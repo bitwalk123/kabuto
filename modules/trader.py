@@ -62,14 +62,18 @@ class Trader(QMainWindow):
         self.list_vwap: list[float] = []
         self.list_ma_1: list[float] = []
         self.list_ma_2: list[float] = []
-        self.list_mom: list[float] = []
+        # self.list_mom: list[float] = []
+        self.list_count_high: list[int] = []
+        self.list_count_low: list[int] = []
 
         self.dict_trend = {
             "ts": self.list_ts,
             "ma_1": self.list_ma_1,
             "ma_2": self.list_ma_2,
             "vwap": self.list_vwap,
-            "mom": self.list_mom,
+            # "mom": self.list_mom,
+            "count_high": self.list_count_high,
+            "count_low": self.list_count_low,
         }
 
         # 銘柄コード別設定ファイルの取得
@@ -238,10 +242,10 @@ class Trader(QMainWindow):
     def on_status_cross_vwap(self, state: bool):
         self.updateStatusCrossVWAP.emit(state)
 
-    def on_status_profit_trailing(self, state:bool):
+    def on_status_profit_trailing(self, state: bool):
         self.updateStatusProfitTrailing.emit(state)
 
-    def on_status_losscut_vwap(self, state:bool):
+    def on_status_losscut_vwap(self, state: bool):
         self.updateStatusLosscutVWAP.emit(state)
 
     def on_status_threshold(self, state: bool):
@@ -258,30 +262,34 @@ class Trader(QMainWindow):
         vwap = dict_technicals["vwap"]
         ma1 = dict_technicals["ma1"]
         ma2 = dict_technicals["ma2"]
-        momentum = dict_technicals["momentum"]
+        #momentum = dict_technicals["momentum"]
+        count_high = dict_technicals["count_high"]
+        count_low = dict_technicals["count_low"]
 
         self.list_ts.append(ts)
         self.list_vwap.append(vwap)
         self.list_ma_1.append(ma1)
         self.list_ma_2.append(ma2)
-        self.list_mom.append(momentum)
+        #self.list_mom.append(momentum)
+        self.list_count_high.append(count_high)
+        self.list_count_low.append(count_low)
 
         # 最新のモメンタムの表示
-        self.trends.setMom([ts], [momentum])
+        # self.trends.setMom([ts], [momentum])
 
-        """
         # MA クロス時の縦線表示
         if 0.0 < dict_technicals["ma_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
         if 0.0 < dict_technicals["ma_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
-        """
 
+        """
         # VWAP クロス時の縦線表示
         if 0.0 < dict_technicals["vwap_gc"]:
             self.trends.setCrossGolden(dict_technicals["ts"])
         if 0.0 < dict_technicals["vwap_dc"]:
             self.trends.setCrossDead(dict_technicals["ts"])
+        """
 
         self.update_technicals()
 
