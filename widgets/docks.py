@@ -7,7 +7,7 @@ from widgets.buttons import (
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitVWAP,
+    CheckBoxProfitTrailing,
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
@@ -147,7 +147,7 @@ class DockSimulation(QDockWidget):
         layout.addWidget(cbox_cross_vwap)
 
         # クロス VWAP 利確
-        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
+        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitTrailing()
         cbox_profit_vwap.setChecked(False)
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
