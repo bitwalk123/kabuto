@@ -416,7 +416,7 @@ class BaselineSwitch(QPushButton):
 class CheckBoxCrossMA(CheckBoxControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
-        self.setText("クロス MA 返済")
+        self.setText("クロス MA エントリ/返済")
 
 
 class CheckBoxCrossVWAP(CheckBoxControl):
