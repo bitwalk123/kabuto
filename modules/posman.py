@@ -72,6 +72,7 @@ class PositionManager:
         else:
             msg: str = f"Invalid action type {action} for code {code}"
             raise ValueError(msg)
+
         self.dict_position[code] = position
 
         self.records["約定単価"].append(price)
@@ -105,7 +106,6 @@ class PositionManager:
             jst = timezone(timedelta(hours=9))
             # UNIX時間からJSTのdatetimeオブジェクトへ変換
             dt_jst = datetime.fromtimestamp(ts, tz=jst)
-            #print(dt_jst)
             msg: str = f"Invalid action type {action} for code {code} ad {dt_jst}"
             raise ValueError(msg)
 
