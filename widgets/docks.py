@@ -147,10 +147,10 @@ class DockSimulation(QDockWidget):
         layout.addWidget(cbox_cross_vwap)
 
         # クロス VWAP 利確
-        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitTrailing()
-        cbox_profit_vwap.setChecked(False)
-        cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
-        layout.addWidget(cbox_profit_vwap)
+        self.cbox_profit_trailing = cbox_profit_trailing = CheckBoxProfitTrailing()
+        cbox_profit_trailing.setChecked(False)
+        cbox_profit_trailing.stateChanged.connect(self.status_profit_vwap_changed)
+        layout.addWidget(cbox_profit_trailing)
 
         # クロス VWAP ロスカット
         self.cbox_losscut_vwap = cbox_losscut_vwap = CheckBoxLosscutVWAP()
@@ -214,42 +214,42 @@ class DockSimulation(QDockWidget):
         if name_doe == "doe-001":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(False)
+            self.cbox_profit_trailing.setChecked(False)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-002":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(False)
+            self.cbox_profit_trailing.setChecked(False)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-003":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-012":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-013":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-014":
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         elif name_doe == "doe-015":
             self.cbox_cross_ma.setChecked(True)
             self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_vwap.setChecked(False)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
         else:
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_vwap.setChecked(True)
+            self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(True)
 
     def on_start(self):
@@ -265,7 +265,7 @@ class DockSimulation(QDockWidget):
         # 売買条件フラグ
         dict_option["cross_ma"] = self.cbox_cross_ma.isChecked()
         dict_option["cross_vwap"] = self.cbox_cross_vwap.isChecked()
-        dict_option["profit_vwap"] = self.cbox_profit_vwap.isChecked()
+        dict_option["profit_vwap"] = self.cbox_profit_trailing.isChecked()
         dict_option["losscut_vwap"] = self.cbox_losscut_vwap.isChecked()
         self.clickedStart.emit(dict_option)
 
