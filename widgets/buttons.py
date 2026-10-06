@@ -425,10 +425,10 @@ class CheckBoxCrossVWAP(CheckBoxControl):
         self.setText("クロス VWAP エントリ/返済")
 
 
-class CheckBoxProfitVWAP(CheckBoxControl):
+class CheckBoxProfitTrailing(CheckBoxControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
-        self.setText("クロス VWAP 利確")
+        self.setText("トレーリング利確")
 
 
 class CheckBoxLosscutVWAP(CheckBoxControl):

@@ -5,9 +5,11 @@ import numpy as np
 
 from funcs.conv import position_to_onehot
 from modules.technical import (
+    EMA,
     MovingAverage,
+    PriceTrendCounter,
     PurePursuitFollower,
-    VWAP, EMA,
+    VWAP,
 )
 from structs.app_enum import PositionType
 
@@ -20,19 +22,19 @@ class EnvData:
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
-    PERIOD_MA_2: int = 1800  # 移動平均線２の期間
     # ロスカット・利確系
     N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
 
     # ====== 実験パラメータ ======
     TYPE_MA_1: str = "PPF"
+    PERIOD_MA_2: int = 1800  # 移動平均線２の期間
     PERIOD_MA_1: int = 5  # 移動平均線１の期間
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
     START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
-    LOSSCUT_SIMPLE: float = -50 # 単純ロスカット
+    LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -57,6 +59,9 @@ class EnvData:
     # モメンタム
     mom: float = 0.0
     mom_pre: float = 0.0
+    #
+    count_high: int = 0  # ローカル高値の継続カウンタ
+    count_low: int = 0  # ローカル安値の継続カウンタ
 
     # 含み損益
     profit: float = 0.0  # 含み損益
@@ -94,6 +99,7 @@ class EnvData:
     obj_ma_1: Any = field(init=False)
     obj_ma_2: MovingAverage = field(init=False)
     obj_vwap: VWAP = field(init=False)
+    obj_ptc: PriceTrendCounter = field(init=False)
 
     def __post_init__(self):
         self.bands_golden = [
@@ -118,6 +124,7 @@ class EnvData:
 
         self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
+        self.obj_ptc = PriceTrendCounter()
 
     def print_param(self):
         # ====== パラメータ ======
@@ -194,6 +201,8 @@ class EnvData:
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
             "count_negative": self.count_negative,
+            "count_high": self.count_high,
+            "count_low": self.count_low,
             "ma_gc": self.is_ma_golden_cross(),
             "ma_dc": self.is_ma_dead_cross(),
             "vwap_gc": self.is_vwap_golden_cross(),
@@ -273,14 +282,14 @@ class EnvData:
         self.price = price
         self.position = dict_info["position"]
 
-        self.ma1 = self.obj_ma_1.update(price)
+        self.ma1 = ma1 = self.obj_ma_1.update(price)
         self.mom = 0
-        self.ma2 = self.obj_ma_2.update(price)
+        self.ma2 = ma2 = self.obj_ma_2.update(price)
         self.diff_ma = self.ma1 - self.ma2
         self.vwap = self.obj_vwap.update(price, volume)
         self.diff_vwap = self.ma1 - self.vwap
-        self.rsi = 0
-        # self.mom = self.obj_er.update(self.ma1)
+
+        self.count_high, self.count_low = self.obj_ptc.update(price, ma1, ma2)
 
         self.profit = dict_info["profit"]
         self.update_profit_max()  # 含み損益の最大値を更新
@@ -333,7 +342,7 @@ class EnvData:
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma
         self.diff_vwap_pre = self.diff_vwap
-        self.rsi_pre = self.rsi
+        # self.rsi_pre = self.rsi
         self.mom_pre = self.mom
 
         if self.position == PositionType.NONE:

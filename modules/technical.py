@@ -5,6 +5,8 @@ from typing import Optional, Deque
 import math
 from sortedcontainers import SortedList
 
+from structs.app_enum import PositionType
+
 
 class MovingAverage:
     def __init__(self, window_size: int):
@@ -580,50 +582,6 @@ class EfficiencyRatio:
         return self.er
 
 
-class PriceLowHigh:
-    def __init__(self):
-        self.price_high: float = 0.
-        self.price_low: float = 1.e10
-        self.count_high: int = 0
-        self.count_low: int = 0
-        self.count_hold: int = 0
-
-    def update(self, value: float, base: float) -> tuple[int, int, int]:
-        """
-        高値・安値更新カウンタの更新
-        :param value: 株価
-        :param base: サポート線の値（移動平均線など）
-        :return: 高値更新回数、安値更新回数、更新無しの回数
-        """
-        updated = False
-
-        # 高値側
-        if self.price_high < value:
-            self.price_high = value
-            self.count_high += 1
-            updated = True
-        elif value < base:
-            self.price_high = value
-            self.count_high = 0
-
-        # 安値側
-        if value < self.price_low:
-            self.price_low = value
-            self.count_low += 1
-            updated = True
-        elif base < value:
-            self.price_low = value
-            self.count_low = 0
-
-        # Hold の更新は最後に一度だけ
-        if updated:
-            self.count_hold = 0
-        else:
-            self.count_hold += 1
-
-        return self.count_high, self.count_low, self.count_hold
-
-
 class EMA:
     """
     リアルタイム用の指数平滑移動平均 (Exponential Moving Average, EMA)
@@ -655,3 +613,75 @@ class EMA:
             self.ema += self.alpha * (value - self.ema)
 
         return self.ema  # type: ignore
+
+
+class PriceTrendCounter:
+    """
+    高値・安値の更新回数を数えるカウンタ。
+
+    短周期移動平均線と基準線の位置関係によってトレンド領域を判定し、
+    その領域内で高値・安値の更新がどちらに偏っているかを評価する。
+    """
+    __version__: str = "1.0.0"
+
+    def __init__(self):
+        self.position = PositionType.NONE
+        self.local_high = float("-inf")
+        self.local_low = float("inf")
+        self.count_high: int = 0
+        self.count_low: int = 0
+
+    def update(self, price: float, ma1: float, base: float) -> tuple[int, int]:
+        """
+        高値・安値更新カウンタを更新する。
+
+        :param price: 株価
+        :param ma1: 短周期移動平均線相当
+        :param base: 長周期移動平均線などの基準線
+        :return: 高値更新回数、安値更新回数
+        """
+        if base < ma1:
+            # Long 領域
+            position = PositionType.LONG
+        elif ma1 < base:
+            # Short 領域
+            position = PositionType.SHORT
+        else:
+            # MA1 と基準線が一致した場合は、現在のレジームを維持
+            return self.count_high, self.count_low
+
+        if self.position != position:
+            # トレンド領域が変わったらカウンターをリセット
+            self.position = position
+            return self.init_counter(price)
+
+        if position == PositionType.LONG:
+            if self.local_high < price:
+                # 高値を更新
+                self.local_high = price
+                self.local_low = price
+                self.count_high += 1
+                self.count_low = 0
+            elif price < self.local_low:
+                # ローカル天井からの下落で安値を更新
+                self.local_low = price
+                self.count_low += 1
+        else:
+            if price < self.local_low:
+                # 安値を更新
+                self.local_high = price
+                self.local_low = price
+                self.count_high = 0
+                self.count_low += 1
+            elif self.local_high < price:
+                # ローカル底からの上昇で高値を更新
+                self.local_high = price
+                self.count_high += 1
+
+        return self.count_high, self.count_low
+
+    def init_counter(self, price: float) -> tuple[int, int]:
+        # カウンターを初期化
+        self.local_high = self.local_low = price
+        self.count_high = self.count_low = 0
+        return self.count_high, self.count_low

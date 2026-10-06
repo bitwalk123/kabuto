@@ -7,7 +7,7 @@ from widgets.buttons import (
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitVWAP,
+    CheckBoxProfitTrailing,
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
@@ -136,7 +136,7 @@ class DockSimulation(QDockWidget):
 
         # クロス MA 返済
         self.cbox_cross_ma = cbox_cross_ma = CheckBoxCrossMA()
-        cbox_cross_ma.setCheckable(False)
+        cbox_cross_ma.setChecked(False)
         cbox_cross_ma.stateChanged.connect(self.status_cross_ma_changed)
         layout.addWidget(cbox_cross_ma)
 
@@ -147,7 +147,7 @@ class DockSimulation(QDockWidget):
         layout.addWidget(cbox_cross_vwap)
 
         # クロス VWAP 利確
-        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
+        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitTrailing()
         cbox_profit_vwap.setChecked(False)
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
@@ -184,6 +184,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-015",
             "doe-014",
             "doe-013",
             "doe-012",
@@ -239,6 +240,11 @@ class DockSimulation(QDockWidget):
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_vwap.setChecked(True)
+            self.cbox_losscut_vwap.setChecked(False)
+        elif name_doe == "doe-015":
+            self.cbox_cross_ma.setChecked(True)
+            self.cbox_cross_vwap.setChecked(False)
+            self.cbox_profit_vwap.setChecked(False)
             self.cbox_losscut_vwap.setChecked(False)
         else:
             self.cbox_cross_ma.setChecked(False)

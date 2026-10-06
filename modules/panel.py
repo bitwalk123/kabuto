@@ -9,7 +9,7 @@ from widgets.buttons import (
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitVWAP,
+    CheckBoxProfitTrailing,
     ToggleButtonAutoPilot,
     TradeButton,
 )
@@ -59,7 +59,7 @@ class PanelControl(Widget):
         layout.addWidget(cbox_cross_vwap)
 
         # クロス VWAP 利確
-        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitVWAP()
+        self.cbox_profit_vwap = cbox_profit_vwap = CheckBoxProfitTrailing()
         cbox_profit_vwap.stateChanged.connect(self.status_profit_vwap_changed)
         layout.addWidget(cbox_profit_vwap)
 
