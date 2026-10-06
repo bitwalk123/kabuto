@@ -5,7 +5,7 @@ from typing import Optional, Deque
 import math
 from sortedcontainers import SortedList
 
-from old.env_20251117_1 import PositionType
+from structs.app_enum import PositionType
 
 
 class MovingAverage:
@@ -613,71 +613,6 @@ class EMA:
             self.ema += self.alpha * (value - self.ema)
 
         return self.ema  # type: ignore
-
-
-'''
-class PriceTrendCounter:
-    __version__: str = "1.0.0"
-
-    def __init__(self):
-        self.position = PositionType.NONE
-        self.local_high = float("-inf")
-        self.local_low = float("inf")
-        self.count_high: int = 0
-        self.count_low: int = 0
-        self.count_hold: int = 0
-
-    def update(self, price: float, ma1: float, base: float) -> tuple[int, int]:
-        """
-        高値・安値更新カウンタ
-        目的
-        クロスシグナルによるトレンドにおいて、上昇・下降どちらが優勢かを判断する指標
-        :param price: 株価
-        :param ma1: 短周期移動平均線相当
-        :param base: 長周期移動平均線などの基準線
-        :return: 高値更新回数、安値更新回数
-        """
-
-        if base < ma1:
-            # 建玉があれば Long として扱う領域
-            if self.position != PositionType.LONG:
-                self.position = PositionType.LONG
-                return self.init_counter(price)
-            # 高値側
-            if self.local_high < price:
-                self.local_high = price
-                self.local_low = price
-                self.count_high += 1
-                self.count_low = 0
-            # 安値側 - 安値更新が続けば、ローカル天井から下落
-            if price < self.local_low:
-                self.local_low = price
-                self.count_low += 1
-        elif ma1 < base:
-            # 建玉があれば Short として扱う領域
-            if self.position != PositionType.SHORT:
-                self.position = PositionType.SHORT
-                return self.init_counter(price)
-            # 安値側
-            if price < self.local_low:
-                self.local_high = price
-                self.local_low = price
-                self.count_high = 0
-                self.count_low += 1
-            # 高値側 - 高値更新が続けば、ローカル底打ちから上昇
-            if self.local_high < price:
-                self.local_high = price
-                self.count_high += 1
-
-        return self.count_high, self.count_low
-
-    def init_counter(self, price: float) -> tuple[int, int]:
-        self.local_high = price
-        self.count_high = 0
-        self.local_low = price
-        self.count_low = 0
-        return self.count_high, self.count_low
-'''
 
 
 class PriceTrendCounter:
