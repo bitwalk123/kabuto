@@ -342,7 +342,7 @@ class EnvData:
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma
         self.diff_vwap_pre = self.diff_vwap
-        self.rsi_pre = self.rsi
+        # self.rsi_pre = self.rsi
         self.mom_pre = self.mom
 
         if self.position == PositionType.NONE:
