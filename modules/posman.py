@@ -1,3 +1,5 @@
+from datetime import datetime, timezone, timedelta
+
 import pandas as pd
 
 from structs.app_enum import ActionType, PositionType
@@ -100,7 +102,11 @@ class PositionManager:
             profit = (self.dict_price[code] - price - self.slippage) * self.unit
             position = PositionType.NONE
         else:
-            msg: str = f"Invalid action type {action} for code {code}"
+            jst = timezone(timedelta(hours=9))
+            # UNIX時間からJSTのdatetimeオブジェクトへ変換
+            dt_jst = datetime.fromtimestamp(ts, tz=jst)
+            #print(dt_jst)
+            msg: str = f"Invalid action type {action} for code {code} ad {dt_jst}"
             raise ValueError(msg)
 
         self.dict_position[code] = position
