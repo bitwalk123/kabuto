@@ -117,7 +117,7 @@ class Trader(QMainWindow):
         self.sendTradeData.connect(worker.addData)
         self.updateStatusCrossMA.connect(worker.updateStateCrossMA)
         self.updateStatusCrossVWAP.connect(worker.updateStateCrossVWAP)
-        self.updateStatusProfitVWAP.connect(worker.updateStateProfitVWAP)
+        self.updateStatusProfitVWAP.connect(worker.updateStateProfitTrailing)
         self.updateStatusLosscutVWAP.connect(worker.updateStateLosscutVWAP)
         self.updateStatusThreshold.connect(worker.updateStateThreshold)
 

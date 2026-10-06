@@ -150,7 +150,7 @@ class Simulator():
         if "cross_vwap" in self.dict_option:
             self.agent.updateStateCrossVWAP(self.dict_option["cross_vwap"])
         if "profit_vwap" in self.dict_option:
-            self.agent.updateStateProfitVWAP(self.dict_option["profit_vwap"])
+            self.agent.updateStateProfitTrailing(self.dict_option["profit_vwap"])
         if "losscut_vwap" in self.dict_option:
             self.agent.updateStateLosscutVWAP(self.dict_option["losscut_vwap"])
 

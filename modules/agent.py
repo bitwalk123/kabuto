@@ -141,9 +141,9 @@ class WorkerAgent(QObject):
         self.logger.info(f"{self.code} の Cross VWAP 返済が {state_new} に変更されました。")
 
     @Slot(bool)
-    def updateStateProfitVWAP(self, state: bool):
-        state_new = self.env.s.setStatusProfitVWAP(state)
-        self.logger.info(f"{self.code} の VWAP 利確が {state_new} に変更されました。")
+    def updateStateProfitTrailing(self, state: bool):
+        state_new = self.env.s.setStatusProfitTrailing(state)
+        self.logger.info(f"{self.code} のトレーリング利確が {state_new} に変更されました。")
 
     @Slot(bool)
     def updateStateLosscutVWAP(self, state: bool):
@@ -281,9 +281,9 @@ class SimulatorAgent():
         self.logger.info(f"{self.code} の Cross VWAP 返済が {state_new} に変更されました。")
 
     @Slot(bool)
-    def updateStateProfitVWAP(self, state: bool):
-        state_new = self.env.s.setStatusProfitVWAP(state)
-        self.logger.info(f"{self.code} の VWAP 利確が {state_new} に変更されました。")
+    def updateStateProfitTrailing(self, state: bool):
+        state_new = self.env.s.setStatusProfitTrailing(state)
+        self.logger.info(f"{self.code} のトレーリング利確が {state_new} に変更されました。")
 
     @Slot(bool)
     def updateStateLosscutVWAP(self, state: bool):

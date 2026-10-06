@@ -73,7 +73,7 @@ class EnvData:
     status_cross_ma: bool = False
     status_cross_vwap: bool = False
     status_cross_vwap_2: bool = False
-    status_profit_vwap: bool = False
+    status_profit_trailing: bool = False
     status_losscut_vwap: bool = False
     status_threshold: bool = False
 
@@ -313,9 +313,9 @@ class EnvData:
         self.status_cross_vwap = state
         return self.status_cross_vwap
 
-    def setStatusProfitVWAP(self, state: bool) -> bool:
-        self.status_profit_vwap = state
-        return self.status_profit_vwap
+    def setStatusProfitTrailing(self, state: bool) -> bool:
+        self.status_profit_trailing = state
+        return self.status_profit_trailing
 
     def setStatusLosscutVWAP(self, state: bool) -> bool:
         self.status_losscut_vwap = state
@@ -380,7 +380,7 @@ class EnvData:
         return False
 
     def does_take_profit(self) -> bool:
-        if self.status_profit_vwap:
+        if self.status_profit_trailing:
             if self.START_TRAILING <= self.profit_max:
                 if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
                     return True
