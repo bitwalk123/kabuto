@@ -26,7 +26,7 @@ class Trader(QMainWindow):
     sendTradeData = Signal(float, float, float, dict)
     updateStatusCrossMA = Signal(bool)
     updateStatusCrossVWAP = Signal(bool)
-    updateStatusProfitVWAP = Signal(bool)
+    updateStatusProfitTrailing = Signal(bool)
     updateStatusLosscutVWAP = Signal(bool)
     updateStatusThreshold = Signal(bool)
 
@@ -88,7 +88,7 @@ class Trader(QMainWindow):
         dock.changedAutoPilot.connect(self.on_autopilot)
         dock.notifyStatusCrossMA.connect(self.on_status_cross_ma)
         dock.notifyStatusCrossVWAP.connect(self.on_status_cross_vwap)
-        dock.notifyStatusProfitVWAP.connect(self.on_status_profit_vwap)
+        dock.notifyStatusProfitTrailing.connect(self.on_status_profit_trailing)
         dock.notifyStatusLosscutVWAP.connect(self.on_status_losscut_vwap)
         dock.notifyStatusThreshold.connect(self.on_status_threshold)
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, dock)
@@ -117,7 +117,7 @@ class Trader(QMainWindow):
         self.sendTradeData.connect(worker.addData)
         self.updateStatusCrossMA.connect(worker.updateStateCrossMA)
         self.updateStatusCrossVWAP.connect(worker.updateStateCrossVWAP)
-        self.updateStatusProfitVWAP.connect(worker.updateStateProfitTrailing)
+        self.updateStatusProfitTrailing.connect(worker.updateStateProfitTrailing)
         self.updateStatusLosscutVWAP.connect(worker.updateStateLosscutVWAP)
         self.updateStatusThreshold.connect(worker.updateStateThreshold)
 
@@ -238,8 +238,8 @@ class Trader(QMainWindow):
     def on_status_cross_vwap(self, state: bool):
         self.updateStatusCrossVWAP.emit(state)
 
-    def on_status_profit_vwap(self, state:bool):
-        self.updateStatusProfitVWAP.emit(state)
+    def on_status_profit_trailing(self, state:bool):
+        self.updateStatusProfitTrailing.emit(state)
 
     def on_status_losscut_vwap(self, state:bool):
         self.updateStatusLosscutVWAP.emit(state)

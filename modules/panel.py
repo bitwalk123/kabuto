@@ -31,7 +31,7 @@ class PanelControl(Widget):
     """
     changedStatusCrossMA = Signal(bool)
     changedStatusCrossVWAP = Signal(bool)
-    changedStatusProfitVWAP = Signal(bool)
+    changedStatusProfitTrailing = Signal(bool)
     changedStatusThreshold = Signal(bool)
     changedStatusLosscutVWAP = Signal(bool)
 
@@ -75,7 +75,7 @@ class PanelControl(Widget):
         self.changedStatusCrossVWAP.emit(self.cbox_cross_vwap.isChecked())
 
     def status_profit_vwap_changed(self):
-        self.changedStatusProfitVWAP.emit(self.cbox_profit_vwap.isChecked())
+        self.changedStatusProfitTrailing.emit(self.cbox_profit_vwap.isChecked())
 
     def status_losscut_vwap_changed(self):
         self.changedStatusLosscutVWAP.emit(self.cbox_losscut_vwap.isChecked())
