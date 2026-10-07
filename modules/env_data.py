@@ -23,18 +23,26 @@ class EnvData:
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
     # ロスカット・利確系
-    N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
+    # N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
 
     # ====== 実験パラメータ ======
+    # 移動平均
     TYPE_MA_1: str = "EMA"
-    PERIOD_MA_1: int = 30  # 移動平均線１の期間
-    PERIOD_MA_2: int = 900  # 移動平均線２の期間
+    PERIOD_MA_1: int = 90  # 移動平均線１の期間
+    PERIOD_MA_2: int = 1200  # 移動平均線２の期間
+    # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
+    # トレーリング・ストップ
     START_TRAILING: float = 30  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
+    # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
+    # PTC 関連
+    FOLLOWING_MIN = 10
+    CONTRARIAN_MIN = 1
+    CONTRARIAN_MULT = 2
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -173,7 +181,7 @@ class EnvData:
             self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
             False,  # 5. 予備
             self.does_take_profit(),  # 5. 利確のフラグ
-            self.does_losscut_consecutive_negative(),  # 6. 連続含み損ロスカットのフラグ
+            self.judge_ptc(),  # 6. PTC判定
             self.is_losscut(),  # 7. 単純ロスカットのフラグ
             False,
             False,
@@ -333,12 +341,6 @@ class EnvData:
 
         # self.does_losscut_consecutive_negative()
 
-    def does_losscut_consecutive_negative(self):
-        if self.count_negative > self.N_MINUS_MAX:
-            return True
-        else:
-            return False
-
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma
         self.diff_vwap_pre = self.diff_vwap
@@ -389,3 +391,30 @@ class EnvData:
 
     def update_profit_pre(self):
         self.profit_pre = self.profit  # 一つ前の含み益の更新
+
+    def judge_ptc(self) -> bool:
+        """
+        PTC 判定
+        :return:
+        """
+        if self.position == PositionType.NONE:
+            return False
+        if self.position == PositionType.LONG:
+            # Long
+            following = self.count_high
+            contrarian = self.count_low
+        else:
+            # Short
+            following = self.count_low
+            contrarian = self.count_high
+
+        if self.FOLLOWING_MIN <= following:
+            # 利確
+            if following < contrarian * self.CONTRARIAN_MULT:
+                return True
+        elif self.CONTRARIAN_MIN < following:
+            # ロスカット
+            if following < contrarian:
+                return True
+
+        return False

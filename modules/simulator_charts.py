@@ -40,7 +40,7 @@ class SimulatorCharts(FigureCanvas):
         """
         # self.remove_axes()  # 一旦クリア
 
-        n = 2
+        n = 3
         ax = dict()
         gs = self.fig.add_gridspec(
             n, 1,
@@ -79,6 +79,15 @@ class SimulatorCharts(FigureCanvas):
 
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
+
+        # --- 高値安値カウント ---
+        i += 1
+        y1 = df["count_high"]
+        y2 = df["count_low"]
+        ax[i].plot(y1, linewidth=0.75, color="#f30", zorder=50)
+        ax[i].plot(y2, linewidth=0.75, color="#03f", zorder=50)
+        # y軸ラベル (3)
+        ax[i].set_ylabel("PTC")
 
         # --- 含み損益 ---
         i += 1

@@ -25,7 +25,7 @@ class AlgoTrade(AlgoTradeBase):
         cross_vwap_golden: bool = arr_signal[2]
         cross_vwap_dead: bool = arr_signal[3]
         flag_take_profit: bool = arr_signal[5]
-        flag_losscut_consecutive_negative: bool = arr_signal[6]
+        flag_judge_ptc: bool = arr_signal[6]  # PTC 判定
         flag_losscut_simple: bool = arr_signal[7]
 
         position: PositionType = onehot_to_position(dict_obs["position"])
@@ -72,13 +72,11 @@ class AlgoTrade(AlgoTradeBase):
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
                     return ActionType.SELL.value, {"reason": "判定利確（ロング）"}
 
-            '''
-            if flag_losscut_consecutive_negative:
+            if flag_judge_ptc:
                 if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
-                    return ActionType.BUY.value, {"reason": "連続含み損ロスカット（ショート）"}
+                    return ActionType.BUY.value, {"reason": "PTC 判定（ショート）"}
                 elif position == PositionType.LONG and self.can_execute(ActionType.SELL.value, action_masks):
-                    return ActionType.SELL.value, {"reason": "連続含み損ロスカット（ロング）"}
-            '''
+                    return ActionType.SELL.value, {"reason": "PTC 判定（ロング）"}
 
             if flag_losscut_simple:
                 if position == PositionType.SHORT and self.can_execute(ActionType.BUY.value, action_masks):
