@@ -41,7 +41,7 @@ class EnvData:
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
     # PTC 関連
     FOLLOWING_MIN: int = 10
-    CONTRARIAN_MIN: int = 1
+    CONTRARIAN_MIN: int = 8
     CONTRARIAN_MULT: float = 2
 
     # インスタンス変数系（初期値が自明な変数のみ）
