@@ -40,9 +40,9 @@ class EnvData:
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
     # PTC 関連
-    FOLLOWING_MIN = 10
-    CONTRARIAN_MIN = 1
-    CONTRARIAN_MULT = 2
+    FOLLOWING_MIN: int = 10
+    CONTRARIAN_MIN: int = 1
+    CONTRARIAN_MULT: float = 2
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
