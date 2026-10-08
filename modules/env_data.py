@@ -30,18 +30,22 @@ class EnvData:
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 90  # 移動平均線１の期間
     PERIOD_MA_2: int = 1200  # 移動平均線２の期間
+
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
+
     # トレーリング・ストップ
     START_TRAILING: float = 30  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
+
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
-    # PTC 関連
+
+    # PTC 関連 ※ 判定に利用するのは一旦取りやめ
     FOLLOWING_MIN: int = 10
-    CONTRARIAN_MIN: int = 8
+    CONTRARIAN_MIN: int = 5
     CONTRARIAN_MULT: float = 2
 
     # インスタンス変数系（初期値が自明な変数のみ）
@@ -397,6 +401,8 @@ class EnvData:
         PTC 判定
         :return:
         """
+        '''
+        # === PTC 判定は一旦取りやめ ===
         if self.position == PositionType.NONE:
             return False
         if self.position == PositionType.LONG:
@@ -416,5 +422,9 @@ class EnvData:
             # ロスカット
             if following < contrarian:
                 return True
+        elif following * 3 < contrarian:
+            # ロスカット２
+            return True
+        '''
 
         return False
