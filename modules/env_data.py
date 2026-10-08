@@ -45,7 +45,7 @@ class EnvData:
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # エントリ期間関連
-    COUNT_ENTRY_MIN: int = 5  # エントリ後のカウント（期間）のしきい値
+    COUNT_NEGATIVE_MIN: int = 5  # 含み損の許容カウントのしきい値
 
     # PTC 関連 ※ 判定に利用するのは一旦取りやめ
     FOLLOWING_MIN: int = 10
@@ -56,7 +56,7 @@ class EnvData:
     row: int = 0  # ティックデータの行位置
     position: PositionType = PositionType.NONE  # ポジション
     position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
-    count_entry: int = 0  # エントリの継続カウンタ
+    count_negative: int = 0  # エントリの継続カウンタ
     count_post_contract: int = 0  # 約定後の HOLD カウント用
 
     # ティックデータ
@@ -218,7 +218,7 @@ class EnvData:
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
-            "count_entry": self.count_entry,
+            "count_entry": self.count_negative,
             "count_high": self.count_high,
             "count_low": self.count_low,
             "ma_gc": self.is_ma_golden_cross(),
@@ -290,7 +290,7 @@ class EnvData:
         return 1.0 if self.row < self.PERIOD_WARMUP else 0.0
 
     def reset_count_entry(self):
-        self.count_entry = 0
+        self.count_negative = 0
 
     def reset_profit_pre(self):
         self.profit_pre = 0.0
@@ -311,7 +311,7 @@ class EnvData:
 
         self.profit = dict_info["profit"]
         self.update_profit_max()  # 含み損益の最大値を更新
-        self.update_count_entry()  # 含み損の継続カウンタの更新
+        self.update_count_negative()  # 含み損の継続カウンタの更新
 
         obs = self.get_obs()
         dict_technical = self.get_technicals()
@@ -343,13 +343,14 @@ class EnvData:
         self.status_threshold = state
         return self.status_threshold
 
-    def update_count_entry(self):
+    def update_count_negative(self):
         if self.position != PositionType.NONE:
-            self.count_entry += 1
+            if self.profit <= 0:
+                self.count_negative += 1
+            else:
+                self.count_negative = 0
         else:
-            self.count_entry = 0
-
-        # self.does_losscut_consecutive_negative()
+            self.count_negative = 0
 
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma
@@ -359,7 +360,7 @@ class EnvData:
 
         if self.position == PositionType.NONE:
             self.dd_ratio = 0.0
-            self.count_entry = 0
+            self.count_negative = 0
             self.profit_max = 0.0
 
         self.profit_pre = self.profit
@@ -385,8 +386,8 @@ class EnvData:
                 if self.vwap - self.price <= self.LOSSCUT_VWAP:
                     return True
 
-        if self.COUNT_ENTRY_MIN < self.count_entry:
-            # クロス後一定時間経過していて、含み益が 0 以下であれば利確（ロスカット）
+        if self.COUNT_NEGATIVE_MIN < self.count_negative:
+            # 含み益が 0 以下が連続して、しきい値回数以上であれば利確（ロスカット）
             if self.profit <= 0:
                 return True
 
