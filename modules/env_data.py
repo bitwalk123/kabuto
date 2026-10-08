@@ -29,8 +29,8 @@ class EnvData:
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
-    PERIOD_MA_1: int = 90  # 移動平均線１の期間
-    PERIOD_MA_2: int = 1200  # 移動平均線２の期間
+    PERIOD_MA_1: int = 60  # 移動平均線１の期間
+    PERIOD_MA_2: int = 900  # 移動平均線２の期間
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -44,6 +44,9 @@ class EnvData:
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
+    # エントリ期間関連
+    COUNT_ENTRY_MIN = 5  # エントリ後のカウント（期間）のしきい値
+
     # PTC 関連 ※ 判定に利用するのは一旦取りやめ
     FOLLOWING_MIN: int = 10
     CONTRARIAN_MIN: int = 5
@@ -53,7 +56,7 @@ class EnvData:
     row: int = 0  # ティックデータの行位置
     position: PositionType = PositionType.NONE  # ポジション
     position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
-    count_negative: int = 0  # 含み損の継続カウンタ
+    count_entry: int = 0  # エントリの継続カウンタ
     count_post_contract: int = 0  # 約定後の HOLD カウント用
 
     # ティックデータ
@@ -215,7 +218,7 @@ class EnvData:
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
-            "count_negative": self.count_negative,
+            "count_entry": self.count_entry,
             "count_high": self.count_high,
             "count_low": self.count_low,
             "ma_gc": self.is_ma_golden_cross(),
@@ -286,8 +289,8 @@ class EnvData:
     def is_warmup_period(self) -> float:
         return 1.0 if self.row < self.PERIOD_WARMUP else 0.0
 
-    def reset_count_negative(self):
-        self.count_negative = 0
+    def reset_count_entry(self):
+        self.count_entry = 0
 
     def reset_profit_pre(self):
         self.profit_pre = 0.0
@@ -308,7 +311,7 @@ class EnvData:
 
         self.profit = dict_info["profit"]
         self.update_profit_max()  # 含み損益の最大値を更新
-        self.update_count_negative()  # 含み損の継続カウンタの更新
+        self.update_count_entry()  # 含み損の継続カウンタの更新
 
         obs = self.get_obs()
         dict_technical = self.get_technicals()
@@ -340,11 +343,11 @@ class EnvData:
         self.status_threshold = state
         return self.status_threshold
 
-    def update_count_negative(self):
-        if self.profit < 0:
-            self.count_negative += 1
+    def update_count_entry(self):
+        if self.position != PositionType.NONE:
+            self.count_entry += 1
         else:
-            self.count_negative = 0
+            self.count_entry = 0
 
         # self.does_losscut_consecutive_negative()
 
@@ -356,7 +359,7 @@ class EnvData:
 
         if self.position == PositionType.NONE:
             self.dd_ratio = 0.0
-            self.count_negative = 0
+            self.count_entry = 0
             self.profit_max = 0.0
 
         self.profit_pre = self.profit
@@ -382,6 +385,11 @@ class EnvData:
                 if self.vwap - self.price <= self.LOSSCUT_VWAP:
                     return True
 
+        if self.COUNT_ENTRY_MIN < self.count_entry:
+            # クロス後一定時間経過していて、含み益が 0 以下であれば利確（ロスカット）
+            if self.profit <= 0:
+                return True
+
         if self.profit < self.LOSSCUT_SIMPLE:
             # 単純ロスカット
             return True
@@ -389,11 +397,12 @@ class EnvData:
         return False
 
     def does_take_profit(self) -> bool:
+        """
         if self.status_profit_trailing:
             if self.START_TRAILING <= self.profit_max:
                 if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
                     return True
-
+        """
         return False
 
     def update_profit_pre(self):

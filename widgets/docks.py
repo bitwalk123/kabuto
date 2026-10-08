@@ -184,6 +184,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-023",
             "doe-022",
             "doe-021",
             "doe-020",
@@ -228,62 +229,33 @@ class DockSimulation(QDockWidget):
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_trailing.setChecked(False)
             self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-003":
+        elif name_doe == [
+            "doe-003",
+            "doe-012",
+            "doe-013",
+            "doe-014",
+        ]:
             self.cbox_cross_ma.setChecked(False)
             self.cbox_cross_vwap.setChecked(True)
             self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-012":
-            self.cbox_cross_ma.setChecked(False)
-            self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-013":
-            self.cbox_cross_ma.setChecked(False)
-            self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-014":
-            self.cbox_cross_ma.setChecked(False)
-            self.cbox_cross_vwap.setChecked(True)
-            self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-015":
+        elif name_doe in [
+            "doe-015",
+            "doe-016",
+        ]:
             self.cbox_cross_ma.setChecked(True)
             self.cbox_cross_vwap.setChecked(False)
             self.cbox_profit_trailing.setChecked(True)
             self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-016":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-017":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(False)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-018":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(False)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-019":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(False)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-020":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(False)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-021":
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(False)
-            self.cbox_losscut_vwap.setChecked(False)
-        elif name_doe == "doe-022":
+        elif name_doe in [
+            "doe-017",
+            "doe-018",
+            "doe-019",
+            "doe-020",
+            "doe-021",
+            "doe-022",
+            "doe-023",
+        ]:
             self.cbox_cross_ma.setChecked(True)
             self.cbox_cross_vwap.setChecked(False)
             self.cbox_profit_trailing.setChecked(False)
