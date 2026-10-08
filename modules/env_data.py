@@ -6,10 +6,11 @@ import numpy as np
 from funcs.conv import position_to_onehot
 from modules.technical import (
     EMA,
-    MovingAverage,
     PriceTrendCounter,
     PurePursuitFollower,
+    SMA,
     VWAP,
+    WMA,
 )
 from structs.app_enum import PositionType
 
@@ -109,7 +110,7 @@ class EnvData:
 
     # テクニカル指標のインスタンス
     obj_ma_1: Any = field(init=False)
-    obj_ma_2: MovingAverage = field(init=False)
+    obj_ma_2: SMA = field(init=False)
     obj_vwap: VWAP = field(init=False)
     obj_ptc: PriceTrendCounter = field(init=False)
 
@@ -128,13 +129,15 @@ class EnvData:
                 self.GAIN_PREDICT_MA_1,
             )
         elif self.TYPE_MA_1 == "SMA":
-            self.obj_ma_1 = MovingAverage(self.PERIOD_MA_1)
+            self.obj_ma_1 = SMA(self.PERIOD_MA_1)
         elif self.TYPE_MA_1 == "EMA":
             self.obj_ma_1 = EMA(self.PERIOD_MA_1)
+        elif self.TYPE_MA_1 == "WMA":
+            self.obj_ma_1 = WMA(self.PERIOD_MA_1)
         else:
             raise TypeError("TYPE_MA_1 に合致しません。")
 
-        self.obj_ma_2 = MovingAverage(self.PERIOD_MA_2)
+        self.obj_ma_2 = SMA(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
         self.obj_ptc = PriceTrendCounter()
 

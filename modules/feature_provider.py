@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from funcs.commons import detect_cross, init_transaction, detect_cross_golden, detect_cross_dead
-from modules.technical import MovingAverage, VWAP, RSI, Momentum
+from modules.technical import SMA, VWAP, RSI, Momentum
 from structs.defaults import FeatureDefaults
 from structs.app_enum import PositionType
 
@@ -68,7 +68,7 @@ class FeatureProvider:
         # 2. 固定パラメータを使ってインスタンス生成
         self.N_TRADE_MAX: int = 100
         self.obj_vwap = VWAP()
-        self.obj_ma1 = MovingAverage(window_size=self.dict_setting["PERIOD_MA_1"])
+        self.obj_ma1 = SMA(window_size=self.dict_setting["PERIOD_MA_1"])
         self.obj_rsi = RSI(window_size=self.dict_setting["PERIOD_RSI"])
         self.obj_mom = Momentum(window_size=self.dict_setting["PERIOD_MOM"])
 

@@ -8,7 +8,7 @@ from sortedcontainers import SortedList
 from structs.app_enum import PositionType
 
 
-class MovingAverage:
+class SMA:
     def __init__(self, window_size: int):
         self.window_size = window_size
         self.queue = deque()

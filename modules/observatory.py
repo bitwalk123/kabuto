@@ -1,7 +1,7 @@
 from modules.env_data import EnvData
 from modules.technical import (
     EfficiencyRatio,
-    MovingAverage,
+    SMA,
     PurePursuitFollower,
     VWAP,
 )
@@ -14,7 +14,7 @@ class ObservationManager:
         # 特徴量インスタンス
         # self.ma_1 = MovingAverage(window_size=self.s.PERIOD_MA_1)
         self.ma_1 = PurePursuitFollower()
-        self.ma_2 = MovingAverage(window_size=self.s.PERIOD_MA_2)
+        self.ma_2 = SMA(window_size=self.s.PERIOD_MA_2)
         self.er = EfficiencyRatio(window_size=90)
         self.vwap = VWAP()
 
