@@ -47,7 +47,10 @@ class EnvData:
     # エントリ期間関連
     COUNT_NEGATIVE_MIN: int = 5  # 含み損の許容カウントのしきい値
 
-    # PTC 関連 ※ 判定に利用するのは一旦取りやめ
+    PROFIT_THRESHOLD: float = 5  # クロス後、含み益が伸びない判定をするしきい値
+    COUNT_NEGATIVE_PROFIT: int = 5  # クロス後、含み益が伸びず含み損を許容できる連続回数
+
+    # PTC 関連
     FOLLOWING_MIN: int = 10
     CONTRARIAN_MIN: int = 5
     CONTRARIAN_MULT: float = 2
@@ -393,6 +396,12 @@ class EnvData:
             if self.profit <= 0:
                 return True
 
+        if self.profit_max < self.PROFIT_THRESHOLD:
+            # クロス後、含み益が伸びず、
+            # 含み損を許容できる連続回数を超過したか判定
+            if self.COUNT_NEGATIVE_PROFIT < self.count_negative:
+                return True
+
         if self.profit < self.LOSSCUT_SIMPLE:
             # 単純ロスカット
             return True
@@ -416,8 +425,7 @@ class EnvData:
         PTC 判定
         :return:
         """
-        '''
-        # === PTC 判定は一旦取りやめ ===
+        # === PTC 判定 ===
         if self.position == PositionType.NONE:
             return False
         if self.position == PositionType.LONG:
@@ -433,13 +441,5 @@ class EnvData:
             # 利確
             if following < contrarian * self.CONTRARIAN_MULT:
                 return True
-        elif self.CONTRARIAN_MIN < following:
-            # ロスカット
-            if following < contrarian:
-                return True
-        elif following * 3 < contrarian:
-            # ロスカット２
-            return True
-        '''
 
         return False
