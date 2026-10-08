@@ -346,8 +346,10 @@ class EnvData:
     def update_count_negative(self):
         if self.position != PositionType.NONE:
             if self.profit <= 0:
+                # 含み損であればカウンタを更新
                 self.count_negative += 1
             else:
+                # 含み益であればリセット
                 self.count_negative = 0
         else:
             self.count_negative = 0
