@@ -45,7 +45,7 @@ class EnvData:
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # エントリ期間関連
-    COUNT_ENTRY_MIN = 5  # エントリ後のカウント（期間）のしきい値
+    COUNT_ENTRY_MIN: int = 5  # エントリ後のカウント（期間）のしきい値
 
     # PTC 関連 ※ 判定に利用するのは一旦取りやめ
     FOLLOWING_MIN: int = 10
