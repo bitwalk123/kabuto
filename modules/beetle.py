@@ -69,6 +69,7 @@ class Beetle(MainWindow):
         self.dict_option = dict_option
         list_file: list[FilePath] = self.dock_files.get_files()
         if len(list_file) == 0:
+            self.logger.warning("ファイルが選択されていません。")
             return
 
         self.lister = Lister(list_file)
@@ -81,6 +82,7 @@ class Beetle(MainWindow):
         if "doe" in dict_option:
             path_doe = f"doe/{dict_option['doe']}.csv"
         else:
+            self.logger.warning("条件表が存在しません。")
             return
 
         if "condition" in self.dict_option:
@@ -130,21 +132,31 @@ class Beetle(MainWindow):
         """
 
         if "technicals" in dict_result:
+            if "transaction" in dict_result:
+                # 取引明細
+                df_transaction = dict_result["transaction"]
+
+                print(df_transaction)
+                total = df_transaction["損益"].sum()
+                print(f"合計損益: {int(total)} 円（1株）")
+
+                dict_one_result = {
+                    "Profit": df_transaction["損益"].sum(),
+                    "Transactions": len(df_transaction),
+                }
+                # 結果を追加
+                self.explorer.append_result(dict_one_result)
+
             # チャート
             self.chart_win.plot(dict_result)
-
-        if "transaction" in dict_result:
-            # 取引明細
-            df_transaction = dict_result["transaction"]
-            # print(df_transaction)
-            # total = df_transaction["損益"].sum()
-            # print(f"合計損益: {int(total * 100)} 円（100株）")
-            dict_one_result = {
-                "Profit": df_transaction["損益"].sum(),
-                "Transactions": len(df_transaction),
-            }
-            # 結果を追加
-            self.explorer.append_result(dict_one_result)
+            if self.dock_sim.does_save_chart():
+                dir_chart = Path(self.explorer.dir_result) / "chart"
+                dir_chart.mkdir(parents=True, exist_ok=True)
+                file = self.lister.get_current_file()
+                num_doe = self.explorer.get_current_number()
+                name_png = dir_chart / f"{file}_{num_doe}.png"
+                self.logger.info(f"チャートを {name_png} に保存します。")
+                self.chart_win.save_chart(name_png)
 
     def simulation_next(self):
         """
@@ -176,5 +188,5 @@ class Beetle(MainWindow):
                 if dict_setting is not None:
                     # シミュレーションの開始
                     self.simulation_start(dict_setting)
-            else:
-                self.logger.info("全ファイルの処理を終了しました。")
+
+            self.logger.info("全ファイルの処理を終了しました。")

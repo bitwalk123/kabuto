@@ -1,13 +1,55 @@
+import math
 from collections import deque
 from math import sqrt
 from typing import Optional, Deque
 
-import math
 from sortedcontainers import SortedList
 
 from structs.app_enum import PositionType
 
 
+def calculate_slope(values: deque, window_slope: int = 30) -> float:
+    """
+    最新点を通る制約付き単回帰直線の傾きを求める。
+
+    Parameters
+    ----------
+    values : deque
+        時系列順（古い値から新しい値）のデータ
+    window_slope : int
+        回帰に使用するデータ点数
+
+    Returns
+    -------
+    float
+        回帰直線の傾き。
+        データ点数が不足している場合は 0.0。
+    """
+    if len(values) < window_slope:
+        return 0.0
+
+    if window_slope < 2:
+        return 0.0
+
+    # 最新の window_slope 点を取得
+    data = list(values)[-window_slope:]
+    y_last = data[-1]
+
+    # 最新点を通る制約付き最小二乗法
+    denominator = sum(
+        (i - (window_slope - 1)) ** 2
+        for i in range(window_slope)
+    )
+
+    numerator = sum(
+        (i - (window_slope - 1)) * (y - y_last)
+        for i, y in enumerate(data)
+    )
+
+    return numerator / denominator
+
+
+'''
 class SMA:
     def __init__(self, window_size: int):
         self.window_size = window_size
@@ -41,6 +83,59 @@ class SMA:
         # MA を更新（更新前に prev_ma を保存）
         self.prev_ma = self.ma
         self.ma = self.running_sum / len(self.queue)
+
+        return self.ma
+'''
+
+
+class SMA:
+    def __init__(
+            self,
+            window_size: int,
+            window_slope: int = 30,
+    ):
+        self.window_size = window_size
+        self.window_slope = window_slope
+
+        self.queue = deque()
+        self.history = deque(maxlen=window_slope)
+
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def clear(self) -> None:
+        self.queue.clear()
+        self.history.clear()
+
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def getValue(self) -> float:
+        return self.ma
+
+    def getSlope(self) -> float:
+        return calculate_slope(
+            self.history,
+            self.window_slope,
+        )
+
+    def update(self, value: float) -> float:
+        # 古い入力値を取り除く
+        if len(self.queue) >= self.window_size:
+            self.running_sum -= self.queue.popleft()
+
+        # 新しい入力値を追加
+        self.queue.append(value)
+        self.running_sum += value
+
+        # MA を更新
+        self.prev_ma = self.ma
+        self.ma = self.running_sum / len(self.queue)
+
+        # MA の履歴を保存
+        self.history.append(self.ma)
 
         return self.ma
 

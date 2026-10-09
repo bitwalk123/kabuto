@@ -92,7 +92,7 @@ class Simulator():
                     self.posman.closePosition(self.code, ts, price, note)
 
         # 終了処理（ティックデータ最後のデータは 15:24:50 直前）
-        #position = agent.env.getCurrentPosition()
+        # position = agent.env.getCurrentPosition()
         if self.posman.hasPosition(self.code):
             agent.forceRepay()
             # 返済
@@ -102,7 +102,7 @@ class Simulator():
 
         # 取引明細
         dict_result["transaction"] = self.posman.getTransactionResult()
-        print(dict_result["transaction"])
+        # print(dict_result["transaction"])
         # テクニカルデータのデータフレーム
         dict_result["technicals"] = agent.getTechnicals()
 

@@ -435,3 +435,8 @@ class CheckBoxLosscutVWAP(CheckBoxControl):
     def __init__(self, *args) -> None:
         super().__init__(*args)
         self.setText("VWAP ロスカット")
+
+class CheckBoxSaveChart(CheckBoxControl):
+    def __init__(self, *args) -> None:
+        super().__init__(*args)
+        self.setText("チャート保存")

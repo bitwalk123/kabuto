@@ -1,4 +1,5 @@
 import datetime
+import pathlib
 
 import matplotlib as mpl
 from PySide6.QtCore import Qt, QMargins
@@ -24,6 +25,7 @@ class SimulatorCharts(FigureCanvas):
         super().__init__(self.fig)
         self.res = res
         self.setMinimumWidth(1200)
+        self.setMinimumHeight(600)
 
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
@@ -40,7 +42,7 @@ class SimulatorCharts(FigureCanvas):
         """
         # self.remove_axes()  # 一旦クリア
 
-        n = 3
+        n = 4
         ax = dict()
         gs = self.fig.add_gridspec(
             n, 1,
@@ -80,6 +82,13 @@ class SimulatorCharts(FigureCanvas):
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
 
+        # --- 含み損カウンター ---
+        i += 1
+        y = df["count_negative"]
+        ax[i].plot(y, linewidth=0.75, color="C0", zorder=50)
+        # y軸ラベル (2)
+        ax[i].set_ylabel("Count\nNegative")
+
         # --- 高値安値カウント ---
         i += 1
         y1 = df["count_high"]
@@ -87,7 +96,7 @@ class SimulatorCharts(FigureCanvas):
         ax[i].plot(y1, linewidth=0.75, color="#f30", zorder=50)
         ax[i].plot(y2, linewidth=0.75, color="#03f", zorder=50)
         # y軸ラベル (3)
-        ax[i].set_ylabel("PTC")
+        ax[i].set_ylabel("Price Trend\nCounter")
 
         # --- 含み損益 ---
         i += 1
@@ -97,7 +106,7 @@ class SimulatorCharts(FigureCanvas):
         ax[i].fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10)
         ax[i].fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10)
         ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
-        # y軸ラベル (3)
+        # y軸ラベル (4)
         ax[i].set_ylabel("含み損益")
 
         # 最後の段のチャートの x軸のラベル
@@ -112,6 +121,9 @@ class SimulatorCharts(FigureCanvas):
         """
         for ax in list(self.fig.axes):
             ax.remove()
+
+    def save_chart(self, path: pathlib.Path):
+        self.fig.savefig(path, format="png", dpi=300, bbox_inches="tight")
 
 
 class ChartWindow(QMainWindow):
@@ -132,3 +144,6 @@ class ChartWindow(QMainWindow):
 
     def remove_axes(self):
         self.chart.remove_axes()
+
+    def save_chart(self, path: pathlib.Path):
+        self.chart.save_chart(path)

@@ -29,8 +29,8 @@ class EnvData:
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
-    PERIOD_MA_1: int = 60  # 移動平均線１の期間
-    PERIOD_MA_2: int = 900  # 移動平均線２の期間
+    PERIOD_MA_1: int = 90  # 移動平均線１の期間
+    PERIOD_MA_2: int = 1350  # 移動平均線２の期間
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -45,7 +45,7 @@ class EnvData:
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # エントリ期間関連
-    COUNT_NEGATIVE_MIN: int = 5  # 含み損の許容カウントのしきい値
+    COUNT_NEGATIVE_MIN: int = 60  # 含み損の許容カウントのしきい値
 
     PROFIT_THRESHOLD: float = 5  # クロス後、含み益が伸びない判定をするしきい値
     COUNT_NEGATIVE_PROFIT: int = 5  # クロス後、含み益が伸びず含み損を許容できる連続回数
@@ -221,7 +221,7 @@ class EnvData:
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
-            "count_entry": self.count_negative,
+            "count_negative": self.count_negative,
             "count_high": self.count_high,
             "count_low": self.count_low,
             "ma_gc": self.is_ma_golden_cross(),
@@ -391,8 +391,10 @@ class EnvData:
                 if self.vwap - self.price <= self.LOSSCUT_VWAP:
                     return True
 
-        if self.COUNT_NEGATIVE_MIN < self.count_negative:
+        """
+        if 0 < self.COUNT_NEGATIVE_MIN < self.count_negative:
             # 含み益が 0 以下が連続して、しきい値回数以上であれば利確（ロスカット）
+            # ただし、COUNT_NEGATIVE_MIN が 0 より大きい場合に適用
             if self.profit <= 0:
                 return True
 
@@ -401,6 +403,7 @@ class EnvData:
             # 含み損を許容できる連続回数を超過したか判定
             if self.COUNT_NEGATIVE_PROFIT < self.count_negative:
                 return True
+        """
 
         if self.profit < self.LOSSCUT_SIMPLE:
             # 単純ロスカット
@@ -425,6 +428,7 @@ class EnvData:
         PTC 判定
         :return:
         """
+        """
         # === PTC 判定 ===
         if self.position == PositionType.NONE:
             return False
@@ -441,5 +445,6 @@ class EnvData:
             # 利確
             if following < contrarian * self.CONTRARIAN_MULT:
                 return True
+        """
 
         return False

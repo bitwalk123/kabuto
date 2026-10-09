@@ -7,7 +7,7 @@ from widgets.buttons import (
     CheckBoxCrossMA,
     CheckBoxCrossVWAP,
     CheckBoxLosscutVWAP,
-    CheckBoxProfitTrailing,
+    CheckBoxProfitTrailing, CheckBoxSaveChart,
 )
 from widgets.combos import ComboBox
 from widgets.containers import Widget, PadH
@@ -162,7 +162,13 @@ class DockSimulation(QDockWidget):
         but_start.clicked.connect(self.on_start)
         layout.addWidget(but_start)
 
+        self.cbox_save_chart = cbox_save_chart = CheckBoxSaveChart()
+        layout.addWidget(cbox_save_chart)
+
         self.on_combo_doe_changed(self.combo_doe.currentText())
+
+    def does_save_chart(self) -> bool:
+        return self.cbox_save_chart.isChecked()
 
     def gen_row_code(self, layout: GridLayout):
         lab_code = LabelRaisedLeft("銘柄コード")
@@ -184,6 +190,8 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-027",
+            "doe-026",
             "doe-025",
             "doe-024",
             "doe-023",
@@ -218,7 +226,6 @@ class DockSimulation(QDockWidget):
         layout.addWidget(but_condition, 2, 0)
         self.ent_condition = ent_condition = EntryInt()
         layout.addWidget(ent_condition, 2, 1)
-
 
     def on_combo_doe_changed(self, name_doe: str):
         if name_doe == "doe-001":
@@ -259,6 +266,8 @@ class DockSimulation(QDockWidget):
             "doe-023",
             "doe-024",
             "doe-025",
+            "doe-026",
+            "doe-027",
         ]:
             self.cbox_cross_ma.setChecked(True)
             self.cbox_cross_vwap.setChecked(False)

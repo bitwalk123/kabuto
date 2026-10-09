@@ -44,6 +44,12 @@ class Explorer:
     def get_summary(self) -> pd.DataFrame:
         return self.df_summary
 
+    def get_current_number(self) -> str:
+        if 0 < self.row_current:
+            return f"{self.row_current - 1:04d}"
+        else:
+            return "9999"
+
 
 class Lister:
     def __init__(self, list_file: list[FilePath]):
@@ -65,3 +71,10 @@ class Lister:
             return path_file
         else:
             raise StopIteration
+
+    def get_current_file(self) -> str:
+        if 0 < self.row_current:
+            path_file: FilePath = self.list_file[self.row_current - 1]
+            return path_file.full.stem
+        else:
+            return "unknown"
