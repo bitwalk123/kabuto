@@ -49,45 +49,6 @@ def calculate_slope(values: deque, window_slope: int = 30) -> float:
     return numerator / denominator
 
 
-'''
-class SMA:
-    def __init__(self, window_size: int):
-        self.window_size = window_size
-        self.queue = deque()
-        self.running_sum = 0.0
-        self.ma = 0.0
-        self.prev_ma = 0.0  # 直前の MA を保持
-
-    def clear(self) -> None:
-        self.queue.clear()
-        self.running_sum = 0.0
-        self.ma = 0.0
-        self.prev_ma = 0.0
-
-    def getValue(self) -> float:
-        return self.ma
-
-    def getSlope(self) -> float:
-        # s = ma_current - ma_prev
-        return self.ma - self.prev_ma
-
-    def update(self, value: float) -> float:
-        # 古い値を取り除く
-        if len(self.queue) >= self.window_size:
-            self.running_sum -= self.queue.popleft()
-
-        # 新しい値を追加
-        self.queue.append(value)
-        self.running_sum += value
-
-        # MA を更新（更新前に prev_ma を保存）
-        self.prev_ma = self.ma
-        self.ma = self.running_sum / len(self.queue)
-
-        return self.ma
-'''
-
-
 class SMA:
     def __init__(
             self,
@@ -138,6 +99,51 @@ class SMA:
         self.history.append(self.ma)
 
         return self.ma
+
+
+class EMA:
+    """
+    リアルタイム用の指数平滑移動平均
+    (Exponential Moving Average, EMA)
+    """
+
+    def __init__(
+            self,
+            window_size: int,
+            window_slope: int = 30,
+    ):
+        if window_size < 1:
+            raise ValueError("window_size must be >= 1")
+        if window_slope < 2:
+            raise ValueError("window_slope must be >= 2")
+
+        self.alpha: float = 2 / (window_size + 1)
+        self.window_slope = window_slope
+        self.ema: Optional[float] = None
+        self.history = deque(maxlen=window_slope)
+
+    def clear(self) -> None:
+        self.ema = None
+        self.history.clear()
+
+    def getValue(self) -> float:
+        return self.ema if self.ema is not None else 0.0
+
+    def getSlope(self) -> float:
+        return calculate_slope(
+            self.history,
+            self.window_slope,
+        )
+
+    def update(self, value: float) -> float:
+        if self.ema is None:
+            self.ema = value
+        else:
+            self.ema += self.alpha * (value - self.ema)
+
+        self.history.append(self.ema)
+
+        return self.ema  # type: ignore
 
 
 class MovingIQR:
@@ -675,39 +681,6 @@ class EfficiencyRatio:
         self.er = direction / self.volatility if self.volatility else 0.0
 
         return self.er
-
-
-class EMA:
-    """
-    リアルタイム用の指数平滑移動平均 (Exponential Moving Average, EMA)
-    """
-
-    def __init__(self, window_size: int):
-        self.alpha: float = 2 / (window_size + 1)
-        self.ema: Optional[float] = None
-
-    def clear(self) -> None:
-        self.ema = None
-
-    def getValue(self) -> float:
-        """
-        現在の EMA 値を返す。
-        未初期化の場合は 0.0 を返す（None を返さない保証）。
-        """
-        return self.ema if self.ema is not None else 0.0
-
-    def update(self, value: float) -> float:
-        """
-        新しい値で EMA を更新し、常に float を返す。
-        """
-        if self.ema is None:
-            # 初期 EMA は最初の値をそのまま採用
-            self.ema = value
-        else:
-            # 再帰式
-            self.ema += self.alpha * (value - self.ema)
-
-        return self.ema  # type: ignore
 
 
 class PriceTrendCounter:
