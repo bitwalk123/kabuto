@@ -31,6 +31,7 @@ class EnvData:
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 90  # 移動平均線１の期間
     PERIOD_MA_2: int = 1350  # 移動平均線２の期間
+    FLAG_SLOPE: bool = False # 毎回、傾きの算出をするかどうかのフラグ
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -71,6 +72,8 @@ class EnvData:
     ma2: float = 0.0
     diff_ma: float = 0.0
     diff_ma_pre: float = 0.0
+    slope_ma1: float = 0.0
+    slope_ma2: float = 0.0
     # VWAP
     vwap: float = 0.0
     diff_vwap: float = 0.0
@@ -214,6 +217,8 @@ class EnvData:
             "price": self.price,
             "ma1": self.ma1,
             "ma2": self.ma2,
+            "slope_ma1": self.slope_ma1,
+            "slope_ma2": self.slope_ma2,
             "vwap": self.vwap,
             "momentum": self.mom,
             "profit": self.profit,
@@ -306,9 +311,14 @@ class EnvData:
         self.ma1 = ma1 = self.obj_ma_1.update(price)
         self.mom = 0
         self.ma2 = ma2 = self.obj_ma_2.update(price)
-        self.diff_ma = self.ma1 - self.ma2
-        self.vwap = self.obj_vwap.update(price, volume)
-        self.diff_vwap = self.ma1 - self.vwap
+        self.diff_ma = ma1 - ma2
+        self.vwap = vwap = self.obj_vwap.update(price, volume)
+        self.diff_vwap = ma1 - vwap
+
+        if self.FLAG_SLOPE:
+            # 常時、傾きを算出する場合
+            self.slope_ma1 = self.obj_ma_1.getSlope()
+            self.slope_ma2 = self.obj_ma_2.getSlope()
 
         self.count_high, self.count_low = self.obj_ptc.update(price, ma1, ma2)
 
