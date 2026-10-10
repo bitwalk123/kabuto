@@ -90,6 +90,8 @@ class SimulatorCharts(FigureCanvas):
         ax[i].plot(y2, linewidth=0.75, color="#f80", zorder=50)
         # y軸ラベル (2)
         ax[i].set_ylabel("Slope")
+        # y軸のティック表示
+        ax[i].yaxis.set_major_formatter(ticker.FormatStrFormatter('%.1f'))
 
         # --- 高値安値カウント ---
         i += 1
