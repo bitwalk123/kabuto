@@ -82,12 +82,14 @@ class SimulatorCharts(FigureCanvas):
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
 
-        # --- 含み損カウンター ---
+        # --- MA1 / MA2 の傾き ---
         i += 1
-        y = df["count_negative"]
-        ax[i].plot(y, linewidth=0.75, color="C0", zorder=50)
+        y1 = df["slope_ma1"]
+        y2 = df["slope_ma2"]
+        ax[i].plot(y1, linewidth=0.75, color="#080", zorder=50)
+        ax[i].plot(y2, linewidth=0.75, color="#f80", zorder=50)
         # y軸ラベル (2)
-        ax[i].set_ylabel("Count\nNegative")
+        ax[i].set_ylabel("Slope")
 
         # --- 高値安値カウント ---
         i += 1

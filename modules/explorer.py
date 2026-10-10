@@ -9,7 +9,7 @@ class Explorer:
     def __init__(self, csvname: str, num_condition: int):
         # 条件表
         self.dir_result = str(Path(csvname).with_suffix(""))
-        self.df = pd.read_csv(csvname)
+        self.df = pd.read_csv(csvname, true_values=["True"], false_values=["False"])
         self.row_max = len(self.df)
 
         # 条件指定の場合、指定の条件のみ抜き取り
