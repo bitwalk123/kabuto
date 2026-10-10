@@ -77,7 +77,10 @@ class Trader(QMainWindow):
         }
 
         # 銘柄コード別設定ファイルの取得
-        self.dict_setting: dict[str, Any] = load_setting(res, code)
+        dict_setting: dict[str, Any] = load_setting(res, code)
+        # スレッド・ワーカーを定義して、表示に必要な設定を取得
+        self.worker = worker = WorkerAgent(code, dict_setting)
+        self.dict_setting = worker.get_dict_setting()
 
         # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
         #  UI
@@ -111,7 +114,6 @@ class Trader(QMainWindow):
         # path_model = get_trained_ppo_model_path(res, code)
 
         # ワーカースレッドの生成
-        self.worker = worker = WorkerAgent(code, self.dict_setting)
         worker.moveToThread(self.thread)
 
         # メインスレッドのシグナル処理 → ワーカースレッドのスロットへ

@@ -155,6 +155,17 @@ class WorkerAgent(QObject):
         state_new = self.env.s.setStatusThreshold(state)
         self.logger.info(f"{self.code} の しきい値 返済が {state_new} に変更されました。")
 
+    def get_dict_setting(self) -> dict[str, Any]:
+        """
+        最低限必要なパラメータ設定のみ、辞書で返す
+        """
+        return {
+            "PERIOD_WARMUP": self.env.s.PERIOD_WARMUP,
+            "TYPE_MA_1": self.env.s.TYPE_MA_1,
+            "PERIOD_MA_1": self.env.s.PERIOD_MA_1,
+            "PERIOD_MA_2": self.env.s.PERIOD_MA_2,
+        }
+
 
 class SimulatorAgent():
     """
