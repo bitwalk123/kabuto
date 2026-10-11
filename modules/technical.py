@@ -146,6 +146,140 @@ class EMA:
         return self.ema  # type: ignore
 
 
+class WMA:
+    """加重移動平均"""
+
+    def __init__(
+            self,
+            window_size: int,
+            window_slope: int = 30,
+    ):
+        self.window_size = max(1, window_size)
+        self.window_slope = window_slope
+        self.queue = deque()
+        self.history = deque(maxlen=window_slope)
+
+        self.value = 0.0
+        # self.prev_value = 0.0
+
+        # 1,2,3,...,N
+        self.weights = list(range(1, self.window_size + 1))
+        # self.weight_sum = sum(self.weights)
+
+    def clear(self):
+        self.queue.clear()
+        self.value = 0.0
+        # self.prev_value = 0.0
+        self.history.clear()
+
+    def getValue(self) -> float:
+        return self.value
+
+    def getSlope(self) -> float:
+        return calculate_slope(
+            self.history,
+            self.window_slope,
+        )
+
+    def update(self, x: float) -> float:
+        if len(self.queue) >= self.window_size:
+            self.queue.popleft()
+
+        self.queue.append(x)
+
+        # self.prev_value = self.value
+
+        q = list(self.queue)
+
+        # ウィンドウ未充足時も計算する
+        weights = self.weights[-len(q):]
+        self.value = sum(v * w for v, w in zip(q, weights)) / sum(weights)
+
+        self.history.append(self.value)
+
+        return self.value
+
+
+class PurePursuitFollower:
+    def __init__(
+            self,
+            period_trend: int = 5,
+            gain: float = 0.15,
+            gain_predict: float = 0.5,
+            window_slope: int = 30,
+    ):
+        self.period_trend = period_trend
+        self.gain = gain
+        self.gain_predict = gain_predict
+        self.window_slope = window_slope
+
+        self.queue = deque()
+
+        self.follower = 0.0
+        self.initialized = False
+        self.history = deque(maxlen=window_slope)
+
+    def clear(self) -> None:
+        self.queue.clear()
+
+        self.follower = 0.0
+        self.initialized = False
+        self.history.clear()
+
+    def getValue(self) -> float:
+        return self.follower
+
+    def getSlope(self) -> float:
+        return calculate_slope(
+            self.history,
+            self.window_slope,
+        )
+
+    def update(self, price: float) -> float:
+        #
+        # 初回
+        #
+        if not self.initialized:
+            self.follower = price
+            self.initialized = True
+
+        #
+        # 価格履歴追加
+        #
+        self.queue.append(price)
+
+        #
+        # トレンド推定
+        #
+        if len(self.queue) > self.period_trend:
+            delayed_price = self.queue[0]
+
+            #
+            # 価格変化
+            #
+            price_change = price - delayed_price
+
+            #
+            # 先読み価格
+            #
+            target = price + self.gain_predict * price_change
+
+            self.queue.popleft()
+
+        else:
+            target = price
+
+        #
+        # Pure Pursuit 更新
+        #
+        error = target - self.follower
+        self.follower += self.gain * error
+
+        self.history.append(self.follower)
+
+        return self.follower
+
+
 class MovingIQR:
     def __init__(self, window_size: int = 100):
         self.window_size = window_size
@@ -407,113 +541,6 @@ class Momentum:
         self.momentum = self.queue[-1] - self.queue[0]
 
         return self.momentum
-
-
-class PurePursuitFollower:
-    def __init__(
-            self,
-            period_trend: int = 5,
-            gain: float = 0.15,
-            gain_predict: float = 0.5,
-    ):
-        self.period_trend = period_trend
-        self.gain = gain
-        self.gain_predict = gain_predict
-
-        self.queue = deque()
-
-        self.follower = 0.0
-        self.initialized = False
-
-    def clear(self) -> None:
-        self.queue.clear()
-
-        self.follower = 0.0
-        self.initialized = False
-
-    def getValue(self) -> float:
-        return self.follower
-
-    def update(self, price: float) -> float:
-        #
-        # 初回
-        #
-        if not self.initialized:
-            self.follower = price
-            self.initialized = True
-
-        #
-        # 価格履歴追加
-        #
-        self.queue.append(price)
-
-        #
-        # トレンド推定
-        #
-        if len(self.queue) > self.period_trend:
-            delayed_price = self.queue[0]
-
-            #
-            # 価格変化
-            #
-            price_change = price - delayed_price
-
-            #
-            # 先読み価格
-            #
-            target = price + self.gain_predict * price_change
-
-            self.queue.popleft()
-
-        else:
-            target = price
-
-        #
-        # Pure Pursuit 更新
-        #
-        error = target - self.follower
-        self.follower += self.gain * error
-
-        return self.follower
-
-
-class WMA:
-    """加重移動平均"""
-
-    def __init__(self, window_size: int):
-        self.window_size = max(1, window_size)
-        self.queue = deque()
-
-        self.value = 0.0
-        self.prev_value = 0.0
-
-        # 1,2,3,...,N
-        self.weights = list(range(1, self.window_size + 1))
-        self.weight_sum = sum(self.weights)
-
-    def clear(self):
-        self.queue.clear()
-        self.value = 0.0
-        self.prev_value = 0.0
-
-    def getValue(self) -> float:
-        return self.value
-
-    def update(self, x: float) -> float:
-        if len(self.queue) >= self.window_size:
-            self.queue.popleft()
-
-        self.queue.append(x)
-
-        self.prev_value = self.value
-
-        q = list(self.queue)
-
-        # ウィンドウ未充足時も計算する
-        weights = self.weights[-len(q):]
-        self.value = sum(v * w for v, w in zip(q, weights)) / sum(weights)
-
-        return self.value
 
 
 class HMA:
