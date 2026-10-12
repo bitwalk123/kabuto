@@ -38,8 +38,8 @@ class EnvData:
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # トレーリング・ストップ
-    START_TRAILING: float = 30  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.7  # トレーリング・ストップのしきい値比
+    START_TRAILING: float = 10  # トレーリング・ストップを開始する最大含み益
+    THRESHOLD_TRAILING: float = 0.8  # トレーリング・ストップのしきい値比
 
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
@@ -87,7 +87,9 @@ class EnvData:
 
     # 含み損益
     profit: float = 0.0  # 含み損益
+    profit_ma: float = 0.0  # 含み損益（移動平均線用）
     profit_max: float = 0.0  # 最大含み損益
+    profit_max_ma: float = 0.0  # 最大含み損益（移動平均線用）
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
 
@@ -222,7 +224,9 @@ class EnvData:
             "vwap": self.vwap,
             "momentum": self.mom,
             "profit": self.profit,
+            "profit_ma": self.profit_ma,
             "profit_max": self.profit_max,
+            "profit_max_ma": self.profit_max_ma,
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
@@ -323,6 +327,14 @@ class EnvData:
         self.count_high, self.count_low = self.obj_ptc.update(price, ma1, ma2)
 
         self.profit = dict_info["profit"]
+        # 移動平均線ベースの含み益
+        if self.position == PositionType.LONG:
+            self.profit_ma = ma1 - dict_info["price"]
+        elif self.position == PositionType.SHORT:
+            self.profit_ma = dict_info["price"] - ma1
+        else:
+            self.profit_ma = 0
+
         self.update_profit_max()  # 含み損益の最大値を更新
         self.update_count_negative()  # 含み損の継続カウンタの更新
 
@@ -377,11 +389,13 @@ class EnvData:
             self.dd_ratio = 0.0
             self.count_negative = 0
             self.profit_max = 0.0
+            self.profit_max_ma = 0.0
 
         self.profit_pre = self.profit
 
     def reset_profit_max(self):
         self.profit_max = 0.0
+        self.profit_max_ma = 0.0
 
     def update_profit_max(self):
         """
@@ -390,6 +404,8 @@ class EnvData:
         """
         if self.profit_max < self.profit:
             self.profit_max = self.profit
+        if self.profit_max_ma < self.profit_ma:
+            self.profit_max_ma = self.profit_ma
 
     def is_losscut(self) -> bool:
         if self.status_losscut_vwap:
@@ -422,12 +438,10 @@ class EnvData:
         return False
 
     def does_take_profit(self) -> bool:
-        """
         if self.status_profit_trailing:
-            if self.START_TRAILING <= self.profit_max:
-                if self.profit < self.profit_max * self.THRESHOLD_TRAILING:
+            if self.START_TRAILING <= self.profit_max_ma:
+                if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING:
                     return True
-        """
         return False
 
     def update_profit_pre(self):

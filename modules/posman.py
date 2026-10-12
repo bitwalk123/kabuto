@@ -38,6 +38,7 @@ class PositionManager:
     def getInfo(self, code, price) -> dict:
         return {
             "position": self.dict_position[code],
+            "price": self.dict_price[code],
             "profit": self.getProfit(code, price),
             "total": self.getTotal(code),
         }
