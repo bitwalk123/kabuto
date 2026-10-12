@@ -52,9 +52,7 @@ class EnvData:
     COUNT_NEGATIVE_PROFIT: int = 5  # クロス後、含み益が伸びず含み損を許容できる連続回数
 
     # PTC 関連
-    FOLLOWING_MIN: int = 10
-    CONTRARIAN_MIN: int = 5
-    CONTRARIAN_MULT: float = 2
+    FOLLOWING_MIN: int = 5
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
@@ -452,8 +450,6 @@ class EnvData:
         PTC 判定
         :return:
         """
-        """
-        # === PTC 判定 ===
         if self.position == PositionType.NONE:
             return False
         if self.position == PositionType.LONG:
@@ -465,10 +461,13 @@ class EnvData:
             following = self.count_low
             contrarian = self.count_high
 
+        # 順行回数が一定回数以上
         if self.FOLLOWING_MIN <= following:
-            # 利確
-            if following < contrarian * self.CONTRARIAN_MULT:
-                return True
-        """
+            # == ロスカット
+            # 逆行回数が順行回数より多い
+            if following < contrarian:
+                # 含み益が負
+                if self.profit <= 0:
+                    return True
 
         return False
