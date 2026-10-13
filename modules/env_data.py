@@ -39,7 +39,7 @@ class EnvData:
 
     # トレーリング・ストップ
     START_TRAILING: float = 10  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.8  # トレーリング・ストップのしきい値比
+    THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
