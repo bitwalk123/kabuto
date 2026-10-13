@@ -25,7 +25,7 @@ class SimulatorCharts(FigureCanvas):
         super().__init__(self.fig)
         self.res = res
         self.setMinimumWidth(1200)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(800)
 
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
@@ -42,7 +42,7 @@ class SimulatorCharts(FigureCanvas):
         """
         # self.remove_axes()  # 一旦クリア
 
-        n = 4
+        n = 5
         ax = dict()
         gs = self.fig.add_gridspec(
             n, 1,
@@ -81,6 +81,16 @@ class SimulatorCharts(FigureCanvas):
 
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
+
+        # --- MA 傾き ---
+        i += 1
+        y1 = df["slope_ma1"]
+        y2 = df["slope_ma2"]
+        ax[i].plot(y1, linewidth=0.75, color="#080", zorder=50)
+        ax[i].plot(y2, linewidth=0.75, color="#f80", zorder=50)
+        # y軸ラベル (3)
+        ax[i].set_ylabel("Slope")
+        ax[i].yaxis.set_major_formatter(ticker.FormatStrFormatter('%.1f'))
 
         # --- 高値安値カウント ---
         i += 1
