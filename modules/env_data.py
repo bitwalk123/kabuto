@@ -30,7 +30,7 @@ class EnvData:
     # 移動平均
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
-    PERIOD_MA_2: int = 2100  # 移動平均線２の期間
+    PERIOD_MA_2: int = 2300  # 移動平均線２の期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # トレーリング・ストップ
