@@ -31,15 +31,18 @@ class EnvData:
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2100  # 移動平均線２の期間
-    FLAG_SLOPE: bool = False # 毎回、傾きの算出をするかどうかのフラグ
+    FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
+
+    # トレーリング・ストップ
+    START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
+    THRESHOLD_TRAILING: float = 0.8  # トレーリング・ストップのしきい値比
+
+    # PTC 関連
+    FOLLOWING_MIN: int = 8
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
-
-    # トレーリング・ストップ
-    START_TRAILING: float = 10  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
@@ -50,9 +53,6 @@ class EnvData:
 
     PROFIT_THRESHOLD: float = 5  # クロス後、含み益が伸びない判定をするしきい値
     COUNT_NEGATIVE_PROFIT: int = 5  # クロス後、含み益が伸びず含み損を許容できる連続回数
-
-    # PTC 関連
-    FOLLOWING_MIN: int = 5
 
     # インスタンス変数系（初期値が自明な変数のみ）
     row: int = 0  # ティックデータの行位置
