@@ -34,11 +34,11 @@ class EnvData:
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # トレーリング・ストップ
-    START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.8  # トレーリング・ストップのしきい値比
+    START_TRAILING: float = 35  # トレーリング・ストップを開始する最大含み益
+    THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # PTC 関連
-    FOLLOWING_MIN: int = 8
+    FOLLOWING_MIN: int = 14
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
