@@ -40,13 +40,16 @@ class EnvData:
     # PTC 関連
     FOLLOWING_MIN: int = 14
 
+    # ロスカット系
+    # LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
+    LOSSCUT_SIMPLE: float = -1e10  # 単純ロスカット
+
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
-    LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # エントリ期間関連
     COUNT_NEGATIVE_MIN: int = 60  # 含み損の許容カウントのしきい値
@@ -82,6 +85,8 @@ class EnvData:
     #
     count_high: int = 0  # ローカル高値の継続カウンタ
     count_low: int = 0  # ローカル安値の継続カウンタ
+    count_high_pre: int = 0  # ローカル高値の継続カウンタ（前の値）
+    count_low_pre: int = 0  # ローカル安値の継続カウンタ（前の値）
 
     # 含み損益
     profit: float = 0.0  # 含み損益
@@ -231,6 +236,8 @@ class EnvData:
             "count_negative": self.count_negative,
             "count_high": self.count_high,
             "count_low": self.count_low,
+            "count_high_pre": self.count_high_pre,
+            "count_low_pre": self.count_low_pre,
             "ma_gc": self.is_ma_golden_cross(),
             "ma_dc": self.is_ma_dead_cross(),
             "vwap_gc": self.is_vwap_golden_cross(),
@@ -381,7 +388,9 @@ class EnvData:
         self.diff_ma_pre = self.diff_ma
         self.diff_vwap_pre = self.diff_vwap
         # self.rsi_pre = self.rsi
-        self.mom_pre = self.mom
+        # self.mom_pre = self.mom
+        self.count_high_pre = self.count_high
+        self.count_low_pre = self.count_low
 
         if self.position == PositionType.NONE:
             self.dd_ratio = 0.0
