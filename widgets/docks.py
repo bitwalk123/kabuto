@@ -190,6 +190,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-038",
             "doe-037",
             "doe-036",
             "doe-035",
@@ -272,6 +273,7 @@ class DockSimulation(QDockWidget):
             "doe-035",
             "doe-036",
             "doe-037",
+            "doe-038",
         ]:
             self.cbox_cross_ma.setChecked(True)
             self.cbox_cross_vwap.setChecked(False)
