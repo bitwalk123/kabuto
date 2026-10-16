@@ -104,9 +104,6 @@ class Beetle(MainWindow):
         :param dict_setting:
         :return:
         """
-        self.chart_win.remove_axes()
-        self.logger.info("チャートを消去しました。")
-
         print(dict_setting)
         self.thread = thread = QThread()
         self.worker = worker = SimulatorWorker(
@@ -169,6 +166,8 @@ class Beetle(MainWindow):
             df_technicals.to_csv(name_technicals, index=False)
 
             # チャート更新
+            self.chart_win.remove_axes()
+            self.logger.info("チャートを消去しました。")
             self.chart_win.plot(dict_result)
 
             # フラグが立っていれば保存処理
