@@ -25,7 +25,7 @@ class SimulatorCharts(FigureCanvas):
         super().__init__(self.fig)
         self.res = res
         self.setMinimumWidth(1200)
-        self.setMinimumHeight(700)
+        self.setMinimumHeight(600)
 
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
@@ -42,7 +42,7 @@ class SimulatorCharts(FigureCanvas):
         """
         # self.remove_axes()  # 一旦クリア
 
-        n = 5
+        n = 4
         ax = dict()
         gs = self.fig.add_gridspec(
             n, 1,
@@ -57,8 +57,8 @@ class SimulatorCharts(FigureCanvas):
             ax[i].xaxis.set_major_locator(mdates.HourLocator(interval=1))
             ax[i].xaxis.set_minor_locator(mdates.MinuteLocator(byminute=[30]))
 
-            ax[i].grid(which="major", axis="x", linestyle="-")
-            ax[i].grid(which="minor", axis="x", linestyle=":")
+            # ax[i].grid(which="major", axis="x", linestyle="-")
+            # ax[i].grid(which="minor", axis="x", linestyle=":")
             ax[i].grid(axis="y")
             # ax[i].grid(True)  # グリッド線の追加
 
@@ -82,23 +82,13 @@ class SimulatorCharts(FigureCanvas):
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
 
-        # --- MA 傾き ---
-        i += 1
-        y1 = df["slope_ma1"]
-        y2 = df["slope_ma2"]
-        ax[i].plot(y1, linewidth=0.75, color="#080", zorder=50)
-        ax[i].plot(y2, linewidth=0.75, color="#f80", zorder=50)
-        # y軸ラベル (3)
-        ax[i].set_ylabel("Slope")
-        ax[i].yaxis.set_major_formatter(ticker.FormatStrFormatter('%.1f'))
-
         # --- 高値安値カウント ---
         i += 1
         y1 = df["count_high"]
         y2 = df["count_low"]
         ax[i].plot(y1, linewidth=0.75, color="#f30", zorder=50)
         ax[i].plot(y2, linewidth=0.75, color="#03f", zorder=50)
-        # y軸ラベル (3)
+        # y軸ラベル (2)
         ax[i].set_ylabel("Price Trend\nCounter")
 
         # --- MA 含み損 ---
@@ -109,7 +99,7 @@ class SimulatorCharts(FigureCanvas):
         ax[i].fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10)
         ax[i].fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10)
         ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
-        # y軸ラベル (4)
+        # y軸ラベル (3)
         ax[i].set_ylabel("MA含み損益")
 
         # --- 含み損益 ---
@@ -122,6 +112,21 @@ class SimulatorCharts(FigureCanvas):
         ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
         # y軸ラベル (4)
         ax[i].set_ylabel("含み損益")
+
+        # クロス・シグナル
+        list_ma_gc = df[0 < df["ma_gc"]].index
+        list_ma_dc = df[0 < df["ma_dc"]].index
+        ax[n - 1].set_xlabel(f"# of crossed: {len(list_ma_gc) + len(list_ma_dc)} times")
+        for i in range(n):
+            # ゴールデンクロス・シグナル
+            for t in list_ma_gc:
+                cname = "#f00" if 0 < df.at[t, "ma_gc"] else "#00f"
+                ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
+
+            # デッドクロス・シグナル
+            for t in list_ma_dc:
+                cname = "#00f" if 0 < df.at[t, "ma_dc"] else "#f00"
+                ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
         # 最後の段のチャートの x軸のラベル
         ax[i].set_xlabel(dict_info["footer"], fontsize=9)

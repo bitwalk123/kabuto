@@ -606,12 +606,12 @@ def plot_verticals(
     list_ma_dc = df[0 < df["ma_dc"]].index
     ax[n - 1].set_xlabel(f"# of crossed: {len(list_ma_gc) + len(list_ma_dc)} times")
     for i in range(n):
-        # クロス・シグナル
+        # ゴールデンクロス・シグナル
         for t in list_ma_gc:
             cname = "#f00" if 0 < df.at[t, "ma_gc"] else "#00f"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)
 
-        # クロス・シグナル
+        # デッドクロス・シグナル
         for t in list_ma_dc:
             cname = "#00f" if 0 < df.at[t, "ma_dc"] else "#f00"
             ax[i].axvline(x=t, c=cname, ls="solid", alpha=0.25, lw=0.75)

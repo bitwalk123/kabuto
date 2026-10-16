@@ -12,7 +12,7 @@ from modules.technical import (
     VWAP,
     WMA,
 )
-from structs.app_enum import PositionType
+from structs.app_enum import PositionType, CrossStatus
 
 
 @dataclass
@@ -34,15 +34,17 @@ class EnvData:
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # トレーリング・ストップ
-    START_TRAILING: float = 35  # トレーリング・ストップを開始する最大含み益
+    START_TRAILING: float = 10  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # PTC 関連
     FOLLOWING_MIN: int = 14
 
     # ロスカット系
-    # LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
-    LOSSCUT_SIMPLE: float = -1e10  # 単純ロスカット
+    LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
+
+    # エントリ関連
+    PEND_ENTRY: bool = False  # エントリが保留状態か？
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -67,6 +69,10 @@ class EnvData:
     # ティックデータ
     ts: float = 0.0
     price: float = 0.0
+    price_cross: float = 0.0  # クロス時の株価
+
+    # クロスの状態
+    cross_ma: CrossStatus = CrossStatus.NONE
 
     # 移動平均
     ma1: float = 0.0
@@ -251,10 +257,33 @@ class EnvData:
         :return:
         """
         if self.status_cross_ma:
-            if self.diff_ma_pre <= 0 < self.diff_ma:
-                return True
+            if self.position == PositionType.NONE:
+                # エントリ
+                if self.diff_ma_pre <= 0 < self.diff_ma:
+                    self.cross_ma = CrossStatus.GOLDEN
+                    self.price_cross = self.price
+                    self.profit_ma = self.ma1 - self.price_cross
+                    if 0 < self.profit_ma:
+                        self.PEND_ENTRY = False
+                        return True
+                    else:
+                        self.PEND_ENTRY = True
+                        return False
+                elif self.PEND_ENTRY and self.cross_ma == CrossStatus.GOLDEN:
+                    self.profit_ma = self.ma1 - self.price_cross
+                    if 0 < self.profit_ma:
+                        self.PEND_ENTRY = False
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
             else:
-                return False
+                # エグジット
+                if self.diff_ma_pre <= 0 < self.diff_ma:
+                    return True
+                else:
+                    return False
         else:
             return False
 
@@ -264,10 +293,33 @@ class EnvData:
         :return:
         """
         if self.status_cross_ma:
-            if self.diff_ma < 0 <= self.diff_ma_pre:
-                return True
+            if self.position == PositionType.NONE:
+                # エントリ
+                if self.diff_ma < 0 <= self.diff_ma_pre:
+                    self.cross_ma = CrossStatus.DEAD
+                    self.price_cross = self.price
+                    self.profit_ma =  self.price_cross - self.ma1
+                    if 0 < self.profit_ma:
+                        self.PEND_ENTRY = False
+                        return True
+                    else:
+                        self.PEND_ENTRY = True
+                        return False
+                elif self.PEND_ENTRY and self.cross_ma == CrossStatus.DEAD:
+                    self.profit_ma =  self.price_cross - self.ma1
+                    if 0 < self.profit_ma:
+                        self.PEND_ENTRY = False
+                        return True
+                    else:
+                        return False
+                else:
+                    return False
             else:
-                return False
+                # エグジット
+                if self.diff_ma < 0 <= self.diff_ma_pre:
+                    return True
+                else:
+                    return False
         else:
             return False
 
@@ -333,6 +385,7 @@ class EnvData:
 
         self.profit = dict_info["profit"]
         # 移動平均線ベースの含み益
+        # dict_info["price"]: 建玉の株価
         if self.position == PositionType.LONG:
             self.profit_ma = ma1 - dict_info["price"]
         elif self.position == PositionType.SHORT:
