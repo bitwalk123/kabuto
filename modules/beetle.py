@@ -130,29 +130,51 @@ class Beetle(MainWindow):
         :param dict_result:
         :return:
         """
+        file = self.lister.get_current_file()
+
+        if "transaction" in dict_result:
+            # 取引明細
+            df_transaction = dict_result["transaction"]
+
+            # 標準出力
+            print(df_transaction)
+            total = df_transaction["損益"].sum()
+            print(f"合計損益: {int(total)} 円（1株）")
+
+            # 実験結果に損益と約定回数を追加
+            dict_one_result = {
+                "Profit": df_transaction["損益"].sum(),
+                "Transactions": len(df_transaction),
+            }
+            # ここでカウンタをインクリメント
+            self.explorer.append_result(dict_one_result)
+
+            # CSV形式で保存
+            num_doe = self.explorer.get_current_number()
+            dir_transaction = Path(self.explorer.dir_result) / "transaction"
+            name_transaction = dir_transaction / f"{file}_{num_doe}.csv"
+
+            self.logger.info(f"取引明細を {name_transaction} に保存します。")
+            dir_transaction.mkdir(parents=True, exist_ok=True)
+            df_transaction.to_csv(name_transaction, index=False)
 
         if "technicals" in dict_result:
-            if "transaction" in dict_result:
-                # 取引明細
-                df_transaction = dict_result["transaction"]
+            # テクニカルデータの保存
+            dir_technicals = Path(self.explorer.dir_result) / "technicals"
+            dir_technicals.mkdir(parents=True, exist_ok=True)
+            num_doe = self.explorer.get_current_number()
+            name_technicals = dir_technicals / f"{file}_{num_doe}.csv"
+            self.logger.info(f"テクニカル・データを {name_technicals} に保存します。")
+            df_technicals = dict_result["technicals"]
+            df_technicals.to_csv(name_technicals, index=False)
 
-                print(df_transaction)
-                total = df_transaction["損益"].sum()
-                print(f"合計損益: {int(total)} 円（1株）")
-
-                dict_one_result = {
-                    "Profit": df_transaction["損益"].sum(),
-                    "Transactions": len(df_transaction),
-                }
-                # 結果を追加
-                self.explorer.append_result(dict_one_result)
-
-            # チャート
+            # チャート更新
             self.chart_win.plot(dict_result)
+
+            # フラグが立っていれば保存処理
             if self.dock_sim.does_save_chart():
                 dir_chart = Path(self.explorer.dir_result) / "chart"
                 dir_chart.mkdir(parents=True, exist_ok=True)
-                file = self.lister.get_current_file()
                 num_doe = self.explorer.get_current_number()
                 name_png = dir_chart / f"{file}_{num_doe}.png"
                 self.logger.info(f"チャートを {name_png} に保存します。")

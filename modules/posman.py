@@ -155,6 +155,7 @@ class PositionManager:
         JST (Asia/Tokyo) に変換した後、
         タイムゾーン情報を取り除いて tz-naive な datetime64[ns] にする
         """
+        df["ts"] = df["注文日時"]
         df["注文日時"] = (
             pd.to_datetime(df["注文日時"].astype(int), unit="s", utc=True)
             .dt.tz_convert("Asia/Tokyo")
