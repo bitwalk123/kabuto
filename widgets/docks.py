@@ -190,6 +190,7 @@ class DockSimulation(QDockWidget):
             QSizePolicy.Policy.Preferred,
         )
         combo_doe.addItems([
+            "doe-040",
             "doe-039",
             "doe-038",
             "doe-037",
@@ -264,25 +265,6 @@ class DockSimulation(QDockWidget):
             self.cbox_losscut_vwap.setChecked(False)
 
         elif name_doe in [
-            "doe-015",
-            "doe-016",
-            "doe-030",
-            "doe-031",
-            "doe-032",
-            "doe-033",
-            "doe-034",
-            "doe-035",
-            "doe-036",
-            "doe-037",
-            "doe-038",
-            "doe-039",
-        ]:
-            self.cbox_cross_ma.setChecked(True)
-            self.cbox_cross_vwap.setChecked(False)
-            self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(False)
-
-        elif name_doe in [
             "doe-017",
             "doe-018",
             "doe-019",
@@ -303,10 +285,10 @@ class DockSimulation(QDockWidget):
             self.cbox_losscut_vwap.setChecked(False)
 
         else:
-            self.cbox_cross_ma.setChecked(False)
-            self.cbox_cross_vwap.setChecked(True)
+            self.cbox_cross_ma.setChecked(True)
+            self.cbox_cross_vwap.setChecked(False)
             self.cbox_profit_trailing.setChecked(True)
-            self.cbox_losscut_vwap.setChecked(True)
+            self.cbox_losscut_vwap.setChecked(False)
 
     def on_start(self):
         dict_option = dict()

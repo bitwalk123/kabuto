@@ -22,6 +22,7 @@ class EnvData:
     MAX_TRADE: int = 200  # 約定数上限（仮）
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
+    # PERIOD_WARMUP: int = 300  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
     # ロスカット・利確系
     # N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
@@ -45,6 +46,7 @@ class EnvData:
 
     # エントリ関連
     PEND_ENTRY: bool = False  # エントリが保留状態か？
+    PROFIT_POSITIVE: float = 0.0  # プラ転とみなせるMA含み益
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -93,6 +95,12 @@ class EnvData:
     count_low: int = 0  # ローカル安値の継続カウンタ
     count_high_pre: int = 0  # ローカル高値の継続カウンタ（前の値）
     count_low_pre: int = 0  # ローカル安値の継続カウンタ（前の値）
+
+    # クロス関連
+    ma_gc: bool = False
+    ma_dc: bool = False
+    vwap_gc: bool = False
+    vwap_dc: bool = False
 
     # 含み損益
     profit: float = 0.0  # 含み損益
@@ -196,16 +204,16 @@ class EnvData:
         観測空間の算出
         :return:
         """
-        """
-        日毎に生じる絶対値のズレを少しでも抑えたい。
-        そのため、株価に関連する特徴量に対して、始値で割っている。
-        """
         # シグナル・フラグ（クロスしたタイミングなど）
+        self.ma_gc = self.is_ma_golden_cross()
+        self.ma_dc = self.is_ma_dead_cross()
+        self.vwap_gc = self.is_vwap_golden_cross()
+        self.vwap_dc = self.is_vwap_dead_cross()
         signal = np.array([
-            self.is_ma_golden_cross(),  # 0. MA ゴールデンクロスのフラグ
-            self.is_ma_dead_cross(),  # 1. MA デッドクロスのフラグ
-            self.is_vwap_golden_cross(),  # 2. VWAP ゴールデンクロスのフラグ
-            self.is_vwap_dead_cross(),  # 3. VWAP デッドクロスのフラグ
+            self.ma_gc,  # 0. MA ゴールデンクロスのフラグ
+            self.ma_dc,  # 1. MA デッドクロスのフラグ
+            self.vwap_gc,  # 2. VWAP ゴールデンクロスのフラグ
+            self.vwap_dc,  # 3. VWAP デッドクロスのフラグ
             False,  # 5. 予備
             self.does_take_profit(),  # 5. 利確のフラグ
             self.judge_ptc(),  # 6. PTC判定
@@ -244,10 +252,10 @@ class EnvData:
             "count_low": self.count_low,
             "count_high_pre": self.count_high_pre,
             "count_low_pre": self.count_low_pre,
-            "ma_gc": self.is_ma_golden_cross(),
-            "ma_dc": self.is_ma_dead_cross(),
-            "vwap_gc": self.is_vwap_golden_cross(),
-            "vwap_dc": self.is_vwap_dead_cross(),
+            "ma_gc": self.ma_gc,
+            "ma_dc": self.ma_dc,
+            "vwap_gc": self.vwap_gc,
+            "vwap_dc": self.vwap_dc,
             "warmup": self.is_warmup_period(),
         }
 
@@ -263,7 +271,7 @@ class EnvData:
                     self.cross_ma = CrossStatus.GOLDEN
                     self.price_cross = self.price
                     self.profit_ma = self.ma1 - self.price_cross
-                    if 0 < self.profit_ma:
+                    if self.PROFIT_POSITIVE < self.profit_ma:
                         self.PEND_ENTRY = False
                         return True
                     else:
@@ -271,7 +279,7 @@ class EnvData:
                         return False
                 elif self.PEND_ENTRY and self.cross_ma == CrossStatus.GOLDEN:
                     self.profit_ma = self.ma1 - self.price_cross
-                    if 0 < self.profit_ma:
+                    if self.PROFIT_POSITIVE < self.profit_ma:
                         self.PEND_ENTRY = False
                         return True
                     else:
@@ -281,6 +289,7 @@ class EnvData:
             else:
                 # エグジット
                 if self.diff_ma_pre <= 0 < self.diff_ma:
+                    self.cross_ma = CrossStatus.NONE
                     return True
                 else:
                     return False
@@ -298,16 +307,16 @@ class EnvData:
                 if self.diff_ma < 0 <= self.diff_ma_pre:
                     self.cross_ma = CrossStatus.DEAD
                     self.price_cross = self.price
-                    self.profit_ma =  self.price_cross - self.ma1
-                    if 0 < self.profit_ma:
+                    self.profit_ma = self.price_cross - self.ma1
+                    if self.PROFIT_POSITIVE < self.profit_ma:
                         self.PEND_ENTRY = False
                         return True
                     else:
                         self.PEND_ENTRY = True
                         return False
                 elif self.PEND_ENTRY and self.cross_ma == CrossStatus.DEAD:
-                    self.profit_ma =  self.price_cross - self.ma1
-                    if 0 < self.profit_ma:
+                    self.profit_ma = self.price_cross - self.ma1
+                    if self.PROFIT_POSITIVE < self.profit_ma:
                         self.PEND_ENTRY = False
                         return True
                     else:
@@ -317,6 +326,7 @@ class EnvData:
             else:
                 # エグジット
                 if self.diff_ma < 0 <= self.diff_ma_pre:
+                    self.cross_ma = CrossStatus.NONE
                     return True
                 else:
                     return False
@@ -396,7 +406,7 @@ class EnvData:
         self.update_profit_max()  # 含み損益の最大値を更新
         self.update_count_negative()  # 含み損の継続カウンタの更新
 
-        obs = self.get_obs()
+        obs = self.get_obs()  # 【重要】必ず観測値の取得が先
         dict_technical = self.get_technicals()
 
         # 一つ前の特徴量の更新
@@ -490,6 +500,9 @@ class EnvData:
             if self.COUNT_NEGATIVE_PROFIT < self.count_negative:
                 return True
         """
+
+        # if 0 < self.profit_max < self.START_TRAILING and self.profit_ma < -20:
+        #    return True
 
         if self.profit < self.LOSSCUT_SIMPLE:
             # 単純ロスカット
