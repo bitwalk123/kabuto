@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QDockWidget, QCheckBox, QSizePolicy
 
@@ -184,53 +186,18 @@ class DockSimulation(QDockWidget):
 
         lab_doe = LabelRaisedLeft("実験名")
         layout.addWidget(lab_doe, 1, 0)
+        dir_path = Path("doe")
         self.combo_doe = combo_doe = ComboBox()
         combo_doe.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Preferred,
         )
-        combo_doe.addItems([
-            "doe-040",
-            "doe-039",
-            "doe-038",
-            "doe-037",
-            "doe-036",
-            "doe-035",
-            "doe-034",
-            "doe-033",
-            "doe-032",
-            "doe-031",
-            "doe-030",
-            "doe-029",
-            "doe-028",
-            "doe-027",
-            "doe-026",
-            "doe-025",
-            "doe-024",
-            "doe-023",
-            "doe-022",
-            "doe-021",
-            "doe-020",
-            "doe-019",
-            "doe-018",
-            "doe-017",
-            "doe-016",
-            "doe-015",
-            "doe-014",
-            "doe-013",
-            "doe-012",
-            "doe-011",
-            "doe-010",
-            "doe-009",
-            "doe-008",
-            "doe-007",
-            "doe-006",
-            "doe-005",
-            "doe-004",
-            "doe-003",
-            "doe-002",
-            "doe-001",
-        ])
+        # DOE条件表の抽出・整列
+        list_csv = sorted(
+            [str(p.stem) for p in dir_path.glob("doe-*.csv") if p.is_file()],
+            reverse=True
+        )
+        combo_doe.addItems(list_csv)
         combo_doe.currentTextChanged.connect(self.on_combo_doe_changed)
         layout.addWidget(combo_doe, 1, 1)
 

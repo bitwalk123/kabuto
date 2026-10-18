@@ -35,18 +35,18 @@ class EnvData:
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # トレーリング・ストップ
-    START_TRAILING: float = 10  # トレーリング・ストップを開始する最大含み益
+    START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
     THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # PTC 関連
-    FOLLOWING_MIN: int = 14
+    FOLLOWING_MIN: int = 15
 
     # ロスカット系
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
 
     # エントリ関連
-    PEND_ENTRY: bool = False  # エントリが保留状態か？
     PROFIT_POSITIVE: float = 0.0  # プラ転とみなせるMA含み益
+    pend_entry: bool = False  # エントリが保留状態か？
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.05  # PPF の gain
@@ -260,78 +260,59 @@ class EnvData:
         }
 
     def is_ma_golden_cross(self) -> bool:
-        """
-        MA ゴールデン・クロスでエントリか？
-        :return:
-        """
-        if self.status_cross_ma:
-            if self.position == PositionType.NONE:
-                # エントリ
-                if self.diff_ma_pre <= 0 < self.diff_ma:
-                    self.cross_ma = CrossStatus.GOLDEN
-                    self.price_cross = self.price
-                    self.profit_ma = self.ma1 - self.price_cross
-                    if self.PROFIT_POSITIVE < self.profit_ma:
-                        self.PEND_ENTRY = False
-                        return True
-                    else:
-                        self.PEND_ENTRY = True
-                        return False
-                elif self.PEND_ENTRY and self.cross_ma == CrossStatus.GOLDEN:
-                    self.profit_ma = self.ma1 - self.price_cross
-                    if self.PROFIT_POSITIVE < self.profit_ma:
-                        self.PEND_ENTRY = False
-                        return True
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                # エグジット
-                if self.diff_ma_pre <= 0 < self.diff_ma:
-                    self.cross_ma = CrossStatus.NONE
-                    return True
-                else:
-                    return False
-        else:
-            return False
+        """MA ゴールデン・クロスか？"""
+        return self.check_ma_cross(CrossStatus.GOLDEN)
 
     def is_ma_dead_cross(self) -> bool:
-        """
-        MA デッド・クロスでエントリか？
-        :return:
-        """
-        if self.status_cross_ma:
-            if self.position == PositionType.NONE:
-                # エントリ
-                if self.diff_ma < 0 <= self.diff_ma_pre:
-                    self.cross_ma = CrossStatus.DEAD
-                    self.price_cross = self.price
-                    self.profit_ma = self.price_cross - self.ma1
-                    if self.PROFIT_POSITIVE < self.profit_ma:
-                        self.PEND_ENTRY = False
-                        return True
-                    else:
-                        self.PEND_ENTRY = True
-                        return False
-                elif self.PEND_ENTRY and self.cross_ma == CrossStatus.DEAD:
-                    self.profit_ma = self.price_cross - self.ma1
-                    if self.PROFIT_POSITIVE < self.profit_ma:
-                        self.PEND_ENTRY = False
-                        return True
-                    else:
-                        return False
-                else:
-                    return False
-            else:
-                # エグジット
-                if self.diff_ma < 0 <= self.diff_ma_pre:
-                    self.cross_ma = CrossStatus.NONE
-                    return True
-                else:
-                    return False
-        else:
+        """MA デッド・クロスか？"""
+        return self.check_ma_cross(CrossStatus.DEAD)
+
+    def check_ma_cross(self, cross: CrossStatus) -> bool:
+        if not self.status_cross_ma:
+            # 「クロス MA エントリ/返済」が有効になっていない場合
             return False
+
+        # 指定方向でクロスしているかどうか？
+        crossed = self.is_crossed(cross)
+        return crossed
+
+        if self.position != PositionType.NONE:
+            # 建玉がある場合
+            if crossed:
+                # クロス・フラグをリセット
+                self.cross_ma = CrossStatus.NONE
+            return crossed
+
+        # エントリ判定
+        if crossed:
+            # MAクロス状態を更新
+            self.cross_ma = cross
+            # クロス時の株価を保持
+            self.price_cross = self.price
+        elif not (self.pend_entry and self.cross_ma == cross):
+            # エントリ保留中で無く、指定方向のクロスでなければエントリしない。
+            return False
+
+        self.profit_ma = self.calc_profit_ma(cross)
+        if self.PROFIT_POSITIVE < self.profit_ma:
+            self.pend_entry = False
+            return True
+
+        # 利益が足りないのでエントリ保留
+        self.pend_entry = True
+        return False
+
+    def is_crossed(self, cross: CrossStatus) -> bool:
+        """指定方向のクロスが発生したか"""
+        if cross == CrossStatus.GOLDEN:
+            return self.diff_ma_pre <= 0 < self.diff_ma
+        return self.diff_ma < 0 <= self.diff_ma_pre
+
+    def calc_profit_ma(self, cross: CrossStatus) -> float:
+        """クロス時の価格を基準にした、MA1 までの見込み利益"""
+        if cross == CrossStatus.GOLDEN:
+            return self.ma1 - self.price_cross
+        return self.price_cross - self.ma1
 
     def is_vwap_golden_cross(self) -> bool:
         """
@@ -487,20 +468,6 @@ class EnvData:
                 if self.vwap - self.price <= self.LOSSCUT_VWAP:
                     return True
 
-        """
-        if 0 < self.COUNT_NEGATIVE_MIN < self.count_negative:
-            # 含み益が 0 以下が連続して、しきい値回数以上であれば利確（ロスカット）
-            # ただし、COUNT_NEGATIVE_MIN が 0 より大きい場合に適用
-            if self.profit <= 0:
-                return True
-
-        if self.profit_max < self.PROFIT_THRESHOLD:
-            # クロス後、含み益が伸びず、
-            # 含み損を許容できる連続回数を超過したか判定
-            if self.COUNT_NEGATIVE_PROFIT < self.count_negative:
-                return True
-        """
-
         # if 0 < self.profit_max < self.START_TRAILING and self.profit_ma < -20:
         #    return True
 
@@ -540,8 +507,8 @@ class EnvData:
         if self.FOLLOWING_MIN <= following:
             # == ロスカット
             # 逆行回数が順行回数より多い
-            if following < contrarian:
-                # 含み益が負
+            if following <= contrarian:
+                # 含み益が一定以下
                 if self.profit <= 0:
                     return True
 
