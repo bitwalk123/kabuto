@@ -498,6 +498,11 @@ class EnvData:
         PTC 判定
         :return:
         """
+        if not self.status_cross_ma:
+            # 「クロス MA エントリ/返済」が有効になっていない場合
+            # PTC 判定は MA クロスとセット
+            return False
+
         if self.position == PositionType.NONE:
             return False
         if self.position == PositionType.LONG:
