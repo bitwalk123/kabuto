@@ -106,7 +106,8 @@ class EnvData:
     profit: float = 0.0  # 含み損益
     profit_ma: float = 0.0  # 含み損益（移動平均線用）
     profit_max: float = 0.0  # 最大含み損益
-    profit_max_ma: float = 0.0  # 最大含み損益（移動平均線用）
+    profit_max_ma: float = LOSSCUT_SIMPLE  # 最大含み損益（移動平均線用）
+    profit_min_ma: float = 0.0
     profit_pre: float = 0.0  # 一つ前の含み損益
     dd_ratio: float = 0.0  # ドローダウン比率
 
@@ -244,6 +245,7 @@ class EnvData:
             "profit_ma": self.profit_ma,
             "profit_max": self.profit_max,
             "profit_max_ma": self.profit_max_ma,
+            "profit_min_ma": self.profit_min_ma,
             "dd_ratio": self.dd_ratio,
             "diff_ma": self.diff_ma,
             "diff_vwap": self.diff_vwap,
@@ -440,13 +442,15 @@ class EnvData:
             self.dd_ratio = 0.0
             self.count_negative = 0
             self.profit_max = 0.0
-            self.profit_max_ma = 0.0
+            self.profit_max_ma = self.LOSSCUT_SIMPLE
+            self.profit_min_ma = 0.0
 
         self.profit_pre = self.profit
 
     def reset_profit_max(self):
         self.profit_max = 0.0
-        self.profit_max_ma = 0.0
+        self.profit_max_ma = self.LOSSCUT_SIMPLE
+        self.profit_min_ma = 0.0
 
     def update_profit_max(self):
         """
@@ -457,6 +461,8 @@ class EnvData:
             self.profit_max = self.profit
         if self.profit_max_ma < self.profit_ma:
             self.profit_max_ma = self.profit_ma
+        if self.profit_ma < self.profit_min_ma:
+            self.profit_min_ma = self.profit_ma
 
     def is_losscut(self) -> bool:
         if self.status_losscut_vwap:

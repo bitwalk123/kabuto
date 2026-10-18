@@ -91,14 +91,16 @@ class SimulatorCharts(FigureCanvas):
         # y軸ラベル (2)
         ax[i].set_ylabel("Price Trend\nCounter")
 
-        # --- MA 含み損 ---
+        # --- MA 含み損益 ---
         i += 1
         x = df.index
         y1 = df["profit_ma"]
         y2 = df["profit_max_ma"]
+        y3 = df["profit_min_ma"]
         ax[i].fill_between(x, 0, y1, where=(0 < y1), fc="#fbb", ec="#f00", alpha=0.5, lw=0.5, zorder=10)
         ax[i].fill_between(x, 0, y1, where=(y1 < 0), fc="#bbf", ec="#00f", alpha=0.5, lw=0.5, zorder=10)
         ax[i].plot(y2, linewidth=0.75, color="#800", zorder=60)
+        ax[i].plot(y3, linewidth=0.5, color="#008", zorder=60)
         # y軸ラベル (3)
         ax[i].set_ylabel("MA含み損益")
 
