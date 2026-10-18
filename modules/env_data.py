@@ -29,9 +29,9 @@ class EnvData:
 
     # ====== 実験パラメータ ======
     # 移動平均
-    TYPE_MA_1: str = "EMA"
-    PERIOD_MA_1: int = 240  # 移動平均線１の期間
-    PERIOD_MA_2: int = 2200  # 移動平均線２の期間
+    TYPE_MA_1: str = "PPF"
+    PERIOD_MA_1: int = 90  # 移動平均線１の期間
+    PERIOD_MA_2: int = 2100  # 移動平均線２の期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # トレーリング・ストップ
@@ -49,7 +49,7 @@ class EnvData:
     pend_entry: bool = False  # エントリが保留状態か？
 
     # PPF パラメータ
-    GAIN_MA_1: float = 0.05  # PPF の gain
+    GAIN_MA_1: float = 0.005  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # ロスカット
