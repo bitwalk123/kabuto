@@ -30,9 +30,13 @@ class EnvData:
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "PPF"
-    PERIOD_MA_1: int = 90  # 移動平均線１の期間
+    PERIOD_MA_1: int = 80  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
+
+    # PPF パラメータ
+    GAIN_MA_1: float = 0.005  # PPF の gain
+    GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # トレーリング・ストップ
     START_TRAILING: float = 20  # トレーリング・ストップを開始する最大含み益
@@ -47,10 +51,6 @@ class EnvData:
     # エントリ関連
     PROFIT_POSITIVE: float = 0.0  # プラ転とみなせるMA含み益
     pend_entry: bool = False  # エントリが保留状態か？
-
-    # PPF パラメータ
-    GAIN_MA_1: float = 0.005  # PPF の gain
-    GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
     # ロスカット
     LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
