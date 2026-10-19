@@ -276,7 +276,7 @@ class EnvData:
 
         # 指定方向でクロスしているかどうか？
         crossed = self.is_crossed(cross)
-        return crossed
+        # return crossed
 
         if self.position != PositionType.NONE:
             # 建玉がある場合
