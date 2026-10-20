@@ -29,8 +29,8 @@ class EnvData:
 
     # ====== 実験パラメータ ======
     # 移動平均
-    TYPE_MA_1: str = "PPF"
-    PERIOD_MA_1: int = 80  # 移動平均線１の期間
+    TYPE_MA_1: str = "EMA"
+    PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
@@ -43,7 +43,7 @@ class EnvData:
     THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
 
     # PTC 関連
-    FOLLOWING_MIN: int = 15
+    FOLLOWING_MIN: int = 14
 
     # ロスカット系
     LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
