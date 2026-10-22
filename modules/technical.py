@@ -314,7 +314,7 @@ class PriceTrendCounter:
 
             if self.position != position_act:
                 # 建玉が違う場合はあるか？もしあれば、実際の建玉に揃えてリセット
-                self.logger.warning("建玉矛盾！")
+                self.logger.warning(f"建玉矛盾！ self.position = {self.position}, position_act = {position_act}")
                 self.position = position_act
                 return self.init_counter(price)
 
