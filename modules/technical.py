@@ -200,6 +200,153 @@ class WMA:
         return self.value
 
 
+class VWAP:
+    def __init__(self):
+        self.running_pv: float = 0.0
+        self.running_vol: float = 0.0
+        self.vwap: float = 0.0
+        self.prev_vwap: float = 0.0
+        self.prev_volume: Optional[float] = None
+
+    def clear(self) -> None:
+        self.running_pv = 0.0
+        self.running_vol = 0.0
+        self.vwap = 0.0
+        self.prev_vwap = 0.0
+        self.prev_volume = None
+
+    def getValue(self) -> float:
+        return self.vwap
+
+    def getSlope(self) -> float:
+        return self.vwap - self.prev_vwap
+
+    def update(self, price: float, cumulative_volume: float) -> float:
+        # 初回ティック：始値を VWAP として採用
+        if self.prev_volume is None:
+            self.prev_volume = cumulative_volume
+            self.vwap = price
+            self.prev_vwap = price
+            return self.vwap
+
+        # 出来高の増加量
+        vol_delta = cumulative_volume - self.prev_volume
+        self.prev_volume = cumulative_volume
+
+        # 異常値（出来高減少）は無視
+        if vol_delta <= 0:
+            return self.vwap
+
+        # 加重合計を更新
+        self.running_pv += price * vol_delta
+        self.running_vol += vol_delta
+
+        # VWAP 更新
+        self.prev_vwap = self.vwap
+        self.vwap = self.running_pv / self.running_vol
+
+        return self.vwap
+
+
+class PriceTrendCounter:
+    """
+    高値・安値の更新回数を数えるカウンタ。
+
+    短周期移動平均線と基準線の位置関係によってトレンド領域を判定し、
+    その領域内で高値・安値の更新がどちらに偏っているかを評価する。
+    """
+    __version__: str = "2.0.0"
+    """
+    2.0.0
+    手動で逆張り的にエントリをしたとき対応できるように、
+    実際のポジション（買建、売建）と整合を取れるように改良。
+    """
+
+    def __init__(self):
+        self.position = PositionType.NONE
+        self.local_high = float("-inf")
+        self.local_low = float("inf")
+        self.count_high: int = 0
+        self.count_low: int = 0
+
+    def update(
+            self,
+            position_act: PositionType,
+            price: float,
+            ma1: float,
+            ma2: float
+    ) -> tuple[int, int]:
+        """
+        高値・安値更新カウンタを更新する。
+
+        :param position_act: 実際のポジション
+        :param price: 株価
+        :param ma1: 短周期移動平均線相当
+        :param ma2: 長周期移動平均線などの基準線
+        :return: 高値更新回数、安値更新回数
+        """
+
+        if position_act == PositionType.NONE:
+            # 建玉が無い場合 (position_act)
+            if ma2 < ma1:
+                # Long 領域
+                position = PositionType.LONG
+            elif ma1 < ma2:
+                # Short 領域
+                position = PositionType.SHORT
+            else:
+                # MA1 と基準線が一致した場合は、現在のレジームを維持
+                return self.count_high, self.count_low
+
+            if self.position != position:
+                # トレンド領域が変わったらカウンターをリセット
+                self.position = position
+                return self.init_counter(price)
+        else:
+            # 建玉がある場合 (position_act)
+            if self.position == PositionType.NONE:
+                # トレンド領域が変わったらカウンターをリセット
+                self.position = position_act
+                return self.init_counter(price)
+
+            if self.position != position_act:
+                # 建玉が違う場合はあるか？もしあれば、実際の建玉に揃えてリセット
+                print("### 建玉矛盾！ ###")
+                self.position = position_act
+                return self.init_counter(price)
+
+        if self.position == PositionType.LONG:
+            if self.local_high < price:
+                # 高値を更新
+                self.local_high = price
+                self.local_low = price
+                self.count_high += 1
+                self.count_low = 0
+            elif price < self.local_low:
+                # ローカル天井からの下落で安値を更新
+                self.local_low = price
+                self.count_low += 1
+        else:
+            if price < self.local_low:
+                # 安値を更新
+                self.local_high = price
+                self.local_low = price
+                self.count_high = 0
+                self.count_low += 1
+            elif self.local_high < price:
+                # ローカル底からの上昇で高値を更新
+                self.local_high = price
+                self.count_high += 1
+
+        return self.count_high, self.count_low
+
+    def init_counter(self, price: float) -> tuple[int, int]:
+        # カウンターを初期化
+        self.local_high = self.local_low = price
+        self.count_high = self.count_low = 0
+        return self.count_high, self.count_low
+
+
 class PurePursuitFollower:
     def __init__(
             self,
@@ -345,54 +492,6 @@ class MovingIQR:
             return self.q3
 
         return self.q3 + 1.5 * self.iqr
-
-
-class VWAP:
-    def __init__(self):
-        self.running_pv: float = 0.0
-        self.running_vol: float = 0.0
-        self.vwap: float = 0.0
-        self.prev_vwap: float = 0.0
-        self.prev_volume: Optional[float] = None
-
-    def clear(self) -> None:
-        self.running_pv = 0.0
-        self.running_vol = 0.0
-        self.vwap = 0.0
-        self.prev_vwap = 0.0
-        self.prev_volume = None
-
-    def getValue(self) -> float:
-        return self.vwap
-
-    def getSlope(self) -> float:
-        return self.vwap - self.prev_vwap
-
-    def update(self, price: float, cumulative_volume: float) -> float:
-        # 初回ティック：始値を VWAP として採用
-        if self.prev_volume is None:
-            self.prev_volume = cumulative_volume
-            self.vwap = price
-            self.prev_vwap = price
-            return self.vwap
-
-        # 出来高の増加量
-        vol_delta = cumulative_volume - self.prev_volume
-        self.prev_volume = cumulative_volume
-
-        # 異常値（出来高減少）は無視
-        if vol_delta <= 0:
-            return self.vwap
-
-        # 加重合計を更新
-        self.running_pv += price * vol_delta
-        self.running_vol += vol_delta
-
-        # VWAP 更新
-        self.prev_vwap = self.vwap
-        self.vwap = self.running_pv / self.running_vol
-
-        return self.vwap
 
 
 class ROC:
@@ -708,75 +807,3 @@ class EfficiencyRatio:
         self.er = direction / self.volatility if self.volatility else 0.0
 
         return self.er
-
-
-class PriceTrendCounter:
-    """
-    高値・安値の更新回数を数えるカウンタ。
-
-    短周期移動平均線と基準線の位置関係によってトレンド領域を判定し、
-    その領域内で高値・安値の更新がどちらに偏っているかを評価する。
-    """
-    __version__: str = "1.0.0"
-
-    def __init__(self):
-        self.position = PositionType.NONE
-        self.local_high = float("-inf")
-        self.local_low = float("inf")
-        self.count_high: int = 0
-        self.count_low: int = 0
-
-    def update(self, price: float, ma1: float, base: float) -> tuple[int, int]:
-        """
-        高値・安値更新カウンタを更新する。
-
-        :param price: 株価
-        :param ma1: 短周期移動平均線相当
-        :param base: 長周期移動平均線などの基準線
-        :return: 高値更新回数、安値更新回数
-        """
-        if base < ma1:
-            # Long 領域
-            position = PositionType.LONG
-        elif ma1 < base:
-            # Short 領域
-            position = PositionType.SHORT
-        else:
-            # MA1 と基準線が一致した場合は、現在のレジームを維持
-            return self.count_high, self.count_low
-
-        if self.position != position:
-            # トレンド領域が変わったらカウンターをリセット
-            self.position = position
-            return self.init_counter(price)
-
-        if position == PositionType.LONG:
-            if self.local_high < price:
-                # 高値を更新
-                self.local_high = price
-                self.local_low = price
-                self.count_high += 1
-                self.count_low = 0
-            elif price < self.local_low:
-                # ローカル天井からの下落で安値を更新
-                self.local_low = price
-                self.count_low += 1
-        else:
-            if price < self.local_low:
-                # 安値を更新
-                self.local_high = price
-                self.local_low = price
-                self.count_high = 0
-                self.count_low += 1
-            elif self.local_high < price:
-                # ローカル底からの上昇で高値を更新
-                self.local_high = price
-                self.count_high += 1
-
-        return self.count_high, self.count_low
-
-    def init_counter(self, price: float) -> tuple[int, int]:
-        # カウンターを初期化
-        self.local_high = self.local_low = price
-        self.count_high = self.count_low = 0
-        return self.count_high, self.count_low

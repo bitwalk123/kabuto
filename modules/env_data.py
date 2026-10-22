@@ -374,7 +374,7 @@ class EnvData:
             self.slope_ma1 = self.obj_ma_1.getSlope()
             self.slope_ma2 = self.obj_ma_2.getSlope()
 
-        self.count_high, self.count_low = self.obj_ptc.update(price, ma1, ma2)
+        self.count_high, self.count_low = self.obj_ptc.update(self.position, price, ma1, ma2)
 
         self.profit = dict_info["profit"]
         # 移動平均線ベースの含み益
