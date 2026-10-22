@@ -810,3 +810,67 @@ class EfficiencyRatio:
         self.er = direction / self.volatility if self.volatility else 0.0
 
         return self.er
+
+
+class TickATR:
+    def __init__(self, window_size: int):
+        if window_size < 1:
+            raise ValueError("window_size must be >= 1")
+
+        self.window_size = window_size
+        self.prev_price = None
+
+        # 内部計算用
+        self._atr = 0.0
+        self.running_sum = 0.0
+        self.count = 0
+        self.is_initialized = False
+
+        # 外部公開用
+        self.atr = 0.0
+        self.prev_atr = 0.0
+
+    def clear(self):
+        self.prev_price = None
+
+        self._atr = 0.0
+        self.running_sum = 0.0
+        self.count = 0
+        self.is_initialized = False
+
+        self.atr = 0.0
+        self.prev_atr = 0.0
+
+    def getValue(self) -> float:
+        return self.atr
+
+    def update(self, value: float) -> float:
+        # 初回は基準価格を設定するだけ
+        if self.prev_price is None:
+            self.prev_price = value
+            return 0.0
+
+        # True Range
+        tr = abs(value - self.prev_price)
+        self.prev_price = value
+
+        # 前回の公開値を保存
+        self.prev_atr = self.atr
+
+        if not self.is_initialized:
+            # 初期 ATR の計算
+            self.running_sum += tr
+            self.count += 1
+
+            if self.count < self.window_size:
+                return 0.0
+
+            self._atr = self.running_sum / self.window_size
+            self.is_initialized = True
+
+        else:
+            # Wilder 方式
+            self._atr += (tr - self._atr) / self.window_size
+
+        self.atr = self._atr
+        return self.atr

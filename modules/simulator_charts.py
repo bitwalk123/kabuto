@@ -25,7 +25,7 @@ class SimulatorCharts(FigureCanvas):
         super().__init__(self.fig)
         self.res = res
         self.setMinimumWidth(1200)
-        self.setMinimumHeight(600)
+        self.setMinimumHeight(700)
 
         # フォント設定
         fm.fontManager.addfont(res.path_monospace)
@@ -42,7 +42,7 @@ class SimulatorCharts(FigureCanvas):
         """
         # self.remove_axes()  # 一旦クリア
 
-        n = 4
+        n = 5
         ax = dict()
         gs = self.fig.add_gridspec(
             n, 1,
@@ -81,6 +81,12 @@ class SimulatorCharts(FigureCanvas):
 
         # y軸ラベル (1)
         ax[i].set_ylabel("株    価")
+
+        # TickATR
+        i += 1
+        # ax[i].plot(df[df["warmup"] == 0]["atr"], zorder=20, linewidth=1, color="C0")
+        ax[i].plot(df["atr"], zorder=20, linewidth=1, color="C0")
+        ax[i].set_ylabel("TickATR")
 
         # --- 高値安値カウント ---
         i += 1

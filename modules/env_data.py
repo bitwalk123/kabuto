@@ -10,7 +10,7 @@ from modules.technical import (
     PurePursuitFollower,
     SMA,
     VWAP,
-    WMA,
+    WMA, TickATR,
 )
 from structs.app_enum import PositionType, CrossStatus
 
@@ -90,11 +90,13 @@ class EnvData:
     # モメンタム
     mom: float = 0.0
     mom_pre: float = 0.0
-    #
+    # PriceTrendCounter
     count_high: int = 0  # ローカル高値の継続カウンタ
     count_low: int = 0  # ローカル安値の継続カウンタ
     count_high_pre: int = 0  # ローカル高値の継続カウンタ（前の値）
     count_low_pre: int = 0  # ローカル安値の継続カウンタ（前の値）
+    # TickATR
+    atr: float = 0.0
 
     # クロス関連
     ma_gc: bool = False
@@ -142,6 +144,7 @@ class EnvData:
     obj_ma_2: SMA = field(init=False)
     obj_vwap: VWAP = field(init=False)
     obj_ptc: PriceTrendCounter = field(init=False)
+    obj_atr: TickATR = field(init=False)
 
     def __post_init__(self):
         self.bands_golden = [
@@ -169,6 +172,7 @@ class EnvData:
         self.obj_ma_2 = SMA(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
         self.obj_ptc = PriceTrendCounter()
+        self.obj_atr = TickATR(self.PERIOD_MA_1)
 
     def print_param(self):
         # ====== パラメータ ======
@@ -240,6 +244,7 @@ class EnvData:
             "slope_ma1": self.slope_ma1,
             "slope_ma2": self.slope_ma2,
             "vwap": self.vwap,
+            "atr": self.atr,
             "momentum": self.mom,
             "profit": self.profit,
             "profit_ma": self.profit_ma,
@@ -368,6 +373,7 @@ class EnvData:
         self.diff_ma = ma1 - ma2
         self.vwap = vwap = self.obj_vwap.update(price, volume)
         self.diff_vwap = ma1 - vwap
+        self.atr = atr = self.obj_atr.update(price)
 
         if self.FLAG_SLOPE:
             # 常時、傾きを算出する場合
