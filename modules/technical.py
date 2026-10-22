@@ -1,3 +1,4 @@
+import logging
 import math
 from collections import deque
 from math import sqrt
@@ -263,6 +264,7 @@ class PriceTrendCounter:
     """
 
     def __init__(self):
+        self.logger = logging.getLogger(__name__)
         self.position = PositionType.NONE
         self.local_high = float("-inf")
         self.local_low = float("inf")
@@ -306,13 +308,13 @@ class PriceTrendCounter:
             # 建玉がある場合 (position_act)
             if self.position == PositionType.NONE:
                 # 建玉を持ったのでカウンターをリセット
-                print("建玉を持ったのでカウンターをリセット")
+                self.logger.info("建玉を持ったのでカウンターをリセット")
                 self.position = position_act
                 return self.init_counter(price)
 
             if self.position != position_act:
                 # 建玉が違う場合はあるか？もしあれば、実際の建玉に揃えてリセット
-                print("### 建玉矛盾！ ###")
+                self.logger.warning("建玉矛盾！")
                 self.position = position_act
                 return self.init_counter(price)
 
