@@ -305,7 +305,7 @@ class PriceTrendCounter:
         else:
             # 建玉がある場合 (position_act)
             if self.position == PositionType.NONE:
-                # トレンド領域が変わったらカウンターをリセット
+                # 建玉を持ったのでカウンターをリセット
                 self.position = position_act
                 return self.init_counter(price)
 
