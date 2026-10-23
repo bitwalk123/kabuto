@@ -36,7 +36,8 @@ class EnvData:
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # TickATR を利用したエントリ判定パラメータ
-    THRESHOLD_RATIO: float = 0.0001
+    # THRESHOLD_RATIO: float = 0.0001
+    THRESHOLD_RATIO: float = 0  # 0 の時は ATR 無効
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.005  # PPF の gain
@@ -285,19 +286,24 @@ class EnvData:
 
         # 指定方向でクロスしているかどうか？
         crossed = self.is_crossed(cross)
-        if self.position == PositionType.NONE:
-            # 建玉がない場合の ATR によるエントリ判定
-            if crossed:
-                if self.atr < self.price * self.THRESHOLD_RATIO:
-                    # エントリ見送り
-                    print("エントリが見送られました。")
-                    return False
+        if self.THRESHOLD_RATIO > 0:
+            # THRESHOLD_RATIO が 0 より大きい場合は ATR 有効
+            if self.position == PositionType.NONE:
+                # 建玉がない場合の ATR によるエントリ判定
+                if crossed:
+                    if self.atr < self.price * self.THRESHOLD_RATIO:
+                        # エントリ見送り
+                        print("エントリが見送られました。")
+                        return False
+                    else:
+                        return True
                 else:
-                    return True
+                    return False
             else:
-                return False
+                # 建玉がある場合
+                return crossed
         else:
-            # 建玉がある場合
+            # THRESHOLD_RATIO が 0 の場合は ATR 無効
             return crossed
 
     def is_crossed(self, cross: CrossStatus) -> bool:
