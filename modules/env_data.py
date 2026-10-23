@@ -32,7 +32,11 @@ class EnvData:
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
+    PERIOD_ATR: int = 240  # ATRの期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
+
+    # TickATR を利用したエントリ判定パラメータ
+    THRESHOLD_RATIO: float = 0.0001
 
     # PPF パラメータ
     GAIN_MA_1: float = 0.005  # PPF の gain
@@ -172,7 +176,7 @@ class EnvData:
         self.obj_ma_2 = SMA(self.PERIOD_MA_2)
         self.obj_vwap = VWAP()
         self.obj_ptc = PriceTrendCounter()
-        self.obj_atr = TickATR(self.PERIOD_MA_1)
+        self.obj_atr = TickATR(self.PERIOD_ATR)
 
     def print_param(self):
         # ====== パラメータ ======
@@ -281,33 +285,20 @@ class EnvData:
 
         # 指定方向でクロスしているかどうか？
         crossed = self.is_crossed(cross)
-        return crossed
-
-        if self.position != PositionType.NONE:
-            # 建玉がある場合
+        if self.position == PositionType.NONE:
+            # 建玉がない場合の ATR によるエントリ判定
             if crossed:
-                # クロス・フラグをリセット
-                self.cross_ma = CrossStatus.NONE
+                if self.atr < self.price * self.THRESHOLD_RATIO:
+                    # エントリ見送り
+                    print("エントリが見送られました。")
+                    return False
+                else:
+                    return True
+            else:
+                return False
+        else:
+            # 建玉がある場合
             return crossed
-
-        # エントリ判定
-        if crossed:
-            # MAクロス状態を更新
-            self.cross_ma = cross
-            # クロス時の株価を保持
-            self.price_cross = self.price
-        elif not (self.pend_entry and self.cross_ma == cross):
-            # エントリ保留中で無く、指定方向のクロスでなければエントリしない。
-            return False
-
-        self.profit_ma = self.calc_profit_ma(cross)
-        if self.PROFIT_POSITIVE < self.profit_ma:
-            self.pend_entry = False
-            return True
-
-        # 利益が足りないのでエントリ保留
-        self.pend_entry = True
-        return False
 
     def is_crossed(self, cross: CrossStatus) -> bool:
         """指定方向のクロスが発生したか"""
