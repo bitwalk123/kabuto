@@ -110,6 +110,7 @@ pycodestyle
 pycparser
 pyflakes
 Pygments
+pylatexenc
 pyparsing
 pyproject_hooks
 pyqtgraph
