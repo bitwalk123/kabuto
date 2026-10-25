@@ -10,7 +10,7 @@ from modules.technical import (
     PurePursuitFollower,
     SMA,
     VWAP,
-    WMA, TickATR,
+    WMA, TickATR, DMA,
 )
 from structs.app_enum import PositionType, CrossStatus
 
@@ -171,6 +171,8 @@ class EnvData:
             self.obj_ma_1 = EMA(self.PERIOD_MA_1)
         elif self.TYPE_MA_1 == "WMA":
             self.obj_ma_1 = WMA(self.PERIOD_MA_1)
+        elif self.TYPE_MA_1 == "DMA":
+            self.obj_ma_1 = DMA(self.PERIOD_MA_1)
         else:
             raise TypeError("TYPE_MA_1 に合致しません。")
 

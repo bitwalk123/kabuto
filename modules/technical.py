@@ -874,3 +874,72 @@ class TickATR:
 
         self.atr = self._atr
         return self.atr
+
+
+class DMA:
+    def __init__(self, window_size: int):
+        if window_size < 1:
+            raise ValueError("window_size must be >= 1")
+
+        self.window_size = window_size
+        self.window_size_current = window_size
+
+        self.queue = deque(maxlen=window_size)
+
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0
+
+    def clear(self) -> None:
+        self.queue.clear()
+
+        self.running_sum = 0.0
+        self.ma = 0.0
+        self.prev_ma = 0.0
+        self.window_size_current = self.window_size
+
+    def getValue(self) -> float:
+        return self.ma
+
+    def update(
+            self,
+            value: float,
+            window_size_new: int = 0,
+    ) -> float:
+        # 0 は現在の周期を維持する
+        if window_size_new == 0:
+            window_size_new = self.window_size_current
+
+        if not 1 <= window_size_new <= self.window_size:
+            raise ValueError(
+                "window_size_new must be between 1 and window_size"
+            )
+
+        self.prev_ma = self.ma
+
+        # 周期変更前に、変更後の周期に必要な合計を更新する
+        if window_size_new != self.window_size_current:
+            self.queue.append(value)
+            self.window_size_current = window_size_new
+
+            n = self.window_size_current
+            self.running_sum = sum(
+                list(self.queue)[-n:]
+            )
+        else:
+            n = self.window_size_current
+
+            # 現在の平均に含まれる最古の値を取得
+            if len(self.queue) >= n:
+                outgoing = self.queue[-n]
+                self.running_sum -= outgoing
+
+            self.queue.append(value)
+            self.running_sum += value
+
+        self.ma = self.running_sum / min(
+            len(self.queue),
+            self.window_size_current,
+        )
+
+        return self.ma
