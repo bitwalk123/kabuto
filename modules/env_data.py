@@ -290,21 +290,24 @@ class EnvData:
             # THRESHOLD_RATIO が 0 より大きい場合は ATR 有効
             if self.position == PositionType.NONE:
                 # 建玉がない場合の ATR によるエントリ判定
-                if crossed:
-                    if self.atr < self.price * self.THRESHOLD_RATIO:
-                        # エントリ見送り
-                        print("エントリが見送られました。")
-                        return False
-                    else:
-                        return True
-                else:
-                    return False
+                return self.check_atr_entry(crossed)
             else:
                 # 建玉がある場合
                 return crossed
         else:
             # THRESHOLD_RATIO が 0 の場合は ATR 無効
             return crossed
+
+    def check_atr_entry(self, crossed: bool) -> bool:
+        if crossed:
+            if self.atr < self.price * self.THRESHOLD_RATIO:
+                # エントリ見送り
+                print("エントリが見送られました。")
+                return False
+            else:
+                return True
+        else:
+            return False
 
     def is_crossed(self, cross: CrossStatus) -> bool:
         """指定方向のクロスが発生したか"""
