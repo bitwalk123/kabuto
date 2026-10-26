@@ -366,7 +366,14 @@ class EnvData:
         self.position = dict_info["position"]
 
         self.atr = atr = self.obj_atr.update(price)  # TickATR
-        self.ma1 = ma1 = self.obj_ma_1.update(price)
+        if self.TYPE_MA_1 == "DMA":
+            if atr <= 1:
+                self.ma1 = ma1 = self.obj_ma_1.update(price)
+            else:
+                window_size = int(self.PERIOD_MA_1 / atr)
+                self.ma1 = ma1 = self.obj_ma_1.update(price, window_size)
+        else:
+            self.ma1 = ma1 = self.obj_ma_1.update(price)
         self.ma2 = ma2 = self.obj_ma_2.update(price)
         self.diff_ma = ma1 - ma2
         self.vwap = vwap = self.obj_vwap.update(price, volume)
