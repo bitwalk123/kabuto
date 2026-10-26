@@ -22,17 +22,14 @@ class EnvData:
     MAX_TRADE: int = 200  # 約定数上限（仮）
     # インジケータ系
     PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
-    # PERIOD_WARMUP: int = 300  # インジケータのウォームアップ期間（ティック数）
     WIDTH_BAND = 5  # バンド幅
-    # ロスカット・利確系
-    # N_MINUS_MAX: int = 900  # 連続含み損の最大カウント数
 
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
-    PERIOD_ATR: int = 240  # ATRの期間
+    PERIOD_ATR: int = 60  # ATRの期間
     FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
 
     # TickATR を利用したエントリ判定パラメータ
