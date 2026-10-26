@@ -252,7 +252,6 @@ class EnvData:
             "slope_ma2": self.slope_ma2,
             "vwap": self.vwap,
             "atr": self.atr,
-            "momentum": self.mom,
             "profit": self.profit,
             "profit_ma": self.profit_ma,
             "profit_max": self.profit_max,
@@ -369,13 +368,12 @@ class EnvData:
         self.price = price
         self.position = dict_info["position"]
 
+        self.atr = atr = self.obj_atr.update(price)
         self.ma1 = ma1 = self.obj_ma_1.update(price)
-        self.mom = 0
         self.ma2 = ma2 = self.obj_ma_2.update(price)
         self.diff_ma = ma1 - ma2
         self.vwap = vwap = self.obj_vwap.update(price, volume)
         self.diff_vwap = ma1 - vwap
-        self.atr = atr = self.obj_atr.update(price)
 
         if self.FLAG_SLOPE:
             # 常時、傾きを算出する場合
@@ -441,8 +439,6 @@ class EnvData:
     def update_feature_pre(self):
         self.diff_ma_pre = self.diff_ma
         self.diff_vwap_pre = self.diff_vwap
-        # self.rsi_pre = self.rsi
-        # self.mom_pre = self.mom
         self.count_high_pre = self.count_high
         self.count_low_pre = self.count_low
 
