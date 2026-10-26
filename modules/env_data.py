@@ -368,7 +368,7 @@ class EnvData:
         self.price = price
         self.position = dict_info["position"]
 
-        self.atr = atr = self.obj_atr.update(price)
+        self.atr = atr = self.obj_atr.update(price)  # TickATR
         self.ma1 = ma1 = self.obj_ma_1.update(price)
         self.ma2 = ma2 = self.obj_ma_2.update(price)
         self.diff_ma = ma1 - ma2
