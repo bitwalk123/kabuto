@@ -120,11 +120,11 @@ class EMA:
 
         self.alpha: float = 2 / (window_size + 1)
         self.window_slope = window_slope
-        self.ema: Optional[float] = None
+        self.ema: float = 0.0
         self.history = deque(maxlen=window_slope)
 
     def clear(self) -> None:
-        self.ema = None
+        self.ema = 0.0
         self.history.clear()
 
     def getValue(self) -> float:
@@ -137,10 +137,10 @@ class EMA:
         )
 
     def update(self, value: float) -> float:
-        if self.ema is None:
-            self.ema = value
-        else:
+        if self.ema > 0:
             self.ema += self.alpha * (value - self.ema)
+        else:
+            self.ema = value
 
         self.history.append(self.ema)
 

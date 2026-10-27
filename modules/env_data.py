@@ -27,6 +27,7 @@ class EnvData:
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
+    TYPE_MA_2: str = "SMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
     PERIOD_ATR: int = 60  # ATRの期間
@@ -143,7 +144,7 @@ class EnvData:
 
     # テクニカル指標のインスタンス
     obj_ma_1: Any = field(init=False)
-    obj_ma_2: SMA = field(init=False)
+    obj_ma_2: Any = field(init=False)
     obj_vwap: VWAP = field(init=False)
     obj_ptc: PriceTrendCounter = field(init=False)
     obj_atr: TickATR = field(init=False)
@@ -175,7 +176,13 @@ class EnvData:
         else:
             raise TypeError("TYPE_MA_1 に合致しません。")
 
-        self.obj_ma_2 = SMA(self.PERIOD_MA_2)
+        if self.TYPE_MA_2 == "SMA":
+            self.obj_ma_2 = SMA(self.PERIOD_MA_2)
+        elif self.TYPE_MA_2 == "EMA":
+            self.obj_ma_2 = EMA(self.PERIOD_MA_2)
+        else:
+            raise TypeError("TYPE_MA_2 に合致しません。")
+
         self.obj_vwap = VWAP()
         self.obj_ptc = PriceTrendCounter()
         self.obj_atr = TickATR(self.PERIOD_ATR)
