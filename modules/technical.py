@@ -943,3 +943,23 @@ class DMA:
         )
 
         return self.ma
+
+
+class MeasureWorm:
+    def __init__(self, denom: int = 60):
+        self.value: float = 0.0
+        self.DENOM: int = denom
+
+    def clear(self) -> None:
+        pass
+
+    def getValue(self) -> float:
+        return self.value
+
+    def update(self, value: float) -> float:
+        if self.value > 0:
+            self.value += (value - self.value) / self.DENOM
+        else:
+            self.value = value
+
+        return self.value
