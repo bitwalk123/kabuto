@@ -27,7 +27,7 @@ class EnvData:
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
-    TYPE_MA_2: str = "SMA"
+    TYPE_MA_2: str = "EMA"
     PERIOD_MA_1: int = 240  # 移動平均線１の期間
     PERIOD_MA_2: int = 2400  # 移動平均線２の期間
     PERIOD_ATR: int = 60  # ATRの期間
@@ -515,6 +515,7 @@ class EnvData:
         PTC 判定
         :return:
         """
+        return False  # 現時点では無効化
         if not self.status_cross_ma:
             # 「クロス MA エントリ/返済」が有効になっていない場合
             # PTC 判定は MA クロスとセット
