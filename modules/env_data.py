@@ -69,7 +69,6 @@ class EnvData:
     position: PositionType = PositionType.NONE  # ポジション
     position_pre: PositionType = PositionType.NONE  # 一つ前のポジション
     count_negative: int = 0  # エントリの継続カウンタ
-    count_post_contract: int = 0  # 約定後の HOLD カウント用
 
     # ティックデータ
     ts: float = 0.0
@@ -196,8 +195,6 @@ class EnvData:
 
     def inc_row(self):
         self.row += 1
-        """ 約定後のカウント数をインクリメント """
-        self.count_post_contract += 1
 
     def get_masks(self):
         """
