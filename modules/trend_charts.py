@@ -23,7 +23,7 @@ class CustomYAxisItem2(pg.AxisItem):
 class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 192, 0, 192)
-    COLOR_VWAP = (255, 0, 144, 192)
+    COLOR_VWAP = (192, 0, 128, 192)
     COLOR_GOLDEN = (255, 0, 255, 220)
     COLOR_DEAD = (0, 192, 255, 220)
     COLOR_EVEN = (255, 192, 0, 255)
@@ -91,15 +91,15 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # 移動平均線 MA1
         self.ma_1 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_1, width=1), name="MA1")
-        self.ma_1.setZValue(80)
+        self.ma_1.setZValue(50)
 
         # 移動平均線 MA2
         self.ma_2 = self.plot_price.plot(pen=pg.mkPen(self.COLOR_MA_2, width=1), name="MA2")
-        self.ma_2.setZValue(90)
+        self.ma_2.setZValue(50)
 
         # VWAP
         self.vwap = self.plot_price.plot(pen=pg.mkPen(self.COLOR_VWAP, width=1), name="VWAP")
-        self.vwap.setZValue(50)
+        self.vwap.setZValue(20)
 
         # 損益分岐線
         # self.even_line = self.plot_price.addLine(y=0, pen=pg.mkPen(self.COLOR_EVEN, width=0.5))
@@ -119,12 +119,12 @@ class TrendCharts(pg.GraphicsLayoutWidget):
 
         # クロス線（ゴールデン・クロス）
         self.vline_golden = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_GOLDEN, width=0.75))
-        self.vline_golden.setZValue(20)
+        self.vline_golden.setZValue(30)
         self.plot_price.addItem(self.vline_golden)
 
         # クロス線（デッド・クロス）
         self.vline_dead = pg.InfiniteLine(angle=90, pen=pg.mkPen(self.COLOR_DEAD, width=0.75))
-        self.vline_dead.setZValue(20)
+        self.vline_dead.setZValue(30)
         self.plot_price.addItem(self.vline_dead)
 
         # PTC
