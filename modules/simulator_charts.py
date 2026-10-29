@@ -86,6 +86,7 @@ class SimulatorCharts(FigureCanvas):
         i += 1
         # ax[i].plot(df[df["warmup"] == 0]["atr"], zorder=20, linewidth=1, color="C0")
         ax[i].plot(df["atr"], zorder=20, linewidth=1, color="C0")
+        ax[i].yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:>6,.1f}"))
         ax[i].set_ylabel("TickATR")
 
         # --- 高値安値カウント ---
