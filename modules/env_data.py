@@ -6,11 +6,13 @@ import numpy as np
 from funcs.conv import position_to_onehot
 from modules.technical import (
     EMA,
+    MeasureWorm,
     PriceTrendCounter,
     PurePursuitFollower,
     SMA,
+    TickATR,
     VWAP,
-    WMA, TickATR, DMA, MeasureWorm,
+    WMA,
 )
 from structs.app_enum import PositionType, CrossStatus
 
@@ -168,8 +170,6 @@ class EnvData:
             self.obj_ma_1 = EMA(self.PERIOD_MA_1)
         elif self.TYPE_MA_1 == "WMA":
             self.obj_ma_1 = WMA(self.PERIOD_MA_1)
-        elif self.TYPE_MA_1 == "DMA":
-            self.obj_ma_1 = DMA(self.PERIOD_MA_1)
         elif self.TYPE_MA_1 == "MW":
             self.obj_ma_1 = MeasureWorm(self.PERIOD_MA_1)
         else:
@@ -400,12 +400,8 @@ class EnvData:
         self.position = dict_info["position"]
 
         self.atr = atr = self.obj_atr.update(price)  # TickATR
-        if self.TYPE_MA_1 == "DMA":
-            if atr <= 1:
-                self.ma1 = ma1 = self.obj_ma_1.update(price)
-            else:
-                window_size = int(self.PERIOD_MA_1 / atr)
-                self.ma1 = ma1 = self.obj_ma_1.update(price, window_size)
+        if self.TYPE_MA_1 == "MW":
+            self.ma1 = ma1 = self.obj_ma_1.update(price, atr)
         else:
             self.ma1 = ma1 = self.obj_ma_1.update(price)
         self.ma2 = ma2 = self.obj_ma_2.update(price)

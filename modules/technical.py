@@ -946,20 +946,40 @@ class DMA:
 
 
 class MeasureWorm:
-    def __init__(self, denom: int = 60):
-        self.value: float = 0.0
-        self.DENOM: int = denom
+    def __init__(
+            self,
+            window_size: int,
+            window_slope: int = 30,
+    ):
+        if window_size < 1:
+            raise ValueError("window_size must be >= 1")
+        if window_slope < 2:
+            raise ValueError("window_slope must be >= 2")
+
+        self.alpha: float = 2 / (window_size + 1)
+        self.window_slope = window_slope
+        self.ema: float = 0.0
+        self.history = deque(maxlen=window_slope)
 
     def clear(self) -> None:
-        pass
+        self.ema = 0.0
+        self.history.clear()
 
     def getValue(self) -> float:
-        return self.value
+        return self.ema if self.ema is not None else 0.0
 
-    def update(self, value: float) -> float:
-        if self.value > 0:
-            self.value += (value - self.value) / self.DENOM
+    def getSlope(self) -> float:
+        return calculate_slope(
+            self.history,
+            self.window_slope,
+        )
+
+    def update(self, price: float, atr: float) -> float:
+        if self.ema > 0:
+            self.ema += self.alpha * atr * (price - self.ema)
         else:
-            self.value = value
+            self.ema = price
 
-        return self.value
+        self.history.append(self.ema)
+
+        return self.ema  # type: ignore
