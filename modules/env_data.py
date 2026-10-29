@@ -220,10 +220,16 @@ class EnvData:
         :return:
         """
         # シグナル・フラグ（クロスしたタイミングなど）
-        self.ma_gc = self.is_ma_golden_cross()
-        self.ma_dc = self.is_ma_dead_cross()
+        if not self.is_first_entry_timing():
+            self.ma_gc = self.is_ma_golden_cross()
+            self.ma_dc = self.is_ma_dead_cross()
+        else:
+            # WARMUP 後の最初のエントリ・タイミング
+            self.ma_gc, self.ma_dc = self.try_first_entry()
+
         self.vwap_gc = self.is_vwap_golden_cross()
         self.vwap_dc = self.is_vwap_dead_cross()
+
         signal = np.array([
             self.ma_gc,  # 0. MA ゴールデンクロスのフラグ
             self.ma_dc,  # 1. MA デッドクロスのフラグ
@@ -274,6 +280,21 @@ class EnvData:
             "vwap_dc": self.vwap_dc,
             "warmup": self.is_warmup_period(),
         }
+
+    def try_first_entry(self) -> tuple[bool, bool]:
+        if not self.status_cross_ma:
+            # 「クロス MA エントリ/返済」が有効になっていない場合
+            return False, False
+
+        if self.ma2 < self.ma1 < self.price:
+            # MA ゴールデン・クロスとして扱う
+            return True, False
+
+        if self.price < self.ma1 < self.ma2:
+            # MA デッド・クロスとして扱う
+            return False, True
+
+        return False, False
 
     def is_ma_golden_cross(self) -> bool:
         """MA ゴールデン・クロスか？"""
@@ -360,6 +381,13 @@ class EnvData:
     def is_warmup_period(self) -> float:
         return 1.0 if self.row < self.PERIOD_WARMUP else 0.0
 
+    def is_first_entry_timing(self) -> bool:
+        """
+        self.PERIOD_WARMUP後の最初の可能なエントリ・タイミングか？
+        :return:
+        """
+        return True if self.row == self.PERIOD_WARMUP + 1 else False
+
     def reset_count_entry(self):
         self.count_negative = 0
 
@@ -410,6 +438,7 @@ class EnvData:
 
         # 一つ前の特徴量の更新
         self.update_feature_pre()
+
         # ステップ（データフレームの行）更新
         self.inc_row()
 
