@@ -27,8 +27,7 @@ class EnvData:
     PERIOD_WARMUP: int = 100  # doe-065
     WIDTH_BAND = 5  # バンド幅
 
-    # ====== 実験パラメータ ======
-    # 移動平均
+    # === 移動平均 ===
     TYPE_MA_1: str = "EMA"
     TYPE_MA_2: str = "EMA"
     # 移動平均線１の期間
@@ -45,9 +44,11 @@ class EnvData:
     # THRESHOLD_RATIO: float = 0.0001
     THRESHOLD_RATIO: float = 0  # 0 の時は ATR 無効
 
-    # PPF パラメータ
-    GAIN_MA_1: float = 0.005  # PPF の gain
-    GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
+    # === PPF パラメータ ===
+    # PPF の gain
+    GAIN_MA_1: float = 0.005
+    # PPF の gain_predict
+    GAIN_PREDICT_MA_1: float = 0.5
 
     # === トレーリング・ストップ ===
     # トレーリング・ストップを開始する最大含み益
@@ -58,15 +59,16 @@ class EnvData:
     # PTC 関連
     FOLLOWING_MIN: int = 14
 
-    # ロスカット系
-    LOSSCUT_SIMPLE: float = -50  # 単純ロスカット
+    # === ロスカット系 ===
+    # 単純ロスカット
+    LOSSCUT_SIMPLE: float = -50
+    # VWAP基準ロスカット
+    LOSSCUT_VWAP: float = -15
 
     # エントリ関連
     PROFIT_POSITIVE: float = 0.0  # プラ転とみなせるMA含み益
     pend_entry: bool = False  # エントリが保留状態か？
 
-    # ロスカット
-    LOSSCUT_VWAP: float = -15  # VWAP基準ロスカット
 
     # エントリ期間関連
     COUNT_NEGATIVE_MIN: int = 60  # 含み損の許容カウントのしきい値
