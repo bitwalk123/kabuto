@@ -51,9 +51,9 @@ class EnvData:
 
     # === トレーリング・ストップ ===
     # トレーリング・ストップを開始する最大含み益
-    START_TRAILING: float = 35
+    START_TRAILING: float = 35  # doe-066
     # トレーリング・ストップのしきい値比
-    THRESHOLD_TRAILING: float = 0.9
+    THRESHOLD_TRAILING: float = 0.95  # doe-066
 
     # PTC 関連
     FOLLOWING_MIN: int = 14
