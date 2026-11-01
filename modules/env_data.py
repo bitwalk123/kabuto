@@ -20,20 +20,26 @@ from structs.app_enum import PositionType, CrossStatus
 @dataclass
 class EnvData:
     # ====== パラメータ ======
-    # 約定回数系
-    MAX_TRADE: int = 200  # 約定数上限（仮）
-    # インジケータ系
-    PERIOD_WARMUP: int = 90  # インジケータのウォームアップ期間（ティック数）
+    # 約定数上限（仮）
+    MAX_TRADE: int = 200
+
+    # インジケータのウォームアップ期間（ティック数）
+    PERIOD_WARMUP: int = 100  # doe-065
     WIDTH_BAND = 5  # バンド幅
 
     # ====== 実験パラメータ ======
     # 移動平均
     TYPE_MA_1: str = "EMA"
     TYPE_MA_2: str = "EMA"
-    PERIOD_MA_1: int = 240  # 移動平均線１の期間
-    PERIOD_MA_2: int = 2400  # 移動平均線２の期間
-    PERIOD_ATR: int = 60  # ATRの期間
-    FLAG_SLOPE: bool = False  # 毎回、傾きの算出をするかどうかのフラグ
+    # 移動平均線１の期間
+    PERIOD_MA_1: int = 240
+    # 移動平均線２の期間
+    PERIOD_MA_2: int = 2400
+    # ATRの期間
+    PERIOD_ATR: int = 60
+
+    # 毎回、傾きの算出をするかどうかのフラグ
+    FLAG_SLOPE: bool = False
 
     # TickATR を利用したエントリ判定パラメータ
     # THRESHOLD_RATIO: float = 0.0001
