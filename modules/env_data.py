@@ -49,9 +49,11 @@ class EnvData:
     GAIN_MA_1: float = 0.005  # PPF の gain
     GAIN_PREDICT_MA_1: float = 0.5  # PPF の gain_predict
 
-    # トレーリング・ストップ
-    START_TRAILING: float = 35  # トレーリング・ストップを開始する最大含み益
-    THRESHOLD_TRAILING: float = 0.9  # トレーリング・ストップのしきい値比
+    # === トレーリング・ストップ ===
+    # トレーリング・ストップを開始する最大含み益
+    START_TRAILING: float = 35
+    # トレーリング・ストップのしきい値比
+    THRESHOLD_TRAILING: float = 0.9
 
     # PTC 関連
     FOLLOWING_MIN: int = 14
