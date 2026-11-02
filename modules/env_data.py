@@ -56,6 +56,14 @@ class EnvData:
     # トレーリング・ストップのしきい値比
     THRESHOLD_TRAILING: float = 0.95  # doe-066
 
+    # ##############################################
+    # ※ トレーリング・ストップの二段階設定が有効かどうか実験
+    # ##############################################
+    # トレーリング・ストップを開始する最大含み益 (2)
+    START_TRAILING_2: float = 10  # doe-066
+    # トレーリング・ストップのしきい値比 (2)
+    THRESHOLD_TRAILING_2: float = 0.5
+
     # PTC 関連
     FOLLOWING_MIN: int = 14
 
@@ -537,6 +545,10 @@ class EnvData:
             if self.START_TRAILING <= self.profit_max_ma:
                 if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING:
                     return True
+            elif self.START_TRAILING_2 <= self.profit_max_ma:
+                if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING_2:
+                    return True
+
         return False
 
     def update_profit_pre(self):
