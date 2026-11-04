@@ -33,7 +33,7 @@ class EnvData:
     # 移動平均線１の期間
     PERIOD_MA_1: int = 240
     # 移動平均線２の期間
-    PERIOD_MA_2: int = 2400
+    PERIOD_MA_2: int = 2700
     # ATRの期間
     PERIOD_ATR: int = 60
 
