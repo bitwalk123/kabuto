@@ -119,12 +119,12 @@ class ProfitReviewChart(FigureCanvas):
         # y軸ラベル (1)
         self.ax[i].set_ylabel("株    価")
 
-        # --- モメンタム ---
+        # --- TickATR ---
         i += 1
-        self.ax[i].plot(df["momentum"], zorder=20, linewidth=0.75, color="#840")
+        self.ax[i].plot(df["atr"], zorder=20, linewidth=0.75, color="#840")
         self.ax[i].axhline(y=0, c="#000", ls="solid", alpha=0.5, lw=0.5)
         # y軸ラベル (2)
-        self.ax[i].set_ylabel("Velocity")
+        self.ax[i].set_ylabel("TickATR")
 
         # --- 含み損益 ---
         i += 1
@@ -138,8 +138,8 @@ class ProfitReviewChart(FigureCanvas):
         self.ax[i].set_ylabel("含み損益")
 
         # --- クロス・シグナル ---
-        list_vwap_gc = df[0 < df["vwap_gc"]].index
-        list_vwap_dc = df[0 < df["vwap_dc"]].index
+        list_vwap_gc = df[0 < df["ma_gc"]].index
+        list_vwap_dc = df[0 < df["ma_dc"]].index
         for i in range(self.rows):
             # ゴールデン・クロス
             for t in list_vwap_gc:
