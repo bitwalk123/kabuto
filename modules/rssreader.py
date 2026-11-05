@@ -70,9 +70,12 @@ class RSSReaderWorker(QObject):
         # Excelシートから xlwings でデータを読み込むときの試行回数
         # 楽天証券のマーケットスピード２ RSS の書込と重なる（衝突する）と、
         # COM エラーが発生するため、リトライできるようにしている。
-        self.max_retries = 5  # 最大リトライ回数
-        self.retry_delay = 0.1  # リトライ間の遅延（秒）
-        self.sec_sleep = 1  # 約定確認用のスリープ時間（秒）
+        # 最大リトライ回数
+        self.max_retries = 10  # 5 → 10: 2026-11-05 確認漏れ発生のため変更
+        # リトライ間の遅延（秒）
+        self.retry_delay = 0.1
+        # 約定確認用のスリープ時間（秒）
+        self.sec_sleep = 1
 
         # Excel シートから読み取った内容をメインスレッドへ渡す作業用辞書
         self.dict_data: dict[str, list] = {}
