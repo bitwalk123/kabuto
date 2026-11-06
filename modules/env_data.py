@@ -428,7 +428,12 @@ class EnvData:
             self.ma1 = ma1 = self.obj_ma_1.update(price, atr)
         else:
             self.ma1 = ma1 = self.obj_ma_1.update(price)
-        self.ma2 = ma2 = self.obj_ma_2.update(price)
+
+        if self.TYPE_MA_2 == "MW":
+            self.ma2 = ma2 = self.obj_ma_2.update(price, atr)
+        else:
+            self.ma2 = ma2 = self.obj_ma_2.update(price)
+
         self.diff_ma = ma1 - ma2
         self.vwap = vwap = self.obj_vwap.update(price, volume)
         self.diff_vwap = ma1 - vwap
