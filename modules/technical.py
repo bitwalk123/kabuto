@@ -956,7 +956,7 @@ class MeasureWorm:
         if window_slope < 2:
             raise ValueError("window_slope must be >= 2")
 
-        self.alpha: float = 2 / (window_size + 1)
+        self.alpha: float = 1 / (window_size + 1)  # 分子は 1
         self.window_slope = window_slope
         self.ema: float = 0.0
         self.history = deque(maxlen=window_slope)
