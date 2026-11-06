@@ -848,7 +848,7 @@ class TickATR:
         # 初回は基準価格を設定するだけ
         if self.prev_price is None:
             self.prev_price = value
-            return 0.0
+            return 2.0  # EMA と連携するため
 
         # True Range
         tr = abs(value - self.prev_price)
@@ -863,7 +863,7 @@ class TickATR:
             self.count += 1
 
             if self.count < self.window_size:
-                return 0.0
+                return 2.0  # EMA と連携するため
 
             self._atr = self.running_sum / self.window_size
             self.is_initialized = True
