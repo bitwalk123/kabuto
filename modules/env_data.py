@@ -194,6 +194,8 @@ class EnvData:
             self.obj_ma_2 = SMA(self.PERIOD_MA_2)
         elif self.TYPE_MA_2 == "EMA":
             self.obj_ma_2 = EMA(self.PERIOD_MA_2)
+        elif self.TYPE_MA_2 == "MW":
+            self.obj_ma_2 = MeasureWorm(self.PERIOD_MA_2)
         else:
             raise TypeError("TYPE_MA_2 に合致しません。")
 
