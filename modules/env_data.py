@@ -234,6 +234,10 @@ class EnvData:
         観測空間の算出
         :return:
         """
+        '''
+        self.ma_gc = self.is_ma_golden_cross()
+        self.ma_dc = self.is_ma_dead_cross()
+        '''
         # シグナル・フラグ（クロスしたタイミングなど）
         if not self.is_first_entry_timing():
             self.ma_gc = self.is_ma_golden_cross()
@@ -301,6 +305,9 @@ class EnvData:
             # 「クロス MA エントリ/返済」が有効になっていない場合
             return False, False
 
+        # ######################################################
+        # self.price の代わりに self.vwap を用いた方が安全か、要確認！！
+        # ######################################################
         if self.ma2 < self.ma1 < self.price:
             # MA ゴールデン・クロスとして扱う
             return True, False
