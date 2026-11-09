@@ -24,8 +24,8 @@ class EnvData:
     MAX_TRADE: int = 200
 
     # インジケータのウォームアップ期間（ティック数）
-    # PERIOD_WARMUP: int = 100  # doe-065
-    PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
+    PERIOD_WARMUP: int = 110  # doe-065
+    # PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
     WIDTH_BAND = 5  # バンド幅
 
     # === 移動平均 ===
