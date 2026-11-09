@@ -564,12 +564,14 @@ class EnvData:
             elif self.START_TRAILING_2 <= self.profit_max_ma:
                 if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING_2:
                     return True
+            """
             else:
                 d1 = self.profit_max_ma - self.profit_min_ma
                 d2 = self.profit_ma - self.profit_min_ma
                 if 0 < d1:
                     if d2 < d1 * self.THRESHOLD_TRAILING_3:
                         return True
+            """
 
         return False
 
