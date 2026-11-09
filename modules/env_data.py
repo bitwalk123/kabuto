@@ -24,8 +24,8 @@ class EnvData:
     MAX_TRADE: int = 200
 
     # インジケータのウォームアップ期間（ティック数）
-    # PERIOD_WARMUP: int = 100  # doe-065
-    PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
+    PERIOD_WARMUP: int = 110  # doe-065
+    # PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
     WIDTH_BAND = 5  # バンド幅
 
     # === 移動平均 ===
@@ -61,6 +61,8 @@ class EnvData:
     START_TRAILING_2: float = 15  # doe-067
     # トレーリング・ストップのしきい値比 (2)
     THRESHOLD_TRAILING_2: float = 0.5  # doe-067
+    # トレーリング・ストップのしきい値比 (3)
+    THRESHOLD_TRAILING_3: float = 0.5
 
     # PTC 関連
     FOLLOWING_MIN: int = 14
@@ -525,10 +527,13 @@ class EnvData:
         含み損益の最大値を更新
         :return:
         """
+        # 株価に対する含み益の最大値
         if self.profit_max < self.profit:
             self.profit_max = self.profit
+        # MA に対する含み益の最大値
         if self.profit_max_ma < self.profit_ma:
             self.profit_max_ma = self.profit_ma
+        # MA に対する含み損の最大値（含み益の最小値）
         if self.profit_ma < self.profit_min_ma:
             self.profit_min_ma = self.profit_ma
 
@@ -559,6 +564,14 @@ class EnvData:
             elif self.START_TRAILING_2 <= self.profit_max_ma:
                 if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING_2:
                     return True
+            """
+            else:
+                d1 = self.profit_max_ma - self.profit_min_ma
+                d2 = self.profit_ma - self.profit_min_ma
+                if 0 < d1:
+                    if d2 < d1 * self.THRESHOLD_TRAILING_3:
+                        return True
+            """
 
         return False
 
