@@ -24,8 +24,8 @@ class EnvData:
     MAX_TRADE: int = 200
 
     # インジケータのウォームアップ期間（ティック数）
-    PERIOD_WARMUP: int = 110  # doe-065
-    # PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
+    # PERIOD_WARMUP: int = 110  # doe-065
+    PERIOD_WARMUP: int = 30  # 1分に変更（エントリを推奨するものではない）
     WIDTH_BAND = 5  # バンド幅
 
     # === 移動平均 ===
@@ -36,7 +36,10 @@ class EnvData:
     # 移動平均線２の期間
     PERIOD_MA_2: int = 2600
     # ATRの期間
-    PERIOD_ATR: int = 60
+    PERIOD_ATR: int = 30
+    # ATR 上限
+    ATR_UPPER: float = 2
+    ATR_LOWER: float = 0
 
     # 毎回、傾きの算出をするかどうかのフラグ
     FLAG_SLOPE: bool = False
@@ -238,7 +241,6 @@ class EnvData:
         観測空間の算出
         :return:
         """
-        '''
         self.ma_gc = self.is_ma_golden_cross()
         self.ma_dc = self.is_ma_dead_cross()
         '''
@@ -249,6 +251,7 @@ class EnvData:
         else:
             # WARMUP 後の最初のエントリ・タイミング
             self.ma_gc, self.ma_dc = self.try_first_entry()
+        '''
 
         self.vwap_gc = self.is_vwap_golden_cross()
         self.vwap_dc = self.is_vwap_dead_cross()
@@ -333,6 +336,10 @@ class EnvData:
     def check_ma_cross(self, cross: CrossStatus) -> bool:
         if not self.status_cross_ma:
             # 「クロス MA エントリ/返済」が有効になっていない場合
+            return False
+
+        if self.ATR_UPPER < self.atr:
+            # 上限より TickATR が大きければエントリしない。
             return False
 
         # 指定方向でクロスしているかどうか？
