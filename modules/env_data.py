@@ -35,10 +35,11 @@ class EnvData:
     PERIOD_MA_1: int = 220
     # 移動平均線２の期間
     PERIOD_MA_2: int = 2600
+
     # ATRの期間
     PERIOD_ATR: int = 30
     # ATR 上限
-    ATR_UPPER: float = 2
+    ATR_UPPER: float = 2.25 # doe-074
     ATR_LOWER: float = 0
 
     # 毎回、傾きの算出をするかどうかのフラグ
