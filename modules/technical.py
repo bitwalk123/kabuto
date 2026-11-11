@@ -814,6 +814,13 @@ class EfficiencyRatio:
 
 class TickATR:
     def __init__(self, size_window: int, value_init: float):
+        """
+        ティックデータ向け ATR
+        :param size_window: int
+            ATR を算出するウィンドウサイズ
+        :param value_init:
+            ATR の初期値
+        """
         if size_window < 1:
             raise ValueError("window_size must be >= 1")
 
