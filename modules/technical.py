@@ -813,11 +813,12 @@ class EfficiencyRatio:
 
 
 class TickATR:
-    def __init__(self, window_size: int):
-        if window_size < 1:
+    def __init__(self, size_window: int, value_init: float):
+        if size_window < 1:
             raise ValueError("window_size must be >= 1")
 
-        self.window_size = window_size
+        self.size_window = size_window
+        self.value_init = value_init  # 初期値
         self.prev_price = None
 
         # 内部計算用
@@ -848,7 +849,7 @@ class TickATR:
         # 初回は基準価格を設定するだけ
         if self.prev_price is None:
             self.prev_price = value
-            return 2.0  # EMA と連携するため
+            return self.value_init  # 初期値
 
         # True Range
         tr = abs(value - self.prev_price)
@@ -862,15 +863,15 @@ class TickATR:
             self.running_sum += tr
             self.count += 1
 
-            if self.count < self.window_size:
-                return 2.0  # EMA と連携するため
+            if self.count < self.size_window:
+                return self.value_init  # 初期値
 
-            self._atr = self.running_sum / self.window_size
+            self._atr = self.running_sum / self.size_window
             self.is_initialized = True
 
         else:
             # Wilder 方式
-            self._atr += (tr - self._atr) / self.window_size
+            self._atr += (tr - self._atr) / self.size_window
 
         self.atr = self._atr
         return self.atr

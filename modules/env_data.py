@@ -39,7 +39,7 @@ class EnvData:
     # ATRの期間
     PERIOD_ATR: int = 30
     # ATR 上限
-    ATR_UPPER: float = 2.25 # doe-074
+    ATR_UPPER: float = 2.25  # doe-074
     ATR_LOWER: float = 0
 
     # 毎回、傾きの算出をするかどうかのフラグ
@@ -207,7 +207,7 @@ class EnvData:
 
         self.obj_vwap = VWAP()
         self.obj_ptc = PriceTrendCounter()
-        self.obj_atr = TickATR(self.PERIOD_ATR)
+        self.obj_atr = TickATR(self.PERIOD_ATR, self.ATR_UPPER)
 
     def print_param(self):
         # ====== パラメータ ======
