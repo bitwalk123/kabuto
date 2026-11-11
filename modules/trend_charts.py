@@ -30,6 +30,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_LAST_DOT = (0, 255, 0, 255)
     COLOR_LONG = (255, 100, 100, 255)  # 明度を上げたサーモンピンク寄りの赤
     COLOR_SHORT = (100, 200, 255, 255)  # 純粋な青に緑と白を少し混ぜたシアン（水色）寄りの青
+    COLOR_ATR = (192, 192, 0, 255)
     COLOR_LAST_MOM = (255, 255, 0, 255)
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
@@ -58,26 +59,24 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.setLabel("left", "Price")
 
         # Momentumチャート（二段）- CustomYAxisItem2 を適用
-        self.plot_ptc = self.addPlot(
+        self.plot_atr = self.addPlot(
             row=1, col=0,
             axisItems={
                 "left": CustomYAxisItem2(orientation="left"),
                 "bottom": pg.DateAxisItem(orientation="bottom")
             }
         )
-        # self.plot_mom.setRange(yRange=(0, 1), padding=0)
-        # self.plot_ptc.setRange(yRange=(0, 10))
-        self.plot_ptc.setLabel("left", "PTC")
-        self.plot_ptc.getAxis("left").enableAutoSIPrefix(False)
+        self.plot_atr.setLabel("left", "ATR")
+        self.plot_atr.getAxis("left").enableAutoSIPrefix(False)
         # X軸を連動させる
-        self.plot_ptc.setXLink(self.plot_price)
+        self.plot_atr.setXLink(self.plot_price)
 
         # プロットの設定
         self._config_plot_items()
 
         # グリッドの縦線
         pen = pg.mkPen((255, 255, 255, 255), width=0.5)
-        for plot_item in [self.plot_price, self.plot_ptc]:
+        for plot_item in [self.plot_price, self.plot_atr]:
             plot_item.showGrid(x=False, y=True)
             for ts in dict_ts["grid"]:
                 line = pg.InfiniteLine(
@@ -127,23 +126,9 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.vline_dead.setZValue(30)
         self.plot_price.addItem(self.vline_dead)
 
-        # PTC
-        self.count_high = self.plot_ptc.plot(pen=pg.mkPen(self.COLOR_LONG, width=0.75), name="count high")
-        self.count_high.setZValue(50)
-
-        self.count_low = self.plot_ptc.plot(pen=pg.mkPen(self.COLOR_SHORT, width=0.75), name="count low")
-        self.count_low.setZValue(50)
-
-        """
-        # 最新値を示すドット（モメンタム, ER）
-        self.last_mom = pg.ScatterPlotItem(
-            size=self.SIZE_LAST_DOT,
-            brush=pg.mkBrush(self.COLOR_LAST_MOM),
-            pen=None
-        )
-        self.last_mom.setZValue(100)
-        self.plot_ptc.addItem(self.last_mom)
-        """
+        # ATR
+        self.atr = self.plot_atr.plot(pen=pg.mkPen(self.COLOR_ATR, width=1), name="atr")
+        self.atr.setZValue(50)
 
     def _config_plot_items(self) -> None:
         self.ci.layout.setSpacing(0)
@@ -153,17 +138,18 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # x軸範囲（ザラ場時間に固定）
         self.plot_price.setXRange(self.dict_ts["start"], self.dict_ts["end"])
 
-        # y軸範囲（Momentum）
+        # y軸範囲（ATR）
         # self.plot_mom.setYRange(-1, 1)
+        self.plot_atr.getViewBox().setLimits(yMin=0)
 
         # x軸ラベルをフッターとして扱う（日付と設定パラメータ）
         footer = get_trend_footer(self.dict_ts, self.dict_setting)
-        self.plot_ptc.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
+        self.plot_atr.setLabel(axis="bottom", text=trend_label_html(footer, size=7))
         # x軸の余白を設定
-        self.plot_ptc.getAxis('bottom').setHeight(26)
+        self.plot_atr.getAxis('bottom').setHeight(26)
 
         # for plot_item in [self.plot_price, self.plot_rsi, self.plot_mom]:
-        for plot_item in [self.plot_price, self.plot_ptc]:
+        for plot_item in [self.plot_price, self.plot_atr]:
             # フォントの設定
             plot_item.getAxis('bottom').setStyle(tickFont=self.res.name_tick_font)
             plot_item.getAxis('left').setStyle(tickFont=self.res.name_tick_font)
@@ -189,12 +175,6 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         # 最新値
         self.last_dot.setData(x, y)
 
-    """
-    def setMom(self, x: list[float], y: list[float]) -> None:
-        # 最新値（モメンタム）
-        self.last_mom.setData(x, y)
-    """
-
     def setEvenLine(self, price: float) -> None:
         self.even_line.setPos(price)
         if price == 0.0:
@@ -207,14 +187,12 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         data_ma_1 = dict_lines["ma_1"]
         data_ma_2 = dict_lines["ma_2"]
         data_vwap = dict_lines["vwap"]
-        data_count_high = dict_lines["count_high"]
-        data_count_low = dict_lines["count_low"]
+        data_atr = dict_lines["atr"]
 
         self.ma_1.setData(data_ts, data_ma_1)
         self.ma_2.setData(data_ts, data_ma_2)
         self.vwap.setData(data_ts, data_vwap)
-        self.count_high.setData(data_ts, data_count_high)
-        self.count_low.setData(data_ts, data_count_low)
+        self.atr.setData(data_ts, data_atr)
 
     def setTrendTitle(self, title: str) -> None:
         self.plot_price.setTitle(trend_label_html(title, size=9))
