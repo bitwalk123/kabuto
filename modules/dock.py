@@ -10,7 +10,7 @@ from modules.panel import (
 from structs.res import AppRes
 from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle
+from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
 
 
 class DockTrader(DockWidget):
@@ -41,8 +41,11 @@ class DockTrader(DockWidget):
         # 現在株価（表示）
         self.price = price = LCDValueWithTitle("現在株価")
         self.layout.addWidget(price)
+        # 短周期移動平均（表示）
+        self.ma1 = ma1 = LCDValueWithTitle("MA1")
+        self.layout.addWidget(ma1)
         # 長周期移動平均（表示）
-        self.ma2 = ma2 = LCDValueWithTitle("移動平均")
+        self.ma2 = ma2 = LCDValueWithTitle("MA2")
         self.layout.addWidget(ma2)
         # VWAP（表示）
         self.vwap = vwap = LCDValueWithTitle("VWAP")
@@ -53,6 +56,12 @@ class DockTrader(DockWidget):
         # 合計収益（表示）
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
+        # MA含み損益（表示）
+        self.profit_ma = profit_ma = LCDValueWithTitle("MA含み損益")
+        self.layout.addWidget(profit_ma)
+        # トレーリング・タイプ（表示）
+        self.type_trail = type_trail = LCDIntWithTitle("Trail")
+        self.layout.addWidget(type_trail)
 
         # ---------------------------------------------------------------------
         # オプション・パネル
@@ -174,9 +183,17 @@ class DockTrader(DockWidget):
         """
         self.price.setValue(price)
 
+    def setMA1(self, ma1: float) -> None:
+        """
+        MA2を表示
+        :param ma1:
+        :return:
+        """
+        self.ma1.setValue(ma1)
+
     def setMA2(self, ma2: float) -> None:
         """
-        VWAPを表示
+        MA2を表示
         :param ma2:
         :return:
         """

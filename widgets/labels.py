@@ -213,7 +213,7 @@ class LCDValueWithTitle(Widget):
         self.setLayout(layout)
         # title
         lab_title = LabelTitle(title)
-        lab_title.setFixedWidth(80)
+        lab_title.setFixedWidth(110)
         layout.addWidget(lab_title)
         # LCD
         self.lcd_value = lcd_value = LCDNumber(self)
@@ -233,6 +233,18 @@ class LCDValueWithTitle(Widget):
         :return:
         """
         self.lcd_value.display(f"{value:.1f}")
+
+class LCDValueWithTitle2(LCDValueWithTitle):
+    def __init__(self, title: str):
+        super().__init__(title)
+
+    def setValue(self, value: float):
+        """
+        LCD に数値を表示
+        :param value:
+        :return:
+        """
+        self.lcd_value.display(f"{value:.0f}")
 
 
 class LCDIntWithTitle(Widget):

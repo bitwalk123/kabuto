@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 
 
 class ActionType(Enum):
@@ -57,3 +57,13 @@ class TradeType(Enum):
     LOSS1 = auto()
     LOSS2 = auto()
     DD_PROFIT = auto()
+
+
+class TrailType(IntEnum):
+    """
+    トレーリング・ストップのタイプ
+    """
+    NONE = 0
+    PRIMARY = 1  # 一段目
+    SEONDARTY = 2  # 二段目
+    THIRD = 3  # 三段目（ロスカット）

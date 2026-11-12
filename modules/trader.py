@@ -292,6 +292,7 @@ class Trader(QMainWindow):
 
         # ドックの表示を更新
         self.dock.setVWAP(vwap)
+        self.dock.setMA1(ma1)
         self.dock.setMA2(ma2)
 
     def on_trading_completed(self) -> None:
