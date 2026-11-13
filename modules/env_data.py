@@ -459,11 +459,11 @@ class EnvData:
 
         self.profit = dict_info["profit"]
         # 移動平均線ベースの含み益
-        # dict_info["price"]: 建玉の株価
+        # dict_info["ma1"]: MA1における建玉の株価
         if self.position == PositionType.LONG:
-            self.profit_ma = ma1 - dict_info["price"]
+            self.profit_ma = ma1 - dict_info["ma1"]
         elif self.position == PositionType.SHORT:
-            self.profit_ma = dict_info["price"] - ma1
+            self.profit_ma = dict_info["ma1"] - ma1
         else:
             self.profit_ma = 0
 
@@ -570,9 +570,11 @@ class EnvData:
         if self.status_profit_trailing:
             if self.START_TRAILING <= self.profit_max_ma:
                 if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING:
+                    # print("DEBUG1!", self.START_TRAILING, self.profit_max_ma, self.profit_ma, self.profit_max_ma * self.THRESHOLD_TRAILING)
                     return True
             elif self.START_TRAILING_2 <= self.profit_max_ma:
                 if self.profit_ma < self.profit_max_ma * self.THRESHOLD_TRAILING_2:
+                    # print("DEBUG2!")
                     return True
             """
             else:

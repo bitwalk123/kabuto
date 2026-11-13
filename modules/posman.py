@@ -12,6 +12,7 @@ class PositionManager:
         self.slippage = 1
 
         self.dict_price: dict[str, float] = {}
+        self.dict_ma1: dict[str, float] = {}
         self.dict_total: dict[str, float] = {}
         self.dict_action: dict[str, ActionType] = {}
         self.dict_position: dict[str, PositionType] = {}
@@ -31,6 +32,7 @@ class PositionManager:
     def initPosition(self, list_code: list[str]) -> None:
         for code in list_code:
             self.dict_price[code] = 0.0  # 建玉取得時の株価
+            self.dict_ma1[code] = 0.0  # 建玉取得時のMA1の値
             self.dict_total[code] = 0.0  # 銘柄毎の収益
             self.dict_action[code] = ActionType.HOLD
             self.dict_position[code] = PositionType.NONE
@@ -39,16 +41,26 @@ class PositionManager:
         return {
             "position": self.dict_position[code],
             "price": self.dict_price[code],
+            "ma1": self.dict_ma1[code],
             "profit": self.getProfit(code, price),
             "total": self.getTotal(code),
         }
 
-    def openPosition(self, code: str, ts: float, price: float, action: ActionType, note: str = "") -> PositionType:
+    def openPosition(
+            self,
+            code: str,
+            ts: float,
+            price: float,
+            ma1: float,
+            action: ActionType,
+            note: str = ""
+    ) -> PositionType:
         """
         ポジションをオープン（建玉取得）
         :param code:
         :param ts:
         :param price:
+        :param ma1:
         :param action:
         :param note:
         :return:
@@ -64,10 +76,12 @@ class PositionManager:
         self.records["銘柄コード"].append(code)
         if action == ActionType.BUY:
             self.dict_price[code] = price + self.slippage
+            self.dict_ma1[code] = ma1
             self.records["売買"].append("買建")
             position = PositionType.LONG
         elif action == ActionType.SELL:
             self.dict_price[code] = price - self.slippage
+            self.dict_ma1[code] = ma1
             self.records["売買"].append("売建")
             position = PositionType.SHORT
         else:
@@ -131,6 +145,7 @@ class PositionManager:
 
         # 売買状態のリセット
         self.dict_price[code] = 0.0
+        self.dict_ma1[code] = 0.0
         self.dict_action[code] = ActionType.HOLD
 
         return position

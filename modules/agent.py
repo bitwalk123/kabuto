@@ -60,6 +60,8 @@ class WorkerAgent(QObject):
 
         # モデルによる行動予測
         action, states = self.model.predict(obs, action_masks=masks)
+        #states["ma1"] = dict_technicals["ma1"]  # MA1 情報を PosMan へ渡すため
+        #print("MA1", dict_technicals["ma1"])
 
         # メイン・スレッドへ通知する発注アクション
         position: PositionType = self.env.getCurrentPosition()
@@ -213,6 +215,7 @@ class SimulatorAgent():
 
         # モデルによる行動予測
         action, states = self.model.predict(obs, action_masks=masks)
+        states["ma1"] = dict_technicals["ma1"]  # MA1 情報を PosMan へ渡すため
 
         # 現在ポジションの取得
         position: PositionType = self.env.getCurrentPosition()

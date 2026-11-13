@@ -79,14 +79,19 @@ class Simulator():
                 note = states["reason"]
             else:
                 note = ""
+            if "ma1" in states:
+                ma1 = states["ma1"]
+            else:
+                ma1 = price
+
             if action_type != ActionType.HOLD:
                 if position == PositionType.NONE:
                     if action_type == ActionType.BUY:
                         # 買建
-                        self.posman.openPosition(self.code, ts, price, ActionType.BUY, note)
+                        self.posman.openPosition(self.code, ts, price, ma1, ActionType.BUY, note)
                     elif action_type == ActionType.SELL:
                         # 売建
-                        self.posman.openPosition(self.code, ts, price, ActionType.SELL, note)
+                        self.posman.openPosition(self.code, ts, price, ma1, ActionType.SELL, note)
                 else:
                     # 返済
                     self.posman.closePosition(self.code, ts, price, note)

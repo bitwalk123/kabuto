@@ -72,9 +72,12 @@ class Kabuto(QMainWindow):
     requestStopProcess = Signal()
 
     # 売買
-    requestBuy = Signal(str, float, float, str)
-    requestSell = Signal(str, float, float, str)
+    # code: str, ts: float, price: float, note: str
+    requestBuy = Signal(str, float, float, float, str)
+    requestSell = Signal(str, float, float, float, str)
+    # 返済
     requestRepay = Signal(str, float, float, str)
+    # 取引明細
     requestTransactionResult = Signal()
 
     # このスレッドが開始されたことを通知するシグナル（デバッグ用など）
@@ -112,17 +115,11 @@ class Kabuto(QMainWindow):
         """データ構造の初期化"""
         # スレッド/ワーカー
         self.thread = QThread(self)
-        # self.worker = None
 
         # Trader 関連
-        # self.trader = None
         self.dict_trader = {}
         self.list_code = []
         self.list_code_selected = []
-
-        # 取引履歴
-        # self.df_transaction = None
-        # self.win_transaction = None
 
         # 時刻関連
         self.ts_system = 0.0
@@ -571,16 +568,16 @@ class Kabuto(QMainWindow):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    def on_buy(self, code: str, price: float, note: str) -> None:
+    def on_buy(self, code: str, price: float, ma1:float, note: str) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建リクエストのシグナル
-        self.requestBuy.emit(code, self.ts_system, price, note)
+        self.requestBuy.emit(code, self.ts_system, price, ma1, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    def on_sell(self, code: str, price: float, note: str) -> None:
+    def on_sell(self, code: str, price: float, ma1:float, note: str) -> None:
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建リクエストのシグナル
-        self.requestSell.emit(code, self.ts_system, price, note)
+        self.requestSell.emit(code, self.ts_system, price, ma1, note)
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     def on_repay(self, code: str, price: float, note: str) -> None:

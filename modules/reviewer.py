@@ -131,18 +131,18 @@ class ExcelReviewWorker(QObject):
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
     # 取引ボタンがクリックされた時の処理
     # _/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_/_
-    @Slot(str, float, float, str)
-    def macro_do_buy(self, code: str, ts: float, price: float, note: str) -> None:
+    @Slot(str, float, float, float, str)
+    def macro_do_buy(self, code: str, ts: float, price: float, ma1: float, note: str) -> None:
         time.sleep(0.2)
         # 買建で新規建玉
-        self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+        self.posman.openPosition(code, ts, price, ma1, ActionType.BUY, note)
         self.sendResult.emit(code, price)
 
-    @Slot(str, float, float, str)
-    def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
+    @Slot(str, float, float, float, str)
+    def macro_do_sell(self, code: str, ts: float, price: float, ma1: float, note: str) -> None:
         time.sleep(0.2)
         # 売建で新規建玉
-        self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+        self.posman.openPosition(code, ts, price, ma1, ActionType.SELL, note)
         self.sendResult.emit(code, price)
 
     @Slot(str, float, float, str)

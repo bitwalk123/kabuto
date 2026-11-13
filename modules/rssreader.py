@@ -312,8 +312,8 @@ class RSSReaderWorker(QObject):
         except Exception as e:
             self.logger.exception(f"Unexpected error in ClearLogs: {e}")
 
-    @Slot(str, float, float, str)
-    def macro_do_buy(self, code: str, ts: float, price: float, note: str) -> None:
+    @Slot(str, float, float, float, str)
+    def macro_do_buy(self, code: str, ts: float, price: float, ma1: float, note: str) -> None:
         try:
             result = self.do_buy(code)
             self.logger.info(f"DoBuy returned {result}")
@@ -336,13 +336,13 @@ class RSSReaderWorker(QObject):
         # 約定確認
         if self.confirm_execution(code, expected_state):
             # 買建で新規建玉
-            self.posman.openPosition(code, ts, price, ActionType.BUY, note)
+            self.posman.openPosition(code, ts, price, ma1, ActionType.BUY, note)
             self.sendResult.emit(code, price)
         else:
             self.sendResult.emit(code, 0.0)
 
-    @Slot(str, float, float, str)
-    def macro_do_sell(self, code: str, ts: float, price: float, note: str) -> None:
+    @Slot(str, float, float, float, str)
+    def macro_do_sell(self, code: str, ts: float, price: float, ma1: float, note: str) -> None:
         try:
             result = self.do_sell(code)
             self.logger.info(f"DoSell returned {result}")
@@ -364,7 +364,7 @@ class RSSReaderWorker(QObject):
         # 約定確認
         if self.confirm_execution(code, expected_state):
             # 売建で新規建玉
-            self.posman.openPosition(code, ts, price, ActionType.SELL, note)
+            self.posman.openPosition(code, ts, price, ma1, ActionType.SELL, note)
             self.sendResult.emit(code, price)
         else:
             self.sendResult.emit(code, 0.0)

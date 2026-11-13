@@ -10,12 +10,12 @@ from modules.panel import (
 from structs.res import AppRes
 from widgets.dialogs import DlgRepair
 from widgets.docks import DockWidget
-from widgets.labels import LCDValueWithTitle, LCDIntWithTitle
+from widgets.labels import LCDValueWithTitle, LCDValueWithTitle2
 
 
 class DockTrader(DockWidget):
-    clickedBuy = Signal(str, float, str)
-    clickedSell = Signal(str, float, str)
+    clickedBuy = Signal(str, float, float, str)
+    clickedSell = Signal(str, float, float, str)
     clickedRepay = Signal(str, float, str)
     clickedSave = Signal()
     clickedSetting = Signal()
@@ -56,12 +56,15 @@ class DockTrader(DockWidget):
         # 合計収益（表示）
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
+        # トレーリング・タイプ（表示）
+        self.type_trail = type_trail = LCDValueWithTitle2("Trail type")
+        self.layout.addWidget(type_trail)
         # MA含み損益（表示）
         self.profit_ma = profit_ma = LCDValueWithTitle("MA含み損益")
         self.layout.addWidget(profit_ma)
-        # トレーリング・タイプ（表示）
-        self.type_trail = type_trail = LCDIntWithTitle("Trail")
-        self.layout.addWidget(type_trail)
+        # MA含み損益（表示）
+        self.profit_take_ma = profit_take_ma = LCDValueWithTitle("MA利確Level")
+        self.layout.addWidget(profit_take_ma)
 
         # ---------------------------------------------------------------------
         # オプション・パネル
@@ -113,7 +116,12 @@ class DockTrader(DockWidget):
             self.note = "手動で買建"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 買建ボタンがクリックされたことを通知
-        self.clickedBuy.emit(self.code, self.price.getValue(), self.note)
+        self.clickedBuy.emit(
+            self.code,
+            self.price.getValue(),
+            self.ma1.getValue(),
+            self.note,
+        )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.note = ""
 
@@ -126,7 +134,12 @@ class DockTrader(DockWidget):
             self.note = "手動で売建"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 売建ボタンがクリックされたことを通知
-        self.clickedSell.emit(self.code, self.price.getValue(), self.note)
+        self.clickedSell.emit(
+            self.code,
+            self.price.getValue(),
+            self.ma1.getValue(),
+            self.note,
+        )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.note = ""
 
@@ -139,7 +152,11 @@ class DockTrader(DockWidget):
             self.note = "手動で返済"
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # 🧿 返済ボタンがクリックされたことを通知
-        self.clickedRepay.emit(self.code, self.price.getValue(), self.note)
+        self.clickedRepay.emit(
+            self.code,
+            self.price.getValue(),
+            self.note,
+        )
         # +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         self.note = ""
 
