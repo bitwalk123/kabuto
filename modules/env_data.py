@@ -61,11 +61,13 @@ class EnvData:
     START_TRAILING: float = 60  # doe-078
     # トレーリング・ストップのしきい値比
     THRESHOLD_TRAILING: float = 0.97  # doe-078
+
     # トレーリング・ストップを開始する最大含み益 (2)
-    START_TRAILING_2: float = 15  # doe-067
+    START_TRAILING_2: float = 25  # doe-079
     # トレーリング・ストップのしきい値比 (2)
-    THRESHOLD_TRAILING_2: float = 0.5  # doe-067
+    THRESHOLD_TRAILING_2: float = 0.5  # doe-079
     # トレーリング・ストップのしきい値比 (3)
+
     THRESHOLD_TRAILING_3: float = 0.5
     # トレーリング・ストップのタイプ
     type_trail: TrailType = TrailType.NONE
