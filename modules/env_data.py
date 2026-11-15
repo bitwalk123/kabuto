@@ -318,14 +318,11 @@ class EnvData:
             # 「クロス MA エントリ/返済」が有効になっていない場合
             return False, False
 
-        # ######################################################
-        # self.price の代わりに self.vwap を用いた方が安全か、要確認！！
-        # ######################################################
-        if self.ma2 < self.ma1 < self.price:
+        if self.ma2 < self.ma1 < self.vwap:
             # MA ゴールデン・クロスとして扱う
             return True, False
 
-        if self.price < self.ma1 < self.ma2:
+        if self.vwap < self.ma1 < self.ma2:
             # MA デッド・クロスとして扱う
             return False, True
 
