@@ -56,6 +56,7 @@ class DockTrader(DockWidget):
         # 合計収益（表示）
         self.total = total = LCDValueWithTitle("合計収益")
         self.layout.addWidget(total)
+        '''
         # トレーリング・タイプ（表示）
         self.type_trail = type_trail = LCDValueWithTitle2("Trail type")
         self.layout.addWidget(type_trail)
@@ -65,6 +66,7 @@ class DockTrader(DockWidget):
         # MA含み損益（表示）
         self.profit_take_ma = profit_take_ma = LCDValueWithTitle("MA利確Level")
         self.layout.addWidget(profit_take_ma)
+        '''
 
         # ---------------------------------------------------------------------
         # オプション・パネル
