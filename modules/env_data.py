@@ -32,9 +32,9 @@ class EnvData:
     TYPE_MA_1: str = "EMA"
     TYPE_MA_2: str = "EMA"
     # 移動平均線１の期間
-    PERIOD_MA_1: int = 220
+    PERIOD_MA_1: int = 240
     # 移動平均線２の期間
-    PERIOD_MA_2: int = 2600
+    PERIOD_MA_2: int = 2400
 
     # ATRの期間
     PERIOD_ATR: int = 30
