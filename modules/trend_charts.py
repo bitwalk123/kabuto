@@ -23,7 +23,7 @@ class CustomYAxisItem2(pg.AxisItem):
 class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_MA_1 = (0, 255, 0, 192)
     COLOR_MA_2 = (255, 192, 0, 192)
-    COLOR_VWAP = (192, 0, 128, 192)
+    COLOR_VWAP = (255, 0, 176, 192)
     COLOR_GOLDEN = (255, 0, 255, 220)
     COLOR_DEAD = (0, 192, 255, 220)
     COLOR_EVEN = (255, 192, 0, 255)
