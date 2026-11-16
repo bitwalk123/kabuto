@@ -30,7 +30,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_LAST_DOT = (0, 255, 0, 255)
     COLOR_LONG = (255, 100, 100, 255)  # 明度を上げたサーモンピンク寄りの赤
     COLOR_SHORT = (100, 200, 255, 255)  # 純粋な青に緑と白を少し混ぜたシアン（水色）寄りの青
-    COLOR_ATR = (255, 191, 0, 255)
+    COLOR_ATR = (255, 191, 0, 192)
     COLOR_LAST_MOM = (255, 255, 0, 255)
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
@@ -127,7 +127,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
         self.plot_price.addItem(self.vline_dead)
 
         # ATR
-        self.atr = self.plot_atr.plot(pen=pg.mkPen(self.COLOR_ATR, width=1), name="atr")
+        self.atr = self.plot_atr.plot(pen=pg.mkPen(self.COLOR_ATR, width=0.75), name="atr")
         self.atr.setZValue(50)
 
     def _config_plot_items(self) -> None:
