@@ -30,7 +30,7 @@ class TrendCharts(pg.GraphicsLayoutWidget):
     COLOR_LAST_DOT = (0, 255, 0, 255)
     COLOR_LONG = (255, 100, 100, 255)  # 明度を上げたサーモンピンク寄りの赤
     COLOR_SHORT = (100, 200, 255, 255)  # 純粋な青に緑と白を少し混ぜたシアン（水色）寄りの青
-    COLOR_ATR = (192, 192, 0, 255)
+    COLOR_ATR = (255, 191, 0, 255)
     COLOR_LAST_MOM = (255, 255, 0, 255)
     COLOR_ZERO = (255, 192, 192, 255)
     SIZE_LAST_DOT = 4
